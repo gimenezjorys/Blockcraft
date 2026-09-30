@@ -115,17 +115,47 @@
   h1,h2,h3{font-family:var(--font-display); margin:0; letter-spacing:.2px;}
 
   /* ---------- HOME ---------- */
-  #screen-home{align-items:center; justify-content:center; text-align:center; gap:26px;}
+  #screen-home{align-items:center; justify-content:center; text-align:center; gap:16px; padding-top:70px;}
+  .home-stats{
+    display:flex; gap:16px; justify-content:center; align-items:center;
+    font-family:var(--font-display); font-weight:800; font-size:15px; color:var(--gold);
+    background:var(--surface); border:1px solid var(--tile-line); border-radius:999px; padding:7px 18px;
+  }
+  .home-stats span{white-space:nowrap;}
+  .btn-play{flex-direction:column; gap:0; padding:12px 30px; max-width:320px;}
+  .bp-main{font-size:20px; letter-spacing:.5px;}
+  .bp-sub{font-family:var(--font-body); font-size:13px; font-weight:800; opacity:.8;}
+  .home-cards{display:flex; flex-direction:column; gap:10px; width:100%; max-width:320px;}
+  .home-card{
+    display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer;
+    background:var(--surface); color:var(--cream); border:1.5px solid var(--tile-line);
+    border-radius:18px; padding:11px 14px; font-family:var(--font-body);
+    transition:transform .12s ease, border-color .2s ease;
+  }
+  .home-card:active{transform:scale(.97);}
+  .home-card.todo{border-color:var(--seed); box-shadow:0 6px 16px -10px rgba(240,168,60,.55);}
+  .home-card.locked{opacity:.72;}
+  .hc-icon{font-size:24px; flex:none; width:30px; text-align:center;}
+  .hc-text{display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;}
+  .hc-name{font-family:var(--font-display); font-weight:800; font-size:16px;}
+  .hc-sub{font-size:12px; font-weight:700; color:var(--cream-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .hc-badge{
+    flex:none; font-size:11px; font-weight:800; border-radius:999px; padding:4px 9px;
+    background:var(--surface-2); color:var(--cream-dim); border:1px solid var(--tile-line);
+  }
+  .hc-badge:empty{display:none;}
+  .home-card.todo .hc-badge{background:linear-gradient(155deg, var(--seed-light), var(--seed)); color:#2a1a06; border-color:transparent;}
+  .home-card.done .hc-badge{color:var(--gold); border-color:rgba(255,209,102,.5);}
   .logo-wrap{display:flex; flex-direction:column; align-items:center; gap:10px;}
   .logo-mark{
-    width:84px; height:84px; border-radius:26px;
+    width:64px; height:64px; border-radius:20px;
     background:linear-gradient(155deg, var(--seed-light), var(--seed) 60%, #c97e1f 100%);
     box-shadow:0 10px 24px -6px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.35);
     display:flex; align-items:center; justify-content:center;
     position:relative;
   }
   .logo-mark::after{
-    content:""; position:absolute; inset:14px; border-radius:14px;
+    content:""; position:absolute; inset:11px; border-radius:11px;
     background:var(--goal); opacity:.9;
     box-shadow:0 0 18px 4px rgba(245,230,168,.55);
     animation:breathe 2.6s ease-in-out infinite;
@@ -161,21 +191,6 @@
     color:var(--gold); display:flex; align-items:center; gap:6px;
   }
 
-  .continue-card{
-    width:100%; max-width:280px; background:var(--surface-2); border:1.5px solid var(--seed);
-    border-radius:16px; padding:12px 18px; cursor:pointer; text-align:left;
-    display:flex; flex-direction:column; gap:2px; font-family:var(--font-body);
-    box-shadow:0 6px 16px -8px rgba(240,168,60,.35);
-  }
-  .continue-card:active{ transform:scale(.97); }
-  .continue-lbl{
-    font-size:11px; color:var(--cream-dim); font-weight:700;
-    text-transform:uppercase; letter-spacing:.5px;
-  }
-  .continue-name{ font-family:var(--font-display); font-weight:800; font-size:16px; color:var(--gold); }
-  .continue-card.all-done{ cursor:default; border-color:var(--tile-line); box-shadow:none; }
-  .continue-card.all-done:active{ transform:none; }
-  .continue-card.all-done .continue-name{ color:var(--cream); }
 
   /* ---------- HEADER (in-game screens) ---------- */
   .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
@@ -487,7 +502,8 @@
     100%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
   }
 
-  .footer-controls{display:flex; justify-content:center; gap:10px; margin-top:6px; flex-wrap:wrap;}
+  .footer-controls{display:flex; justify-content:center; gap:8px; margin-top:6px; flex-wrap:wrap;}
+  .footer-controls .hint-btn{padding:11px 16px; font-size:14px;}
   .hint-btn:disabled{opacity:.4; cursor:default; transform:none;}
   .undo-btn{color:var(--cream);}
   .undo-btn.attention{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.3); animation:attentionPulse 1.4s ease-in-out infinite;}
@@ -625,6 +641,81 @@
   .reward-chip.unlock{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.2);}
   .reward-chip.streak{border-color:rgba(224,101,79,.6);}
   @keyframes rewardIn{from{opacity:0; transform:translateY(6px) scale(.94);} to{opacity:1; transform:translateY(0) scale(1);}}
+  /* ---------- LE SENTIER ---------- */
+  .sentier-bar{
+    display:flex; justify-content:space-between; gap:6px; margin:-6px 0 10px;
+    background:linear-gradient(155deg, var(--surface-2), var(--surface));
+    border:1px solid var(--tile-line); border-radius:16px; padding:8px 12px;
+  }
+  .sb-item{display:flex; flex-direction:column; align-items:center; gap:0; min-width:54px;}
+  .sb-lbl{font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--cream-dim);}
+  .sb-item b{font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--cream); line-height:1.1;}
+  .sb-mult b{color:var(--gold);}
+  .sb-mult.hot b{animation:multPulse .5s ease;}
+  @keyframes multPulse{0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);}}
+  .sb-clock.low b{color:var(--danger); animation:clockLow 1s ease-in-out infinite;}
+  @keyframes clockLow{0%,100%{opacity:1;} 50%{opacity:.55;}}
+  .sb-clock.bonus b{color:#9ad48a;}
+  .board-float{
+    position:absolute; left:50%; top:46%; transform:translate(-50%,-50%);
+    font-family:var(--font-display); font-weight:800; font-size:26px; color:var(--gold);
+    text-shadow:0 2px 10px rgba(0,0,0,.6); pointer-events:none; white-space:nowrap; z-index:6;
+    animation:floatUp .9s ease forwards; text-align:center; line-height:1.15;
+  }
+  .board-float small{display:block; font-size:15px; color:var(--cream);}
+  .board-float.meh{color:var(--cream);}
+  @keyframes floatUp{
+    0%{opacity:0; transform:translate(-50%,-30%) scale(.8);}
+    20%{opacity:1; transform:translate(-50%,-50%) scale(1.08);}
+    75%{opacity:1; transform:translate(-50%,-62%) scale(1);}
+    100%{opacity:0; transform:translate(-50%,-75%) scale(.96);}
+  }
+  #board.board-exit #overlay, #board.board-exit #cellGrid{opacity:.25; transition:opacity .25s ease;}
+
+  #screen-sentier{gap:14px;}
+  .sentier-hero{display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;}
+  .sentier-hero-art{
+    width:100%; height:92px; border-radius:18px; border:1px solid var(--tile-line);
+    background:
+      radial-gradient(circle at 18% 70%, rgba(255,209,102,.9) 0 5px, transparent 6px),
+      radial-gradient(circle at 82% 30%, rgba(245,230,168,.95) 0 7px, rgba(245,230,168,.25) 12px, transparent 16px),
+      linear-gradient(100deg, transparent 0 12%, rgba(154,212,138,.18) 12% 88%, transparent 88%),
+      repeating-linear-gradient(90deg, var(--tile) 0 22px, var(--surface-2) 22px 26px),
+      var(--bg-deep);
+    box-shadow:inset 0 2px 12px rgba(0,0,0,.45);
+  }
+  .sentier-pitch{margin:0; font-size:14px; font-weight:700; color:var(--cream-dim); line-height:1.45; max-width:340px;}
+  .sentier-pitch b{color:var(--cream);}
+  .sentier-modes{display:flex; flex-direction:column; gap:10px;}
+  .mode-card{
+    display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer;
+    background:linear-gradient(155deg, var(--surface-2), var(--surface)); color:var(--cream);
+    border:1.5px solid var(--seed); border-radius:18px; padding:14px 14px;
+    font-family:var(--font-body); box-shadow:0 8px 18px -10px rgba(240,168,60,.45);
+    transition:transform .12s ease;
+  }
+  .mode-card:active{transform:scale(.98);}
+  .mode-card.zen{border-color:var(--oneway-deep); box-shadow:none;}
+  .mc-icon{font-size:28px; flex:none;}
+  .mc-text{display:flex; flex-direction:column; gap:3px; flex:1; min-width:0;}
+  .mc-name{font-family:var(--font-display); font-weight:800; font-size:17px;}
+  .mc-desc{font-size:12px; font-weight:600; color:var(--cream-dim); line-height:1.35;}
+  .mc-best{flex:none; font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--gold); text-align:right; white-space:pre-line; line-height:1.15;}
+  .sentier-locked{
+    display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center;
+    background:var(--surface); border:1.5px dashed var(--tile-line); border-radius:18px; padding:16px;
+  }
+  .sentier-locked .world-bar{width:100%;}
+  .sl-icon{font-size:26px;}
+  .sl-text{font-weight:800; font-size:14px; color:var(--cream);}
+  .sl-count{font-size:12px; font-weight:700; color:var(--cream-dim);}
+
+  #screen-sentierend{align-items:center; justify-content:center; text-align:center; gap:14px;}
+  .sentier-end-head{display:flex; flex-direction:column; align-items:center; gap:2px;}
+  .se-kicker{font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--cream-dim);}
+  .se-score{font-family:var(--font-display); font-weight:800; font-size:64px; color:var(--gold); line-height:1; text-shadow:0 0 24px rgba(255,209,102,.35); animation:corePop .5s ease;}
+  .se-sub{font-size:13px; font-weight:700; color:var(--cream-dim);}
+
   .btn-pair{display:flex; gap:10px; width:100%; max-width:280px;}
   .btn-small{font-size:14px; padding:12px 10px; flex:1;}
   @keyframes starPop{0%{transform:scale(0);} 60%{transform:scale(1.3);} 100%{transform:scale(1);}}
@@ -659,6 +750,40 @@
   .daily-banner .lbl{font-size:12px; color:var(--cream-dim); font-weight:700;}
   .daily-banner .num{font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--gold);}
   .note{font-size:11px; color:var(--cream-dim); text-align:center; margin-top:10px; line-height:1.5;}
+  #screen-dailyresult{gap:12px;}
+  .daily-hero{
+    display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center;
+    background:linear-gradient(155deg, var(--surface-2), var(--surface)); border:1px solid var(--tile-line);
+    border-radius:20px; padding:16px 14px;
+  }
+  .dh-rule{font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--cream-dim);}
+  .dh-stars{font-size:34px; color:var(--gold); letter-spacing:4px; text-shadow:0 0 12px rgba(255,209,102,.45);}
+  .dh-moves{font-family:var(--font-display); font-weight:800; font-size:22px; color:var(--cream);}
+  .dh-par{font-size:13px; font-weight:700; color:var(--cream-dim);}
+  .dh-par b{color:var(--gold);}
+  .week-strip{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+  .week-cell{
+    display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 0;
+    background:var(--surface); border:1px solid var(--tile-line); border-radius:12px;
+  }
+  .week-cell.done{border-color:rgba(255,209,102,.45);}
+  .week-cell.perfect{background:linear-gradient(155deg, rgba(255,209,102,.18), var(--surface));}
+  .week-cell.today{box-shadow:0 0 0 2px var(--seed);}
+  .wc-day{font-size:11px; font-weight:800; color:var(--cream-dim);}
+  .wc-val{font-size:10px; color:var(--gold); min-height:13px; letter-spacing:-1px;}
+  .week-summary{text-align:center; font-size:12px; font-weight:700; color:var(--cream-dim); margin-top:-4px;}
+  .daily-next{text-align:center; font-size:12px; font-weight:700; color:var(--cream-dim);}
+  .freeze-row{
+    display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--tile-line);
+    border-radius:14px; padding:10px 12px;
+  }
+  .fr-text{display:flex; flex-direction:column; gap:2px; flex:1; font-size:11px; color:var(--cream-dim); font-weight:600;}
+  .fr-text b{font-size:13px; color:var(--cream); font-family:var(--font-display);}
+  .share-text-out{
+    width:100%; min-height:92px; resize:none; border-radius:12px; border:1px solid var(--tile-line);
+    background:var(--bg-deep); color:var(--cream); font-family:var(--font-body); font-size:13px; padding:10px;
+    user-select:text;
+  }
   /* Région d'annonce discrète pour les changements de partie. */
   .sr-only{position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important;}
 
@@ -812,18 +937,33 @@
       <div class="title">Block<span>Craft</span> Daily</div>
       <div class="subtitle">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
     </div>
-    <div class="stat-pill" id="homeProgress">⭐ 0 / 0</div>
-    <div class="stat-pill" id="homeStreakPill">🔥 Série : 0 · Record 0</div>
-    <button class="stat-pill" id="homeFreezePill" style="cursor:pointer; border:none;" aria-label="Gels de série disponibles — acheter un gel supplémentaire">🧊 0</button>
-    <div class="stat-pill" id="homeCoinsPill">🪙 0</div>
-    <button class="continue-card" id="btnContinue" style="display:none;" aria-label="Continuer la partie">
-      <div class="continue-lbl" id="continueLabel">Continuer</div>
-      <div class="continue-name" id="continueLevelName">—</div>
-    </button>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="btnPlay">▶ JOUER</button>
-      <button class="btn btn-secondary" id="btnDaily">🌤 DÉFI DU JOUR</button>
+    <div class="home-stats" id="homeStats">
+      <span id="homeProgress" aria-label="Étoiles">⭐ 0 / 0</span>
+      <span id="homeStreakPill" aria-label="Série quotidienne">🔥 0</span>
+      <span id="homeCoinsPill" aria-label="Coins">🪙 0</span>
     </div>
+    <!-- Le Jardin : méta-progression visuelle (section E3), une plante par monde. -->
+    <button class="home-garden" id="homeGarden" aria-label="Ouvrir le Jardin">
+      <span class="hg-plants" id="homeGardenPlants" aria-hidden="true"></span>
+      <span class="hg-caption" id="homeGardenCaption">Ton jardin</span>
+    </button>
+    <button class="btn btn-primary btn-play" id="btnContinue" aria-label="Jouer au prochain niveau">
+      <span class="bp-main">▶ JOUER</span>
+      <span class="bp-sub" id="continueLevelName">Niveau 1 · Le Jardin</span>
+    </button>
+    <div class="home-cards">
+      <button class="home-card" id="btnDaily">
+        <span class="hc-icon" id="homeDailyIcon">🌤</span>
+        <span class="hc-text"><span class="hc-name">Défi du jour</span><span class="hc-sub" id="homeDailyStatus">—</span></span>
+        <span class="hc-badge" id="homeDailyBadge">À relever</span>
+      </button>
+      <button class="home-card" id="btnSentier">
+        <span class="hc-icon">🌿</span>
+        <span class="hc-text"><span class="hc-name">Le Sentier</span><span class="hc-sub" id="homeSentierStatus">—</span></span>
+        <span class="hc-badge" id="homeSentierBadge"></span>
+      </button>
+    </div>
+    <button class="btn btn-ghost" id="btnPlay">🗺 Carte des mondes</button>
   </section>
 
   <!-- ============ LEVEL SELECT ============ -->
@@ -908,29 +1048,33 @@
       <div class="topbar-title">Défi du jour</div>
       <div style="width:40px;"></div>
     </div>
-    <div class="daily-banner">
-      <div>
-        <div class="lbl">Ton résultat aujourd'hui</div>
-        <div class="num" id="dailyMovesResult">-</div>
-      </div>
-      <div style="font-size:30px;">🌟</div>
+    <div class="daily-hero">
+      <div class="dh-rule" id="dailyRuleLabel">—</div>
+      <div class="dh-stars" id="dailyStarsResult" aria-hidden="true">☆☆☆</div>
+      <div class="dh-moves" id="dailyMovesResult">-</div>
+      <div class="dh-par" id="dailyParLine"></div>
     </div>
     <div class="stats-row" style="justify-content:center;">
-      <div class="stat-box"><div class="val" id="dailyPlayers">-</div><div class="lbl">Ont tenté</div></div>
-      <div class="stat-box"><div class="val" id="dailyRank">-</div><div class="lbl">Ton rang estimé</div></div>
-    </div>
-    <div class="stats-row" style="justify-content:center;">
-      <div class="stat-box"><div class="val" id="dailyStreakCurrent">0</div><div class="lbl">Série</div></div>
+      <div class="stat-box"><div class="val" id="dailyStreakCurrent">0</div><div class="lbl">Série 🔥</div></div>
       <div class="stat-box"><div class="val" id="dailyStreakBest">0</div><div class="lbl">Record série</div></div>
+      <div class="stat-box"><div class="val" id="dailyFreezeCount">0</div><div class="lbl">Gels 🧊</div></div>
     </div>
-    <div class="record-badge" id="dailyRecordBadge" style="display:none; margin:0 auto;">🏆 Nouveau record personnel !</div>
-    <div class="stat-pill" id="dailyWeeklySummary" style="align-self:center; margin-top:4px;">📅 Cette semaine : 0/7 · 0 ⭐</div>
-    <div class="btn-row" style="margin-top:16px;">
+    <div class="week-strip" id="dailyWeekStrip" aria-label="Tes 7 derniers jours"></div>
+    <div class="week-summary" id="dailyWeeklySummary"></div>
+    <div class="btn-row" style="margin-top:6px;">
       <button class="btn btn-primary" id="btnShareDaily">📤 PARTAGER</button>
-      <button class="btn btn-secondary" id="btnReplayDaily">Retenter le défi</button>
+      <div class="btn-pair">
+        <button class="btn btn-secondary btn-small" id="btnReplayDaily">↻ Retenter</button>
+        <button class="btn btn-secondary btn-small" id="btnShareImageDaily">🖼 Carte image</button>
+      </div>
     </div>
-    <p class="note">Les données de classement affichées sont simulées localement pour ce prototype (aucun serveur connecté).</p>
-    <div class="share-preview" id="sharePreviewWrap" style="display:none;"><img id="sharePreviewImg"></div>
+    <textarea class="share-text-out" id="shareTextOut" readonly hidden aria-label="Texte à partager"></textarea>
+    <div class="daily-next" id="dailyNextLine"></div>
+    <div class="freeze-row">
+      <div class="fr-text"><b>🧊 Gel de série</b><span>Protège ta série si tu manques un seul jour.</span></div>
+      <button class="cosmetic-action buy" id="btnBuyFreeze">Acheter · 30 🪙</button>
+    </div>
+    <div class="share-preview" id="sharePreviewWrap" style="display:none;"><img id="sharePreviewImg" alt="Carte de score du défi du jour"></div>
   </section>
 
   <!-- ============ SETTINGS ============ -->
@@ -1047,6 +1191,70 @@
     </div>
     <p class="note" style="margin-top:0;">Les règles des mécaniques que tu as déjà rencontrées en jeu, à consulter à tout moment. Continue à explorer les mondes pour débloquer les suivantes.</p>
     <div class="achievements-list" id="mechanicHelpList"></div>
+  </section>
+
+  <!-- ============ LE SENTIER (mode infini de maîtrise) ============ -->
+  <section id="screen-sentier" class="screen">
+    <div class="topbar">
+      <div class="icon-btn" id="btnBackHomeSentier" aria-label="Retour" role="button" tabindex="0">←</div>
+      <div class="topbar-title">Le Sentier</div>
+      <div style="width:40px;"></div>
+    </div>
+    <div class="sentier-hero">
+      <div class="sentier-hero-art" aria-hidden="true"></div>
+      <p class="sentier-pitch">Des plateaux <b>infinis</b>, générés pour toi. Chacun a une solution parfaite <b>prouvée par le solveur</b> : à toi de la trouver.</p>
+    </div>
+    <div id="sentierLocked" class="sentier-locked" hidden>
+      <div class="sl-icon">🔒</div>
+      <div class="sl-text">Termine le Monde 1 — Le Jardin pour ouvrir le Sentier.</div>
+      <div class="world-bar"><div class="world-bar-fill" id="sentierLockBar" style="width:0%"></div></div>
+      <div class="sl-count" id="sentierLockCount">0 / 8 niveaux</div>
+    </div>
+    <div id="sentierModes" class="sentier-modes">
+      <button class="mode-card" id="btnSentierChrono">
+        <span class="mc-icon">⏳</span>
+        <span class="mc-text"><span class="mc-name">Chrono · 3 minutes</span>
+          <span class="mc-desc">Chaque solution parfaite rapporte des points, fait grimper la série (×5 max) et ajoute 10 s au sablier.</span></span>
+        <span class="mc-best" id="sentierBestScore">—</span>
+      </button>
+      <button class="mode-card zen" id="btnSentierZen">
+        <span class="mc-icon">🍃</span>
+        <span class="mc-text"><span class="mc-name">Zen</span>
+          <span class="mc-desc">Sans chrono ni score. Des plateaux sans fin, à ton rythme.</span></span>
+        <span class="mc-best" id="sentierZenCount">—</span>
+      </button>
+    </div>
+    <div class="profile-stats-grid" id="sentierStats">
+      <div class="profile-stat-card"><div class="val" id="sentierTotalSolved">0</div><div class="lbl">Plateaux résolus</div></div>
+      <div class="profile-stat-card"><div class="val" id="sentierTotalPerfect">0</div><div class="lbl">Solutions parfaites</div></div>
+      <div class="profile-stat-card"><div class="val" id="sentierBestChain">0</div><div class="lbl">Meilleure série</div></div>
+      <div class="profile-stat-card"><div class="val" id="sentierRuns">0</div><div class="lbl">Parties chrono</div></div>
+    </div>
+    <p class="note">Les plateaux n'utilisent que les mécaniques que tu as déjà découvertes. Tous les 6 plateaux, un « Écho » : un niveau que tu connais… retourné.</p>
+  </section>
+
+  <!-- ============ FIN DE PARTIE DU SENTIER ============ -->
+  <section id="screen-sentierend" class="screen">
+    <div class="sentier-end-head">
+      <div class="se-kicker" id="seKicker">Temps écoulé</div>
+      <div class="se-score" id="seScore">0</div>
+      <div class="se-sub" id="seSub">points</div>
+    </div>
+    <div class="record-badge" id="seRecordBadge" style="display:none; align-self:center;">🏆 Nouveau record du Sentier !</div>
+    <div class="stats-row" style="justify-content:center;">
+      <div class="stat-box"><div class="val" id="seSolved">0</div><div class="lbl">Résolus</div></div>
+      <div class="stat-box"><div class="val" id="sePerfect">0</div><div class="lbl">Parfaits</div></div>
+      <div class="stat-box"><div class="val" id="seChain">0</div><div class="lbl">Série max</div></div>
+    </div>
+    <div class="victory-rewards" id="seRewards"></div>
+    <p class="victory-mastery" id="seNext" style="align-self:center; text-align:center;"></p>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnSentierAgain">↻ REJOUER</button>
+      <div class="btn-pair">
+        <button class="btn btn-secondary btn-small" id="btnSentierEndBack">Le Sentier</button>
+        <button class="btn btn-secondary btn-small" id="btnSentierEndHome">Accueil</button>
+      </div>
+    </div>
   </section>
 
   <canvas id="shareCanvas" width="640" height="800"></canvas>
@@ -1719,6 +1927,275 @@ const Solver = (function(){
   return { analyze, validateLevels, stateKey, slideState, solveNextMove };
 })();
 
+/* =========================================================
+   A3. GÉNÉRATEUR PROCÉDURAL — LE SENTIER (audit rétention §5-§6)
+   "Le solveur connaît la solution optimale de N'IMPORTE QUEL plateau qu'il
+   génère" : on tire des plateaux au hasard (PRNG à graine, donc
+   reproductibles), on les fait valider par Solver.analyze() — exactement
+   le même moteur de règles que le jeu — et on ne garde que ceux qui :
+     1) sont solvables, sans erreur structurelle ;
+     2) ont un par dans la fourchette visée par la difficulté ;
+     3) ont une mécanique vedette qui COMPTE : sans elle, le par change ou
+        le plateau devient insoluble (jamais décorative, même exigence que
+        celle appliquée à la main aux niveaux du Monde 8).
+   Code PUR (aucun DOM) : testé hors navigateur par scripts/test-logic.js.
+========================================================= */
+// PRNG mulberry32 : rapide, 32 bits, suffisant pour du level design.
+function makeRng(seed){
+  let a = (seed >>> 0) || 1;
+  return function(){
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+// Hash FNV-1a 32 bits d'une chaîne (graine lisible -> graine numérique).
+function hashSeed(str){
+  let h = 0x811c9dc5;
+  const s = String(str);
+  for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return h >>> 0;
+}
+function rngInt(rng, min, max){ return min + Math.floor(rng()*(max-min+1)); }
+function rngPick(rng, arr){ return arr[Math.floor(rng()*arr.length)]; }
+
+// Mécaniques que le générateur sait placer (les murs sont toujours permis).
+const GEN_MECHANICS = ['rochers','ancre','portails','sens-unique','interrupteurs','portails-directionnels'];
+const GEN_DIRS = ['up','down','left','right'];
+
+// Profil de difficulté d'un plateau du Sentier selon son rang dans la
+// partie. Le par monte par paliers : chaque partie commence en douceur
+// (échauffement) puis se tend. Le mode Zen plafonne au palier 3.
+function sentierProfile(boardNumber, kind){
+  const n = kind==='zen' ? Math.min(boardNumber, 8) : boardNumber;
+  // minStates : nombre minimal d'états explorés par le solveur avant la
+  // solution — un proxy de la richesse des décisions (un plateau long mais
+  // sans alternative serait "long", pas "difficile").
+  if(n <= 2)  return { size:5, minPar:2, maxPar:3, extraChance:0,    minStates:0 };
+  if(n <= 5)  return { size:5, minPar:3, maxPar:4, extraChance:0.15, minStates:8 };
+  if(n <= 9)  return { size:(n%2 ? 5 : 6), minPar:4, maxPar:5, extraChance:0.3, minStates:14 };
+  if(n <= 14) return { size:6, minPar:5, maxPar:6, extraChance:0.4,  minStates:20 };
+  return { size:6, minPar:5, maxPar:7, extraChance:0.5, minStates:26 };
+}
+
+// Tire une disposition brute (non validée). featured = mécanique vedette
+// (ou null pour un plateau murs seuls), extra = mécanique secondaire éventuelle.
+function randomLayout(rng, size, featured, extra){
+  const cells = [];
+  for(let y=0;y<size;y++) for(let x=0;x<size;x++) cells.push({x,y});
+  for(let i=cells.length-1;i>0;i--){ const j = Math.floor(rng()*(i+1)); const t = cells[i]; cells[i] = cells[j]; cells[j] = t; }
+  let k = 0;
+  const take = ()=> cells[k++];
+  const lvl = { name:'Plateau du Sentier', world:1, tag:'SENTIER', mechanics:['glissement','murs'],
+    size, seed:null, goal:null, walls:[], rocks:[], anchors:[], portals:[], oneways:[], switches:[], par:0 };
+  const place = (mech, qtyScale)=>{
+    const q = qtyScale || 1;
+    if(mech==='rochers'){ const n = Math.max(1, Math.round(rngInt(rng, 1, size>5?3:2)*q)); for(let i=0;i<n;i++) lvl.rocks.push(take()); }
+    else if(mech==='ancre'){ const n = Math.max(1, Math.round(rngInt(rng, 1, 2)*q)); for(let i=0;i<n;i++) lvl.anchors.push(take()); }
+    else if(mech==='portails' || mech==='portails-directionnels'){
+      const a = take(), b = take();
+      const p = { ax:a.x, ay:a.y, bx:b.x, by:b.y };
+      if(mech==='portails-directionnels') p.dirA = rngPick(rng, GEN_DIRS);
+      lvl.portals.push(p);
+    }
+    else if(mech==='sens-unique'){ const n = Math.max(1, Math.round(rngInt(rng, 1, 2)*q)); for(let i=0;i<n;i++){ const c = take(); lvl.oneways.push({ x:c.x, y:c.y, dir:rngPick(rng, GEN_DIRS) }); } }
+    else if(mech==='interrupteurs'){ const s = take(), d = take(); lvl.switches.push({ x:s.x, y:s.y, doorX:d.x, doorY:d.y }); }
+    if(!lvl.mechanics.includes(mech)) lvl.mechanics.push(mech);
+    if(mech==='portails-directionnels' && !lvl.mechanics.includes('portails')) lvl.mechanics.splice(2, 0, 'portails');
+  };
+  const wallCount = rngInt(rng, size>5 ? 3 : 2, size>5 ? 6 : 4);
+  for(let i=0;i<wallCount;i++) lvl.walls.push(take());
+  if(featured) place(featured, 1);
+  if(extra && extra!==featured) place(extra, 0.6);
+  // Graine et cible sur des cases neutres (jamais sur un portail, un sens
+  // unique, une porte ou un interrupteur : lisibilité avant tout).
+  lvl.seed = take();
+  lvl.goal = take();
+  if(!lvl.seed || !lvl.goal) return null;
+  return lvl;
+}
+
+// Copie d'un niveau SANS une mécanique donnée — pour vérifier qu'elle compte.
+function stripMechanic(lvl, mech){
+  const c = JSON.parse(JSON.stringify(lvl));
+  if(mech==='rochers') c.rocks = [];
+  else if(mech==='ancre') c.anchors = [];
+  else if(mech==='portails') c.portals = [];
+  else if(mech==='sens-unique') c.oneways = [];
+  else if(mech==='interrupteurs') c.switches = [];
+  else if(mech==='portails-directionnels') c.portals = c.portals.map(p=>({ ax:p.ax, ay:p.ay, bx:p.bx, by:p.by }));
+  return c;
+}
+function mechanicMatters(lvl, mech, par){
+  const r = Solver.analyze(stripMechanic(lvl, mech));
+  return !r.solvable || r.minMoves !== par;
+}
+
+// Génère UN plateau valide, ou null après maxAttempts tirages.
+// opts : { size, minPar, maxPar, featured (mécanique ou null), extra, maxAttempts }
+function generateBoard(rng, opts){
+  const maxAttempts = opts.maxAttempts || 400;
+  for(let attempt=0; attempt<maxAttempts; attempt++){
+    const lvl = randomLayout(rng, opts.size, opts.featured, opts.extra);
+    if(!lvl) continue;
+    const r = Solver.analyze(lvl);
+    if(r.brokenReason || !r.solvable) continue;
+    if(r.minMoves < opts.minPar || r.minMoves > opts.maxPar) continue;
+    // Sans rocher, l'espace d'états se limite aux cases de la graine (~30) :
+    // le seuil y est plafonné, sinon presque aucun plateau ne passerait.
+    const needStates = lvl.rocks.length ? (opts.minStates||0) : Math.min(opts.minStates||0, 10 + lvl.walls.length);
+    if(r.statesExplored < needStates) continue;
+    lvl.par = r.minMoves;
+    if(opts.featured && !mechanicMatters(lvl, opts.featured, lvl.par)) continue;
+    if(opts.extra && opts.extra!==opts.featured && !mechanicMatters(lvl, opts.extra, lvl.par)) continue;
+    // Les murs aussi doivent servir : sans aucun mur, le plateau ne doit
+    // pas rester résoluble au même par (sinon ce sont des murs décoratifs).
+    const noWalls = Solver.analyze(Object.assign({}, lvl, { walls:[] }));
+    if(noWalls.solvable && noWalls.minMoves === lvl.par && !opts.featured) continue;
+    lvl.attempts = attempt + 1;
+    return lvl;
+  }
+  return null;
+}
+
+/* ---------------------------------------------------------
+   SYMÉTRIES — les règles de glissement sont invariantes par rotation et
+   par miroir du plateau (l'ordre de traitement des pièces dépend
+   seulement de la direction). Transformer un niveau validé donne donc un
+   niveau tout aussi valide, AU MÊME PAR — vérifié sur les 60 niveaux × 8
+   symétries par scripts/test-logic.js. Sert aux "Échos" du Sentier : un
+   niveau de campagne déjà connu, retourné (audit §9 "défi miroir").
+--------------------------------------------------------- */
+// 8 matrices 2×2 du groupe diédral du carré : [a,b,c,d] -> (u',v') = (a·u+b·v, c·u+d·v)
+const SYMMETRIES = [
+  [1,0,0,1], [0,-1,1,0], [-1,0,0,-1], [0,1,-1,0],   // identité, rotations 90/180/270
+  [-1,0,0,1], [1,0,0,-1], [0,1,1,0], [0,-1,-1,0]    // miroirs vertical, horizontal, diagonales
+];
+const VEC_TO_DIR = { '0,-1':'up', '0,1':'down', '-1,0':'left', '1,0':'right' };
+function transformLevel(lvl, t){
+  const m = SYMMETRIES[((t%8)+8)%8];
+  const n = lvl.size - 1;
+  const pt = (x,y)=>{
+    const u = 2*x - n, v = 2*y - n;
+    return { x:(m[0]*u + m[1]*v + n)/2, y:(m[2]*u + m[3]*v + n)/2 };
+  };
+  const dir = (d)=>{
+    if(!d || !ONEWAY_VECTORS[d]) return d;
+    const vec = ONEWAY_VECTORS[d];
+    return VEC_TO_DIR[(m[0]*vec.dx + m[1]*vec.dy)+','+(m[2]*vec.dx + m[3]*vec.dy)];
+  };
+  const out = JSON.parse(JSON.stringify(lvl));
+  out.seed = pt(lvl.seed.x, lvl.seed.y);
+  out.goal = pt(lvl.goal.x, lvl.goal.y);
+  out.walls = (lvl.walls||[]).map(w=> pt(w.x, w.y));
+  out.rocks = (lvl.rocks||[]).map(r=> pt(r.x, r.y));
+  out.anchors = (lvl.anchors||[]).map(a=> pt(a.x, a.y));
+  out.oneways = (lvl.oneways||[]).map(o=> Object.assign(pt(o.x, o.y), { dir:dir(o.dir) }));
+  out.switches = (lvl.switches||[]).map(s=>{ const a = pt(s.x, s.y), d = pt(s.doorX, s.doorY); return { x:a.x, y:a.y, doorX:d.x, doorY:d.y }; });
+  out.portals = (lvl.portals||[]).map(p=>{
+    const a = pt(p.ax, p.ay), b = pt(p.bx, p.by);
+    const q = { ax:a.x, ay:a.y, bx:b.x, by:b.y };
+    if(p.dirA) q.dirA = dir(p.dirA);
+    if(p.dirB) q.dirB = dir(p.dirB);
+    return q;
+  });
+  return out;
+}
+
+// Choisit la mécanique vedette et la secondaire d'un plateau parmi celles
+// que le joueur a DÉJÀ rencontrées (jamais une règle inconnue dans le Sentier).
+function pickSentierMechanics(rng, known, profile, boardNumber){
+  const pool = GEN_MECHANICS.filter(m=> known.includes(m));
+  // Échauffement : les deux premiers plateaux restent murs seuls.
+  if(boardNumber <= 2 || pool.length===0) return { featured:null, extra:null };
+  // Environ un plateau sur quatre reste "murs seuls" : respiration.
+  if(rng() < 0.25) return { featured:null, extra:null };
+  const featured = rngPick(rng, pool);
+  let extra = null;
+  if(pool.length > 1 && rng() < profile.extraChance){
+    const others = pool.filter(m=> m!==featured && !(m==='portails' && featured==='portails-directionnels') && !(featured==='portails' && m==='portails-directionnels'));
+    if(others.length) extra = rngPick(rng, others);
+  }
+  return { featured, extra };
+}
+
+// Plateau complet du Sentier : génération, puis repli garanti sur un Écho
+// (niveau de campagne déjà terminé, transformé par symétrie).
+// ctx : { known (mécaniques connues), completedIndices, kind }
+function buildSentierBoard(rng, boardNumber, ctx){
+  const profile = sentierProfile(boardNumber, ctx.kind);
+  const wantEcho = boardNumber > 3 && boardNumber % 6 === 0;
+  if(!wantEcho){
+    for(let tries=0; tries<3; tries++){
+      const mech = pickSentierMechanics(rng, ctx.known, profile, boardNumber);
+      const lvl = generateBoard(rng, { size:profile.size, minPar:profile.minPar, maxPar:profile.maxPar,
+        minStates:profile.minStates, featured:mech.featured, extra:mech.extra, maxAttempts:300 });
+      if(lvl){
+        lvl.featured = mech.featured;
+        lvl.world = SENTIER_THEME_WORLD[mech.featured||'murs'] || 1;
+        return lvl;
+      }
+    }
+  }
+  return buildEchoBoard(rng, profile, ctx);
+}
+// Palette d'environnement associée à la mécanique vedette (identité visuelle
+// cohérente avec le monde qui l'a introduite).
+const SENTIER_THEME_WORLD = { murs:1, rochers:2, ancre:4, portails:5, 'sens-unique':6, interrupteurs:7, 'portails-directionnels':8 };
+
+function buildEchoBoard(rng, profile, ctx){
+  const done = (ctx.completedIndices||[]).filter(i=> LEVELS[i] && LEVELS[i].tag!=='INTRO');
+  const candidates = done.length ? done : [0,1,2,3];
+  // Préférence pour un par proche du profil visé.
+  const close = candidates.filter(i=> LEVELS[i].par >= profile.minPar-1 && LEVELS[i].par <= profile.maxPar);
+  const pickFrom = close.length ? close : candidates;
+  const idx = rngPick(rng, pickFrom);
+  const t = rngInt(rng, 1, 7); // jamais l'identité : un Écho est toujours retourné
+  const lvl = transformLevel(LEVELS[idx], t);
+  lvl.name = 'Écho de « '+LEVELS[idx].name+' »';
+  lvl.tag = 'ECHO';
+  lvl.echoOf = idx;
+  return lvl;
+}
+
+/* ---------------------------------------------------------
+   DÉFI DU JOUR GÉNÉRÉ (audit §6 "LiveOps sans production manuelle") —
+   remplace le recyclage d'un niveau de campagne (jour de l'année modulo
+   60), qui faisait rejouer aux joueurs avancés un niveau déjà résolu et
+   pouvait servir à un débutant une mécanique jamais vue sans contexte.
+   Graine = date du jour (AAAAMMJJ) : même date, même plateau pour tout le
+   monde (modèle Wordle, date locale comme la série quotidienne). Une
+   "règle du jour" par jour de la semaine donne une identité à chaque jour.
+--------------------------------------------------------- */
+const DAILY_RULES = [ // index = Date#getDay() (0 = dimanche)
+  { day:'Dimanche', featured:'portails-directionnels', extra:'rochers', label:'Grand défi des Failles', icon:'🔀', world:8 },
+  { day:'Lundi',    featured:null,            extra:null, label:'Racines',  icon:'🌱', world:1 },
+  { day:'Mardi',    featured:'rochers',       extra:null, label:'Cailloux', icon:'🪨', world:2 },
+  { day:'Mercredi', featured:'ancre',         extra:null, label:'Givre',    icon:'❄️', world:4 },
+  { day:'Jeudi',    featured:'portails',      extra:null, label:'Passages', icon:'🌀', world:5 },
+  { day:'Vendredi', featured:'sens-unique',   extra:null, label:'Courants', icon:'🍃', world:6 },
+  { day:'Samedi',   featured:'interrupteurs', extra:null, label:'Ruines',   icon:'🗝️', world:7 }
+];
+const DAILY_GEN_VERSION = 'v1'; // à incrémenter si le générateur change de façon incompatible
+function buildDailyBoard(dateKey, weekday){
+  const rule = DAILY_RULES[((weekday%7)+7)%7];
+  const rng = makeRng(hashSeed('bcd-daily-'+DAILY_GEN_VERSION+'-'+dateKey));
+  for(let i=0;i<6;i++){
+    const lvl = generateBoard(rng, { size:6, minPar:4, maxPar:6, minStates:14,
+      featured:rule.featured, extra:rule.extra, maxAttempts:400 });
+    if(lvl){
+      lvl.name = 'Défi du '+dateKey.slice(6,8)+'/'+dateKey.slice(4,6);
+      lvl.tag = 'DAILY';
+      lvl.world = rule.world;
+      lvl.featured = rule.featured;
+      lvl.dateKey = dateKey;
+      return lvl;
+    }
+  }
+  return null; // repli géré par l'appelant (niveau de campagne, ancien comportement)
+}
+
 // Point d'entrée console pour les développeurs uniquement.
 // Dans les outils de développement du navigateur, taper :
 //   BCD_DEV.validateLevels()               → valide tous les niveaux de LEVELS
@@ -1780,7 +2257,23 @@ window.BCD_DEV = {
   // du jour (jamais exposés au joueur).
   getDailyHistory: loadDailyHistory,
   getWeeklySummary: computeWeeklyDailySummary,
-  checkAchievements
+  checkAchievements,
+  // Sentier (mode infini) : génération reproductible et statistiques.
+  generateSentierBoard(seed, boardNumber, known){
+    return buildSentierBoard(makeRng(hashSeed(seed)), boardNumber||1,
+      { known: known || GEN_MECHANICS.slice(), completedIndices: LEVELS.map((_,i)=>i), kind:'chrono' });
+  },
+  transformLevel,
+  getSentierStats(){ return loadSentierStats(); },
+  // QA : solution optimale depuis la position COURANTE (tableau de
+  // directions), pour automatiser des parties complètes dans les tests.
+  solutionFromHere(){
+    if(!state.level) return [];
+    const r = Solver.solveNextMove(state.level, state.seed, state.rocks);
+    return (r.path||[]).map(d=> d.dx===1?'ArrowRight':d.dx===-1?'ArrowLeft':d.dy===1?'ArrowDown':'ArrowUp');
+  },
+  setSentierTimeLeft(ms){ if(sentierRun) sentierRun.timeLeftMs = ms; },
+  startSentierRun(kind){ return startSentierRun(kind||'chrono'); }
 };
 
 /* =========================================================
@@ -1909,7 +2402,8 @@ const SCHEMA_MIGRATIONS = {
   moveEffectEquipped:{ current:1, migrations:{} },
   profileFramesOwned:  { current:1, migrations:{} },
   profileFrameEquipped:{ current:1, migrations:{} },
-  streakFreeze: { current:1, migrations:{} }
+  streakFreeze: { current:1, migrations:{} },
+  sentier:      { current:1, migrations:{} }
 };
 
 // Lit une donnée versionnée depuis safeStorage et applique en cascade les
@@ -2176,7 +2670,13 @@ function recordDailyCompletion(moves, elapsed, stars){
   // recalculerait un index différent et rejouerait un AUTRE niveau que
   // celui réellement terminé aujourd'hui (Blueprint §29, "données anciennes
   // après mise à jour").
-  saveVersioned('bcd_daily_'+todayKey(), 'dailyResult', { moves, time:elapsed, stars, isRecord:isRecordForToday, levelIndex:dailyLevelIndex() });
+  // Défi généré : le plateau se recalcule à l'identique depuis la date, on
+  // mémorise seulement son par (pour l'écran résultat). Repli historique :
+  // l'index du niveau de campagne réellement joué.
+  const generated = state.mode==='daily' && state.level && state.level.tag==='DAILY';
+  saveVersioned('bcd_daily_'+todayKey(), 'dailyResult', { moves, time:elapsed, stars, isRecord:isRecordForToday,
+    generated, par: Number.isFinite(state.par) ? state.par : null,
+    levelIndex: generated ? null : (state.levelIndex>=0 ? state.levelIndex : dailyLevelIndex()) });
   const streak = registerDailyStreak();
   recordDailyHistoryEntry(todayKey(), moves, elapsed, stars);
   // Correctif fiable : l'écran de victoire doit conserver le badge si une
@@ -3236,7 +3736,15 @@ resumeAudioContextOnFirstGesture();
 /* =========================================================
    D. NAVIGATION ENTRE ÉCRANS
 ========================================================= */
+// Écrans qui gardent la palette du monde en cours (jeu et sa victoire) ;
+// tous les autres reviennent à la palette de référence du Jardin, pour que
+// les menus ne "déteignent" pas selon le dernier monde joué.
+const THEMED_SCREENS = ['game', 'victory'];
 function goto(name){
+  if(!THEMED_SCREENS.includes(name) && typeof applyWorldTheme==='function') applyWorldTheme(1);
+  // Un toast en attente venu d'un autre écran n'a plus de sens en jeu :
+  // il masquerait les boutons du haut pendant la réflexion.
+  if(name==='game' && typeof toastQueue!=='undefined') toastQueue.length = 0;
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
   state.screen = name;
@@ -3271,6 +3779,8 @@ window.addEventListener('popstate', ()=>{
     case 'help': document.getElementById('btnBackHomeHelp').click(); break;
     case 'cosmetics': document.getElementById('btnBackHomeCosmetics').click(); break;
     case 'profile': document.getElementById('btnBackHomeProfile').click(); break;
+    case 'sentier': document.getElementById('btnBackHomeSentier').click(); break;
+    case 'sentierend': document.getElementById('btnSentierEndHome').click(); break;
     case 'victory': refreshHome(); goto(state.isDaily ? 'home' : 'select'); if(!state.isDaily) renderLevelSelect(); break;
     default: break; // sur l'accueil, le retour ne fait rien (évite une sortie accidentelle)
   }
@@ -3296,63 +3806,69 @@ function refreshHome(){
   const p = loadProgress();
   let totalStars = 0;
   LEVELS.forEach((_,i)=>{ totalStars += (p[i]||0); });
-  document.getElementById('homeProgress').textContent = `⭐ ${totalStars} / ${LEVELS.length*3}`;
-
+  const setT = (id, v)=>{ const el = document.getElementById(id); if(el) el.textContent = v; };
+  setT('homeProgress', `⭐ ${totalStars} / ${LEVELS.length*3}`);
   const streak = loadStreak();
+  setT('homeStreakPill', `🔥 ${streak.current||0}`);
   const streakEl = document.getElementById('homeStreakPill');
-  if(streakEl){
-    const cur = streak.current||0, best = streak.best||0;
-    streakEl.textContent = cur>0 ? `🔥 ${cur} jour${cur>1?'s':''} · Record ${best}` : `🔥 Série : 0 · Record ${best}`;
-  }
+  if(streakEl) streakEl.setAttribute('aria-label', `Série quotidienne : ${streak.current||0} jour(s), record ${streak.best||0}`);
+  setT('homeCoinsPill', `🪙 ${loadCoins()}`);
 
-  const freezeEl = document.getElementById('homeFreezePill');
-  if(freezeEl) freezeEl.textContent = `🧊 ${loadStreakFreezes()}`;
-
-  const coinsEl = document.getElementById('homeCoinsPill');
-  if(coinsEl) coinsEl.textContent = `🪙 ${loadCoins()}`;
-
+  // Bouton principal : lance DIRECTEMENT le prochain niveau (Blueprint §27,
+  // "test à 5 secondes" : le bouton principal doit être évident). La carte
+  // des mondes reste accessible juste en dessous.
+  const nextIdx = findNextLevelIndex();
   const continueBtn = document.getElementById('btnContinue');
-  const continueLbl = document.getElementById('continueLabel');
-  const continueName = document.getElementById('continueLevelName');
-  if(continueBtn && continueLbl && continueName){
-    const nextIdx = findNextLevelIndex();
-    if(nextIdx === -1){
-      // Rien à casser : le raccourci reste visible mais devient informatif
-      // et non cliquable plutôt que de disparaître ou de pointer vers rien.
-      continueBtn.style.display = 'flex';
-      continueBtn.classList.add('all-done');
-      continueBtn.disabled = true;
-      continueBtn.setAttribute('aria-label', 'Tous les niveaux sont terminés');
-      continueLbl.textContent = 'Bravo';
-      continueName.textContent = 'Tous les niveaux sont terminés !';
-    } else {
-      const lvl = LEVELS[nextIdx];
-      const meta = WORLD_META[lvl.world] || { name:'Monde '+lvl.world };
-      continueBtn.style.display = 'flex';
-      continueBtn.classList.remove('all-done');
-      continueBtn.disabled = false;
-      continueBtn.setAttribute('aria-label', `Continuer au niveau ${nextIdx+1}`);
-      continueLbl.textContent = 'Continuer';
-      continueName.textContent = `Niveau ${nextIdx+1} · ${meta.name}`;
-    }
+  if(nextIdx === -1){
+    setT('continueLevelName', 'Campagne terminée · vise les ★★★');
+    if(continueBtn) continueBtn.setAttribute('aria-label', 'Tous les niveaux sont terminés : ouvrir la carte des mondes');
+  } else {
+    const lvl = LEVELS[nextIdx];
+    const meta = WORLD_META[lvl.world] || { name:'Monde '+lvl.world };
+    setT('continueLevelName', nextIdx===0 && Object.keys(p).length===0 ? 'Premier niveau · 10 secondes' : `Niveau ${nextIdx+1} · ${meta.name}`);
+    if(continueBtn) continueBtn.setAttribute('aria-label', `Jouer au niveau ${nextIdx+1}`);
   }
+
+  // Carte "Défi du jour" : état lisible sans ouvrir l'écran.
+  const rule = todayDailyRule();
+  const today = loadTodayDailyResult();
+  const dailyCard = document.getElementById('btnDaily');
+  setT('homeDailyIcon', rule.icon);
+  if(today){
+    setT('homeDailyStatus', `${'★'.repeat(today.stars)}${'☆'.repeat(3-today.stars)} · ${today.moves} coups · série ${streak.current||0}`);
+    setT('homeDailyBadge', 'Fait ✓');
+    if(dailyCard){ dailyCard.classList.remove('todo'); dailyCard.classList.add('done'); }
+  } else {
+    const lastWasYesterday = streak.lastSuccessDate === yesterdayKey();
+    setT('homeDailyStatus', `${rule.day} · ${rule.label}` + (lastWasYesterday && streak.current>0 ? ` · garde ta série de ${streak.current}` : ''));
+    setT('homeDailyBadge', 'À relever');
+    if(dailyCard){ dailyCard.classList.add('todo'); dailyCard.classList.remove('done'); }
+  }
+
+  // Carte "Le Sentier" : verrouillée avec progression visible, puis record.
+  const sentierCard = document.getElementById('btnSentier');
+  if(isSentierUnlocked()){
+    const st = loadSentierStats();
+    setT('homeSentierStatus', st.bestScore>0 ? `Record ${st.bestScore} · ${st.totalPerfect} solutions parfaites` : 'Plateaux infinis · Chrono ou Zen');
+    setT('homeSentierBadge', st.runs===0 && st.zenSolved===0 ? 'Nouveau' : '');
+    if(sentierCard) sentierCard.classList.remove('locked');
+  } else {
+    const idxs = worldLevelIndices(1);
+    const done = idxs.filter(i=> p[i]!==undefined).length;
+    setT('homeSentierStatus', `Termine le Monde 1 pour l'ouvrir (${done}/${idxs.length})`);
+    setT('homeSentierBadge', '🔒');
+    if(sentierCard) sentierCard.classList.add('locked');
+  }
+
+  if(typeof renderHomeGarden==='function') renderHomeGarden();
 }
 
 document.getElementById('btnContinue').addEventListener('click', ()=>{
   const nextIdx = findNextLevelIndex();
-  if(nextIdx === -1) return; // tous les niveaux terminés : pas d'action, pas de plantage
+  if(nextIdx === -1){ renderLevelSelect(); goto('select'); return; }
   startLevel(nextIdx, false);
 });
-
-document.getElementById('homeFreezePill').addEventListener('click', ()=>{
-  const result = purchaseStreakFreeze();
-  if(result.ok){
-    refreshHome();
-    showSimpleToast('🧊', 'Gel de série acheté', `Protège ta série pendant un jour manqué (coût : ${STREAK_FREEZE_COST} 🪙).`, 'info-toast');
-  } else {
-    showSimpleToast('🪙', 'Coins insuffisants', `Il te faut ${STREAK_FREEZE_COST} 🪙 pour acheter un gel de série.`, 'info-toast');
-  }
-});
+document.getElementById('btnSentier').addEventListener('click', openSentierHub);
 document.getElementById('btnPlay').addEventListener('click', ()=>{
   renderLevelSelect();
   goto('select');
@@ -3713,6 +4229,7 @@ document.getElementById('btnResetProgress').addEventListener('click', ()=>{
   safeStorage.remove(PROFILE_FRAME_OWNED_KEY);
   safeStorage.remove(PROFILE_FRAME_EQUIPPED_KEY);
   safeStorage.remove(STREAK_FREEZE_KEY);
+  safeStorage.remove(SENTIER_KEY);
   applySeedCosmetic(); // revient immédiatement au skin par défaut, sans attendre un rechargement
   refreshHome();
 });
@@ -3972,6 +4489,7 @@ function startBoard(lvl, opts){
   state.sessionId++;
   state.mode = opts.mode || 'campaign';
   state.level = lvl;
+  state.boardOpts = opts;
   state.history = [];
   state.undoCount = 0;
   state.stuck = false;
@@ -4702,6 +5220,9 @@ document.getElementById('btnHint').addEventListener('click', ()=>{
   }
   const btn = document.getElementById('btnHint');
   state.hintUsedThisAttempt = true; // pour "Sans aide" (Blueprint §10), voir onWin()
+  // Sentier : l'indice rend le plateau non "parfait", même après un
+  // redémarrage du plateau (sinon indice + recommencer = parfait gratuit).
+  if(state.mode==='sentier' && sentierRun) sentierRun.hintUsedOnBoard = true;
 
   // Palier CIBLE avant d'éventuellement le plafonner faute de coins. Les
   // paliers 3 ET 4 sont payants (Blueprint §11/§12) — les paliers 1 et 2
@@ -5114,13 +5635,20 @@ document.getElementById('btnNextLevel').addEventListener('click', ()=>{
   if(next < LEVELS.length) startLevel(next, false);
   else { refreshHome(); goto('home'); }
 });
+// Rejouer / recommencer : relance EXACTEMENT le même plateau (campagne,
+// défi généré ou plateau du Sentier) avec les mêmes options.
+function restartCurrentBoard(){
+  if(state.mode==='sentier'){ restartSentierBoard(); return; }
+  if(state.level) startBoard(state.level, state.boardOpts || { mode:state.mode, levelIndex:state.levelIndex });
+  else startLevel(state.levelIndex, state.isDaily);
+}
 document.getElementById('btnReplayVictory').addEventListener('click', ()=>{
-  startLevel(state.levelIndex, state.isDaily);
+  Analytics.track('level_replay', { mode:state.mode, levelIndex:state.levelIndex, stars:starsForMoves(state.moves, state.par) });
+  restartCurrentBoard();
 });
 document.getElementById('btnRestart').addEventListener('click', ()=>{
   if(!state.won) Analytics.track('level_restart', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves, stuck:state.stuck });
-  if(state.mode==='sentier'){ restartSentierBoard(); return; }
-  startLevel(state.levelIndex, state.isDaily);
+  restartCurrentBoard();
 });
 document.getElementById('btnExitGame').addEventListener('click', ()=>{
   stopTimer();
@@ -5133,10 +5661,11 @@ document.getElementById('btnExitGame').addEventListener('click', ()=>{
 
 /* =========================================================
    L. DÉFI DU JOUR
-   Le défi est choisi de façon déterministe à partir de la date
-   (même puzzle pour tout le monde le même jour). Les stats de
-   participation affichées sont simulées localement pour ce
-   prototype — clairement indiqué à l'utilisateur.
+   Plateau généré à partir de la date (voir buildDailyBoard, section A3) :
+   même puzzle pour tout le monde le même jour, jamais un niveau de
+   campagne déjà résolu. Aucune donnée simulée n'est affichée (Blueprint
+   §14 : "ne jamais afficher de faux joueurs ou de fausses données") : le
+   résultat est comparé au PAR prouvé par le solveur et à ton historique.
 ========================================================= */
 function todayKey(){ return dateKeyFor(bcdNow()); }
 function yesterdayKey(){
@@ -5153,76 +5682,489 @@ function dayBeforeYesterdayKey(){
   d.setDate(d.getDate()-2);
   return dateKeyFor(d);
 }
-function dayOfYear(){
-  const d = bcdNow();
-  const start = new Date(d.getFullYear(),0,0);
-  return Math.floor((d - start) / 86400000);
-}
+// Repli historique (niveau de campagne) si la génération échouait : jamais
+// observé sur 400 jours testés, conservé comme filet de sécurité.
 function dailyLevelIndex(){
-  // Jour civil calculé en UTC : les changements d'heure locale ne déplacent
-  // jamais le niveau quotidien (Blueprint §13).
   const d = bcdNow();
-  // Correctif fiable : utiliser les composantes UTC elles-mêmes. Mélanger
-  // getFullYear()/getMonth()/getDate() avec Date.UTC décalait le défi autour
-  // de minuit selon le fuseau de l'appareil, malgré le commentaire précédent.
   const todayUtc = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
   const yearStartUtc = Date.UTC(d.getUTCFullYear(), 0, 0);
   const civilDayOfYear = Math.floor((todayUtc - yearStartUtc) / 86400000);
   return civilDayOfYear % LEVELS.length;
 }
-
-document.getElementById('btnDaily').addEventListener('click', ()=>{
-  const already = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
-  // si les données sont absentes OU corrompues/incomplètes (ex. ancien format,
-  // écriture interrompue), on traite comme "pas encore joué" plutôt que de
-  // planter ou d'afficher un résultat incohérent.
-  const valid = already && Number.isFinite(already.moves) && Number.isFinite(already.time) && Number.isFinite(already.stars);
-  if(valid){
-    showDailyResult(already);
+function todayDailyRule(){ return DAILY_RULES[bcdNow().getDay()]; }
+let dailyBoardCache = { key:null, board:null };
+function getTodayDailyBoard(){
+  const key = todayKey();
+  if(dailyBoardCache.key === key && dailyBoardCache.board) return dailyBoardCache.board;
+  let board = null;
+  try{ board = buildDailyBoard(key, bcdNow().getDay()); }catch(e){ board = null; }
+  if(board){ try{ board = normalizeLevelData(board, 0); }catch(e){ board = null; } }
+  dailyBoardCache = { key, board };
+  return board;
+}
+function loadTodayDailyResult(){
+  const r = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
+  return (r && Number.isFinite(r.moves) && Number.isFinite(r.time) && Number.isFinite(r.stars)) ? r : null;
+}
+function startDailyChallenge(){
+  const rule = todayDailyRule();
+  const board = getTodayDailyBoard();
+  if(board){
+    startBoard(board, { mode:'daily', levelIndex:-1, title:`🌤 Défi · ${rule.icon} ${rule.label}` });
   } else {
     startLevel(dailyLevelIndex(), true);
   }
+}
+document.getElementById('btnDaily').addEventListener('click', ()=>{
+  const already = loadTodayDailyResult();
+  if(already) showDailyResult(already);
+  else startDailyChallenge();
 });
 document.getElementById('btnReplayDaily').addEventListener('click', ()=>{
-  // Réutilise le niveau réellement joué aujourd'hui s'il a été mémorisé
-  // (voir recordDailyCompletion) ; pour un résultat plus ancien qui n'a
-  // pas encore ce champ (avant cette version), on retombe sur le calcul
-  // habituel — comportement inchangé pour les données existantes.
-  const already = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
-  const levelIndex = (already && Number.isInteger(already.levelIndex) && already.levelIndex>=0 && already.levelIndex<LEVELS.length)
-    ? already.levelIndex
-    : dailyLevelIndex();
-  startLevel(levelIndex, true);
+  const already = loadTodayDailyResult();
+  // Ancien format (avant le défi généré) : niveau de campagne mémorisé.
+  if(already && !already.generated && Number.isInteger(already.levelIndex) && already.levelIndex>=0 && already.levelIndex<LEVELS.length){
+    startLevel(already.levelIndex, true);
+    return;
+  }
+  startDailyChallenge();
 });
 
+function msUntilNextDay(){
+  const now = bcdNow();
+  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);
+  return Math.max(0, next - now);
+}
+function formatDuration(ms){
+  const totalMin = Math.ceil(ms/60000);
+  const h = Math.floor(totalMin/60), m = totalMin%60;
+  return h>0 ? `${h} h ${String(m).padStart(2,'0')}` : `${m} min`;
+}
+const WEEKDAY_LETTERS = ['D','L','M','M','J','V','S'];
+
 function showDailyResult(data){
-  document.getElementById('dailyMovesResult').textContent = data.moves+' coups';
-  // participation simulée déterministe (même jour = même nombre affiché)
-  const seedNum = parseInt(todayKey(),10) % 5000;
-  const simulatedPlayers = 3000 + seedNum;
-  const simulatedRank = Math.max(1, Math.min(99, Math.round(100 - (data.stars*28) - Math.max(0,(6-data.moves)))));
-  document.getElementById('dailyPlayers').textContent = simulatedPlayers.toLocaleString('fr-FR');
-  document.getElementById('dailyRank').textContent = 'top '+simulatedRank+'%';
+  const rule = todayDailyRule();
+  const par = Number.isFinite(data.par) ? data.par : null;
+  const setT = (id, v)=>{ const el = document.getElementById(id); if(el) el.textContent = v; };
+  setT('dailyRuleLabel', `${rule.day} · ${rule.icon} ${rule.label}`);
+  setT('dailyStarsResult', '★'.repeat(data.stars)+'☆'.repeat(3-data.stars));
+  setT('dailyMovesResult', `${data.moves} coup${data.moves>1?'s':''} · ${formatTime(data.time)}`);
+  const parLine = document.getElementById('dailyParLine');
+  if(parLine){
+    if(par===null) parLine.textContent = '';
+    else if(data.moves <= par) parLine.innerHTML = `Solution parfaite trouvée : <b>${par} coups</b>.`;
+    else parLine.innerHTML = `La solution parfaite existe en <b>${par} coups</b>. Retente ta chance !`;
+  }
 
   const streak = loadStreak();
-  const curEl = document.getElementById('dailyStreakCurrent');
-  const bestEl = document.getElementById('dailyStreakBest');
-  if(curEl) curEl.textContent = streak.current||0;
-  if(bestEl) bestEl.textContent = streak.best||0;
-  const badge = document.getElementById('dailyRecordBadge');
-  if(badge) badge.style.display = data.isRecord ? 'flex' : 'none';
+  setT('dailyStreakCurrent', String(streak.current||0));
+  setT('dailyStreakBest', String(streak.best||0));
+  setT('dailyFreezeCount', String(loadStreakFreezes()));
 
+  // Semaine glissante : 7 pastilles (jour, étoiles), aujourd'hui à droite.
+  const history = loadDailyHistory();
+  const byDate = {};
+  history.forEach(e=>{ byDate[e.date] = e; });
+  const strip = document.getElementById('dailyWeekStrip');
+  if(strip){
+    strip.innerHTML = '';
+    const now = bcdNow();
+    for(let i=6;i>=0;i--){
+      const day = new Date(now.getFullYear(), now.getMonth(), now.getDate()-i);
+      const e = byDate[dateKeyFor(day)];
+      const cell = document.createElement('div');
+      cell.className = 'week-cell' + (e ? ' done' : '') + (i===0 ? ' today' : '') + (e && e.stars===3 ? ' perfect' : '');
+      const l = document.createElement('span'); l.className = 'wc-day'; l.textContent = WEEKDAY_LETTERS[day.getDay()];
+      const v = document.createElement('span'); v.className = 'wc-val'; v.textContent = e ? '★'.repeat(e.stars) : '·';
+      cell.append(l, v);
+      cell.setAttribute('aria-label', `${DAILY_RULES[day.getDay()].day} : ${e ? e.stars+' étoile'+(e.stars>1?'s':'') : 'non joué'}`);
+      strip.appendChild(cell);
+    }
+  }
   const weekly = computeWeeklyDailySummary();
-  const weeklyEl = document.getElementById('dailyWeeklySummary');
-  if(weeklyEl) weeklyEl.textContent = `📅 Cette semaine : ${weekly.daysPlayed}/${weekly.windowSize} · ${weekly.starsTotal} ⭐`;
+  setT('dailyWeeklySummary', `${weekly.daysPlayed}/7 jours · ${weekly.starsTotal} ⭐ cette semaine`);
 
+  const tomorrow = DAILY_RULES[(bcdNow().getDay()+1)%7];
+  setT('dailyNextLine', `Prochain défi dans ${formatDuration(msUntilNextDay())} · ${tomorrow.day} : ${tomorrow.icon} ${tomorrow.label}`);
+  const shareText = document.getElementById('shareTextOut');
+  if(shareText) shareText.hidden = true;
+  const prev = document.getElementById('sharePreviewWrap');
+  if(prev) prev.style.display = 'none';
   goto('dailyresult');
 }
+
+document.getElementById('btnBuyFreeze').addEventListener('click', ()=>{
+  const result = purchaseStreakFreeze();
+  if(result.ok){
+    document.getElementById('dailyFreezeCount').textContent = String(loadStreakFreezes());
+    showSimpleToast('🧊', 'Gel de série acheté', `Il protégera ta série si tu manques un seul jour.`, 'info-toast');
+    Analytics.track('freeze_bought', null);
+  } else {
+    showSimpleToast('🪙', 'Coins insuffisants', `Il te faut ${STREAK_FREEZE_COST} 🪙 (tu en as ${loadCoins()}).`, 'info-toast');
+  }
+});
+
+/* =========================================================
+   S. LE SENTIER — MODE INFINI DE MAÎTRISE (audit rétention §5, Update 1)
+   Répond au "trou des 10 minutes" : une fois la campagne connue, le
+   joueur a toujours un plateau neuf à résoudre. Les plateaux viennent du
+   générateur (section A3), validés par le solveur, avec uniquement les
+   mécaniques déjà découvertes.
+   - Chrono (3 min) : le temps est la seule ressource. Annuler et
+     recommencer sont gratuits (ils coûtent du temps). Une solution
+     parfaite (par, sans indice) rapporte 10 × série et +10 s ; la série
+     monte jusqu'à ×5 et retombe à ×1 sur une solution non parfaite ou un
+     plateau passé. Fin naturelle de session, jamais de punition au-delà.
+   - Zen : aucun chrono, aucun score — des plateaux sans fin.
+   Ce qui reste après une partie (audit §2 "l'échec comme
+   investissement") : total de plateaux/solutions parfaites (qui font
+   fleurir la prairie du Jardin), record, série max, coins, succès.
+========================================================= */
+const SENTIER_KEY = 'bcd_sentier_v1';
+const SENTIER_CHRONO_MS = 180000;
+const SENTIER_PERFECT_BONUS_MS = 10000;
+const SENTIER_MULT_MAX = 5;
+const SENTIER_POINTS = { perfect:10, near:5, solved:2 };
+const SENTIER_COINS_PER_POINTS = 20; // 1 coin par tranche de 20 points (Chrono uniquement)
+const SENTIER_NEXT_DELAY_MS = 850;
+
+function loadSentierStats(){
+  const s = loadVersioned(SENTIER_KEY, 'sentier', null);
+  const base = { bestScore:0, bestChain:0, runs:0, totalSolved:0, totalPerfect:0, zenSolved:0, lastScore:0 };
+  if(!s || typeof s!=='object' || Array.isArray(s)) return base;
+  const out = Object.assign({}, base);
+  Object.keys(base).forEach(k=>{ const v = Math.floor(Number(s[k])); if(Number.isFinite(v) && v>=0) out[k] = v; });
+  return out;
+}
+function saveSentierStats(s){ saveVersioned(SENTIER_KEY, 'sentier', s); }
+
+function sentierKnownMechanics(){
+  const seen = loadSeenMechanics();
+  return GEN_MECHANICS.filter(m=> seen[m]);
+}
+function completedLevelIndices(){
+  const p = loadProgress();
+  return LEVELS.map((_,i)=>i).filter(i=> p[i]!==undefined);
+}
+function sentierCtx(run){ return { known:run.known, completedIndices:run.completed, kind:run.kind }; }
+
+function startSentierRun(kind){
+  if(!isSentierUnlocked()) return;
+  if(sentierRun && !sentierRun.ended) stopSentierClock();
+  const runSeed = (Date.now() ^ Math.floor(Math.random()*0x7fffffff)) >>> 0;
+  sentierRun = {
+    kind, seed:runSeed, rng:makeRng(runSeed),
+    boardNumber:0, score:0, mult:1, chain:0, bestChain:0,
+    solved:0, perfect:0, skipped:0,
+    timeLeftMs: kind==='chrono' ? SENTIER_CHRONO_MS : null,
+    clockId:null, lastTick:0, inTransition:false,
+    board:null, nextBoard:null, hintUsedOnBoard:false, ended:false,
+    known:sentierKnownMechanics(), completed:completedLevelIndices()
+  };
+  Analytics.track('sentier_start', { kind, seed:runSeed });
+  sentierNextBoard();
+  if(kind==='chrono') startSentierClock();
+}
+
+function sentierBoardTitle(run){
+  if(run.board && run.board.tag==='ECHO') return '🪞 '+run.board.name;
+  return (run.kind==='zen' ? '🍃 Zen' : '⏳ Sentier')+' · Plateau '+run.boardNumber;
+}
+function sentierTipFor(run){
+  const lvl = run.board;
+  if(lvl.tag==='ECHO') return { icon:'🪞', text:'Un Écho : un niveau que tu connais… retourné.' };
+  if(run.boardNumber===1){
+    return run.kind==='chrono'
+      ? { icon:'⏳', text:'Solution parfaite = points × série et +10 s au sablier.' }
+      : { icon:'🍃', text:'Aucun chrono. Trouve la solution parfaite à ton rythme.' };
+  }
+  const m = lvl.featured && MECHANIC_INFO[lvl.featured];
+  return m ? { icon:m.icon, text:m.name+' à l\'honneur' } : null;
+}
+
+function sentierNextBoard(){
+  const run = sentierRun;
+  if(!run || run.ended) return;
+  run.boardNumber++;
+  let lvl = run.nextBoard;
+  run.nextBoard = null;
+  if(!lvl) lvl = buildSentierBoard(run.rng, run.boardNumber, sentierCtx(run));
+  try{ run.board = normalizeLevelData(lvl, 0); }
+  catch(e){ run.board = normalizeLevelData(buildEchoBoard(run.rng, sentierProfile(run.boardNumber, run.kind), sentierCtx(run)), 0); }
+  run.hintUsedOnBoard = false;
+  run.inTransition = false;
+  const board = document.getElementById('board');
+  if(board) board.classList.remove('board-exit');
+  startBoard(run.board, { mode:'sentier', title:sentierBoardTitle(run), boardNumber:run.boardNumber, tip:sentierTipFor(run) });
+  updateSentierBar(false);
+  // Pré-génère le plateau suivant pendant que le joueur réfléchit : la
+  // transition reste instantanée même quand le générateur doit insister.
+  setTimeout(()=>{
+    if(sentierRun===run && !run.ended && !run.nextBoard){
+      run.nextBoard = buildSentierBoard(run.rng, run.boardNumber+1, sentierCtx(run));
+    }
+  }, 350);
+}
+
+function restartSentierBoard(){
+  const run = sentierRun;
+  if(!run || run.ended || !run.board || run.inTransition) return;
+  startBoard(run.board, { mode:'sentier', title:sentierBoardTitle(run), boardNumber:run.boardNumber, tip:sentierTipFor(run) });
+  updateSentierBar(false);
+}
+
+function skipSentierBoard(){
+  const run = sentierRun;
+  if(!run || run.ended || run.inTransition || state.won) return;
+  run.skipped++;
+  run.chain = 0; run.mult = 1;
+  Analytics.track('sentier_skip', { board:run.boardNumber, par:state.par, moves:state.moves });
+  sfxScreenClose();
+  sentierNextBoard();
+}
+
+function onSentierBoardWin(){
+  const run = sentierRun;
+  if(!run || run.ended) return;
+  const stars = starsForMoves(state.moves, state.par);
+  const perfect = stars===3 && !run.hintUsedOnBoard;
+  run.solved++;
+  let gained = 0, bonusMs = 0;
+  if(perfect){
+    run.perfect++;
+    run.chain++;
+    run.bestChain = Math.max(run.bestChain, run.chain);
+    gained = SENTIER_POINTS.perfect * run.mult;
+    run.mult = Math.min(SENTIER_MULT_MAX, run.mult + 1);
+    if(run.kind==='chrono') bonusMs = SENTIER_PERFECT_BONUS_MS;
+  } else {
+    gained = (stars===2 && !run.hintUsedOnBoard) ? SENTIER_POINTS.near : SENTIER_POINTS.solved;
+    run.chain = 0; run.mult = 1;
+  }
+  if(run.kind==='chrono'){
+    run.score += gained;
+    run.timeLeftMs += bonusMs;
+  }
+  Analytics.track('sentier_board_complete', { board:run.boardNumber, par:state.par, moves:state.moves, perfect,
+    hint:run.hintUsedOnBoard, undo:state.undoCount, time:state.elapsed, echo:run.board && run.board.tag==='ECHO' });
+
+  if(state.screen==='game'){
+    if(perfect) sfxRecordBeat(); else sfxWin();
+    vibrate(perfect ? [12,30,12] : 15);
+    let text, sub;
+    if(run.kind==='chrono'){
+      text = perfect ? `Parfait ! +${gained}` : `+${gained}`;
+      sub = perfect ? `+${bonusMs/1000} s · série ×${run.mult}` : `Par : ${state.par} coups`;
+    } else {
+      text = perfect ? 'Parfait !' : 'Résolu';
+      sub = perfect ? `${run.chain} d'affilée` : `Par : ${state.par} coups`;
+    }
+    showBoardFloat(text, sub, perfect);
+  }
+  updateSentierBar(perfect);
+  run.inTransition = true;
+  const board = document.getElementById('board');
+  setTimeout(()=>{ if(board && sentierRun===run && !run.ended) board.classList.add('board-exit'); }, SENTIER_NEXT_DELAY_MS - 250);
+  setTimeout(()=>{
+    if(sentierRun!==run || run.ended) return;
+    if(state.screen!=='game'){ return; }
+    sentierNextBoard();
+  }, SENTIER_NEXT_DELAY_MS);
+}
+
+function showBoardFloat(text, sub, strong){
+  const board = document.getElementById('board');
+  if(!board) return;
+  const el = document.createElement('div');
+  el.className = 'board-float' + (strong ? '' : ' meh');
+  el.textContent = text;
+  if(sub){ const s = document.createElement('small'); s.textContent = sub; el.appendChild(s); }
+  board.appendChild(el);
+  setTimeout(()=> el.remove(), 950);
+}
+
+function updateSentierBar(flash){
+  const run = sentierRun;
+  if(!run) return;
+  const setT = (id, v)=>{ const el = document.getElementById(id); if(el) el.textContent = v; };
+  setT('sbBoard', String(run.boardNumber));
+  const scoreItem = document.getElementById('sbScore').parentElement;
+  const multWrap = document.getElementById('sbMultWrap');
+  const clockWrap = document.getElementById('sbClockWrap');
+  if(run.kind==='chrono'){
+    scoreItem.querySelector('.sb-lbl').textContent = 'Score';
+    setT('sbScore', String(run.score));
+    multWrap.hidden = false;
+    setT('sbMult', '×'+run.mult);
+    clockWrap.hidden = false;
+    setT('sbClock', formatTime(Math.ceil(run.timeLeftMs/1000)));
+    clockWrap.classList.toggle('low', run.timeLeftMs <= 20000);
+    if(flash){
+      multWrap.classList.remove('hot'); void multWrap.offsetWidth; multWrap.classList.add('hot');
+      clockWrap.classList.add('bonus'); setTimeout(()=> clockWrap.classList.remove('bonus'), 900);
+    }
+  } else {
+    scoreItem.querySelector('.sb-lbl').textContent = 'Parfaits';
+    setT('sbScore', String(run.perfect));
+    multWrap.hidden = true;
+    clockWrap.hidden = true;
+  }
+}
+
+function startSentierClock(){
+  stopSentierClock();
+  const run = sentierRun;
+  if(!run) return;
+  run.lastTick = Date.now();
+  run.clockId = setInterval(tickSentierClock, 200);
+}
+function stopSentierClock(){
+  if(sentierRun && sentierRun.clockId){ clearInterval(sentierRun.clockId); sentierRun.clockId = null; }
+}
+function tickSentierClock(){
+  const run = sentierRun;
+  if(!run || run.ended){ stopSentierClock(); return; }
+  const now = Date.now();
+  const dt = now - run.lastTick;
+  run.lastTick = now;
+  // Pause équitable : application en arrière-plan, ou transition entre
+  // deux plateaux (le temps d'animation n'est jamais compté contre le joueur).
+  if(document.hidden || run.inTransition || state.screen!=='game') return;
+  run.timeLeftMs -= dt;
+  if(run.timeLeftMs <= 0){
+    run.timeLeftMs = 0;
+    updateSentierBar(false);
+    endSentierRun('time');
+    return;
+  }
+  updateSentierBar(false);
+}
+
+function endSentierRun(reason){
+  const run = sentierRun;
+  if(!run || run.ended) return;
+  run.ended = true;
+  stopSentierClock();
+  stopTimer();
+  const stats = loadSentierStats();
+  const prevBest = stats.bestScore;
+  stats.totalSolved += run.solved;
+  stats.totalPerfect += run.perfect;
+  stats.bestChain = Math.max(stats.bestChain, run.bestChain);
+  let coins = 0, isRecord = false;
+  if(run.kind==='chrono'){
+    stats.runs++;
+    stats.lastScore = run.score;
+    if(run.score > prevBest){ stats.bestScore = run.score; isRecord = run.score > 0; }
+    coins = Math.floor(run.score / SENTIER_COINS_PER_POINTS);
+  } else {
+    stats.zenSolved += run.solved;
+  }
+  saveSentierStats(stats);
+  if(coins > 0) addCoins(coins);
+  Analytics.track('sentier_end', { kind:run.kind, reason, score:run.score, solved:run.solved, perfect:run.perfect,
+    bestChain:run.bestChain, skipped:run.skipped, boards:run.boardNumber });
+  const newly = checkAchievements({ inline:true });
+  sentierRun = null;
+  const board = document.getElementById('board');
+  if(board) board.classList.remove('board-exit');
+  if(run.solved===0 && reason==='quit'){ renderSentierHub(); goto('sentier'); return; }
+  renderSentierEnd(run, { isRecord, prevBest, coins, newly, reason, stats });
+  goto('sentierend');
+  if(isRecord) setTimeout(sfxRecordBeat, 250);
+}
+
+function renderSentierEnd(run, info){
+  const setT = (id, v)=>{ const el = document.getElementById(id); if(el) el.textContent = v; };
+  const chrono = run.kind==='chrono';
+  setT('seKicker', chrono ? (info.reason==='time' ? 'Temps écoulé' : 'Partie terminée') : 'Balade terminée');
+  setT('seScore', chrono ? String(run.score) : String(run.solved));
+  setT('seSub', chrono ? 'points' : (run.solved>1 ? 'plateaux résolus' : 'plateau résolu'));
+  setT('seSolved', String(run.solved));
+  setT('sePerfect', String(run.perfect));
+  setT('seChain', String(run.bestChain));
+  const badge = document.getElementById('seRecordBadge');
+  if(badge){
+    badge.style.display = info.isRecord ? 'flex' : 'none';
+    badge.textContent = info.prevBest > 0 ? '🏆 Nouveau record du Sentier !' : '🏆 Premier record posé !';
+  }
+  const rewards = [];
+  if(info.coins > 0) rewards.push({ icon:'🪙', text:'+'+info.coins, kind:'coins' });
+  (info.newly||[]).forEach(id=>{
+    const ach = ACHIEVEMENTS.find(a=>a.id===id);
+    if(ach) rewards.push({ icon:ach.icon, text:'Succès : '+ach.name, kind:'achievement' });
+  });
+  const meadow = typeof meadowProgress==='function' ? meadowProgress(info.stats.totalPerfect) : null;
+  if(meadow && run.perfect > 0 && meadow.bloomedNow(run.perfect)){
+    rewards.push({ icon:'🌼', text:'Une fleur éclot dans la prairie', kind:'unlock' });
+  }
+  const wrap = document.getElementById('seRewards');
+  if(wrap){
+    wrap.innerHTML = '';
+    rewards.forEach((r,i)=>{
+      const chip = document.createElement('div');
+      chip.className = 'reward-chip ' + r.kind;
+      chip.style.animationDelay = (0.3 + i*0.12)+'s';
+      const ic = document.createElement('span'); ic.textContent = r.icon;
+      const tx = document.createElement('span'); tx.textContent = r.text;
+      chip.append(ic, tx); wrap.appendChild(chip);
+    });
+  }
+  let next = '';
+  if(chrono){
+    const best = info.stats.bestScore;
+    if(info.isRecord) next = `Record à battre désormais : <b>${best}</b> points.`;
+    else if(best > run.score) next = `Encore <b>${best - run.score + 1}</b> points pour battre ton record (${best}).`;
+  } else {
+    next = run.perfect ? `Dont <b>${run.perfect}</b> solution${run.perfect>1?'s':''} parfaite${run.perfect>1?'s':''}. Belle balade.` : 'Belle balade.';
+  }
+  if(meadow){
+    const left = meadow.toNext;
+    next += (next ? '<br>' : '') + `Prairie du Jardin : encore <b>${left}</b> solution${left>1?'s':''} parfaite${left>1?'s':''} avant la prochaine fleur.`;
+  }
+  const nextEl = document.getElementById('seNext');
+  if(nextEl) nextEl.innerHTML = next;
+  const again = document.getElementById('btnSentierAgain');
+  if(again){ again.dataset.kind = run.kind; again.textContent = chrono ? '↻ REJOUER (CHRONO)' : '↻ CONTINUER EN ZEN'; }
+}
+
+function renderSentierHub(){
+  const unlocked = isSentierUnlocked();
+  document.getElementById('sentierLocked').hidden = unlocked;
+  document.getElementById('sentierModes').hidden = !unlocked;
+  document.getElementById('sentierStats').hidden = !unlocked;
+  if(!unlocked){
+    const p = loadProgress();
+    const idxs = worldLevelIndices(1);
+    const done = idxs.filter(i=> p[i]!==undefined).length;
+    document.getElementById('sentierLockBar').style.width = Math.round(done/idxs.length*100)+'%';
+    document.getElementById('sentierLockCount').textContent = `${done} / ${idxs.length} niveaux`;
+    return;
+  }
+  const s = loadSentierStats();
+  document.getElementById('sentierBestScore').textContent = s.bestScore>0 ? `Record\n${s.bestScore}` : 'Nouveau';
+  document.getElementById('sentierZenCount').textContent = s.zenSolved>0 ? `${s.zenSolved}\nrésolus` : '';
+  document.getElementById('sentierTotalSolved').textContent = String(s.totalSolved);
+  document.getElementById('sentierTotalPerfect').textContent = String(s.totalPerfect);
+  document.getElementById('sentierBestChain').textContent = String(s.bestChain);
+  document.getElementById('sentierRuns').textContent = String(s.runs);
+}
+function openSentierHub(){ renderSentierHub(); goto('sentier'); }
+
+document.getElementById('btnSentierChrono').addEventListener('click', ()=> startSentierRun('chrono'));
+document.getElementById('btnSentierZen').addEventListener('click', ()=> startSentierRun('zen'));
+document.getElementById('btnSkipBoard').addEventListener('click', skipSentierBoard);
+document.getElementById('btnBackHomeSentier').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
+document.getElementById('btnSentierAgain').addEventListener('click', (e)=>{
+  startSentierRun(e.currentTarget.dataset.kind==='zen' ? 'zen' : 'chrono');
+});
+document.getElementById('btnSentierEndBack').addEventListener('click', openSentierHub);
+document.getElementById('btnSentierEndHome').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 
 /* =========================================================
    M. PARTAGE (carte image générée en canvas)
 ========================================================= */
-function buildShareImage(moves, timeStr, stars, isDaily){
+function buildShareImage(moves, timeStr, stars, isDaily, par){
   const canvas = document.getElementById('shareCanvas');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
@@ -5267,7 +6209,8 @@ function buildShareImage(moves, timeStr, stars, isDaily){
 
   ctx.fillStyle = '#c9c2ae';
   ctx.font = '700 20px Nunito, sans-serif';
-  ctx.fillText(isDaily ? 'Défi du jour' : 'Niveau '+(state.levelIndex+1), W/2, 305);
+  const rule = isDaily ? todayDailyRule() : null;
+  ctx.fillText(isDaily ? `Défi du jour · ${rule.label}` : 'Niveau '+(state.levelIndex+1), W/2, 305);
 
   // stars
   ctx.font = '46px sans-serif';
@@ -5276,8 +6219,14 @@ function buildShareImage(moves, timeStr, stars, isDaily){
   ctx.fillText(starsStr, W/2, 380);
 
   // stats boxes
-  drawStatBox(ctx, W/2-140, 430, 120, 90, String(moves), 'COUPS');
-  drawStatBox(ctx, W/2+20, 430, 120, 90, timeStr, 'TEMPS');
+  if(Number.isFinite(par)){
+    drawStatBox(ctx, W/2-195, 430, 120, 90, String(moves), 'COUPS');
+    drawStatBox(ctx, W/2-60, 430, 120, 90, timeStr, 'TEMPS');
+    drawStatBox(ctx, W/2+75, 430, 120, 90, String(par), 'PAR');
+  } else {
+    drawStatBox(ctx, W/2-140, 430, 120, 90, String(moves), 'COUPS');
+    drawStatBox(ctx, W/2+20, 430, 120, 90, timeStr, 'TEMPS');
+  }
 
   // Série quotidienne : uniquement sur la carte du défi du jour, pour
   // rappeler l'élément différenciateur du produit (défi synchronisé +
@@ -5335,14 +6284,77 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 
-function doShare(isDaily){
-  Analytics.track('share', { isDaily });
-  const dailyData = isDaily ? loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', {moves:0, time:0, stars:0}) : null;
-  const moves = isDaily ? dailyData.moves : parseInt(document.getElementById('vMoves').textContent,10);
-  const timeStr = isDaily ? formatTime(dailyData.time) : document.getElementById('vTime').textContent;
+/* ---------------------------------------------------------
+   PARTAGE TEXTE (étude de marché §6 : format "puzzle du jour" façon
+   Wordle, le plus viral du genre). Ne révèle jamais la solution
+   (Blueprint §15) : étoiles, coups, par, série — pas le chemin.
+   Ordre : feuille de partage native > presse-papiers > zone de texte
+   sélectionnable (jamais d'échec silencieux).
+--------------------------------------------------------- */
+function shareUrl(){
+  return (location.protocol==='http:' || location.protocol==='https:') ? location.origin + location.pathname : '';
+}
+function starEmojiLine(stars){ return '⭐'.repeat(stars) + '▫️'.repeat(3-stars); }
+function buildShareText(isDaily){
+  const lines = [];
+  if(isDaily){
+    const d = loadTodayDailyResult() || { moves:state.moves, time:state.elapsed, stars:starsForMoves(state.moves, state.par), par:state.par };
+    const rule = todayDailyRule();
+    const k = todayKey();
+    lines.push(`BlockCraft Daily · ${k.slice(6,8)}/${k.slice(4,6)} · ${rule.icon} ${rule.label}`);
+    const par = Number.isFinite(d.par) ? d.par : null;
+    lines.push(`${starEmojiLine(d.stars)} ${d.moves} coup${d.moves>1?'s':''}${par!==null ? ' (par '+par+')' : ''} · ${formatTime(d.time)}`);
+    const streak = loadStreak();
+    if(streak.current > 0) lines.push(`🔥 Série : ${streak.current} jour${streak.current>1?'s':''}`);
+  } else {
+    const stars = starsForMoves(state.moves, state.par);
+    lines.push(`BlockCraft Daily · Niveau ${state.levelIndex+1} « ${state.level ? state.level.name : ''} »`);
+    lines.push(`${starEmojiLine(stars)} ${state.moves} coup${state.moves>1?'s':''} (par ${state.par}) · ${formatTime(state.elapsed)}`);
+    lines.push(stars===3 ? 'Solution parfaite. À toi de jouer !' : 'Le jeu sait si ta solution est parfaite. À toi !');
+  }
+  const url = shareUrl();
+  if(url) lines.push(url);
+  return lines.join('\n');
+}
+async function shareTextOut(text){
+  try{
+    if(navigator.share){ await navigator.share({ text }); return 'shared'; }
+  }catch(e){ if(e && e.name==='AbortError') return 'aborted'; }
+  try{
+    if(navigator.clipboard && window.isSecureContext){ await navigator.clipboard.writeText(text); return 'copied'; }
+  }catch(e){}
+  return 'manual';
+}
+function showManualShareText(text){
+  const out = document.getElementById('shareTextOut');
+  if(!out) return false;
+  out.value = text;
+  out.hidden = false;
+  try{ out.focus(); out.select(); }catch(e){}
+  return true;
+}
+async function doShare(isDaily){
+  const text = buildShareText(isDaily);
+  const result = await shareTextOut(text);
+  Analytics.track('share', { isDaily, kind:'text', result });
+  if(result==='copied'){
+    showSimpleToast('📋', 'Résultat copié', 'Colle-le dans une conversation pour défier tes amis.', 'info-toast');
+  } else if(result==='manual'){
+    if(isDaily && state.screen==='dailyresult' && showManualShareText(text)){
+      showSimpleToast('📋', 'Texte prêt', 'Sélectionne-le et copie-le pour le partager.', 'info-toast');
+    } else {
+      shareImage(isDaily);
+    }
+  }
+}
+function shareImage(isDaily){
+  Analytics.track('share', { isDaily, kind:'image' });
+  const dailyData = isDaily ? (loadTodayDailyResult() || { moves:0, time:0, stars:0 }) : null;
+  const moves = isDaily ? dailyData.moves : state.moves;
+  const timeStr = isDaily ? formatTime(dailyData.time) : formatTime(state.elapsed);
   const stars = isDaily ? dailyData.stars : starsForMoves(state.moves, state.par);
-  const dataUrl = buildShareImage(moves, timeStr, stars, isDaily);
-
+  const par = isDaily ? (Number.isFinite(dailyData.par) ? dailyData.par : null) : state.par;
+  const dataUrl = buildShareImage(moves, timeStr, stars, isDaily, par);
   if(isDaily){
     document.getElementById('sharePreviewImg').src = dataUrl;
     document.getElementById('sharePreviewWrap').style.display = 'block';
@@ -5354,6 +6366,7 @@ function doShare(isDaily){
 }
 document.getElementById('btnShare').addEventListener('click', ()=> doShare(false));
 document.getElementById('btnShareDaily').addEventListener('click', ()=> doShare(true));
+document.getElementById('btnShareImageDaily').addEventListener('click', ()=> shareImage(true));
 
 /* =========================================================
    M2. ACCESSIBILITÉ CLAVIER
