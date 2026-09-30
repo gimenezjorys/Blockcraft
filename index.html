@@ -641,6 +641,51 @@
   .reward-chip.unlock{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.2);}
   .reward-chip.streak{border-color:rgba(224,101,79,.6);}
   @keyframes rewardIn{from{opacity:0; transform:translateY(6px) scale(.94);} to{opacity:1; transform:translateY(0) scale(1);}}
+  /* ---------- LE JARDIN ---------- */
+  .home-garden{
+    display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
+    background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.18)); border:1px solid var(--tile-line);
+    border-radius:18px; padding:8px 14px 6px; width:100%; max-width:320px; color:var(--cream);
+    font-family:var(--font-body); transition:transform .12s ease;
+  }
+  .home-garden:active{transform:scale(.98);}
+  .hg-plants{display:flex; justify-content:space-between; align-items:flex-end; width:100%; height:48px;}
+  .hg-plants svg{width:30px; height:42px; overflow:visible;}
+  .hg-caption{font-size:11px; font-weight:800; color:var(--cream-dim); letter-spacing:.3px;}
+  .plant-bloom{filter:drop-shadow(0 0 5px rgba(255,209,102,.55));}
+  .plant-grow{animation:plantGrow .6s ease both; transform-origin:50% 100%;}
+  @keyframes plantGrow{0%{transform:scale(.4); opacity:0;} 70%{transform:scale(1.08);} 100%{transform:scale(1); opacity:1;}}
+  .plant-sway{animation:plantSway 5s ease-in-out infinite; transform-origin:50% 92%;}
+  @keyframes plantSway{0%,100%{transform:rotate(-2deg);} 50%{transform:rotate(2deg);}}
+
+  #screen-garden{gap:14px;}
+  .garden-head{display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center;}
+  .gh-score{font-family:var(--font-display); font-weight:800; font-size:30px; color:var(--gold); line-height:1;}
+  .gh-lbl{font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--cream-dim); margin-bottom:4px;}
+  .gh-hint{margin:6px 0 0; font-size:12px; font-weight:600; color:var(--cream-dim); line-height:1.4; max-width:330px;}
+  .garden-plots{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .plot{
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:8px 4px 8px;
+    background:linear-gradient(180deg, var(--surface), var(--bg-deep)); border:1px solid var(--tile-line);
+    border-radius:16px; text-align:center; min-width:0;
+  }
+  .plot svg{width:44px; height:62px; overflow:visible;}
+  .plot.bloom{border-color:rgba(255,209,102,.55); box-shadow:inset 0 0 0 1px rgba(255,209,102,.15);}
+  .plot.dormant{opacity:.55;}
+  .plot-name{font-family:var(--font-display); font-weight:800; font-size:12px; color:var(--cream); line-height:1.1;}
+  .plot-stage{font-size:10px; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:.3px;}
+  .plot-next{font-size:10px; font-weight:600; color:var(--cream-dim); line-height:1.25;}
+  .meadow{
+    background:linear-gradient(180deg, var(--surface), var(--bg-deep)); border:1px solid var(--tile-line);
+    border-radius:18px; padding:12px 14px; display:flex; flex-direction:column; gap:6px;
+  }
+  .meadow-head{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--cream);}
+  .meadow-head span{font-weight:800; color:var(--gold); font-size:12px;}
+  .meadow-art{height:64px; border-radius:12px; background:linear-gradient(180deg, transparent 55%, rgba(106,168,90,.35) 55%, rgba(60,110,60,.5)); position:relative; overflow:hidden;}
+  .meadow-art svg{position:absolute; inset:0; width:100%; height:100%;}
+  .meadow-next{font-size:12px; font-weight:700; color:var(--cream-dim);}
+  .meadow-next b{color:var(--gold);}
+
   /* ---------- LE SENTIER ---------- */
   .sentier-bar{
     display:flex; justify-content:space-between; gap:6px; margin:-6px 0 10px;
@@ -1191,6 +1236,27 @@
     </div>
     <p class="note" style="margin-top:0;">Les règles des mécaniques que tu as déjà rencontrées en jeu, à consulter à tout moment. Continue à explorer les mondes pour débloquer les suivantes.</p>
     <div class="achievements-list" id="mechanicHelpList"></div>
+  </section>
+
+  <!-- ============ LE JARDIN (méta-progression visuelle) ============ -->
+  <section id="screen-garden" class="screen">
+    <div class="topbar">
+      <div class="icon-btn" id="btnBackHomeGarden" aria-label="Retour" role="button" tabindex="0">←</div>
+      <div class="topbar-title">Le Jardin</div>
+      <div style="width:40px;"></div>
+    </div>
+    <div class="garden-head">
+      <div class="gh-score" id="gardenScore">0 / 32</div>
+      <div class="gh-lbl">floraison</div>
+      <div class="world-bar" style="width:100%;"><div class="world-bar-fill" id="gardenScoreBar" style="width:0%"></div></div>
+      <p class="gh-hint">Chaque monde est une plante : termine ses niveaux pour la faire grandir, obtiens toutes ses étoiles pour la faire fleurir.</p>
+    </div>
+    <div class="garden-plots" id="gardenPlots"></div>
+    <div class="meadow" id="gardenMeadow">
+      <div class="meadow-head"><b>🌼 La prairie du Sentier</b><span id="meadowCount">0 fleur</span></div>
+      <div class="meadow-art" id="meadowArt" aria-hidden="true"></div>
+      <div class="meadow-next" id="meadowNext"></div>
+    </div>
   </section>
 
   <!-- ============ LE SENTIER (mode infini de maîtrise) ============ -->
@@ -3780,6 +3846,7 @@ window.addEventListener('popstate', ()=>{
     case 'cosmetics': document.getElementById('btnBackHomeCosmetics').click(); break;
     case 'profile': document.getElementById('btnBackHomeProfile').click(); break;
     case 'sentier': document.getElementById('btnBackHomeSentier').click(); break;
+    case 'garden': document.getElementById('btnBackHomeGarden').click(); break;
     case 'sentierend': document.getElementById('btnSentierEndHome').click(); break;
     case 'victory': refreshHome(); goto(state.isDaily ? 'home' : 'select'); if(!state.isDaily) renderLevelSelect(); break;
     default: break; // sur l'accueil, le retour ne fait rien (évite une sortie accidentelle)
@@ -3842,7 +3909,10 @@ function refreshHome(){
     const lastWasYesterday = streak.lastSuccessDate === yesterdayKey();
     setT('homeDailyStatus', `${rule.day} · ${rule.label}` + (lastWasYesterday && streak.current>0 ? ` · garde ta série de ${streak.current}` : ''));
     setT('homeDailyBadge', 'À relever');
-    if(dailyCard){ dailyCard.classList.add('todo'); dailyCard.classList.remove('done'); }
+    // Avant la fin du tutoriel (3 premiers niveaux), le défi ne rivalise pas
+    // visuellement avec JOUER : une seule action évidente pour débuter.
+    const tutorialDone = [0,1,2].every(i=> p[i]!==undefined);
+    if(dailyCard){ dailyCard.classList.toggle('todo', tutorialDone); dailyCard.classList.remove('done'); }
   }
 
   // Carte "Le Sentier" : verrouillée avec progression visible, puis record.
@@ -3855,7 +3925,7 @@ function refreshHome(){
   } else {
     const idxs = worldLevelIndices(1);
     const done = idxs.filter(i=> p[i]!==undefined).length;
-    setT('homeSentierStatus', `Termine le Monde 1 pour l'ouvrir (${done}/${idxs.length})`);
+    setT('homeSentierStatus', `S'ouvre après le Monde 1 · ${done}/${idxs.length}`);
     setT('homeSentierBadge', '🔒');
     if(sentierCard) sentierCard.classList.add('locked');
   }
@@ -4171,6 +4241,162 @@ document.getElementById('btnBackHomeProfile').addEventListener('click', ()=>{ re
 document.getElementById('btnProfile').addEventListener('click', ()=>{ renderProfile(); goto('profile'); });
 document.getElementById('btnProfileToAchievements').addEventListener('click', ()=>{ renderAchievements(); goto('achievements'); });
 document.getElementById('btnProfileToCosmetics').addEventListener('click', ()=>{ renderCosmetics(); goto('cosmetics'); });
+
+/* =========================================================
+   E3. LE JARDIN — MÉTA-PROGRESSION VISUELLE (audit §8, Update 3)
+   Leçon Royal Match citée par l'audit : la méta qui retient le mieux est
+   la plus simple à comprendre visuellement. Une plante par monde, qui
+   pousse avec la progression RÉELLE du joueur (aucune donnée nouvelle :
+   tout est dérivé de la progression déjà sauvegardée), et une prairie qui
+   fleurit avec les solutions parfaites du Sentier. Chaque plante affiche
+   son prochain objectif : objectifs imbriqués niveau → monde → jardin.
+   Stades : 0 graine · 1 pousse · 2 tige (moitié des niveaux) ·
+            3 bouton (monde terminé) · 4 fleur (toutes les étoiles).
+========================================================= */
+const GARDEN_STAGE_NAMES = ['Graine', 'Pousse', 'Tige', 'Bouton', 'En fleur'];
+const GARDEN_MAX_STAGE = 4;
+// Couleur et nombre de pétales propres à chaque monde (identité visuelle).
+const WORLD_FLOWERS = {
+  1:{ color:'#ffd166', petals:5 }, 2:{ color:'#e8a87c', petals:6 }, 3:{ color:'#f2efe2', petals:8 },
+  4:{ color:'#8fcfe8', petals:6 }, 5:{ color:'#c79bf0', petals:5 }, 6:{ color:'#7ee0d6', petals:7 },
+  7:{ color:'#e0a85c', petals:5 }, 8:{ color:'#e88fa8', petals:8 }
+};
+const MEADOW_PERFECT_PER_FLOWER = 5;
+const MEADOW_MAX_FLOWERS = 40;
+
+function gardenStageFor(world, p){
+  const idxs = worldLevelIndices(world);
+  if(!idxs.length) return { stage:0, done:0, total:0, stars:0 };
+  const done = idxs.filter(i=> p[i]!==undefined).length;
+  const stars = idxs.reduce((acc,i)=> acc + (p[i]||0), 0);
+  let stage = 0;
+  if(done >= 1) stage = 1;
+  if(done >= Math.ceil(idxs.length/2)) stage = 2;
+  if(done === idxs.length) stage = 3;
+  if(stars === idxs.length*3) stage = 4;
+  return { stage, done, total:idxs.length, stars };
+}
+function gardenNextGoal(info, unlocked){
+  const n = info.total;
+  if(info.stage===0) return unlocked ? 'Termine un niveau pour la planter' : 'À découvrir';
+  if(info.stage===1){ const k = Math.ceil(n/2) - info.done; return `${k} niveau${k>1?'x':''} pour grandir`; }
+  if(info.stage===2){ const k = n - info.done; return `${k} niveau${k>1?'x':''} pour bourgeonner`; }
+  if(info.stage===3){ const k = n*3 - info.stars; return `${k} ★ pour fleurir`; }
+  return 'En pleine floraison';
+}
+function gardenTotals(p){
+  p = p || loadProgress();
+  let score = 0;
+  ALL_WORLDS.forEach(w=>{ score += gardenStageFor(w, p).stage; });
+  return { score, max: ALL_WORLDS.length * GARDEN_MAX_STAGE };
+}
+function meadowProgress(totalPerfect){
+  const flowers = Math.min(MEADOW_MAX_FLOWERS, Math.floor(totalPerfect / MEADOW_PERFECT_PER_FLOWER));
+  const toNext = MEADOW_PERFECT_PER_FLOWER - (totalPerfect % MEADOW_PERFECT_PER_FLOWER);
+  return {
+    flowers, toNext,
+    // Vrai si les `gained` dernières solutions parfaites ont fait franchir un palier.
+    bloomedNow(gained){ return Math.floor(totalPerfect/MEADOW_PERFECT_PER_FLOWER) > Math.floor((totalPerfect-gained)/MEADOW_PERFECT_PER_FLOWER); }
+  };
+}
+
+// Plante en SVG procédural (viewBox 40×56). Aucun asset externe : la forme
+// dépend du stade, la couleur et les pétales du monde.
+function plantSVG(stage, world, extraClass){
+  const f = WORLD_FLOWERS[world] || WORLD_FLOWERS[1];
+  const stem = '#6fbf73', leaf = '#4f9d5c', soil = '#3b2b1d';
+  let g = `<ellipse cx="20" cy="51" rx="14" ry="4" fill="${soil}"/><ellipse cx="20" cy="50" rx="10" ry="2.2" fill="#56402b"/>`;
+  if(stage===0){
+    g += `<ellipse cx="20" cy="48.5" rx="3" ry="2.2" fill="#c97e1f"/>`;
+  } else {
+    const top = [0, 41, 30, 22, 20][stage];
+    g += `<path d="M20 50 C 19 ${(50+top)/2}, 21 ${(50+top)/2}, 20 ${top}" stroke="${stem}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+    g += `<path d="M20 46 C 13 44, 11 40, 12 38 C 16 39, 19 42, 20 46 Z" fill="${leaf}"/>`;
+    g += `<path d="M20 45 C 27 43, 29 39, 28 37 C 24 38, 21 41, 20 45 Z" fill="${stem}"/>`;
+    if(stage>=2){
+      g += `<path d="M20 36 C 14 34, 13 30, 14 28 C 17 29, 19 32, 20 36 Z" fill="${stem}"/>`;
+      g += `<path d="M20 34 C 26 32, 27 28, 26 26 C 23 27, 21 30, 20 34 Z" fill="${leaf}"/>`;
+    }
+    if(stage===3){
+      g += `<ellipse cx="20" cy="18" rx="4.6" ry="6.2" fill="${f.color}" opacity=".9"/>`;
+      g += `<path d="M15.6 20 C 17 24, 23 24, 24.4 20 C 22 22, 18 22, 15.6 20 Z" fill="${leaf}"/>`;
+    }
+    if(stage===4){
+      const n = f.petals;
+      for(let i=0;i<n;i++){
+        const a = (360/n)*i;
+        g += `<ellipse cx="20" cy="11.5" rx="3.6" ry="6.4" fill="${f.color}" transform="rotate(${a} 20 18)"/>`;
+      }
+      g += `<circle cx="20" cy="18" r="3.6" fill="#ffcf7a"/><circle cx="19" cy="17" r="1.2" fill="#fff5d6" opacity=".8"/>`;
+    }
+  }
+  const cls = [stage>=1 ? 'plant-sway' : '', stage===4 ? 'plant-bloom' : '', extraClass||''].join(' ').trim();
+  return `<svg viewBox="0 0 40 56" class="${cls}" role="img" aria-hidden="true">${g}</svg>`;
+}
+
+function renderHomeGarden(){
+  const wrap = document.getElementById('homeGardenPlants');
+  if(!wrap) return;
+  const p = loadProgress();
+  wrap.innerHTML = ALL_WORLDS.map(w=> plantSVG(gardenStageFor(w, p).stage, w)).join('');
+  const t = gardenTotals(p);
+  const cap = document.getElementById('homeGardenCaption');
+  if(cap) cap.textContent = t.score===0 ? '🌱 8 graines attendent d\'être plantées' : `🌷 Le Jardin · floraison ${t.score}/${t.max}`;
+  const btn = document.getElementById('homeGarden');
+  if(btn) btn.setAttribute('aria-label', `Ouvrir le Jardin : floraison ${t.score} sur ${t.max}`);
+}
+
+function renderGarden(){
+  const p = loadProgress();
+  const t = gardenTotals(p);
+  document.getElementById('gardenScore').textContent = `${t.score} / ${t.max}`;
+  document.getElementById('gardenScoreBar').style.width = Math.round(t.score/t.max*100)+'%';
+  const plots = document.getElementById('gardenPlots');
+  plots.innerHTML = '';
+  ALL_WORLDS.forEach(w=>{
+    const info = gardenStageFor(w, p);
+    const idxs = worldLevelIndices(w);
+    const unlocked = idxs.length>0 && (idxs[0]===0 || p[idxs[0]-1]!==undefined);
+    const meta = WORLD_META[w] || { name:'Monde '+w };
+    const plot = document.createElement('div');
+    plot.className = 'plot' + (info.stage===4 ? ' bloom' : '') + (!unlocked ? ' dormant' : '');
+    const next = gardenNextGoal(info, unlocked);
+    plot.setAttribute('role', 'img');
+    plot.setAttribute('aria-label', `${meta.name} : ${GARDEN_STAGE_NAMES[info.stage]}. ${next}.`);
+    plot.innerHTML = plantSVG(info.stage, w, 'plant-grow') +
+      `<div class="plot-name">${meta.name.replace(/^(Le |La |Les )/,'')}</div>` +
+      `<div class="plot-stage">${GARDEN_STAGE_NAMES[info.stage]}</div>` +
+      `<div class="plot-next">${next}</div>`;
+    plots.appendChild(plot);
+  });
+
+  // Prairie du Sentier : une fleur toutes les 5 solutions parfaites.
+  const st = loadSentierStats();
+  const m = meadowProgress(st.totalPerfect);
+  document.getElementById('meadowCount').textContent = `${m.flowers} fleur${m.flowers>1?'s':''}`;
+  const art = document.getElementById('meadowArt');
+  let svg = '<svg viewBox="0 0 300 64" preserveAspectRatio="xMidYMax meet">';
+  const rng = makeRng(20260930);
+  for(let i=0;i<m.flowers;i++){
+    const x = 10 + rng()*280, y = 40 + rng()*18, c = ['#ffd166','#e88fa8','#8fcfe8','#f2efe2','#c79bf0'][i%5];
+    svg += `<path d="M${x.toFixed(1)} ${(y+8).toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}" stroke="#6fbf73" stroke-width="1.4"/>`;
+    for(let k=0;k<5;k++){ svg += `<ellipse cx="${x.toFixed(1)}" cy="${(y-2.6).toFixed(1)}" rx="1.5" ry="2.6" fill="${c}" transform="rotate(${k*72} ${x.toFixed(1)} ${y.toFixed(1)})"/>`; }
+    svg += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.3" fill="#ffcf7a"/>`;
+  }
+  svg += '</svg>';
+  art.innerHTML = svg;
+  const nextEl = document.getElementById('meadowNext');
+  if(!isSentierUnlocked()){
+    nextEl.textContent = 'S\'ouvre avec le Sentier, après le Monde 1.';
+  } else if(m.flowers >= MEADOW_MAX_FLOWERS){
+    nextEl.textContent = 'La prairie est en pleine floraison.';
+  } else {
+    nextEl.innerHTML = `Encore <b>${m.toNext}</b> solution${m.toNext>1?'s':''} parfaite${m.toNext>1?'s':''} dans le Sentier pour la prochaine fleur.`;
+  }
+}
+function openGarden(){ renderGarden(); goto('garden'); Analytics.track('garden_open', { score:gardenTotals().score }); }
+document.getElementById('homeGarden').addEventListener('click', openGarden);
+document.getElementById('btnBackHomeGarden').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 
 /* =========================================================
    E2. PARAMÈTRES (son / vibration / réinitialisation)
@@ -5443,8 +5669,16 @@ let onWin = function(expectedSessionId){
     const p = loadProgress();
     wasFirstCompletion = p[state.levelIndex] === undefined;
     prevStars = p[state.levelIndex] || 0;
+    const gardenBefore = gardenStageFor(lvl.world, p).stage;
     p[state.levelIndex] = Math.max(prevStars, stars);
     saveProgress(p);
+    // Le Jardin réagit immédiatement : la plante du monde a-t-elle grandi ?
+    const gardenAfter = gardenStageFor(lvl.world, p).stage;
+    if(gardenAfter > gardenBefore){
+      const wm = WORLD_META[lvl.world] || { name:'Monde '+lvl.world };
+      rewards.push({ icon: gardenAfter===4 ? '🌸' : '🌱', text:`Jardin : ${wm.name.replace(/^(Le |La |Les )/,'')} → ${GARDEN_STAGE_NAMES[gardenAfter]}`, kind:'unlock' });
+      Analytics.track('garden_grow', { world:lvl.world, stage:gardenAfter });
+    }
     // "Record" = amélioration RÉELLE d'un score déjà existant. Une première
     // réussite n'est pas un record battu (c'était affiché à tort avant).
     hadPreviousBest = !!getLevelBest(state.levelIndex);
