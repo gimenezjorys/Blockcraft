@@ -217,6 +217,21 @@
   .topbar-title{font-family:var(--font-display); font-weight:700; font-size:16px; color:var(--cream);}
 
   /* ---------- LEVEL SELECT / CARTE DES MONDES ---------- */
+  .near-perfect{
+    display:flex; flex-direction:column; gap:8px; margin-bottom:14px;
+    background:linear-gradient(155deg, var(--surface-2), var(--surface)); border:1.5px solid rgba(255,209,102,.45);
+    border-radius:16px; padding:10px 12px;
+  }
+  .np-title{font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--gold);}
+  .np-chips{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .np-chip{
+    min-width:42px; height:36px; border-radius:12px; cursor:pointer; padding:0 10px;
+    background:var(--bg-deep); color:var(--cream); border:1.5px solid var(--tile-line);
+    font-family:var(--font-display); font-weight:800; font-size:15px;
+  }
+  .np-chip::after{content:" ★★☆"; font-size:9px; color:var(--gold); letter-spacing:0;}
+  .np-chip:active{transform:scale(.95);}
+  .np-more{font-size:12px; font-weight:800; color:var(--cream-dim);}
   /* Barre collante : le retour reste accessible même après le défilement
      automatique vers le niveau en cours. */
   #screen-select .topbar{
@@ -1097,6 +1112,11 @@
       <div class="icon-btn" id="btnBackHome" role="button" aria-label="Retour à l'accueil" tabindex="0">←</div>
       <div class="topbar-title">Niveaux</div>
       <div style="width:40px;"></div>
+    </div>
+    <!-- Carnet de maîtrise (audit §9) : les niveaux à UN coup du parfait. -->
+    <div class="near-perfect" id="nearPerfect" hidden>
+      <div class="np-title">🎯 À un coup du parfait</div>
+      <div class="np-chips" id="nearPerfectChips"></div>
     </div>
     <div class="grid-levels" id="levelGrid"></div>
   </section>
@@ -4910,6 +4930,30 @@ function renderLevelSelect(focusIndex){
     section.appendChild(cardsWrap);
     grid.appendChild(section);
   });
+  // Carnet de maîtrise : niveaux à 2 étoiles = un seul coup de trop. Un
+  // objectif court et précis, que le fantôme du record rend concret.
+  const near = LEVELS.map((_,i)=>i).filter(i=> p[i]===2);
+  const nearWrap = document.getElementById('nearPerfect');
+  const nearChips = document.getElementById('nearPerfectChips');
+  if(nearWrap && nearChips){
+    nearWrap.hidden = near.length===0;
+    nearChips.innerHTML = '';
+    near.slice(0, 8).forEach(i=>{
+      const b = document.createElement('button');
+      b.className = 'np-chip';
+      b.textContent = String(i+1);
+      b.setAttribute('aria-label', `Niveau ${i+1} : ${LEVELS[i].name}, 2 étoiles, un coup de trop`);
+      b.addEventListener('click', ()=>{ Analytics.track('near_perfect_open', { levelIndex:i }); startLevel(i, false); });
+      nearChips.appendChild(b);
+    });
+    if(near.length > 8){
+      const more = document.createElement('span');
+      more.className = 'np-more';
+      more.textContent = `+${near.length-8}`;
+      nearChips.appendChild(more);
+    }
+  }
+
   // Reprise claire : la carte s'ouvre sur le niveau qu'on vient de quitter,
   // sinon sur le prochain niveau à jouer (et non tout en haut du Monde 1).
   const focusIdx = Number.isInteger(focusIndex) && focusIndex >= 0 ? focusIndex : nextLevelIndex;
