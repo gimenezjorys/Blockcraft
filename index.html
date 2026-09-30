@@ -6905,31 +6905,13 @@ function buildShareImage(moves, timeStr, stars, isDaily, par){
   // 'default' est déjà toujours rendu (même principe que .profile-seed-swatch
   // dans renderProfile()) : un joueur sans aucun achat obtient donc un rendu
   // identique à avant, pixel pour pixel sur le dégradé.
-  ctx.save();
-  const lx=W/2, ly=150, lr=64;
-  const equippedCosmetic = getCosmeticById(loadEquippedCosmetic());
-  const equippedFrame = getFrameById(loadEquippedFrame());
-  const lg = ctx.createLinearGradient(lx-lr,ly-lr,lx+lr,ly+lr);
-  lg.addColorStop(0, equippedCosmetic.light); lg.addColorStop(1, equippedCosmetic.deep);
-
-  applyFrameGlowToCanvas(ctx, equippedFrame);
-  roundRect(ctx, lx-lr, ly-lr, lr*2, lr*2, 22); ctx.fillStyle = lg; ctx.fill();
-  // Le contour lui-même ne doit pas re-flouter (le glow ne s'applique qu'au
-  // remplissage juste au-dessus, comme un box-shadow CSS ne s'applique pas à
-  // sa propre bordure) : on coupe l'ombre avant de tracer le trait.
-  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
-  if(equippedFrame.borderWidth > 0){
-    ctx.strokeStyle = equippedFrame.borderColor;
-    ctx.lineWidth = equippedFrame.borderWidth;
-    ctx.stroke();
-  }
-
-  roundRect(ctx, lx-30, ly-30, 60, 60, 12); ctx.fillStyle = '#f5e6a8'; ctx.fill();
-  ctx.restore();
+  // Logo de marque (même dessin que le SVG de l'accueil), aux couleurs du
+  // skin de graine et du cadre de profil équipés.
+  drawLogoCanvas(ctx, W/2-68, 82, 136, getCosmeticById(loadEquippedCosmetic()), getFrameById(loadEquippedFrame()));
 
   ctx.textAlign = 'center';
   ctx.fillStyle = '#efe8d8';
-  ctx.font = '700 34px Baloo 2, sans-serif';
+  ctx.font = '700 34px "Baloo 2", sans-serif';
   ctx.fillText('BlockCraft Daily', W/2, 270);
 
   ctx.fillStyle = '#c9c2ae';
@@ -6957,26 +6939,60 @@ function buildShareImage(moves, timeStr, stars, isDaily, par){
   // rappeler l'élément différenciateur du produit (défi synchronisé +
   // streak) à chaque partage, cohérent avec Blueprint §15/§34 ("Daily :
   // Tout le monde a le même puzzle aujourd'hui").
-  let taglineY = 580;
+  let taglineY = 590;
   if(isDaily){
     const streak = loadStreak();
     if(streak && streak.current > 0){
       ctx.fillStyle = '#ffd166';
       ctx.font = '700 20px Nunito, sans-serif';
-      ctx.fillText(`🔥 Série : ${streak.current} jour${streak.current>1?'s':''}`, W/2, 545);
-      taglineY = 605;
+      ctx.fillText(`🔥 Série : ${streak.current} jour${streak.current>1?'s':''}`, W/2, 570);
+      taglineY = 625;
     }
   }
 
   ctx.fillStyle = '#c9c2ae';
   ctx.font = '700 16px Nunito, sans-serif';
-  ctx.fillText('Essaie de faire mieux 🌱', W/2, taglineY);
+  // Accroche : l'identité du jeu (la perfection prouvée) plutôt qu'un slogan générique.
+  ctx.fillText(stars===3 ? 'Solution parfaite, prouvée par le solveur ✨' : 'Feras-tu mieux ? 🌱', W/2, taglineY);
 
   return canvas.toDataURL('image/png');
 }
+// Reproduction canvas du logo SVG (viewBox 64×64) : tuile, grille, bloc,
+// lumière, graine avec sa traînée. Le cadre de profil équipé borde la tuile.
+function drawLogoCanvas(ctx, x, y, size, cos, frame){
+  const k = size/64;
+  const circle = (cx, cy, r)=>{ ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); };
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(k, k);
+  const tg = ctx.createLinearGradient(0, 0, 64, 64);
+  tg.addColorStop(0, '#31594a'); tg.addColorStop(1, '#15271f');
+  applyFrameGlowToCanvas(ctx, frame); // shadowBlur n'est pas mis à l'échelle par la transformation
+  roundRect(ctx, 1, 1, 62, 62, 16); ctx.fillStyle = tg; ctx.fill();
+  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = (frame && frame.id!=='default') ? frame.borderColor : '#4a7462';
+  ctx.lineWidth = Math.max(1.5, ((frame && frame.borderWidth) || 2) / k * 1.4);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1.2; ctx.beginPath();
+  [22, 42].forEach(v=>{ ctx.moveTo(v, 3); ctx.lineTo(v, 61); ctx.moveTo(3, v); ctx.lineTo(61, v); });
+  ctx.stroke();
+  roundRect(ctx, 45, 6, 13, 13, 4); ctx.fillStyle = '#5c4d3f'; ctx.fill();
+  const gg = ctx.createRadialGradient(52, 32, 0, 52, 32, 12);
+  gg.addColorStop(0, '#fff8dc'); gg.addColorStop(.42, 'rgba(245,230,168,.95)'); gg.addColorStop(1, 'rgba(245,230,168,0)');
+  ctx.fillStyle = gg; circle(52, 32, 12); ctx.fill();
+  ctx.fillStyle = '#fff3c4'; circle(52, 32, 4.6); ctx.fill();
+  ctx.fillStyle = cos.light;
+  ctx.globalAlpha = .22; roundRect(ctx, 4, 29.6, 10, 4.8, 2.4); ctx.fill();
+  ctx.globalAlpha = .38; roundRect(ctx, 11, 28.6, 9, 6.8, 3.4); ctx.fill();
+  ctx.globalAlpha = 1;
+  const sg = ctx.createRadialGradient(28, 28, 1, 31, 32, 10);
+  sg.addColorStop(0, cos.light); sg.addColorStop(.55, cos.mid); sg.addColorStop(1, cos.deep);
+  ctx.fillStyle = sg; circle(31, 32, 9.5); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.ellipse(28, 28.5, 3.4, 2.2, 0, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
 function drawStatBox(ctx,x,y,w,h,val,lbl){
   roundRect(ctx,x,y,w,h,16); ctx.fillStyle='#254036'; ctx.fill();
-  ctx.fillStyle='#efe8d8'; ctx.font='800 28px Baloo 2, sans-serif';
+  ctx.fillStyle='#efe8d8'; ctx.font='800 28px "Baloo 2", sans-serif';
   ctx.fillText(val, x+w/2, y+40);
   ctx.fillStyle='#c9c2ae'; ctx.font='700 11px Nunito, sans-serif';
   ctx.fillText(lbl, x+w/2, y+62);
