@@ -5529,7 +5529,13 @@ function performMove(dx,dy){
   playLandingFeedback(isWin, dx, snapshot);
   if(!isWin){
     updateStarMeter(true);
-    checkStuckAfterMove();
+    // Vérification d'impasse (BFS, jusqu'à ~10 ms sur ordinateur) différée :
+    // l'animation du glissement démarre d'abord, sans latence perçue. Ignorée
+    // si un autre coup, une annulation ou un nouveau plateau est arrivé entre-temps.
+    const token = state.sessionId + ':' + state.history.length;
+    setTimeout(()=>{
+      if(!state.won && token === state.sessionId + ':' + state.history.length) checkStuckAfterMove();
+    }, 40);
   }
   updateUndoButton();
 

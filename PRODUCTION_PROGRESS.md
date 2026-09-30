@@ -82,6 +82,11 @@
   - File des toasts plafonnée et vidée en entrant en jeu.
   - Menus remis sur le thème de référence.
   - Carte des mondes ouverte sur le niveau en cours, avec une barre du haut collante.
+  - Succès vérifiés au démarrage : ceux déjà mérités apparaissent après une mise à jour.
+  - Détection d'impasse différée après le début de l'animation. Mesure : pire cas 8,8 ms sur ordinateur (niveau 60) ; pas de latence avant le glissement.
+- **Partage image** :
+  - **Bug corrigé (préexistant)** : `ctx.font` avec « Baloo 2 » sans guillemets était ignoré ; le titre sortait en 10 px, le temps et le par étaient minuscules.
+  - Nouveau logo sur la carte et accroche de marque.
 - **Analytics locale** : sessions, tutoriel, annuler, impasse, abandons, Sentier, Jardin. Rapport disponible via `BCD_DEV.getRetentionReport()`.
 - **Identité** : nouveau logo SVG qui raconte la mécanique (une graine qui glisse vers la lumière, appuyée sur un bloc). Il suit le skin équipé. Remplace un carré générique.
 - **PWA** :
