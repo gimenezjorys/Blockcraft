@@ -114,6 +114,8 @@ function startStaticServer(root) {
   check((await page.textContent('#gameTip')).includes('Impasse'), 'impasse détectée par le solveur');
   check(await page.evaluate(() => document.getElementById('btnUndo').classList.contains('attention')), 'Annuler mis en avant en cas d\'impasse');
   await shot('03-impasse');
+  await page.click('#btnHint'); await wait(200);
+  check((await page.textContent('#gameTip')).includes('Reviens 1 coup'), 'en impasse, l\'indice indique combien de coups annuler');
   await page.keyboard.press('z'); await wait(300);
   check((await page.textContent('#hudMoves')) === '0', 'Annuler ramène le compteur à 0');
   check(!(await page.textContent('#gameTip')).includes('Impasse'), 'message d\'impasse retiré après annulation');

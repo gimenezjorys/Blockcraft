@@ -99,7 +99,7 @@
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
 | `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis | 3 543 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus le fantôme, la PWA hors ligne et le coffre de la semaine | 44 vérifications, 0 échec, 0 erreur ou avertissement console |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus le fantôme, la PWA hors ligne et le coffre de la semaine | 45 vérifications, 0 échec, 0 erreur ou avertissement console |
 | CI GitHub Actions | Les trois suites, sur toutes les branches | Vert |
 
 Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin et les succès.

@@ -5835,8 +5835,23 @@ document.getElementById('btnHint').addEventListener('click', ()=>{
   if(!result.solvable || !result.firstMove){
     // Cas limite légitime dans un puzzle à rochers : le joueur a poussé un
     // rocher dans une position qui rend le niveau non solvable depuis là.
+    // L'indice devient alors utile autrement : combien de coups annuler
+    // pour retrouver une position d'où une solution existe ?
     resetHint();
-    showSimpleToast('🧩', 'Indice indisponible', 'Aucune solution depuis cette position — essaie de recommencer.', 'info-toast');
+    let back = 0;
+    for(let k=1; k<=state.history.length; k++){
+      const snap = state.history[state.history.length-k];
+      const r = Solver.solveNextMove(level, snap.seed, snap.rocks);
+      if(r.solvable){ back = k; break; }
+    }
+    const undoBtn = document.getElementById('btnUndo');
+    if(back > 0){
+      setGameTip('↶', `Reviens ${back} coup${back>1?'s':''} en arrière avec Annuler : une solution existe depuis là.`, 'warn');
+      if(undoBtn) undoBtn.classList.add('attention');
+    } else {
+      setGameTip('↻', 'Recommence le niveau : aucune solution depuis cette position.', 'warn');
+    }
+    Analytics.track('hint_stuck', { mode:state.mode, levelIndex:state.levelIndex, back });
     return;
   }
   const btn = document.getElementById('btnHint');
