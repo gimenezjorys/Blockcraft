@@ -573,12 +573,13 @@
     65%{ opacity:.95; transform:translate(var(--dx),var(--dy)); }
     85%,100%{ opacity:0; transform:translate(var(--dx),var(--dy)); }
   }
-  /* Projecteur sur une mécanique : halo doré, 3 pulsations, sans toucher
-     à transform (les pièces s'en servent pour leur position). */
+  /* Projecteur sur une mécanique : halo doré, 3 pulsations. Passe par
+     filter, jamais par transform (position des pièces) ni box-shadow
+     (relief des murs et rochers, qui resterait masqué pendant l'effet). */
   .spotlight{ animation:spotPulse .9s ease-in-out .35s 3 both; z-index:2; }
   @keyframes spotPulse{
-    0%,100%{ box-shadow:0 0 0 0 rgba(255,209,102,0); }
-    50%{ box-shadow:0 0 0 3px rgba(255,209,102,.9), 0 0 18px 6px rgba(255,209,102,.55); }
+    0%,100%{ filter:drop-shadow(0 0 0 rgba(255,209,102,0)); }
+    50%{ filter:drop-shadow(0 0 2px rgba(255,209,102,1)) drop-shadow(0 0 10px rgba(255,209,102,.8)); }
   }
   html.reduce-motion .swipe-demo .sd-seed, html.reduce-motion .swipe-demo .sd-hand{ animation-duration:4s; }
 
@@ -1357,7 +1358,7 @@
     <div class="home-topbar">
       <button class="icon-btn" id="btnHelp" aria-label="Comment jouer">📖</button>
       <button class="icon-btn" id="btnProfile" aria-label="Profil">👤</button>
-      <button class="icon-btn" id="btnCosmetics" aria-label="Cosmétiques">🎨</button>
+      <button class="icon-btn" id="btnCosmetics" aria-label="L'Atelier">🎨</button>
       <button class="icon-btn" id="btnAchievements" aria-label="Succès">🏆</button>
       <button class="icon-btn" id="btnSettings" aria-label="Paramètres">⚙</button>
     </div>
@@ -1517,7 +1518,7 @@
       <button class="btn btn-primary" id="btnShareDaily">📤 PARTAGER</button>
       <div class="btn-pair">
         <button class="btn btn-secondary btn-small" id="btnReplayDaily">↻ Retenter</button>
-        <button class="btn btn-secondary btn-small" id="btnShareImageDaily">🖼 Carte image</button>
+        <button class="btn btn-secondary btn-small" id="btnShareImageDaily">🖼 Image</button>
       </div>
     </div>
     <textarea class="share-text-out" id="shareTextOut" readonly hidden aria-label="Texte à partager"></textarea>
@@ -1589,7 +1590,7 @@
       <div class="profile-stat-card"><div class="val" id="statLevelsCompleted">0/0</div><div class="lbl">Niveaux</div></div>
       <div class="profile-stat-card"><div class="val" id="statStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
       <div class="profile-stat-card"><div class="val" id="statBestWorld">—</div><div class="lbl">Monde atteint</div></div>
-      <div class="profile-stat-card"><div class="val" id="statStreak">0</div><div class="lbl">Série (record)</div></div>
+      <div class="profile-stat-card"><div class="val" id="statStreak">0</div><div class="lbl">Série / record</div></div>
       <div class="profile-stat-card"><div class="val" id="statBestMoves">—</div><div class="lbl">Record coups</div></div>
       <div class="profile-stat-card"><div class="val" id="statBestTime">—</div><div class="lbl">Record temps</div></div>
     </div>
@@ -1637,7 +1638,7 @@
     <div class="profile-stats-grid">
       <div class="profile-stat-card"><div class="val" id="profileLevelsCompleted">0/0</div><div class="lbl">Niveaux</div></div>
       <div class="profile-stat-card"><div class="val" id="profileStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
-      <div class="profile-stat-card"><div class="val" id="profileStreak">0</div><div class="lbl">Série (record)</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileStreak">0</div><div class="lbl">Série / record</div></div>
       <div class="profile-stat-card"><div class="val" id="profileWeekly">0/7</div><div class="lbl">Jours cette semaine</div></div>
       <div class="profile-stat-card"><div class="val" id="profileGarden">0/32</div><div class="lbl">Floraison du Jardin</div></div>
       <div class="profile-stat-card"><div class="val" id="profileSentier">—</div><div class="lbl">Record du Sentier</div></div>
@@ -1647,8 +1648,8 @@
       <div class="stat-pill" id="profileAchCountPill">🏆 0 / 0</div>
     </div>
     <div class="btn-row" style="margin-top:16px;">
-      <button class="btn btn-secondary" id="btnProfileToAchievements">Voir les succès</button>
-      <button class="btn btn-secondary" id="btnProfileToCosmetics">Voir les cosmétiques</button>
+      <button class="btn btn-secondary" id="btnProfileToAchievements">🏆 Succès</button>
+      <button class="btn btn-secondary" id="btnProfileToCosmetics">🎨 L'Atelier</button>
     </div>
   </section>
 
@@ -3843,7 +3844,7 @@ const ACHIEVEMENTS = [
 // même sauvegarde, ce qui garde checkAchievements() inchangé dans son esprit.
 const TIERED_ACHIEVEMENTS = [
   { id:'par_master', name:'Maître du par', icon:'💠', metric:'perfectTotal',
-    desc:'Trouve des solutions parfaites (niveaux à 3 étoiles + plateaux parfaits du Sentier).',
+    desc:'Solutions parfaites : niveaux à 3★ et plateaux parfaits du Sentier.',
     tiers:[10, 40, 100, 250, 600], rewards:[15, 30, 50, 80, 120] }
 ];
 const ROMAN = ['I','II','III','IV','V','VI','VII','VIII'];
@@ -4052,7 +4053,7 @@ function renderAchievements(){
   setText('statLevelsCompleted', `${stats.completed}/${stats.total}`);
   setText('statStarsTotal', `${stats.starsTotal}/${stats.starsMax}`);
   setText('statBestWorld', stats.bestWorldLabel);
-  setText('statStreak', `${stats.streakCurrent} (rec. ${stats.streakBest})`);
+  setText('statStreak', `${stats.streakCurrent} / ${stats.streakBest}`);
   setText('statBestMoves', stats.bestMoves!==null ? `${stats.bestMoves} coup${stats.bestMoves>1?'s':''}` : '—');
   setText('statBestTime', stats.bestTime!==null ? formatTime(stats.bestTime) : '—');
 
@@ -4935,14 +4936,14 @@ function renderProfile(){
   const setText = (id, txt)=>{ const el = document.getElementById(id); if(el) el.textContent = txt; };
   setText('profileLevelsCompleted', `${stats.completed}/${stats.total}`);
   setText('profileStarsTotal', `${stats.starsTotal}/${stats.starsMax}`);
-  setText('profileStreak', `${stats.streakCurrent} (rec. ${stats.streakBest})`);
+  setText('profileStreak', `${stats.streakCurrent} / ${stats.streakBest}`);
 
   const weekly = computeWeeklyDailySummary();
   setText('profileWeekly', `${weekly.daysPlayed}/${weekly.windowSize}`);
   const garden = gardenTotals();
   setText('profileGarden', `${garden.score}/${garden.max}`);
   const sentier = loadSentierStats();
-  setText('profileSentier', sentier.bestScore>0 ? `${sentier.bestScore} pts` : (isSentierUnlocked() ? 'À poser' : '🔒'));
+  setText('profileSentier', sentier.bestScore>0 ? `${sentier.bestScore} pts` : (isSentierUnlocked() ? '—' : '🔒'));
 
   const coinsEl = document.getElementById('profileCoinsPill');
   if(coinsEl) coinsEl.textContent = `🪙 ${loadCoins()}`;
@@ -5566,7 +5567,8 @@ function startBoard(lvl, opts){
   // quelques fois sur le plateau (nouvelle mécanique, ou niveau INTRO/TEACH).
   let spotKey = freshInfo ? freshInfo.key : null;
   if(!spotKey && state.mode==='campaign' && !opts.tip && (lvl.tag==='INTRO' || lvl.tag==='TEACH')) spotKey = worldFeaturedMechanic(lvl.world);
-  if(!spotKey && state.mode==='sentier' && lvl.featured && lvl.tag!=='ECHO') spotKey = lvl.featured;
+  // En Chrono, pas d'effet qui détourne l'œil pendant que le sablier coule.
+  if(!spotKey && state.mode==='sentier' && lvl.featured && lvl.tag!=='ECHO' && !(sentierRun && sentierRun.kind==='chrono')) spotKey = lvl.featured;
   if(spotKey) spotlightMechanic(spotKey);
 
   // indice tactile uniquement au tout premier niveau jamais joué
@@ -7052,8 +7054,8 @@ function showDailyResult(data){
   }
   const weekCount = calendarWeekDailyCount();
   setT('dailyWeeklySummary', weeklyChestClaimedThisWeek()
-    ? `🎁 Coffre de la semaine ouvert · reviens lundi pour le prochain`
-    : `🎁 Coffre de la semaine : ${Math.min(weekCount, WEEKLY_CHEST_GOAL)}/${WEEKLY_CHEST_GOAL} défis (lun → dim) · +${WEEKLY_CHEST_REWARD} 🪙`);
+    ? `🎁 Coffre ouvert · le prochain lundi`
+    : `🎁 Coffre : ${Math.min(weekCount, WEEKLY_CHEST_GOAL)}/${WEEKLY_CHEST_GOAL} défis cette semaine · +${WEEKLY_CHEST_REWARD} 🪙`);
 
   const tomorrow = DAILY_RULES[(bcdNow().getDay()+1)%7];
   setT('dailyNextLine', `Prochain défi dans ${formatDuration(msUntilNextDay())} · ${tomorrow.day} : ${tomorrow.icon} ${tomorrow.label}`);
@@ -7404,19 +7406,19 @@ function renderSentierEnd(run, info){
   let next = '';
   if(chrono){
     const best = info.stats.bestScore;
-    if(info.isRecord) next = `Record à battre désormais : <b>${best}</b> points.`;
-    else if(best > run.score) next = `Encore <b>${best - run.score + 1}</b> points pour battre ton record (${best}).`;
+    if(info.isRecord) next = `Nouveau record à battre : <b>${best}</b>.`;
+    else if(best > run.score) next = `Record : ${best}. Encore <b>${best - run.score + 1}</b> points pour le battre.`;
   } else {
     next = run.perfect ? `Dont <b>${run.perfect}</b> solution${run.perfect>1?'s':''} parfaite${run.perfect>1?'s':''}. Belle balade.` : 'Belle balade.';
   }
   if(meadow){
     const left = meadow.toNext;
-    next += (next ? '<br>' : '') + `Prairie du Jardin : encore <b>${left}</b> solution${left>1?'s':''} parfaite${left>1?'s':''} avant la prochaine fleur.`;
+    next += (next ? '<br>' : '') + `🌼 Encore <b>${left}</b> parfait${left>1?'s':''} avant la prochaine fleur.`;
   }
   const nextEl = document.getElementById('seNext');
   if(nextEl) nextEl.innerHTML = next;
   const again = document.getElementById('btnSentierAgain');
-  if(again){ again.dataset.kind = run.kind; again.textContent = chrono ? '↻ REJOUER (CHRONO)' : '↻ CONTINUER EN ZEN'; }
+  if(again){ again.dataset.kind = run.kind; again.textContent = chrono ? '↻ REJOUER' : '↻ CONTINUER'; }
 }
 
 function renderSentierHub(){
