@@ -780,6 +780,204 @@
   .reward-chip.unlock{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.2);}
   .reward-chip.streak{border-color:rgba(224,101,79,.6);}
   @keyframes rewardIn{from{opacity:0; transform:translateY(6px) scale(.94);} to{opacity:1; transform:translateY(0) scale(1);}}
+
+  /* ================= COSMÉTIQUES À EFFETS =================
+     Chaque graine à effet est une MATIÈRE, pas une teinte : la même règle
+     s'applique à la graine du plateau, à l'emblème de victoire, au profil
+     (via html[data-seed-fx]) et aux pastilles de l'Atelier (classe fx-*).
+     Pseudo-éléments animés en transform/opacity uniquement ; seule la
+     graine en jeu (un élément) les porte pendant la partie. */
+  .fx-braise, html[data-seed-fx="braise"] .piece-seed, html[data-seed-fx="braise"] .burst .core, html[data-seed-fx="braise"] .profile-seed-swatch{
+    background:radial-gradient(circle at 36% 30%, #fff0c0, #ff9a3c 38%, #d8401c 70%, #5c1408) !important;
+  }
+  .fx-givre, html[data-seed-fx="givre"] .piece-seed, html[data-seed-fx="givre"] .burst .core, html[data-seed-fx="givre"] .profile-seed-swatch{
+    background:conic-gradient(from 25deg, #f4fdff, #a8dcf3, #e4f7ff, #5ea7cf, #f4fdff, #9fd8f2, #d4f1ff, #6fb2d8, #f4fdff) !important;
+  }
+  .fx-aurore, html[data-seed-fx="aurore"] .piece-seed, html[data-seed-fx="aurore"] .burst .core, html[data-seed-fx="aurore"] .profile-seed-swatch{
+    background:radial-gradient(circle at 50% 50%, #243a4a, #101c26) !important; overflow:hidden;
+  }
+  .fx-nuit, html[data-seed-fx="nuit"] .piece-seed, html[data-seed-fx="nuit"] .burst .core, html[data-seed-fx="nuit"] .profile-seed-swatch{
+    background:radial-gradient(circle at 34% 28%, #6f7fe0, #2a2f7a 52%, #0c0e2a) !important;
+  }
+  .fx-braise::before, html[data-seed-fx="braise"] .piece-seed::before, html[data-seed-fx="braise"] .burst .core::before{
+    content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle at 30% 70%, rgba(255,240,170,.95) 0 7%, transparent 9%),
+               radial-gradient(circle at 68% 42%, rgba(255,220,130,.9) 0 6%, transparent 8%),
+               radial-gradient(circle at 54% 80%, rgba(255,200,100,.85) 0 5%, transparent 7%);
+    animation:emberPulse 1.3s ease-in-out infinite alternate;
+  }
+  .fx-braise::after, html[data-seed-fx="braise"] .piece-seed::after, html[data-seed-fx="braise"] .burst .core::after{
+    content:""; position:absolute; inset:-30%; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, transparent 46%, rgba(255,120,40,.5) 54%, rgba(255,90,20,0) 72%);
+    animation:auraFlicker 1.05s ease-in-out infinite alternate;
+  }
+  @keyframes emberPulse{from{opacity:.45;} to{opacity:1;}}
+  @keyframes auraFlicker{from{opacity:.55; transform:scale(.94);} to{opacity:1; transform:scale(1.06);}}
+  .fx-givre::before, html[data-seed-fx="givre"] .piece-seed::before, html[data-seed-fx="givre"] .burst .core::before{
+    content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+    background:linear-gradient(115deg, transparent 38%, rgba(255,255,255,.95) 48%, transparent 58%);
+    background-size:250% 100%; animation:frostGlint 3.2s ease-in-out infinite;
+  }
+  .fx-givre::after, html[data-seed-fx="givre"] .piece-seed::after, html[data-seed-fx="givre"] .burst .core::after{
+    content:"✦"; position:absolute; right:10%; top:6%; font-size:.5em; color:#fff; pointer-events:none;
+    text-shadow:0 0 6px #bfeaff; animation:frostStar 3.2s ease-in-out infinite;
+  }
+  .piece-seed::after{font-size:18px;}
+  @keyframes frostGlint{0%,55%{background-position:120% 0;} 100%{background-position:-60% 0;}}
+  @keyframes frostStar{0%,60%{opacity:0; transform:scale(.4) rotate(0);} 80%{opacity:1; transform:scale(1.1) rotate(45deg);} 100%{opacity:0; transform:scale(.4) rotate(90deg);}}
+  .fx-aurore::before, html[data-seed-fx="aurore"] .piece-seed::before, html[data-seed-fx="aurore"] .burst .core::before{
+    content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+    background:conic-gradient(from 0deg, #7ee0d6, #b98cf0, #ff9ec7, #ffd166, #7ee0d6);
+    -webkit-mask:radial-gradient(circle at 50% 50%, rgba(0,0,0,.35) 20%, #000 70%); mask:radial-gradient(circle at 50% 50%, rgba(0,0,0,.35) 20%, #000 70%);
+    animation:auroraSpin 5s linear infinite;
+  }
+  .fx-aurore::after, html[data-seed-fx="aurore"] .piece-seed::after, html[data-seed-fx="aurore"] .burst .core::after{
+    content:""; position:absolute; left:20%; top:14%; width:34%; height:22%; border-radius:50%; pointer-events:none;
+    background:rgba(255,255,255,.55); filter:blur(1px); transform:rotate(-20deg);
+  }
+  @keyframes auroraSpin{to{transform:rotate(360deg);}}
+  .fx-nuit::before, html[data-seed-fx="nuit"] .piece-seed::before, html[data-seed-fx="nuit"] .burst .core::before{
+    content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle at 26% 62%, #fff 0 3%, transparent 4%), radial-gradient(circle at 62% 30%, #fff 0 2.5%, transparent 3.5%),
+               radial-gradient(circle at 72% 68%, #dfe6ff 0 2%, transparent 3%), radial-gradient(circle at 44% 44%, #fff 0 1.8%, transparent 2.8%),
+               radial-gradient(circle at 34% 24%, #eef 0 1.6%, transparent 2.6%);
+    animation:twinkle 2.2s ease-in-out infinite alternate;
+  }
+  .fx-nuit::after, html[data-seed-fx="nuit"] .piece-seed::after, html[data-seed-fx="nuit"] .burst .core::after{
+    content:""; position:absolute; inset:-22%; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, transparent 50%, rgba(140,160,255,.45) 57%, rgba(140,160,255,0) 72%);
+    animation:auraFlicker 2.4s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle{from{opacity:.4;} to{opacity:1;}}
+  /* L'emblème de victoire garde sa brillance même avec une graine à effet. */
+  html[data-seed-fx]:not([data-seed-fx=""]) .burst .core .core-shine{display:none;}
+
+  /* Traînée « Comète » (épique) : un trait de lumière aux couleurs de la graine. */
+  .move-comet{
+    position:absolute; transform-origin:0 50%; border-radius:999px; pointer-events:none; z-index:1;
+    background:linear-gradient(90deg, rgba(255,255,255,0), var(--seed-skin-mid) 55%, #fffbe8);
+    box-shadow:0 0 14px 3px color-mix(in srgb, var(--seed-skin-mid) 60%, transparent);
+    animation:cometFade .46s ease-out forwards;
+  }
+  @keyframes cometFade{0%{opacity:.95;} 100%{opacity:0;}}
+  /* Victoire « Éclosion » (légendaire) : anneau + corolle de pétales. */
+  .bloom-ring{
+    position:absolute; left:50%; top:50%; width:120px; height:120px; margin:-60px 0 0 -60px; border-radius:50%;
+    border:3px solid rgba(255,214,140,.9); box-shadow:0 0 20px 4px rgba(255,190,120,.5);
+    animation:bloomRing .85s ease-out forwards; pointer-events:none;
+  }
+  @keyframes bloomRing{0%{opacity:1; transform:scale(.5);} 100%{opacity:0; transform:scale(2.1);}}
+  .bloom-petal{
+    position:absolute; left:50%; top:50%; width:12px; height:20px; border-radius:60% 60% 60% 0; opacity:0; pointer-events:none;
+    animation:bloomFly 1.4s cubic-bezier(.15,.7,.3,1) forwards;
+  }
+  @keyframes bloomFly{
+    0%{opacity:1; transform:translate(-50%,-50%) rotate(var(--rot)) translateY(0) scale(.4);}
+    45%{opacity:1; transform:translate(-50%,-50%) rotate(var(--rot)) translateY(calc(var(--dist,60px) * -1)) scale(1.1) rotate(40deg);}
+    100%{opacity:0; transform:translate(-50%,-50%) rotate(var(--rot)) translateY(calc(var(--dist,60px) * -1.2 + 40px)) scale(.7) rotate(160deg);}
+  }
+  /* Cadre « Prisme » (légendaire) : le halo change lentement de couleur. */
+  .fx-prisme{animation:prismeGlow 4s linear infinite;}
+  @keyframes prismeGlow{
+    0%,100%{box-shadow:0 0 14px 2px rgba(199,155,240,.7); border-color:#c79bf0 !important;}
+    33%{box-shadow:0 0 14px 2px rgba(126,224,214,.7); border-color:#7ee0d6 !important;}
+    66%{box-shadow:0 0 14px 2px rgba(255,158,199,.7); border-color:#ff9ec7 !important;}
+  }
+
+  /* ================= L'ATELIER (boutique de cosmétiques) ================= */
+  #screen-cosmetics{gap:12px;}
+  .atelier-coins{font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--gold);
+    background:var(--surface); border:1px solid var(--tile-line); border-radius:999px; padding:6px 12px; min-width:40px; text-align:center;}
+  .atelier-stage{
+    --rc:#cfc6ae;
+    position:relative; border-radius:22px; padding:16px 14px 14px; overflow:hidden;
+    background:linear-gradient(180deg, var(--surface-2), var(--bg-deep)); border:1.5px solid var(--tile-line);
+    background:radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--rc) 22%, transparent), transparent 60%), linear-gradient(180deg, var(--surface-2), var(--bg-deep));
+    border:1.5px solid color-mix(in srgb, var(--rc) 55%, var(--tile-line));
+    box-shadow:0 14px 30px -18px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    transition:border-color .3s ease;
+  }
+  /* L'aperçu reste visible pendant qu'on parcourt la grille. */
+  #screen-cosmetics .atelier-stage{position:sticky; top:8px; z-index:4;}
+  @media (max-height:700px){ #screen-cosmetics .atelier-stage{padding:10px 12px; gap:6px;} .stage-scene{height:76px !important;} }
+  .stage-scene{position:relative; width:100%; height:92px; display:flex; align-items:center; justify-content:center;}
+  .stage-track{
+    position:relative; width:100%; max-width:300px; height:64px; border-radius:16px; padding:6px;
+    background:var(--bg-deep); box-shadow:inset 0 2px 8px rgba(0,0,0,.5);
+    display:grid; grid-template-columns:repeat(5,1fr); gap:5px;
+  }
+  .stage-track .st-cell{border-radius:10px; background:var(--tile);}
+  .stage-track .st-cell.goal{position:relative;}
+  .stage-track .st-cell.goal::before{content:""; position:absolute; inset:18%; border-radius:50%; background:radial-gradient(circle, var(--goal), #d8c67f); box-shadow:0 0 14px 3px rgba(245,230,168,.55);}
+  .stage-seed{
+    position:absolute; top:50%; left:0; width:40px; height:40px; margin-top:-20px; border-radius:50%; z-index:2;
+    background:radial-gradient(circle at 35% 30%, var(--p-light), var(--p-mid) 55%, var(--p-deep) 100%);
+    box-shadow:0 6px 14px -4px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.45);
+    transition:translate .5s cubic-bezier(.4,0,.2,1);
+  }
+  .stage-seed.arrived{animation:stagePop .35s ease;}
+  @keyframes stagePop{0%{scale:1;} 45%{scale:1.22;} 100%{scale:1;}}
+  .stage-burst{position:absolute; width:1px; height:1px; top:50%; pointer-events:none; z-index:3;}
+  .stage-medal{
+    width:84px; height:84px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--seed-skin-light), var(--seed-skin-mid) 55%, var(--seed-skin-deep) 100%);
+    box-shadow:0 8px 20px -6px rgba(0,0,0,.6);
+  }
+  .stage-caption{display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center; text-align:center;}
+  .stage-name{font-family:var(--font-display); font-weight:800; font-size:19px; color:var(--cream);}
+  .rarity-tag{
+    font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.7px; padding:3px 8px; border-radius:999px;
+    color:#1c140a; background:var(--rc);
+  }
+  .rarity-tag.legendary{background:linear-gradient(100deg, #ffd166, #fff3c4, #ffb84d); background-size:200% 100%; animation:legendSheen 2.6s linear infinite;}
+  @keyframes legendSheen{to{background-position:-200% 0;}}
+  .stage-compare{font-size:12px; font-weight:700; color:var(--cream-dim); min-height:16px;}
+  .atelier-action{max-width:260px; padding:13px 20px; font-size:16px;}
+  .atelier-action.is-equipped{background:var(--surface); color:var(--gold); border:1.5px solid rgba(255,209,102,.5); box-shadow:none;}
+  .atelier-action.is-locked{background:var(--surface); color:var(--cream-dim); border:1.5px solid var(--tile-line); box-shadow:none; cursor:default;}
+  .atelier-stage.unlocking{animation:stageFlash .7s ease;}
+  @keyframes stageFlash{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--rc) 80%, transparent);} 40%{box-shadow:0 0 0 6px color-mix(in srgb, var(--rc) 45%, transparent), 0 0 40px 8px color-mix(in srgb, var(--rc) 40%, transparent);} 100%{box-shadow:0 14px 30px -18px rgba(0,0,0,.7);}}
+  .unlock-spark{position:absolute; width:6px; height:6px; border-radius:50%; left:50%; top:45%; pointer-events:none; background:var(--rc);
+    box-shadow:0 0 8px 2px var(--rc); animation:unlockSpark .8s ease-out forwards;}
+  @keyframes unlockSpark{0%{opacity:1; transform:translate(-50%,-50%) rotate(var(--rot)) translateY(0);} 100%{opacity:0; transform:translate(-50%,-50%) rotate(var(--rot)) translateY(-90px) scale(.4);}}
+  .atelier-tabs{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; background:var(--surface); border:1px solid var(--tile-line); border-radius:16px; padding:4px;}
+  .atelier-tab{
+    border:none; background:transparent; color:var(--cream-dim); border-radius:12px; padding:8px 2px 6px; cursor:pointer;
+    font-family:var(--font-display); font-weight:800; font-size:12px; display:flex; flex-direction:column; align-items:center; gap:1px;
+  }
+  .atelier-tab .at-icon{font-size:17px;}
+  .atelier-tab .at-count{font-family:var(--font-body); font-size:10px; opacity:.8;}
+  .atelier-tab[aria-selected="true"]{background:var(--surface-2); color:var(--cream); box-shadow:inset 0 0 0 1.5px var(--tile-line);}
+  .atelier-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px;}
+  .item-card{
+    --rc:#cfc6ae;
+    position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; padding:12px 6px 9px; cursor:pointer;
+    background:var(--surface); border:1.5px solid var(--tile-line);
+    background:linear-gradient(180deg, color-mix(in srgb, var(--rc) 10%, var(--surface)), var(--surface));
+    border:1.5px solid color-mix(in srgb, var(--rc) 35%, var(--tile-line)); border-radius:16px; color:var(--cream);
+    font-family:var(--font-body); transition:transform .12s ease, border-color .2s ease; overflow:hidden;
+  }
+  .item-card::before{content:""; position:absolute; left:0; right:0; top:0; height:3px; background:var(--rc); opacity:.9;}
+  .item-card:active{transform:scale(.96);}
+  .item-card[aria-pressed="true"]{border-color:var(--rc); box-shadow:0 0 0 2px color-mix(in srgb, var(--rc) 45%, transparent);}
+  .item-card.legendary::after{
+    content:""; position:absolute; top:0; bottom:0; left:-60%; width:40%; pointer-events:none;
+    background:linear-gradient(100deg, transparent, rgba(255,240,190,.18), transparent); transform:skewX(-18deg);
+    animation:ctaSweep 6s ease-in-out infinite;
+  }
+  .item-swatch{
+    position:relative; width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px;
+    box-shadow:0 6px 12px -4px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.35);
+  }
+  .item-swatch.icon{background:var(--bg-deep); box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--rc) 45%, transparent), 0 6px 12px -4px rgba(0,0,0,.55);}
+  .item-name{font-family:var(--font-display); font-weight:800; font-size:12px; line-height:1.15; text-align:center; min-height:28px; display:flex; align-items:center;}
+  .item-foot{font-size:11px; font-weight:800; color:var(--gold); white-space:nowrap;}
+  .item-foot.owned{color:var(--cream-dim);}
+  .item-foot.equipped{color:#9ad48a;}
+  .item-card.just-unlocked{animation:cardUnlock .7s ease;}
+  @keyframes cardUnlock{0%{transform:scale(.9);} 50%{transform:scale(1.06);} 100%{transform:scale(1);}}
+
   /* ---------- LE JARDIN ---------- */
   .home-garden{
     display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
@@ -1070,7 +1268,7 @@
     padding:14px 16px; margin:4px 0 14px;
   }
   .profile-seed-swatch{
-    width:56px; height:56px; border-radius:50%; flex:none;
+    position:relative; width:56px; height:56px; border-radius:50%; flex:none;
     box-shadow:0 6px 14px -4px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.4);
   }
   .profile-seed-text{display:flex; flex-direction:column; gap:3px; min-width:0;}
@@ -1368,23 +1566,26 @@
     <div class="achievements-list" id="achievementsList"></div>
   </section>
 
-  <!-- ============ COSMÉTIQUES ============ -->
+  <!-- ============ L'ATELIER (cosmétiques) ============ -->
   <section id="screen-cosmetics" class="screen">
     <div class="topbar">
       <div class="icon-btn" id="btnBackHomeCosmetics" aria-label="Retour" role="button" tabindex="0">←</div>
-      <div class="topbar-title">Cosmétiques</div>
-      <div style="width:40px;"></div>
+      <div class="topbar-title">L'Atelier</div>
+      <div class="atelier-coins" id="cosmeticsCoinsPill" aria-label="Coins">🪙 0</div>
     </div>
-    <div class="stat-pill" id="cosmeticsCoinsPill" style="align-self:center; margin-bottom:4px;">🪙 0</div>
-    <p class="note" style="margin-top:0;">Personnalise l'apparence de ta graine avec les coins gagnés en jouant. Purement visuel : aucun impact sur ta progression, tes étoiles ou tes records.</p>
-    <div class="cosmetics-section-title">🌱 Skins de graine</div>
-    <div class="cosmetics-grid" id="cosmeticsGrid"></div>
-    <div class="cosmetics-section-title">🎉 Effets de victoire</div>
-    <div class="cosmetics-grid" id="victoryFxGrid"></div>
-    <div class="cosmetics-section-title">💨 Effets de glissement</div>
-    <div class="cosmetics-grid" id="moveFxGrid"></div>
-    <div class="cosmetics-section-title">🖼️ Cadres de profil</div>
-    <div class="cosmetics-grid" id="framesGrid"></div>
+    <!-- Scène d'aperçu : l'objet sélectionné en action (graine qui glisse,
+         traînée, victoire, ou médaillon pour les cadres). Essai avant achat. -->
+    <div class="atelier-stage" id="atelierStage">
+      <div class="stage-scene" id="stageScene" aria-hidden="true"></div>
+      <div class="stage-caption">
+        <span class="rarity-tag" id="stageRarity">Commun</span>
+        <span class="stage-name" id="stageName">—</span>
+      </div>
+      <div class="stage-compare" id="stageCompare"></div>
+      <button class="btn btn-primary atelier-action" id="atelierAction">—</button>
+    </div>
+    <div class="atelier-tabs" role="tablist" id="atelierTabs"></div>
+    <div class="atelier-grid" id="atelierGrid" role="list"></div>
   </section>
 
   <!-- ============ PROFIL ============ -->
@@ -3267,13 +3468,30 @@ function spendCoins(amount){
    sans coins garde une graine fonctionnelle et jolie.
 ========================================================= */
 const SEED_COSMETICS = [
-  { id:'default',   name:'Graine dorée',      price:0,  light:'#ffcf7a', mid:'#f0a83c', deep:'#c97e1f' },
-  { id:'jade',       name:'Graine de jade',    price:30, light:'#b8f0d4', mid:'#4fcf94', deep:'#1f8f5f' },
-  { id:'saphir',     name:'Graine saphir',     price:30, light:'#b8d4f0', mid:'#4f94cf', deep:'#1f5f8f' },
-  { id:'rubis',      name:'Graine rubis',      price:40, light:'#f0b8c8', mid:'#cf4f74', deep:'#8f1f3f' },
-  { id:'amethyste',  name:'Graine améthyste',  price:40, light:'#d4b8f0', mid:'#944fcf', deep:'#5f1f8f' },
-  { id:'argent',     name:'Graine argent',     price:80, light:'#f5f5f0', mid:'#cfcfc5', deep:'#8a8a80' }
+  { id:'default',   name:'Graine dorée',      price:0,  rarity:'common', light:'#ffcf7a', mid:'#f0a83c', deep:'#c97e1f' },
+  { id:'jade',       name:'Graine de jade',    price:30, rarity:'common', light:'#b8f0d4', mid:'#4fcf94', deep:'#1f8f5f' },
+  { id:'saphir',     name:'Graine saphir',     price:30, rarity:'common', light:'#b8d4f0', mid:'#4f94cf', deep:'#1f5f8f' },
+  { id:'rubis',      name:'Graine rubis',      price:40, rarity:'rare',   light:'#f0b8c8', mid:'#cf4f74', deep:'#8f1f3f' },
+  { id:'amethyste',  name:'Graine améthyste',  price:40, rarity:'rare',   light:'#d4b8f0', mid:'#944fcf', deep:'#5f1f8f' },
+  { id:'argent',     name:'Graine argent',     price:80, rarity:'rare',   light:'#f5f5f0', mid:'#cfcfc5', deep:'#8a8a80' },
+  // Graines à EFFET (refonte visuelle) : pas seulement une autre couleur —
+  // une matière animée (braises, facettes de givre, aurore, ciel étoilé),
+  // rendue en CSS pur par la classe fx-<id> (voir "Graines à effets").
+  { id:'braise',     name:'Graine de braise',  price:90,  rarity:'epic',      fx:'braise', light:'#ffe6a8', mid:'#ff8a3a', deep:'#c2331a' },
+  { id:'givre',      name:'Graine de givre',   price:90,  rarity:'epic',      fx:'givre',  light:'#f2fbff', mid:'#9fd8f2', deep:'#3f7fa8' },
+  { id:'aurore',     name:'Graine d\'aurore',  price:140, rarity:'legendary', fx:'aurore', light:'#d4fbf5', mid:'#b98cf0', deep:'#2e8f83' },
+  { id:'nuit',       name:'Nuit étoilée',      price:150, rarity:'legendary', fx:'nuit',   light:'#8b9bf0', mid:'#2a2f7a', deep:'#0c0e2a' }
 ];
+// Raretés : une couleur par rang, reprise partout (cartes, étiquettes,
+// éclat de déblocage, son). Aucune rareté n'est aléatoire ni cachée : le
+// prix et le rang sont toujours affichés avant l'achat.
+const RARITIES = {
+  common:    { label:'Commun',     color:'#cfc6ae', rank:0 },
+  rare:      { label:'Rare',       color:'#4fcf94', rank:1 },
+  epic:      { label:'Épique',     color:'#b98cf0', rank:2 },
+  legendary: { label:'Légendaire', color:'#ffd166', rank:3 }
+};
+function rarityOf(item){ return RARITIES[item && item.rarity] || RARITIES.common; }
 const COSMETICS_OWNED_KEY = 'bcd_cosmetics_owned_v1';
 const COSMETIC_EQUIPPED_KEY = 'bcd_cosmetic_equipped_v1';
 
@@ -3308,6 +3526,9 @@ function applySeedCosmetic(){
   root.setProperty('--seed-skin-light', cos.light);
   root.setProperty('--seed-skin-mid', cos.mid);
   root.setProperty('--seed-skin-deep', cos.deep);
+  // Graines à effet : l'effet suit la graine partout (plateau, victoire,
+  // profil) via cet attribut, lu par les règles CSS html[data-seed-fx=…].
+  document.documentElement.dataset.seedFx = cos.fx || '';
 }
 // Retourne {ok, reason?}. N'appelle spendCoins() qu'une seule fois, jamais
 // de double décompte, jamais de solde négatif possible (spendCoins() est
@@ -3346,10 +3567,11 @@ function equipCosmetic(id){
    qu'il n'achète pas un nouvel effet.
 --------------------------------------------------------- */
 const VICTORY_EFFECTS = [
-  { id:'default', name:'Pétales dorés',        price:0,  icon:'🌸', particleClass:'petal',           count:10, cleanupMs:900 },
-  { id:'confetti', name:'Confettis festifs',   price:35, icon:'🎊', particleClass:'confetti-piece',  count:16, cleanupMs:1000 },
-  { id:'sparkle',  name:'Étincelles dorées',   price:35, icon:'✨', particleClass:'sparkle-piece',   count:14, cleanupMs:700 },
-  { id:'leaf',     name:'Feuilles tourbillonnantes', price:45, icon:'🍃', particleClass:'leaf-piece', count:12, cleanupMs:1200 }
+  { id:'default', name:'Pétales dorés',        price:0,  rarity:'common', icon:'🌸', particleClass:'petal',           count:10, cleanupMs:900 },
+  { id:'confetti', name:'Confettis festifs',   price:35, rarity:'common', icon:'🎊', particleClass:'confetti-piece',  count:16, cleanupMs:1000 },
+  { id:'sparkle',  name:'Étincelles dorées',   price:35, rarity:'rare',   icon:'✨', particleClass:'sparkle-piece',   count:14, cleanupMs:700 },
+  { id:'leaf',     name:'Feuilles tourbillonnantes', price:45, rarity:'rare', icon:'🍃', particleClass:'leaf-piece', count:12, cleanupMs:1200 },
+  { id:'eclosion', name:'Éclosion',            price:120, rarity:'legendary', icon:'🌺', particleClass:'bloom-petal', count:18, cleanupMs:1500 }
 ];
 const VICTORY_EFFECT_OWNED_KEY = 'bcd_victory_fx_owned_v1';
 const VICTORY_EFFECT_EQUIPPED_KEY = 'bcd_victory_fx_equipped_v1';
@@ -3404,10 +3626,12 @@ function equipVictoryEffect(id){
    identique à avant cette mission tant que le joueur n'achète rien.
 --------------------------------------------------------- */
 const MOVE_EFFECTS = [
-  { id:'default',    name:'Aucun effet',          price:0,  icon:'➖', particleClass:null,        count:0, cleanupMs:0 },
-  { id:'dust',       name:'Traînée dorée',        price:25, icon:'✨', particleClass:'move-dust',    count:4, cleanupMs:350 },
-  { id:'leaftrail',  name:'Sillage de feuilles',  price:30, icon:'🍃', particleClass:'move-leaf',    count:3, cleanupMs:450 },
-  { id:'twinkle',    name:'Scintillement bref',   price:25, icon:'💫', particleClass:'move-twinkle', count:3, cleanupMs:300 }
+  { id:'default',    name:'Aucun effet',          price:0,  rarity:'common', icon:'➖', particleClass:null,        count:0, cleanupMs:0 },
+  { id:'dust',       name:'Traînée dorée',        price:25, rarity:'common', icon:'✨', particleClass:'move-dust',    count:4, cleanupMs:350 },
+  { id:'leaftrail',  name:'Sillage de feuilles',  price:30, rarity:'rare',   icon:'🍃', particleClass:'move-leaf',    count:3, cleanupMs:450 },
+  { id:'twinkle',    name:'Scintillement bref',   price:25, rarity:'common', icon:'💫', particleClass:'move-twinkle', count:3, cleanupMs:300 },
+  // Comète : une seule traînée lumineuse continue, aux couleurs de la graine.
+  { id:'comete',     name:'Comète',               price:70, rarity:'epic',   icon:'☄️', particleClass:'move-comet',   count:1, cleanupMs:460 }
 ];
 const MOVE_EFFECT_OWNED_KEY = 'bcd_move_fx_owned_v1';
 const MOVE_EFFECT_EQUIPPED_KEY = 'bcd_move_fx_equipped_v1';
@@ -3464,12 +3688,12 @@ function equipMoveEffect(id){
    tant que le joueur n'achète rien.
 --------------------------------------------------------- */
 const PROFILE_FRAMES = [
-  { id:'default', name:'Cadre simple', price:0,  borderColor:'#3a5c4b', borderWidth:2, glow:'none' },
-  { id:'bronze',  name:'Cadre bronze', price:20, borderColor:'#c97e1f', borderWidth:3, glow:'none' },
-  { id:'argent',  name:'Cadre argent', price:35, borderColor:'#cfcfc5', borderWidth:3, glow:'0 0 8px rgba(207,207,197,.5)' },
-  { id:'saphir',  name:'Cadre saphir', price:45, borderColor:'#4f94cf', borderWidth:3, glow:'0 0 10px rgba(79,148,207,.5)' },
-  { id:'or',      name:'Cadre doré',   price:50, borderColor:'#ffd166', borderWidth:3, glow:'0 0 10px rgba(255,209,102,.6)' },
-  { id:'prisme',  name:'Cadre prisme', price:70, borderColor:'#c79bf0', borderWidth:4, glow:'0 0 14px rgba(199,155,240,.6)' }
+  { id:'default', name:'Cadre simple', price:0,  rarity:'common', borderColor:'#3a5c4b', borderWidth:2, glow:'none' },
+  { id:'bronze',  name:'Cadre bronze', price:20, rarity:'common', borderColor:'#c97e1f', borderWidth:3, glow:'none' },
+  { id:'argent',  name:'Cadre argent', price:35, rarity:'rare',   borderColor:'#cfcfc5', borderWidth:3, glow:'0 0 8px rgba(207,207,197,.5)' },
+  { id:'saphir',  name:'Cadre saphir', price:45, rarity:'rare',   borderColor:'#4f94cf', borderWidth:3, glow:'0 0 10px rgba(79,148,207,.5)' },
+  { id:'or',      name:'Cadre doré',   price:50, rarity:'epic',   borderColor:'#ffd166', borderWidth:3, glow:'0 0 10px rgba(255,209,102,.6)' },
+  { id:'prisme',  name:'Cadre prisme', price:70, rarity:'legendary', fx:'prisme', borderColor:'#c79bf0', borderWidth:4, glow:'0 0 14px rgba(199,155,240,.6)' }
 ];
 const PROFILE_FRAME_OWNED_KEY = 'bcd_frames_owned_v1';
 const PROFILE_FRAME_EQUIPPED_KEY = 'bcd_frame_equipped_v1';
@@ -3922,6 +4146,11 @@ function sfxDoorClose(){
 // Étoile de victoire (Blueprint §19 : "Étoile : note cristalline") : une
 // note par étoile, montante, synchronisée avec son apparition.
 function sfxStar(i){ beep(880 + i*220, .14, 'sine', .09); }
+// Jingle de déblocage d'un cosmétique : plus ample selon la rareté.
+function sfxRarityUnlock(rank){
+  const notes = [[784, 988], [784, 988, 1175], [659, 784, 988, 1319], [587, 740, 880, 1175, 1480]][rank] || [784, 988];
+  notes.forEach((f,i)=> beep(f, .18 + (i===notes.length-1 ? .25 : 0), 'triangle', .11, i*0.075));
+}
 function sfxCoinGain(){
   beep(1050, .06, 'triangle', .08, 0);
 }
@@ -4337,234 +4566,245 @@ document.getElementById('btnAchievements').addEventListener('click', ()=>{ rende
 document.getElementById('btnBackHomeHelp').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 document.getElementById('btnHelp').addEventListener('click', ()=>{ renderMechanicHelp(); goto('help'); });
 
+/* =========================================================
+   E1. L'ATELIER — PRÉSENTATION DES COSMÉTIQUES (refonte visuelle)
+   Une scène d'aperçu montre l'objet SÉLECTIONNÉ en action (graine qui
+   glisse vers la lumière avec la traînée et l'effet de victoire, ou
+   médaillon pour un cadre) : on essaie avant d'acheter, on compare avec
+   l'objet équipé, et l'achat devient un vrai moment de déblocage.
+   Les fonctions d'achat/équipement de chaque catégorie restent celles de
+   la section B3 (mêmes sauvegardes, mêmes garde-fous) : seule la
+   présentation change. Aucune pression : prix et rareté toujours
+   visibles, jamais de minuterie ni d'offre "limitée".
+========================================================= */
+const COSMETIC_CATEGORIES = [
+  { id:'seed',    label:'Graines',   icon:'🌱', items:()=>SEED_COSMETICS,  owned:()=>loadOwnedCosmetics(),      equipped:()=>loadEquippedCosmetic(),      purchase:id=>purchaseCosmetic(id),      equip:id=>equipCosmetic(id) },
+  { id:'move',    label:'Traînées',  icon:'☄️', items:()=>MOVE_EFFECTS,    owned:()=>loadOwnedMoveEffects(),    equipped:()=>loadEquippedMoveEffect(),    purchase:id=>purchaseMoveEffect(id),    equip:id=>equipMoveEffect(id) },
+  { id:'victory', label:'Victoires', icon:'🎉', items:()=>VICTORY_EFFECTS, owned:()=>loadOwnedVictoryEffects(), equipped:()=>loadEquippedVictoryEffect(), purchase:id=>purchaseVictoryEffect(id), equip:id=>equipVictoryEffect(id) },
+  { id:'frame',   label:'Cadres',    icon:'🖼️', items:()=>PROFILE_FRAMES,  owned:()=>loadOwnedFrames(),         equipped:()=>loadEquippedFrame(),         purchase:id=>purchaseFrame(id),         equip:id=>equipFrame(id) }
+];
+const atelier = { cat:'seed', sel:null, demoToken:0 };
+function atelierCat(){ return COSMETIC_CATEGORIES.find(c=> c.id===atelier.cat) || COSMETIC_CATEGORIES[0]; }
+function atelierItem(){ const c = atelierCat(); return c.items().find(i=> i.id===atelier.sel) || c.items()[0]; }
+
+// Point d'entrée conservé (accueil, profil) : ouvre sur l'objet équipé.
 function renderCosmetics(){
-  const owned = loadOwnedCosmetics();
-  const equipped = loadEquippedCosmetic();
-  const coinsPill = document.getElementById('cosmeticsCoinsPill');
-  if(coinsPill) coinsPill.textContent = `🪙 ${loadCoins()}`;
-
-  const grid = document.getElementById('cosmeticsGrid');
-  if(!grid) return;
-  grid.innerHTML = '';
-  SEED_COSMETICS.forEach(cos=>{
-    const isOwned = owned.includes(cos.id);
-    const isEquipped = equipped===cos.id;
-    const card = document.createElement('div');
-    card.className = 'cosmetic-card' + (isEquipped ? ' equipped' : '');
-
-    const swatch = document.createElement('div');
-    swatch.className = 'cosmetic-swatch';
-    swatch.style.background = `radial-gradient(circle at 35% 30%, ${cos.light}, ${cos.mid} 55%, ${cos.deep} 100%)`;
-
-    const text = document.createElement('div');
-    text.className = 'cosmetic-card-text';
-    const sub = isOwned ? (isEquipped ? 'Équipée' : 'Possédée') : `${cos.price} 🪙`;
-    text.innerHTML = `<div class="cosmetic-card-name">${cos.name}</div><div class="cosmetic-card-sub">${sub}</div>`;
-
-    const action = document.createElement('button');
-    if(isEquipped){
-      action.className = 'cosmetic-action equipped-label';
-      action.textContent = '✓ Équipée';
-      action.disabled = true;
-    } else if(isOwned){
-      action.className = 'cosmetic-action equip';
-      action.textContent = 'Utiliser';
-      action.addEventListener('click', ()=>{ equipCosmetic(cos.id); renderCosmetics(); });
-    } else {
-      action.className = 'cosmetic-action buy';
-      action.textContent = `Acheter`;
-      const affordable = loadCoins() >= cos.price;
-      action.disabled = !affordable;
-      action.addEventListener('click', ()=>{
-        const result = purchaseCosmetic(cos.id);
-        if(result.ok){ equipCosmetic(cos.id); }
-        renderCosmetics();
-      });
-    }
-
-    card.appendChild(swatch);
-    card.appendChild(text);
-    card.appendChild(action);
-    grid.appendChild(card);
-  });
-
-  renderVictoryFxGrid();
+  const cat = atelierCat();
+  if(!atelier.sel || !cat.items().some(i=> i.id===atelier.sel)) atelier.sel = cat.equipped();
+  const coins = document.getElementById('cosmeticsCoinsPill');
+  if(coins) coins.textContent = `🪙 ${loadCoins()}`;
+  renderAtelierTabs();
+  renderAtelierGrid();
+  renderAtelierStage();
 }
 
-// Rendu de la deuxième grille (effets de victoire), même patron exact que
-// la boucle SEED_COSMETICS ci-dessus mais sur son propre catalogue/état,
-// pour ne jamais mélanger les deux systèmes de cosmétiques.
-function renderVictoryFxGrid(){
-  const owned = loadOwnedVictoryEffects();
-  const equipped = loadEquippedVictoryEffect();
-  const grid = document.getElementById('victoryFxGrid');
-  if(!grid) return;
-  grid.innerHTML = '';
-  VICTORY_EFFECTS.forEach(fx=>{
-    const isOwned = owned.includes(fx.id);
-    const isEquipped = equipped===fx.id;
-    const card = document.createElement('div');
-    card.className = 'cosmetic-card' + (isEquipped ? ' equipped' : '');
-
-    const swatch = document.createElement('div');
-    swatch.className = 'cosmetic-swatch';
-    swatch.style.background = 'var(--surface-2)';
-    swatch.style.display = 'flex';
-    swatch.style.alignItems = 'center';
-    swatch.style.justifyContent = 'center';
-    swatch.style.fontSize = '18px';
-    swatch.textContent = fx.icon;
-
-    const text = document.createElement('div');
-    text.className = 'cosmetic-card-text';
-    const sub = isOwned ? (isEquipped ? 'Équipé' : 'Possédé') : (fx.price>0 ? `${fx.price} 🪙` : 'Gratuit');
-    text.innerHTML = `<div class="cosmetic-card-name">${fx.name}</div><div class="cosmetic-card-sub">${sub}</div>`;
-
-    const action = document.createElement('button');
-    if(isEquipped){
-      action.className = 'cosmetic-action equipped-label';
-      action.textContent = '✓ Équipé';
-      action.disabled = true;
-    } else if(isOwned){
-      action.className = 'cosmetic-action equip';
-      action.textContent = 'Utiliser';
-      action.addEventListener('click', ()=>{ equipVictoryEffect(fx.id); renderVictoryFxGrid(); });
-    } else {
-      action.className = 'cosmetic-action buy';
-      action.textContent = 'Acheter';
-      const affordable = loadCoins() >= fx.price;
-      action.disabled = !affordable;
-      action.addEventListener('click', ()=>{
-        const result = purchaseVictoryEffect(fx.id);
-        if(result.ok){ equipVictoryEffect(fx.id); }
-        renderCosmetics(); // rafraîchit aussi la pastille de coins et l'autre grille
-      });
-    }
-
-    card.appendChild(swatch);
-    card.appendChild(text);
-    card.appendChild(action);
-    grid.appendChild(card);
+function renderAtelierTabs(){
+  const wrap = document.getElementById('atelierTabs');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  COSMETIC_CATEGORIES.forEach(c=>{
+    const b = document.createElement('button');
+    b.className = 'atelier-tab';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-selected', String(c.id===atelier.cat));
+    const owned = c.owned().length, total = c.items().length;
+    b.innerHTML = `<span class="at-icon">${c.icon}</span>${c.label}<span class="at-count">${owned}/${total}</span>`;
+    b.addEventListener('click', ()=>{
+      if(atelier.cat===c.id) return;
+      atelier.cat = c.id; atelier.sel = c.equipped();
+      renderCosmetics();
+    });
+    wrap.appendChild(b);
   });
-
-  renderMoveFxGrid();
 }
 
-// Rendu de la troisième grille (effets de glissement), même patron exact
-// que les deux catégories ci-dessus mais sur son propre catalogue/état,
-// pour ne jamais mélanger ce système avec SEED_COSMETICS ou VICTORY_EFFECTS.
-function renderMoveFxGrid(){
-  const owned = loadOwnedMoveEffects();
-  const equipped = loadEquippedMoveEffect();
-  const grid = document.getElementById('moveFxGrid');
-  if(!grid) return;
-  grid.innerHTML = '';
-  MOVE_EFFECTS.forEach(fx=>{
-    const isOwned = owned.includes(fx.id);
-    const isEquipped = equipped===fx.id;
-    const card = document.createElement('div');
-    card.className = 'cosmetic-card' + (isEquipped ? ' equipped' : '');
-
-    const swatch = document.createElement('div');
-    swatch.className = 'cosmetic-swatch';
-    swatch.style.background = 'var(--surface-2)';
-    swatch.style.display = 'flex';
-    swatch.style.alignItems = 'center';
-    swatch.style.justifyContent = 'center';
-    swatch.style.fontSize = '18px';
-    swatch.textContent = fx.icon;
-
-    const text = document.createElement('div');
-    text.className = 'cosmetic-card-text';
-    const sub = isOwned ? (isEquipped ? 'Équipé' : 'Possédé') : (fx.price>0 ? `${fx.price} 🪙` : 'Gratuit');
-    text.innerHTML = `<div class="cosmetic-card-name">${fx.name}</div><div class="cosmetic-card-sub">${sub}</div>`;
-
-    const action = document.createElement('button');
-    if(isEquipped){
-      action.className = 'cosmetic-action equipped-label';
-      action.textContent = '✓ Équipé';
-      action.disabled = true;
-    } else if(isOwned){
-      action.className = 'cosmetic-action equip';
-      action.textContent = 'Utiliser';
-      action.addEventListener('click', ()=>{ equipMoveEffect(fx.id); renderMoveFxGrid(); });
-    } else {
-      action.className = 'cosmetic-action buy';
-      action.textContent = 'Acheter';
-      const affordable = loadCoins() >= fx.price;
-      action.disabled = !affordable;
-      action.addEventListener('click', ()=>{
-        const result = purchaseMoveEffect(fx.id);
-        if(result.ok){ equipMoveEffect(fx.id); }
-        renderCosmetics(); // rafraîchit aussi la pastille de coins et les autres grilles
-      });
-    }
-
-    card.appendChild(swatch);
-    card.appendChild(text);
-    card.appendChild(action);
-    grid.appendChild(card);
-  });
-
-  renderFramesGrid();
+// Pastille d'un objet : la graine elle-même (avec sa matière), l'icône de
+// l'effet, ou le médaillon encadré — ce qu'on achète est ce qu'on voit.
+function itemSwatchEl(catId, item){
+  const sw = document.createElement('div');
+  sw.className = 'item-swatch';
+  if(catId==='seed'){
+    sw.style.background = `radial-gradient(circle at 35% 30%, ${item.light}, ${item.mid} 55%, ${item.deep} 100%)`;
+    if(item.fx) sw.classList.add('fx-'+item.fx);
+  } else if(catId==='frame'){
+    const seed = getCosmeticById(loadEquippedCosmetic());
+    sw.style.background = `radial-gradient(circle at 35% 30%, ${seed.light}, ${seed.mid} 55%, ${seed.deep} 100%)`;
+    if(seed.fx) sw.classList.add('fx-'+seed.fx);
+    sw.style.border = `${item.borderWidth}px solid ${item.borderColor}`;
+    if(item.glow && item.glow!=='none') sw.style.boxShadow = item.glow;
+    if(item.fx) sw.classList.add('fx-'+item.fx);
+  } else {
+    sw.classList.add('icon');
+    sw.textContent = item.icon;
+  }
+  return sw;
 }
 
-// Rendu de la quatrième grille (cadres de profil), même patron exact que
-// les trois catégories ci-dessus mais sur son propre catalogue/état, pour
-// ne jamais mélanger ce système avec SEED_COSMETICS/VICTORY_EFFECTS/
-// MOVE_EFFECTS. La pastille d'aperçu ici est un simple anneau (bordure
-// colorée + halo optionnel), pas un remplissage, pour prévisualiser un
-// cadre sans dupliquer le rendu de la graine elle-même.
-function renderFramesGrid(){
-  const owned = loadOwnedFrames();
-  const equipped = loadEquippedFrame();
-  const grid = document.getElementById('framesGrid');
+function renderAtelierGrid(){
+  const grid = document.getElementById('atelierGrid');
   if(!grid) return;
+  const cat = atelierCat();
+  const owned = cat.owned(), equipped = cat.equipped();
   grid.innerHTML = '';
-  PROFILE_FRAMES.forEach(fr=>{
-    const isOwned = owned.includes(fr.id);
-    const isEquipped = equipped===fr.id;
-    const card = document.createElement('div');
-    card.className = 'cosmetic-card' + (isEquipped ? ' equipped' : '');
-
-    const swatch = document.createElement('div');
-    swatch.className = 'cosmetic-swatch';
-    swatch.style.background = 'var(--surface-2)';
-    swatch.style.border = `${fr.borderWidth}px solid ${fr.borderColor}`;
-    swatch.style.boxShadow = fr.glow;
-
-    const text = document.createElement('div');
-    text.className = 'cosmetic-card-text';
-    const sub = isOwned ? (isEquipped ? 'Équipé' : 'Possédé') : (fr.price>0 ? `${fr.price} 🪙` : 'Gratuit');
-    text.innerHTML = `<div class="cosmetic-card-name">${fr.name}</div><div class="cosmetic-card-sub">${sub}</div>`;
-
-    const action = document.createElement('button');
-    if(isEquipped){
-      action.className = 'cosmetic-action equipped-label';
-      action.textContent = '✓ Équipé';
-      action.disabled = true;
-    } else if(isOwned){
-      action.className = 'cosmetic-action equip';
-      action.textContent = 'Utiliser';
-      action.addEventListener('click', ()=>{ equipFrame(fr.id); renderFramesGrid(); });
-    } else {
-      action.className = 'cosmetic-action buy';
-      action.textContent = 'Acheter';
-      const affordable = loadCoins() >= fr.price;
-      action.disabled = !affordable;
-      action.addEventListener('click', ()=>{
-        const result = purchaseFrame(fr.id);
-        if(result.ok){ equipFrame(fr.id); }
-        renderCosmetics(); // rafraîchit aussi la pastille de coins et les autres grilles
-      });
-    }
-
-    card.appendChild(swatch);
-    card.appendChild(text);
-    card.appendChild(action);
+  cat.items().forEach(item=>{
+    const r = rarityOf(item);
+    const card = document.createElement('button');
+    card.className = 'item-card ' + (item.rarity||'common');
+    card.style.setProperty('--rc', r.color);
+    card.dataset.id = item.id;
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('aria-pressed', String(item.id===atelier.sel));
+    const isOwned = owned.includes(item.id), isEq = equipped===item.id;
+    card.setAttribute('aria-label', `${item.name}, ${r.label}, ${isEq ? 'équipé' : isOwned ? 'possédé' : item.price+' coins'}`);
+    card.appendChild(itemSwatchEl(cat.id, item));
+    const name = document.createElement('div'); name.className = 'item-name'; name.textContent = item.name;
+    const foot = document.createElement('div');
+    foot.className = 'item-foot' + (isEq ? ' equipped' : isOwned ? ' owned' : '');
+    foot.textContent = isEq ? '✓ Équipé' : isOwned ? 'Possédé' : `${item.price} 🪙`;
+    card.append(name, foot);
+    card.addEventListener('click', ()=>{
+      atelier.sel = item.id;
+      grid.querySelectorAll('.item-card').forEach(c=> c.setAttribute('aria-pressed', String(c.dataset.id===item.id)));
+      renderAtelierStage();
+    });
     grid.appendChild(card);
   });
 }
+
+function renderAtelierStage(){
+  const cat = atelierCat();
+  const item = atelierItem();
+  const r = rarityOf(item);
+  const stage = document.getElementById('atelierStage');
+  stage.style.setProperty('--rc', r.color);
+  const tag = document.getElementById('stageRarity');
+  tag.textContent = r.label;
+  tag.className = 'rarity-tag' + (item.rarity==='legendary' ? ' legendary' : '');
+  document.getElementById('stageName').textContent = item.name;
+  const owned = cat.owned().includes(item.id), equippedId = cat.equipped();
+  const eqItem = cat.items().find(i=> i.id===equippedId);
+  document.getElementById('stageCompare').textContent = (item.id!==equippedId && eqItem) ? `Équipé : ${eqItem.name}` : '';
+  const btn = document.getElementById('atelierAction');
+  btn.classList.remove('is-equipped', 'is-locked', 'shimmer');
+  btn.disabled = false;
+  if(item.id===equippedId){ btn.textContent = '✓ Équipé'; btn.classList.add('is-equipped'); btn.disabled = true; }
+  else if(owned){ btn.textContent = 'Équiper'; }
+  else if(loadCoins() >= item.price){ btn.textContent = `Débloquer · ${item.price} 🪙`; btn.classList.add('shimmer'); }
+  else { btn.textContent = `Encore ${item.price - loadCoins()} 🪙`; btn.classList.add('is-locked'); btn.disabled = true; }
+  buildStageScene();
+}
+
+// Ce que montre la scène : l'objet sélectionné dans SA catégorie, et
+// l'équipement actuel pour tout le reste (on juge l'ensemble, comme en jeu).
+function stagePreviewSet(){
+  const cat = atelierCat(), item = atelierItem();
+  return {
+    seed:    cat.id==='seed'    ? item : getCosmeticById(loadEquippedCosmetic()),
+    move:    cat.id==='move'    ? item : getMoveEffectById(loadEquippedMoveEffect()),
+    victory: cat.id==='victory' ? item : getVictoryEffectById(loadEquippedVictoryEffect()),
+    frame:   cat.id==='frame'   ? item : getFrameById(loadEquippedFrame())
+  };
+}
+function buildStageScene(){
+  const scene = document.getElementById('stageScene');
+  if(!scene) return;
+  const token = ++atelier.demoToken;
+  const set = stagePreviewSet();
+  scene.innerHTML = '';
+  if(atelier.cat==='frame'){
+    const medal = document.createElement('div');
+    medal.className = 'stage-medal' + (set.seed.fx ? ' fx-'+set.seed.fx : '') + (set.frame.fx ? ' fx-'+set.frame.fx : '');
+    medal.style.background = `radial-gradient(circle at 35% 30%, ${set.seed.light}, ${set.seed.mid} 55%, ${set.seed.deep} 100%)`;
+    medal.style.position = 'relative';
+    medal.style.border = `${set.frame.borderWidth+1}px solid ${set.frame.borderColor}`;
+    if(set.frame.glow && set.frame.glow!=='none') medal.style.boxShadow = set.frame.glow.replace(/(\d+)px/, (m,n)=> (Number(n)*1.6)+'px');
+    scene.appendChild(medal);
+    return;
+  }
+  const track = document.createElement('div');
+  track.className = 'stage-track';
+  for(let i=0;i<5;i++){ const c = document.createElement('div'); c.className = 'st-cell' + (i===4 ? ' goal' : ''); track.appendChild(c); }
+  const seed = document.createElement('div');
+  seed.className = 'stage-seed' + (set.seed.fx ? ' fx-'+set.seed.fx : '');
+  seed.style.setProperty('--p-light', set.seed.light);
+  seed.style.setProperty('--p-mid', set.seed.mid);
+  seed.style.setProperty('--p-deep', set.seed.deep);
+  const burst = document.createElement('div');
+  burst.className = 'stage-burst';
+  scene.append(track, seed, burst);
+  requestAnimationFrame(()=> runStageDemo(token, scene, track, seed, burst, set));
+}
+// Boucle de démonstration (≈2,6 s) : glisse → arrivée → effet de victoire.
+// Muette (pas de son en boucle), stoppée dès qu'on quitte l'Atelier.
+function runStageDemo(token, scene, track, seed, burst, set){
+  const alive = ()=> token===atelier.demoToken && state.screen==='cosmetics' && seed.isConnected;
+  if(!alive()) return;
+  const sr = scene.getBoundingClientRect();
+  const cells = track.querySelectorAll('.st-cell');
+  const c0 = cells[0].getBoundingClientRect(), c4 = cells[4].getBoundingClientRect();
+  const x0 = c0.left - sr.left + c0.width/2, x1 = c4.left - sr.left + c4.width/2, cy = c0.top - sr.top + c0.height/2;
+  burst.style.left = x1+'px';
+  // Propriété translate (et non transform) : le "pop" d'arrivée anime
+  // scale, qui s'appliquerait sinon aussi au déplacement.
+  seed.style.transition = 'none';
+  seed.style.translate = `${x0-20}px 0`;
+  void seed.offsetWidth;
+  seed.style.transition = '';
+  setTimeout(()=>{
+    if(!alive()) return;
+    seed.style.translate = `${x1-20}px 0`;
+    spawnTrail(scene, set.move, x0, cy, x1, cy, c0.width);
+    setTimeout(()=>{
+      if(!alive()) return;
+      seed.classList.remove('arrived'); void seed.offsetWidth; seed.classList.add('arrived');
+      spawnVictoryEffect(set.victory, burst);
+      setTimeout(()=> runStageDemo(token, scene, track, seed, burst, set), 1700);
+    }, 520);
+  }, 380);
+}
+
+// Moment de déblocage : éclat aux couleurs de la rareté, plus ample et
+// plus long selon le rang ; carte qui "respire" ; jingle de rareté.
+function celebrateUnlock(item){
+  const r = rarityOf(item);
+  const stage = document.getElementById('atelierStage');
+  stage.classList.remove('unlocking'); void stage.offsetWidth; stage.classList.add('unlocking');
+  const n = [8, 12, 16, 24][r.rank];
+  for(let i=0;i<n;i++){
+    const sp = document.createElement('div');
+    sp.className = 'unlock-spark';
+    sp.style.setProperty('--rot', (i*360/n)+'deg');
+    sp.style.animationDelay = (i%3)*40+'ms';
+    stage.appendChild(sp);
+    setTimeout(()=> sp.remove(), 900);
+  }
+  sfxRarityUnlock(r.rank);
+  vibrate(r.rank>=2 ? [15,30,15,30,40] : [12,24,12]);
+  const cmp = document.getElementById('stageCompare');
+  if(cmp){ cmp.textContent = r.rank>=3 ? '✨ Légendaire débloqué !' : 'Débloqué et équipé !'; }
+  const card = document.querySelector(`.item-card[data-id="${item.id}"]`);
+  if(card){ card.classList.add('just-unlocked'); }
+}
+
+document.getElementById('atelierAction').addEventListener('click', ()=>{
+  const cat = atelierCat(), item = atelierItem();
+  if(!item) return;
+  const isOwned = cat.owned().includes(item.id);
+  if(!isOwned){
+    const res = cat.purchase(item.id);
+    if(!res.ok){ renderAtelierStage(); return; }
+    cat.equip(item.id);
+    Analytics.track('cosmetic_bought', { cat:cat.id, id:item.id, rarity:item.rarity||'common', price:item.price });
+    renderCosmetics();
+    celebrateUnlock(item);
+  } else if(cat.equipped()!==item.id){
+    cat.equip(item.id);
+    Analytics.track('cosmetic_equipped', { cat:cat.id, id:item.id });
+    renderCosmetics();
+    const seed = document.querySelector('#stageScene .stage-seed, #stageScene .stage-medal');
+    if(seed){ seed.classList.remove('arrived'); void seed.offsetWidth; seed.classList.add('arrived'); }
+  }
+});
 document.getElementById('btnBackHomeCosmetics').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 document.getElementById('btnCosmetics').addEventListener('click', ()=>{ renderCosmetics(); goto('cosmetics'); });
 
@@ -4625,6 +4865,7 @@ function renderProfile(){
   if(swatch){
     swatch.style.border = `${frame.borderWidth}px solid ${frame.borderColor}`;
     swatch.style.boxShadow = frame.glow;
+    swatch.classList.toggle('fx-prisme', frame.fx==='prisme');
   }
 }
 document.getElementById('btnBackHomeProfile').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
@@ -5498,24 +5739,40 @@ function trySlide(dx, dy){
 // 'default' n'a pas de particleClass : retour immédiat, aucun élément DOM
 // créé, comportement visuel inchangé pour un joueur qui n'achète rien.
 function spawnMoveEffect(fromCell, toCell){
-  const fx = getMoveEffectById(loadEquippedMoveEffect());
-  if(!fx.particleClass || fx.count<=0) return;
   const overlay = document.getElementById('overlay');
   if(!overlay) return;
   const cs = cellSize();
-  const cx0 = fromCell.x*cs + cs/2, cy0 = fromCell.y*cs + cs/2;
-  const cx1 = toCell.x*cs + cs/2, cy1 = toCell.y*cs + cs/2;
+  spawnTrail(overlay, getMoveEffectById(loadEquippedMoveEffect()),
+    fromCell.x*cs + cs/2, fromCell.y*cs + cs/2, toCell.x*cs + cs/2, toCell.y*cs + cs/2, cs);
+}
+// Dessine une traînée entre deux points (pixels du conteneur). Partagée par
+// le plateau et la scène d'aperçu de l'Atelier : un seul rendu à maintenir.
+function spawnTrail(container, fx, cx0, cy0, cx1, cy1, cs){
+  if(!fx || !fx.particleClass || fx.count<=0 || !container) return;
+  if(fx.particleClass==='move-comet'){
+    // Une seule traînée continue, orientée dans le sens du glissement.
+    const len = Math.hypot(cx1-cx0, cy1-cy0);
+    if(len < 2) return;
+    const c = document.createElement('div');
+    c.className = 'move-comet';
+    c.style.left = cx0+'px'; c.style.top = cy0+'px';
+    c.style.width = len+'px';
+    c.style.height = Math.max(6, (cs||40)*0.34)+'px';
+    c.style.transform = `translateY(-50%) rotate(${Math.atan2(cy1-cy0, cx1-cx0)}rad)`;
+    container.appendChild(c);
+    setTimeout(()=>c.remove(), fx.cleanupMs);
+    return;
+  }
   for(let i=0;i<fx.count;i++){
     // Particules réparties le long du trajet parcouru (pas seulement au
-    // point de départ), pour lire comme une vraie traînée derrière la
-    // graine plutôt qu'un simple flash à l'ancienne position.
+    // point de départ), pour lire comme une vraie traînée derrière la graine.
     const t = fx.count>1 ? i/(fx.count-1) : 0;
     const p = document.createElement('div');
     p.className = fx.particleClass;
     p.style.left = (cx0 + (cx1-cx0)*t) + 'px';
     p.style.top = (cy0 + (cy1-cy0)*t) + 'px';
     p.style.animationDelay = (i*0.03) + 's';
-    overlay.appendChild(p);
+    container.appendChild(p);
     setTimeout(()=>p.remove(), fx.cleanupMs);
   }
 }
@@ -6451,10 +6708,20 @@ const CONFETTI_COLORS = ['#ffd166', '#4fcf94', '#7ab8e8', '#e88fa8'];
 // L'effet 'default' reproduit EXACTEMENT le comportement de l'ancien
 // spawnPetals() (même classe .petal, mêmes 10 particules, même timing),
 // donc aucun joueur qui n'achète rien ne verra de différence.
-function spawnVictoryEffect(){
-  const fx = getVictoryEffectById(loadEquippedVictoryEffect());
-  const burst = document.querySelector('.burst');
+// fxOverride / container : utilisés par l'aperçu de l'Atelier ; par défaut,
+// effet équipé sur l'emblème de l'écran de victoire.
+function spawnVictoryEffect(fxOverride, container){
+  const fx = fxOverride || getVictoryEffectById(loadEquippedVictoryEffect());
+  const burst = container || document.querySelector('.burst');
   if(!burst) return;
+  if(fx.particleClass==='bloom-petal'){
+    // Éclosion (légendaire) : un anneau de lumière puis une corolle de
+    // pétales multicolores qui s'ouvre et retombe en tournoyant.
+    const ring = document.createElement('div');
+    ring.className = 'bloom-ring';
+    burst.appendChild(ring);
+    setTimeout(()=> ring.remove(), 900);
+  }
   for(let i=0;i<fx.count;i++){
     const p = document.createElement('div');
     p.className = fx.particleClass;
@@ -6471,10 +6738,15 @@ function spawnVictoryEffect(){
       p.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
       p.style.borderRadius = (i%2===0) ? '2px' : '50%';
     }
+    if(fx.particleClass==='bloom-petal'){
+      p.style.background = BLOOM_COLORS[i % BLOOM_COLORS.length];
+      p.style.setProperty('--dist', (54 + (i%3)*14)+'px');
+    }
     burst.appendChild(p);
     setTimeout(()=>p.remove(), fx.cleanupMs);
   }
 }
+const BLOOM_COLORS = ['#ff9ec7', '#ffd166', '#c79bf0', '#7ee0d6', '#ffffff'];
 
 document.getElementById('btnNextLevel').addEventListener('click', ()=>{
   if(state.isDaily){
