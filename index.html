@@ -606,9 +606,27 @@
     50%{opacity:1; transform:translate(-50%,-50%) scale(1.1);}
     100%{opacity:0; transform:translate(-50%,-50%) scale(.3);}
   }
-  .stars-row{display:flex; gap:10px; font-size:34px; margin:6px 0;}
-  .star{opacity:.25; transform:scale(.7);}
-  .star.on{opacity:1; transform:scale(1); animation:starPop .4s ease;}
+  .stars-row{display:flex; gap:10px; font-size:38px; margin:2px 0 0;}
+  .star{opacity:.22; transform:scale(.7); color:var(--cream-dim);}
+  .star.on{opacity:1; transform:scale(1); color:var(--gold); text-shadow:0 0 14px rgba(255,209,102,.55); animation:starPop .4s ease;}
+  .victory-mastery{
+    margin:0; max-width:320px; font-size:14px; font-weight:700; color:var(--cream-dim); line-height:1.4;
+  }
+  .victory-mastery b{color:var(--gold);}
+  .victory-rewards{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:360px; min-height:4px;}
+  .reward-chip{
+    background:var(--surface); border:1.5px solid var(--tile-line); border-radius:999px;
+    padding:7px 13px; font-weight:800; font-size:13px; color:var(--cream);
+    display:flex; align-items:center; gap:6px;
+    opacity:0; animation:rewardIn .35s ease forwards;
+  }
+  .reward-chip.coins{border-color:rgba(255,209,102,.7); color:var(--gold);}
+  .reward-chip.record, .reward-chip.achievement{border-color:var(--gold); background:linear-gradient(155deg, var(--surface-2), var(--surface));}
+  .reward-chip.unlock{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.2);}
+  .reward-chip.streak{border-color:rgba(224,101,79,.6);}
+  @keyframes rewardIn{from{opacity:0; transform:translateY(6px) scale(.94);} to{opacity:1; transform:translateY(0) scale(1);}}
+  .btn-pair{display:flex; gap:10px; width:100%; max-width:280px;}
+  .btn-small{font-size:14px; padding:12px 10px; flex:1;}
   @keyframes starPop{0%{transform:scale(0);} 60%{transform:scale(1.3);} 100%{transform:scale(1);}}
   .stats-row{display:flex; gap:10px; margin:4px 0 8px;}
   .stat-box{background:var(--surface); border:1px solid var(--tile-line); border-radius:14px; padding:10px 16px; text-align:center;}
@@ -861,24 +879,25 @@
   <section id="screen-victory" class="screen">
     <div class="burst"><div class="core" id="burstCore">🌱</div></div>
     <h2 id="victoryTitle">Niveau réussi !</h2>
-    <div class="stars-row" id="victoryStars">
+    <div class="stars-row" id="victoryStars" aria-hidden="true">
       <span class="star">★</span><span class="star">★</span><span class="star">★</span>
     </div>
+    <p class="victory-mastery" id="victoryMastery"></p>
     <div class="stats-row">
       <div class="stat-box"><div class="val" id="vMoves">0</div><div class="lbl">Coups</div></div>
       <div class="stat-box"><div class="val" id="vTime">0:00</div><div class="lbl">Temps</div></div>
-      <div class="stat-box"><div class="val" id="vPar">0</div><div class="lbl">Objectif</div></div>
-    </div>
-    <div class="stats-row" id="victoryStreakRow" style="display:none;">
-      <div class="stat-box"><div class="val" id="vStreakCurrent">0</div><div class="lbl">Série</div></div>
+      <div class="stat-box"><div class="val" id="vPar">0</div><div class="lbl">Par</div></div>
     </div>
     <div class="level-record-line" id="victoryLevelRecordLine" style="display:none;">Ton record : <b id="vLevelRecordText">-</b></div>
-    <div class="record-badge" id="victoryRecordBadge" style="display:none;">🏆 Nouveau record personnel !</div>
-    <div class="record-badge coins-badge" id="victoryCoinsBadge" style="display:none;">🪙 +<span id="vCoinsEarned">0</span></div>
+    <!-- Récompenses de cette partie, hiérarchisées et intégrées à l'écran
+         (au lieu de toasts empilés qui masquaient l'emblème). -->
+    <div class="victory-rewards" id="victoryRewards" aria-live="polite"></div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btnNextLevel">NIVEAU SUIVANT →</button>
-      <button class="btn btn-secondary" id="btnShare">📤 PARTAGER MON SCORE</button>
-      <button class="btn btn-ghost" id="btnReplayVictory">Rejouer ce niveau</button>
+      <div class="btn-pair">
+        <button class="btn btn-secondary btn-small" id="btnReplayVictory">↻ Rejouer</button>
+        <button class="btn btn-secondary btn-small" id="btnShare">📤 Partager</button>
+      </div>
     </div>
   </section>
 
@@ -2690,7 +2709,10 @@ function worldLevelIndices(world){
 // Vérifie tous les succès contre l'état actuel (progression + streak) et
 // débloque ceux qui viennent d'être atteints. Chaque succès ne se débloque
 // qu'une seule fois : unlocked[id] agit comme un verrou permanent.
-function checkAchievements(){
+// opts.inline : l'appelant (écran de victoire) affiche lui-même les succès
+// débloqués dans sa liste de récompenses — pas de toast par-dessus l'écran.
+function checkAchievements(opts){
+  opts = opts || {};
   const p = loadProgress();
   const streak = loadStreak();
   const unlocked = loadUnlockedAchievements();
@@ -2723,7 +2745,7 @@ function checkAchievements(){
   if(newly.length){
     saveUnlockedAchievements(unlocked);
     newly.forEach(id=>{
-      showAchievementToast(id);
+      if(!opts.inline) showAchievementToast(id);
       Analytics.track('achievement', { id });
       const reward = COIN_REWARDS.achievement[id];
       if(reward) addCoins(reward);
@@ -2732,24 +2754,50 @@ function checkAchievements(){
   return newly;
 }
 
+/* ---------------------------------------------------------
+   FILE D'ATTENTE DES TOASTS — un seul toast visible à la fois. Avant, trois
+   toasts pouvaient s'empiler et masquer l'emblème de l'écran de victoire.
+   La file est plafonnée : au-delà de TOAST_QUEUE_MAX, les plus anciens
+   toasts purement informatifs sont abandonnés plutôt que d'arriver en
+   retard, hors contexte.
+--------------------------------------------------------- */
+const TOAST_QUEUE_MAX = 3;
+const toastQueue = [];
+let toastActive = false;
+function buildToastEl(icon, title, message, extraClass){
+  const toast = document.createElement('div');
+  toast.className = 'achievement-toast' + (extraClass ? ' '+extraClass : '');
+  toast.setAttribute('role', 'status');
+  const iconEl = document.createElement('div'); iconEl.className = 'ach-icon'; iconEl.textContent = icon;
+  const textEl = document.createElement('div'); textEl.className = 'ach-text';
+  const titleEl = document.createElement('div'); titleEl.className = 'ach-title'; titleEl.textContent = title;
+  const nameEl = document.createElement('div'); nameEl.className = 'ach-name'; nameEl.textContent = message;
+  textEl.append(titleEl, nameEl); toast.append(iconEl, textEl);
+  return toast;
+}
+function enqueueToast(el, durationMs){
+  toastQueue.push({ el, durationMs });
+  while(toastQueue.length > TOAST_QUEUE_MAX) toastQueue.shift();
+  if(!toastActive) showNextToast();
+}
+function showNextToast(){
+  const container = document.getElementById('toastContainer');
+  const item = toastQueue.shift();
+  if(!item || !container){ toastActive = false; return; }
+  toastActive = true;
+  container.appendChild(item.el);
+  requestAnimationFrame(()=> item.el.classList.add('show'));
+  setTimeout(()=>{
+    item.el.classList.remove('show');
+    setTimeout(()=>{ item.el.remove(); showNextToast(); }, 320);
+  }, item.durationMs);
+}
+
 function showAchievementToast(id){
   const ach = ACHIEVEMENTS.find(a=>a.id===id);
-  const container = document.getElementById('toastContainer');
-  if(!ach || !container) return;
+  if(!ach) return;
   sfxAchievement();
-  const toast = document.createElement('div');
-  toast.className = 'achievement-toast';
-  const iconEl = document.createElement('div'); iconEl.className = 'ach-icon'; iconEl.textContent = ach.icon;
-  const textEl = document.createElement('div'); textEl.className = 'ach-text';
-  const titleEl = document.createElement('div'); titleEl.className = 'ach-title'; titleEl.textContent = 'Succès débloqué';
-  const nameEl = document.createElement('div'); nameEl.className = 'ach-name'; nameEl.textContent = ach.name;
-  textEl.append(titleEl, nameEl); toast.append(iconEl, textEl);
-  container.appendChild(toast);
-  requestAnimationFrame(()=> toast.classList.add('show'));
-  setTimeout(()=>{
-    toast.classList.remove('show');
-    setTimeout(()=> toast.remove(), 400);
-  }, 3200);
+  enqueueToast(buildToastEl(ach.icon, 'Succès débloqué', ach.name, ''), 3000);
 }
 
 /* ---------------------------------------------------------
@@ -2941,6 +2989,9 @@ function sfxDoorClose(){
 // sfxAchievement (deux notes sine plus longues) — un seul triangle aigu et
 // discret pour ne pas rivaliser avec le jingle de succès quand les deux se
 // déclenchent au même moment (achievement qui rapporte aussi des coins).
+// Étoile de victoire (Blueprint §19 : "Étoile : note cristalline") : une
+// note par étoile, montante, synchronisée avec son apparition.
+function sfxStar(i){ beep(880 + i*220, .14, 'sine', .09); }
 function sfxCoinGain(){
   beep(1050, .06, 'triangle', .08, 0);
 }
@@ -3687,6 +3738,15 @@ const WORLD_META = {
   7:{ name:'Les Ruines',   sub:'Interrupteurs et portes',         emoji:'🗝️' },
   8:{ name:'Les Failles',  sub:'Portails à sens unique',          emoji:'🔀' }
 };
+
+// Le Sentier (mode infini, section S) s'ouvre une fois tout le Monde 1
+// terminé : le joueur connaît alors glissement + murs, de quoi générer des
+// plateaux lisibles. Dérivé de la progression, aucune clé dédiée.
+function isSentierUnlocked(){
+  const p = loadProgress();
+  const idxs = worldLevelIndices(1);
+  return idxs.length>0 && idxs.every(i=> p[i]!==undefined);
+}
 
 /* =========================================================
    IDENTITÉ VISUELLE PAR MONDE (Blueprint §18 : "même langage
@@ -4625,21 +4685,7 @@ function showHintTier4(path){
 }
 
 function showSimpleToast(icon, title, message, extraClass){
-  const container = document.getElementById('toastContainer');
-  if(!container) return;
-  const toast = document.createElement('div');
-  toast.className = 'achievement-toast' + (extraClass ? ' '+extraClass : '');
-  const iconEl = document.createElement('div'); iconEl.className = 'ach-icon'; iconEl.textContent = icon;
-  const textEl = document.createElement('div'); textEl.className = 'ach-text';
-  const titleEl = document.createElement('div'); titleEl.className = 'ach-title'; titleEl.textContent = title;
-  const messageEl = document.createElement('div'); messageEl.className = 'ach-name'; messageEl.textContent = message;
-  textEl.append(titleEl, messageEl); toast.append(iconEl, textEl);
-  container.appendChild(toast);
-  requestAnimationFrame(()=> toast.classList.add('show'));
-  setTimeout(()=>{
-    toast.classList.remove('show');
-    setTimeout(()=> toast.remove(), 400);
-  }, 2600);
+  enqueueToast(buildToastEl(icon, title, message, extraClass), 2600);
 }
 
 document.getElementById('btnHint').addEventListener('click', ()=>{
@@ -4838,146 +4884,188 @@ function starsForMoves(moves, par){
   if(moves<=par+1) return 2;
   return 1;
 }
+// Paliers de série célébrés (jamais une pression : juste un jalon visible).
+const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
+
 let onWin = function(expectedSessionId){
   // Le jeton annule une victoire différée si la partie a été relancée.
   if(expectedSessionId !== state.sessionId) return;
+  // Le Sentier a sa propre boucle (score, chrono, plateau suivant).
+  if(state.mode==='sentier'){ onSentierBoardWin(); return; }
   // onWin() est différé de 260ms après le coup gagnant (voir performMove()).
-  // Si le joueur quitte l'écran de jeu pendant ce court délai (ex. tap rapide
-  // sur "Quitter" juste après avoir gagné), ce setTimeout continue quand même
-  // de se déclencher : il ne faut alors ni le renvoyer de force sur l'écran
-  // de victoire, ni jouer le son/vibration/particules de célébration sur un
-  // écran qu'il a déjà quitté. En revanche, sa victoire reste légitimement
-  // acquise : étoiles, records, succès et pièces sont TOUJOURS enregistrés
-  // ci-dessous, quel que soit l'écran affiché au moment où ce code s'exécute.
+  // Si le joueur quitte l'écran de jeu pendant ce court délai, ses données
+  // restent enregistrées ci-dessous, mais on ne le ramène pas de force sur
+  // l'écran de victoire et on ne joue aucune célébration hors écran.
   const stillInGame = (state.screen === 'game');
   if(stillInGame){
     if(state.isDaily) sfxDailyChallengeWin(); else sfxWin();
     vibrate([15,40,15,40,60]);
   }
   const stars = starsForMoves(state.moves, state.par);
-  let dailyInfo = null;
-  let levelInfo = null;
-  let coinsEarnedThisRun = 0; // purement pour l'affichage "+N 🪙" sur l'écran victoire
+  const lvl = state.level || LEVELS[state.levelIndex];
+  // Récompenses de CETTE partie, dans l'ordre d'importance perçue ; rendues
+  // en puces sur l'écran de victoire (voir renderVictoryRewards).
+  const rewards = [];
+  let coinsEarnedThisRun = 0;
+  let levelInfo = null, hadPreviousBest = false, wasFirstCompletion = false, prevStars = 0;
+  let nextIsNewWorld = false;
+  const sentierWasUnlocked = isSentierUnlocked();
 
-  // L'emoji de victoire reflète le monde du niveau terminé (Blueprint §18 :
-  // identité visuelle secondaire par monde). Le défi du jour garde toujours
-  // 🌱 par défaut, pour ne pas mélanger cette variation avec son propre
-  // système de classement/streak déjà distinct visuellement.
+  // L'emoji de victoire reflète le monde du niveau terminé (Blueprint §18).
   const burstCoreEl = document.getElementById('burstCore');
   if(burstCoreEl){
-    const lvl = LEVELS[state.levelIndex];
     const meta = !state.isDaily && lvl ? WORLD_META[lvl.world] : null;
     burstCoreEl.textContent = (meta && meta.emoji) ? meta.emoji : '🌱';
   }
 
   if(!state.isDaily){
     const p = loadProgress();
-    const wasFirstCompletion = p[state.levelIndex] === undefined;
-    const prevStars = p[state.levelIndex] || 0;
+    wasFirstCompletion = p[state.levelIndex] === undefined;
+    prevStars = p[state.levelIndex] || 0;
     p[state.levelIndex] = Math.max(prevStars, stars);
     saveProgress(p);
+    // "Record" = amélioration RÉELLE d'un score déjà existant. Une première
+    // réussite n'est pas un record battu (c'était affiché à tort avant).
+    hadPreviousBest = !!getLevelBest(state.levelIndex);
     levelInfo = recordLevelCompletion(state.levelIndex, state.moves, state.elapsed);
-    // isNewRecord vaut true à la fois sur une vraie amélioration ET sur une
-    // toute première réussite (isBetterDailyScore retourne true quand il
-    // n'y a pas encore de record — voir sa définition). sfxRecordBeat() ne
-    // doit célébrer QUE la vraie amélioration (design explicite du module
-    // audio : "jamais une première réussite") — d'où le !wasFirstCompletion,
-    // qui évite aussi un chevauchement avec sfxUnlock() juste en dessous.
-    if(stillInGame && levelInfo.isNewRecord && !wasFirstCompletion) sfxRecordBeat();
+    if(stillInGame && levelInfo.isNewRecord && hadPreviousBest) setTimeout(sfxRecordBeat, 520);
     recordCleanAttempt(state.hintUsedThisAttempt, state.blockedMoveThisAttempt);
-    Analytics.track('level_complete', { levelIndex:state.levelIndex, moves:state.moves, time:state.elapsed, stars });
+    Analytics.track('level_complete', { levelIndex:state.levelIndex, moves:state.moves, time:state.elapsed, stars,
+      undo:state.undoCount, hint:state.hintUsedThisAttempt, first:wasFirstCompletion });
+    if(wasFirstCompletion && state.levelIndex===2) Analytics.track('tutorial_end', null);
 
-    // Petit feedback de déblocage (Blueprint §19 : "Déblocage : Jingle de
-    // progression") uniquement quand ce niveau est terminé pour la toute
-    // première fois ET qu'un niveau suivant existe réellement — rejouer un
-    // niveau déjà terminé ne doit jamais redéclencher ce feedback.
     const nextIdx = state.levelIndex + 1;
     if(wasFirstCompletion && nextIdx < LEVELS.length){
-      sfxUnlock();
-      showSimpleToast('🔓', 'Niveau débloqué', LEVELS[nextIdx].name, 'info-toast');
+      if(stillInGame) setTimeout(sfxUnlock, 480);
+      if(LEVELS[nextIdx].world !== lvl.world){
+        nextIsNewWorld = true;
+        const meta = WORLD_META[LEVELS[nextIdx].world] || { name:'Monde '+LEVELS[nextIdx].world, emoji:'🗺️' };
+        rewards.push({ icon:meta.emoji, text:'Nouveau monde : '+meta.name, kind:'unlock' });
+        Analytics.track('world_unlock', { world:LEVELS[nextIdx].world });
+      }
+    } else if(nextIdx < LEVELS.length && LEVELS[nextIdx].world !== lvl.world){
+      nextIsNewWorld = true;
     }
-    // Coins : uniquement à la toute première réussite de ce niveau — rejouer
-    // un niveau déjà terminé ne doit pas devenir une source de farming.
+    // Coins : uniquement à la toute première réussite de ce niveau (anti-farming).
     if(wasFirstCompletion){
       addCoins(COIN_REWARDS.levelFirstComplete);
       coinsEarnedThisRun += COIN_REWARDS.levelFirstComplete;
     }
+    if(!wasFirstCompletion && stars > prevStars){
+      const gained = stars - prevStars;
+      rewards.push({ icon:'⭐', text:`+${gained} étoile${gained>1?'s':''} sur ce niveau`, kind:'record' });
+    }
+    if(levelInfo.isNewRecord && hadPreviousBest){
+      rewards.push({ icon:'🏆', text:'Record personnel battu', kind:'record' });
+    }
   } else {
-    dailyInfo = recordDailyCompletion(state.moves, state.elapsed, stars);
-    Analytics.track('daily_complete', { moves:state.moves, time:state.elapsed, stars });
-    // Le défi du jour est un événement quotidien répétable : contrairement
-    // aux niveaux de campagne, chaque réussite (même une "retentative") est
-    // récompensée, cohérent avec le fait qu'un nouveau défi arrive chaque jour.
+    const previousToday = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
+    const streakBefore = loadStreak();
+    const dailyInfo = recordDailyCompletion(state.moves, state.elapsed, stars);
+    Analytics.track('daily_complete', { moves:state.moves, time:state.elapsed, stars, retry:!!previousToday });
+    // Le défi du jour est un événement quotidien répétable : chaque réussite
+    // (même une retentative) est récompensée, un nouveau défi arrive chaque jour.
     addCoins(COIN_REWARDS.dailyComplete);
     coinsEarnedThisRun += COIN_REWARDS.dailyComplete;
+    const cur = dailyInfo.streak.current||0;
+    const streakGrew = cur > (streakBefore.current||0) || streakBefore.lastSuccessDate !== todayKey();
+    rewards.push({ icon:'🔥', text:`Série : ${cur} jour${cur>1?'s':''}`, kind:'streak' });
+    if(streakGrew && STREAK_MILESTONES.includes(cur)){
+      rewards.push({ icon:'🎖️', text:`Palier de série : ${cur} jours !`, kind:'record' });
+      if(stillInGame) setTimeout(sfxStreakMilestone, 600);
+    }
+    if(dailyInfo.streak.freezeConsumed){
+      rewards.push({ icon:'🧊', text:'Gel utilisé : ta série continue', kind:'streak' });
+    }
+    if(previousToday && Number.isFinite(previousToday.moves) && state.moves < previousToday.moves){
+      rewards.push({ icon:'🏆', text:'Meilleur essai du jour', kind:'record' });
+    }
   }
-  const newlyUnlocked = checkAchievements();
-  // checkAchievements() a déjà crédité les coins de succès (voir plus haut) ;
-  // on additionne juste ici ce qu'il a accordé, pour l'afficher en un seul
-  // total cohérent sur l'écran victoire plutôt que d'écrire deux lignes.
+
+  const newlyUnlocked = checkAchievements({ inline:true });
   newlyUnlocked.forEach(id=>{
+    const ach = ACHIEVEMENTS.find(a=>a.id===id);
     const reward = COIN_REWARDS.achievement[id];
     if(reward) coinsEarnedThisRun += reward;
+    if(ach) rewards.push({ icon:ach.icon, text:'Succès : '+ach.name, kind:'achievement' });
   });
+  if(newlyUnlocked.length && stillInGame) setTimeout(sfxAchievement, 700);
+  if(!sentierWasUnlocked && isSentierUnlocked()){
+    rewards.push({ icon:'🌿', text:'Le Sentier est ouvert !', kind:'unlock' });
+    Analytics.track('sentier_unlocked', null);
+  }
+  if(coinsEarnedThisRun > 0) rewards.unshift({ icon:'🪙', text:'+'+coinsEarnedThisRun, kind:'coins' });
 
   if(stillInGame) spawnVictoryEffect();
   document.getElementById('vMoves').textContent = state.moves;
   document.getElementById('vTime').textContent = formatTime(state.elapsed);
   document.getElementById('vPar').textContent = state.par;
-  document.getElementById('victoryTitle').textContent = state.isDaily ? 'Défi du jour réussi !' : 'Niveau réussi !';
+  const titles = state.isDaily
+    ? ['Défi du jour réussi !', 'Défi du jour réussi !', 'Beau défi !', 'Défi parfait !']
+    : ['Niveau réussi !', 'Réussi !', 'Bien joué !', 'Parfait !'];
+  document.getElementById('victoryTitle').textContent = titles[stars];
+
+  // Le "truc" de BlockCraft (audit §9) : le jeu SAIT si tu as trouvé la
+  // solution la plus courte, parce que le solveur l'a prouvé.
+  const masteryEl = document.getElementById('victoryMastery');
+  if(masteryEl){
+    const hintNote = state.hintUsedThisAttempt ? ' (avec indice)' : '';
+    if(state.moves <= state.par){
+      masteryEl.innerHTML = `Solution parfaite${hintNote} : <b>${state.par} coup${state.par>1?'s':''}</b>, le minimum prouvé par le solveur.`;
+    } else {
+      masteryEl.innerHTML = `La solution parfaite existe en <b>${state.par} coup${state.par>1?'s':''}</b>. Tu en as joué ${state.moves}${hintNote}.`;
+    }
+  }
+
   const starEls = document.querySelectorAll('#victoryStars .star');
   starEls.forEach((el,i)=>{
     el.classList.remove('on');
-    if(i<stars){ setTimeout(()=>el.classList.add('on'), i*160); }
+    if(i<stars){ setTimeout(()=>{ el.classList.add('on'); if(stillInGame) sfxStar(i); }, 260 + i*170); }
   });
+  const starsRow = document.getElementById('victoryStars');
+  if(starsRow) starsRow.setAttribute('aria-label', `${stars} étoile${stars>1?'s':''} sur 3`);
 
-  const recordBadge = document.getElementById('victoryRecordBadge');
-  const streakRow = document.getElementById('victoryStreakRow');
   const levelRecordLine = document.getElementById('victoryLevelRecordLine');
-  if(state.isDaily && dailyInfo){
-    if(recordBadge) recordBadge.style.display = dailyInfo.isRecordForToday ? 'flex' : 'none';
-    if(streakRow){
-      streakRow.style.display = 'flex';
-      document.getElementById('vStreakCurrent').textContent = dailyInfo.streak.current||0;
-    }
-    if(dailyInfo.streak.freezeConsumed && stillInGame){
-      showSimpleToast('🧊', 'Gel de série utilisé', 'Un jour manqué a été absorbé — ta série continue !', 'info-toast');
-    }
-    if(levelRecordLine) levelRecordLine.style.display = 'none';
-  } else if(!state.isDaily && levelInfo){
-    if(recordBadge) recordBadge.style.display = levelInfo.isNewRecord ? 'flex' : 'none';
-    if(streakRow) streakRow.style.display = 'none';
-    if(levelRecordLine && levelInfo.best){
+  if(levelRecordLine){
+    if(!state.isDaily && levelInfo && levelInfo.best && hadPreviousBest){
       levelRecordLine.style.display = 'block';
       const b = levelInfo.best;
       document.getElementById('vLevelRecordText').textContent = `${b.moves} coup${b.moves>1?'s':''} · ${formatTime(b.time)}`;
-    } else if(levelRecordLine){
+    } else {
       levelRecordLine.style.display = 'none';
     }
+  }
+  renderVictoryRewards(rewards);
+
+  // Bouton principal : prochaine étape claire (Blueprint §16).
+  const nextBtn = document.getElementById('btnNextLevel');
+  if(state.isDaily){
+    nextBtn.textContent = 'VOIR MON RÉSUMÉ DU JOUR →';
+  } else if(state.levelIndex + 1 >= LEVELS.length){
+    nextBtn.textContent = 'RETOUR À L\'ACCUEIL';
   } else {
-    if(recordBadge) recordBadge.style.display = 'none';
-    if(streakRow) streakRow.style.display = 'none';
-    if(levelRecordLine) levelRecordLine.style.display = 'none';
+    nextBtn.textContent = nextIsNewWorld ? 'MONDE SUIVANT →' : 'NIVEAU SUIVANT →';
   }
+  nextBtn.style.display = 'flex';
+  const replayBtn = document.getElementById('btnReplayVictory');
+  if(replayBtn) replayBtn.textContent = stars < 3 ? `↻ Viser ★★★` : '↻ Rejouer';
 
-  // Coins gagnés cette partie (niveau/défi + éventuels succès débloqués au
-  // passage) : un seul badge cumulé, affiché quel que soit le mode.
-  const coinsBadge = document.getElementById('victoryCoinsBadge');
-  if(coinsBadge){
-    if(coinsEarnedThisRun > 0){
-      const coinsEarnedEl = document.getElementById('vCoinsEarned');
-      if(coinsEarnedEl) coinsEarnedEl.textContent = coinsEarnedThisRun;
-      coinsBadge.style.display = 'flex';
-    } else {
-      coinsBadge.style.display = 'none';
-    }
-  }
-
-  document.getElementById('btnNextLevel').style.display = state.isDaily ? 'none' : 'flex';
   if(stillInGame) goto('victory');
-  // sinon : le joueur a déjà navigué ailleurs pendant le délai de 260ms —
-  // ses données sont enregistrées ci-dessus, mais on ne le ramène pas de
-  // force sur un écran qu'il a volontairement quitté.
+}
+
+function renderVictoryRewards(rewards){
+  const wrap = document.getElementById('victoryRewards');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  rewards.slice(0, 6).forEach((r,i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'reward-chip ' + (r.kind||'');
+    chip.style.animationDelay = (0.55 + i*0.12)+'s';
+    const ic = document.createElement('span'); ic.textContent = r.icon;
+    const tx = document.createElement('span'); tx.textContent = r.text;
+    chip.append(ic, tx);
+    wrap.appendChild(chip);
+  });
 }
 // Couleurs festives pour les confettis uniquement (les autres effets
 // utilisent des couleurs fixes définies en CSS, cohérentes avec la
@@ -5017,6 +5105,11 @@ function spawnVictoryEffect(){
 }
 
 document.getElementById('btnNextLevel').addEventListener('click', ()=>{
+  if(state.isDaily){
+    const today = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
+    if(today) showDailyResult(today); else { refreshHome(); goto('home'); }
+    return;
+  }
   const next = state.levelIndex+1;
   if(next < LEVELS.length) startLevel(next, false);
   else { refreshHome(); goto('home'); }
