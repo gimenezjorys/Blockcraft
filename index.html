@@ -123,6 +123,9 @@
     position:relative; overflow:hidden;
     padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom);
   }
+  /* overflow:clip rogne pareil sans créer de conteneur de défilement, ce qui
+     permet aux barres "sticky" (carte des mondes) de rester collées. */
+  @supports (overflow:clip){ #app{overflow:clip;} }
   .screen{
     display:none; flex-direction:column; flex:1;
     padding:24px 20px 28px;
@@ -214,6 +217,12 @@
   .topbar-title{font-family:var(--font-display); font-weight:700; font-size:16px; color:var(--cream);}
 
   /* ---------- LEVEL SELECT / CARTE DES MONDES ---------- */
+  /* Barre collante : le retour reste accessible même après le défilement
+     automatique vers le niveau en cours. */
+  #screen-select .topbar{
+    position:sticky; top:0; z-index:5; margin:-24px -20px 12px; padding:14px 20px 10px;
+    background:linear-gradient(180deg, var(--bg-deep) 75%, rgba(14,28,23,0));
+  }
   #levelGrid{ display:flex; flex-direction:column; gap:22px; margin-top:4px; }
   .world-section{
     display:flex; flex-direction:column; gap:10px;
@@ -2560,7 +2569,8 @@ const SCHEMA_MIGRATIONS = {
   profileFramesOwned:  { current:1, migrations:{} },
   profileFrameEquipped:{ current:1, migrations:{} },
   streakFreeze: { current:1, migrations:{} },
-  sentier:      { current:1, migrations:{} }
+  sentier:      { current:1, migrations:{} },
+  weeklyChest:  { current:1, migrations:{} }
 };
 
 // Lit une donnée versionnée depuis safeStorage et applique en cascade les
@@ -2841,11 +2851,46 @@ function recordDailyCompletion(moves, elapsed, stars){
     levelIndex: generated ? null : (state.levelIndex>=0 ? state.levelIndex : dailyLevelIndex()) });
   const streak = registerDailyStreak();
   recordDailyHistoryEntry(todayKey(), moves, elapsed, stars);
+  const chest = maybeClaimWeeklyChest();
   // Correctif fiable : l'écran de victoire doit conserver le badge si une
   // meilleure tentative a déjà été faite aujourd'hui, même si cette
   // retentative est moins bonne. isNewRecord reste utile pour l'analytics,
   // mais isRecordForToday est la valeur d'affichage persistante.
-  return { isNewRecord, isRecordForToday, streak };
+  return { isNewRecord, isRecordForToday, streak, chest };
+}
+
+/* ---------------------------------------------------------
+   COFFRE DE LA SEMAINE (audit §4 : la boucle hebdomadaire était "purement
+   informative, aucune action/récompense n'en dépend"). 5 défis du jour
+   réussis dans la semaine civile (lundi → dimanche) ouvrent un coffre de
+   coins, une seule fois par semaine. 5 sur 7 : il reste deux jours de
+   marge — une semaine chargée ne fait jamais tout perdre.
+--------------------------------------------------------- */
+const WEEKLY_CHEST_KEY = 'bcd_weekly_chest_v1';
+const WEEKLY_CHEST_GOAL = 5;
+const WEEKLY_CHEST_REWARD = 25;
+function weekStartKey(d){
+  const back = (d.getDay() + 6) % 7; // lundi = 0
+  return dateKeyFor(new Date(d.getFullYear(), d.getMonth(), d.getDate() - back));
+}
+function calendarWeekDailyCount(){
+  const start = weekStartKey(bcdNow()), today = todayKey();
+  return loadDailyHistory().filter(e=> e.date >= start && e.date <= today).length;
+}
+function loadWeeklyChest(){
+  const c = loadVersioned(WEEKLY_CHEST_KEY, 'weeklyChest', null);
+  return (c && typeof c==='object' && typeof c.claimedWeek==='string') ? c : { claimedWeek:null };
+}
+function weeklyChestClaimedThisWeek(){ return loadWeeklyChest().claimedWeek === weekStartKey(bcdNow()); }
+// Renvoie le montant crédité (0 si déjà ouvert ou objectif non atteint).
+function maybeClaimWeeklyChest(){
+  const wk = weekStartKey(bcdNow());
+  if(loadWeeklyChest().claimedWeek === wk) return 0;
+  if(calendarWeekDailyCount() < WEEKLY_CHEST_GOAL) return 0;
+  saveVersioned(WEEKLY_CHEST_KEY, 'weeklyChest', { claimedWeek:wk });
+  addCoins(WEEKLY_CHEST_REWARD);
+  Analytics.track('weekly_chest', { week:wk });
+  return WEEKLY_CHEST_REWARD;
 }
 
 /* ---------------------------------------------------------
@@ -4018,6 +4063,8 @@ document.addEventListener('visibilitychange', ()=>{
 const THEMED_SCREENS = ['game', 'victory'];
 function goto(name){
   if(!THEMED_SCREENS.includes(name) && typeof applyWorldTheme==='function') applyWorldTheme(1);
+  // Chaque écran s'ouvre en haut (la carte des mondes gère son propre défilement).
+  if(name!=='select'){ try{ window.scrollTo(0, 0); }catch(e){} }
   // Un toast en attente venu d'un autre écran n'a plus de sens en jeu :
   // il masquerait les boutons du haut pendant la réflexion.
   if(name==='game' && typeof toastQueue!=='undefined') toastQueue.length = 0;
@@ -4671,6 +4718,7 @@ document.getElementById('btnResetProgress').addEventListener('click', ()=>{
   safeStorage.remove(PROFILE_FRAME_EQUIPPED_KEY);
   safeStorage.remove(STREAK_FREEZE_KEY);
   safeStorage.remove(SENTIER_KEY);
+  safeStorage.remove(WEEKLY_CHEST_KEY);
   applySeedCosmetic(); // revient immédiatement au skin par défaut, sans attendre un rechargement
   refreshHome();
 });
@@ -4746,7 +4794,7 @@ function applyWorldTheme(world){
   root.setProperty('--tile-line', theme.tileLine);
 }
 
-function renderLevelSelect(){
+function renderLevelSelect(focusIndex){
   const p = loadProgress();
   const grid = document.getElementById('levelGrid');
   grid.innerHTML = '';
@@ -4817,6 +4865,7 @@ function renderLevelSelect(){
       const isCurrent = i===nextLevelIndex;
       const card = document.createElement('div');
       card.className = 'level-card' + (unlocked? '' : ' locked') + (isCurrent? ' current' : '');
+      card.dataset.level = String(i);
       card.innerHTML = `<div>${i+1}</div><div class="stars">${unlocked ? '★'.repeat(stars)+'☆'.repeat(3-stars) : '🔒'}</div>`;
       if(unlocked){
         // Cartes débloquées uniquement : accessibles au clavier/switch au même
@@ -4835,6 +4884,14 @@ function renderLevelSelect(){
     });
     section.appendChild(cardsWrap);
     grid.appendChild(section);
+  });
+  // Reprise claire : la carte s'ouvre sur le niveau qu'on vient de quitter,
+  // sinon sur le prochain niveau à jouer (et non tout en haut du Monde 1).
+  const focusIdx = Number.isInteger(focusIndex) && focusIndex >= 0 ? focusIndex : nextLevelIndex;
+  requestAnimationFrame(()=>{
+    const target = grid.querySelector(`[data-level="${focusIdx}"]`);
+    if(target && focusIdx > 3){ try{ target.scrollIntoView({ block:'center' }); }catch(e){} }
+    else window.scrollTo(0, 0);
   });
 }
 
@@ -5945,6 +6002,10 @@ let onWin = function(expectedSessionId){
       rewards.push({ icon:'🎖️', text:`Palier de série : ${cur} jours !`, kind:'record' });
       if(stillInGame) setTimeout(sfxStreakMilestone, 600);
     }
+    if(dailyInfo.chest){
+      coinsEarnedThisRun += dailyInfo.chest;
+      rewards.push({ icon:'🎁', text:`Coffre de la semaine ouvert (+${dailyInfo.chest} 🪙)`, kind:'record' });
+    }
     if(dailyInfo.streak.freezeConsumed){
       rewards.push({ icon:'🧊', text:'Gel utilisé : ta série continue', kind:'streak' });
     }
@@ -6106,7 +6167,7 @@ document.getElementById('btnExitGame').addEventListener('click', ()=>{
   if(!state.won) Analytics.track('level_quit', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves, stuck:state.stuck, time:state.elapsed });
   if(state.mode==='sentier'){ endSentierRun('quit'); return; }
   if(state.isDaily){ refreshHome(); goto('home'); }
-  else { renderLevelSelect(); goto('select'); }
+  else { renderLevelSelect(state.levelIndex); goto('select'); }
 });
 
 /* =========================================================
@@ -6231,8 +6292,10 @@ function showDailyResult(data){
       strip.appendChild(cell);
     }
   }
-  const weekly = computeWeeklyDailySummary();
-  setT('dailyWeeklySummary', `${weekly.daysPlayed}/7 jours · ${weekly.starsTotal} ⭐ cette semaine`);
+  const weekCount = calendarWeekDailyCount();
+  setT('dailyWeeklySummary', weeklyChestClaimedThisWeek()
+    ? `🎁 Coffre de la semaine ouvert · reviens lundi pour le prochain`
+    : `🎁 Coffre de la semaine : ${Math.min(weekCount, WEEKLY_CHEST_GOAL)}/${WEEKLY_CHEST_GOAL} défis (lun → dim) · +${WEEKLY_CHEST_REWARD} 🪙`);
 
   const tomorrow = DAILY_RULES[(bcdNow().getDay()+1)%7];
   setT('dailyNextLine', `Prochain défi dans ${formatDuration(msUntilNextDay())} · ${tomorrow.day} : ${tomorrow.icon} ${tomorrow.label}`);

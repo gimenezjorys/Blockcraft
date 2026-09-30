@@ -29,6 +29,7 @@
 | §5 Mode Infini de Maîtrise (priorité n°1) | **Le Sentier** : plateaux générés à partir d'une graine et validés par le solveur. Modes Chrono 3 min (points × série jusqu'à ×5, +10 s par solution parfaite) et Zen. | Après le Monde 1 (8 niveaux) | `test-logic.js` (générateur), E2E (score 60 / ×4, fin de partie) | Seulement des mécaniques déjà vues ; la mécanique vedette doit compter (sinon le plateau est rejeté) |
 | §9 Défi miroir | « Échos » : un niveau connu tourné ou retourné (tous les 6 plateaux, et en repli si la génération échoue) | Sentier | 480 symétries vérifiées : par conservé | Jamais la transformation identité |
 | §6 LiveOps sans production | Défi du jour **généré à partir de la date** avec une règle du jour (lundi Racines… dimanche Grand défi) | Chaque jour | 400 jours générés, déterministes, tous distincts | Même plateau pour tous le même jour |
+| §4 Boucle hebdomadaire passive | **Coffre de la semaine** : 5 défis réussis du lundi au dimanche rapportent +25 🪙, une fois par semaine. Progression affichée dans le résultat du défi. | Chaque semaine | E2E : coffre ouvert au 5e défi, une seule fois | 5 défis sur 7 : deux jours de marge |
 | §8 Méta légère (leçon Royal Match) | **Le Jardin** : 8 plantes en SVG (graine → fleur) et une prairie du Sentier (1 fleur toutes les 5 solutions parfaites) | Accueil, écran de victoire, fin de partie du Sentier | E2E : Monde 1 à 3★ = « En fleur » | Dérivé des données existantes, aucune nouvelle donnée |
 | §3 Succès récurrents | Progression visible (« 10 / 20 ») et succès à paliers « Maître du par I–V » | Écran Succès, puces de victoire | E2E | Récompenses en coins modestes |
 | §3 Mise en scène du « presque complet » | Barres de progression, prochain objectif par plante, record à battre | Partout | Visuel | — |
@@ -79,6 +80,7 @@
   - Les plateaux résolus du Sentier sont enregistrés même si la page se ferme en pleine partie.
   - File des toasts plafonnée et vidée en entrant en jeu.
   - Menus remis sur le thème de référence.
+  - Carte des mondes ouverte sur le niveau en cours, avec une barre du haut collante.
 - **Analytics locale** : sessions, tutoriel, annuler, impasse, abandons, Sentier, Jardin. Rapport disponible via `BCD_DEV.getRetentionReport()`.
 - **Identité** : nouveau logo SVG qui raconte la mécanique (une graine qui glisse vers la lumière, appuyée sur un bloc). Il suit le skin équipé. Remplace un carré générique.
 - **PWA** :
@@ -91,7 +93,7 @@
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
 | `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis | 3 543 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus la PWA hors ligne | 40 vérifications, 0 échec, 0 erreur ou avertissement console |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus la PWA hors ligne et le coffre de la semaine | 41 vérifications, 0 échec, 0 erreur ou avertissement console |
 | CI GitHub Actions | Les trois suites, sur toutes les branches | Vert |
 
 Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin et les succès.

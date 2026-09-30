@@ -170,6 +170,18 @@ function startStaticServer(root) {
   const report = await page.evaluate(() => BCD_DEV.getRetentionReport());
   check(report.engagement.sessions >= 3 && report.depth.sentierRuns >= 2, 'rapport de rétention local alimenté');
 
+  // 9b. Coffre de la semaine : 5 défis du lundi au dimanche → +25, une seule fois
+  const chest = await page.evaluate(() => {
+    const out = [];
+    ['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-10'].forEach(d => {
+      BCD_DEV.setSimulatedDate(d + 'T12:00:00');
+      out.push(BCD_DEV.simulateDailyWin(4, 20, 3).chest);
+    });
+    BCD_DEV.clearSimulatedDate();
+    return out;
+  });
+  check(JSON.stringify(chest) === '[0,0,0,0,25,0]', `coffre de la semaine ouvert au 5e défi, une seule fois (${JSON.stringify(chest)})`);
+
   // 10. Aucune erreur/avertissement console
   check(consoleProblems.length === 0, 'aucune erreur ni avertissement console' + (consoleProblems.length ? ' :\n  ' + consoleProblems.join('\n  ') : ''));
 
