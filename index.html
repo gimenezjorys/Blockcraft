@@ -89,6 +89,23 @@
   @property --tile-line{ syntax:'<color>'; inherits:true; initial-value:#3a5c4b; }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   [hidden]{display:none !important;}
+  /* Focus clavier visible partout (jamais au toucher grâce à :focus-visible). */
+  button:focus-visible, [role="button"]:focus-visible, [role="switch"]:focus-visible, textarea:focus-visible{
+    outline:3px solid var(--gold); outline-offset:2px;
+  }
+  /* Animations réduites : préférence système OU réglage du jeu. Les
+     déplacements restent (ils portent l'information), en plus court ; les
+     animations décoratives et en boucle s'arrêtent. */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+    .piece{ transition-duration:.08s !important; }
+  }
+  html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+  html.reduce-motion .piece{ transition-duration:.08s !important; }
+  /* Éléments porteurs d'information dont l'animation finit à opacité 0 :
+     en mode réduit, ils restent simplement affichés (puis retirés par JS). */
+  html.reduce-motion .board-float, html.reduce-motion .hint-arrow{ animation:none !important; opacity:.95; }
+  @media (prefers-reduced-motion: reduce){ .board-float, .hint-arrow{ animation:none !important; opacity:.95; } }
   html,body{
     margin:0; padding:0; height:100%;
     background:radial-gradient(120% 120% at 50% -10%, var(--bg) 0%, var(--bg-deep) 70%);
@@ -913,6 +930,16 @@
   .ach-card-name{font-family:var(--font-display); font-weight:700; font-size:14px; color:var(--cream);}
   .ach-card-desc{font-size:11px; color:var(--cream-dim); font-weight:600;}
   .ach-card-check{color:var(--gold); font-weight:800; font-size:16px; flex:none;}
+  .achievement-card.locked .ach-progress{opacity:1;}
+  .achievement-card.locked:has(.ach-progress){opacity:.8;}
+  .ach-progress{display:flex; align-items:center; gap:8px; margin-top:5px;}
+  .ach-progress span{font-size:10px; font-weight:800; color:var(--cream-dim); white-space:nowrap;}
+  .ach-progress-bar{flex:1; height:5px; border-radius:999px; background:var(--surface-2); overflow:hidden;}
+  .ach-progress-bar div{height:100%; background:linear-gradient(90deg, var(--seed-light), var(--seed)); border-radius:999px;}
+  .achievement-card.tiered{border-color:rgba(199,155,240,.55); background:linear-gradient(155deg, var(--surface-2), var(--surface));}
+  .ach-tier-dots{display:flex; flex-direction:column; gap:3px; flex:none;}
+  .ach-tier-dots i{width:7px; height:7px; border-radius:50%; background:var(--surface-2); border:1px solid var(--tile-line);}
+  .ach-tier-dots i.on{background:var(--gold); border-color:var(--gold);}
 
   /* ---------- PROFIL ---------- */
   .profile-seed-preview{
@@ -1150,6 +1177,13 @@
           <div class="sub">Ambiance de fond (volume discret)</div>
         </div>
         <div class="toggle" id="toggleMusic" role="switch" aria-checked="true" aria-label="Activer la musique de fond" tabindex="0"></div>
+      </div>
+      <div class="settings-row">
+        <div class="lbl-group">
+          <div class="lbl">Animations réduites</div>
+          <div class="sub">Moins de mouvements à l'écran (confort visuel)</div>
+        </div>
+        <div class="toggle" id="toggleMotion" role="switch" aria-checked="false" aria-label="Réduire les animations" tabindex="0"></div>
       </div>
     </div>
     <button class="settings-danger" id="btnResetProgress">Réinitialiser la progression</button>
@@ -2285,6 +2319,27 @@ window.BCD_DEV = {
   // Outils de développement pour le journal Analytics (jamais exposés au
   // joueur) : log brut et comptage par type d'événement.
   getAnalyticsLog(){ return loadAnalyticsLog().slice(); },
+  // Rapport de rétention local (plan de mesure, voir PRODUCTION_PROGRESS.md) :
+  // à lire en fin de test joueur, dans la console du navigateur.
+  getRetentionReport(){
+    const log = loadAnalyticsLog();
+    const count = t=> log.filter(e=> e.t===t).length;
+    const first = t=> { const e = log.find(x=> x.t===t); return e ? e.at : null; };
+    const days = new Set(log.map(e=> new Date(e.at).toDateString())).size;
+    const t0 = first('first_open') || (log[0] && log[0].at) || null;
+    const firstWin = log.find(e=> e.t==='level_complete');
+    const sentierEnds = log.filter(e=> e.t==='sentier_end' && e.p && e.p.kind==='chrono');
+    return {
+      activation: { tutorialStarted: count('tutorial_start')>0, tutorialEnded: count('tutorial_end')>0,
+        secondsToFirstWin: (t0 && firstWin) ? Math.round((firstWin.at - t0)/1000) : null },
+      engagement: { sessions: count('session_start'), activeDays: days, levelsCompleted: count('level_complete'),
+        restarts: count('level_restart'), quits: count('level_quit'), undos: count('undo') },
+      comprehension: { stuck: count('stuck'), hints: count('hint_used'), mechanicsDiscovered: count('mechanic_discovered') },
+      depth: { sentierRuns: count('sentier_start'), sentierBoards: count('sentier_board_complete'),
+        sentierAvgScore: sentierEnds.length ? Math.round(sentierEnds.reduce((a,e)=> a + (e.p.score||0), 0)/sentierEnds.length) : null },
+      return: { dailyCompleted: count('daily_complete'), gardenOpened: count('garden_open'), shares: count('share') }
+    };
+  },
   getAnalyticsSummary(){
     const summary = {};
     loadAnalyticsLog().forEach(e=>{ summary[e.t] = (summary[e.t]||0) + 1; });
@@ -2527,7 +2582,10 @@ function saveVersioned(storageKey, schemaType, payload){
    stockage local sur la durée.
 ========================================================= */
 const ANALYTICS_KEY = 'bcd_analytics_v1';
-const ANALYTICS_MAX_ENTRIES = 500;
+// Relevé de 500 à 1500 : annuler/impasse/Sentier génèrent plus
+// d'événements, et le début de parcours (tutoriel) ne doit pas être évincé
+// dès la première longue session. ~100 octets/entrée → ~150 Ko au plus.
+const ANALYTICS_MAX_ENTRIES = 1500;
 let analyticsLogCache = null; // évite de relire safeStorage à chaque track()
 
 function loadAnalyticsLog(){
@@ -2594,7 +2652,9 @@ let settings = (function(){
   // fond). Défaut à true pour rester cohérent avec audio/vibration
   // (fonctionnalités actives par défaut, désactivables) ; le volume cible
   // de la musique est volontairement très bas (voir MUSIC_TARGET_VOLUME).
-  return Object.assign({ audio:true, vibration:true, music:true }, safe);
+  // reducedMotion : ajouté avec le réglage "Animations réduites" ; la
+  // préférence système prefers-reduced-motion est de toute façon respectée.
+  return Object.assign({ audio:true, vibration:true, music:true, reducedMotion:false }, safe);
 })();
 function saveSettings(){ saveVersioned(SETTINGS_KEY, 'settings', settings); }
 
@@ -2959,7 +3019,12 @@ const COIN_REWARDS = {
     no_hint_10: 30,
     no_blocked_10: 30,
     perfection_20: 50,
-    legend_world: 60
+    legend_world: 60,
+    daily_perfect_3: 30,
+    sentier_first: 15,
+    sentier_chain_5: 30,
+    sentier_score_150: 40,
+    sentier_perfect_25: 40
   }
 };
 function loadCoins(){
@@ -3247,17 +3312,79 @@ function equipFrame(id){
   return true;
 }
 
+// metric/goal (facultatifs) : succès MESURABLES dont la progression est
+// affichée ("12/20") tant qu'ils sont verrouillés — un objectif visible
+// attire plus qu'un cadenas muet (audit §3, effet Zeigarnik).
 const ACHIEVEMENTS = [
   { id:'first_step',    name:'Premier pas',       desc:"Termine ton tout premier niveau.",              icon:'🌱' },
   { id:'three_stars',   name:'Trois étoiles',     desc:'Obtiens 3 étoiles sur un niveau.',               icon:'⭐' },
   { id:'world_master',  name:'Maître du monde',   desc:'Termine tous les niveaux d’un monde.',           icon:'🗺️' },
-  { id:'streak_7',      name:'Rendez-vous',       desc:'Réussis 7 défis du jour.',                       icon:'📅' },
-  { id:'perfection_20', name:'Perfection',        desc:'Obtiens 3 étoiles sur 20 niveaux.',              icon:'💎' },
+  { id:'streak_7',      name:'Rendez-vous',       desc:'Réussis 7 défis du jour.',                       icon:'📅', metric:'totalWins', goal:7 },
+  { id:'perfection_20', name:'Perfection',        desc:'Obtiens 3 étoiles sur 20 niveaux.',              icon:'💎', metric:'threeStars', goal:20 },
   { id:'legend_world',  name:'Légende',           desc:'Obtiens 3 étoiles sur tous les niveaux d’un monde.', icon:'👑' },
   { id:'explorer_all_worlds', name:'Explorateur', desc:'Termine au moins un niveau dans chaque monde.',  icon:'🧭' },
-  { id:'no_hint_10',    name:'Sans aide',         desc:'Termine 10 niveaux sans utiliser l’indice.',     icon:'🧠' },
-  { id:'no_blocked_10', name:'Sans erreur',       desc:'Réussis 10 niveaux sans coup bloqué.',           icon:'🎯' }
+  { id:'no_hint_10',    name:'Sans aide',         desc:'Termine 10 niveaux sans utiliser l’indice.',     icon:'🧠', metric:'noHint', goal:10 },
+  { id:'no_blocked_10', name:'Sans erreur',       desc:'Réussis 10 niveaux sans coup bloqué.',           icon:'🎯', metric:'noBlocked', goal:10 },
+  { id:'daily_perfect_3', name:'Parfait au quotidien', desc:'Résous 3 défis du jour au par.',            icon:'🌤', metric:'dailyPerfect', goal:3 },
+  { id:'sentier_first', name:'Premiers pas sur le Sentier', desc:'Résous un plateau du Sentier.',        icon:'🌿', metric:'sentierSolved', goal:1 },
+  { id:'sentier_chain_5', name:'En rythme',       desc:'Enchaîne 5 solutions parfaites dans le Sentier.', icon:'🎵', metric:'sentierBestChain', goal:5 },
+  { id:'sentier_score_150', name:'Sprint',        desc:'Marque 150 points en une partie Chrono.',        icon:'⚡', metric:'sentierBestScore', goal:150 },
+  { id:'sentier_perfect_25', name:'Œil du solveur', desc:'Trouve 25 solutions parfaites dans le Sentier.', icon:'👁️', metric:'sentierPerfect', goal:25 }
 ];
+// Succès ÉVOLUTIFS (audit §3 : "aucun succès n'est récurrent ou
+// évolutif") : un seul succès à paliers qui ne s'épuise jamais vraiment.
+// Chaque palier est stocké comme un succès à part (id_1, id_2…) dans la
+// même sauvegarde, ce qui garde checkAchievements() inchangé dans son esprit.
+const TIERED_ACHIEVEMENTS = [
+  { id:'par_master', name:'Maître du par', icon:'💠', metric:'perfectTotal',
+    desc:'Trouve des solutions parfaites (niveaux à 3 étoiles + plateaux parfaits du Sentier).',
+    tiers:[10, 40, 100, 250, 600], rewards:[15, 30, 50, 80, 120] }
+];
+const ROMAN = ['I','II','III','IV','V','VI','VII','VIII'];
+function achievementInfo(id){
+  const a = ACHIEVEMENTS.find(x=>x.id===id);
+  if(a) return a;
+  const m = /^(.+)_(\d+)$/.exec(id);
+  if(m){
+    const t = TIERED_ACHIEVEMENTS.find(x=>x.id===m[1]);
+    if(t) return { id, name:`${t.name} ${ROMAN[Number(m[2])-1]||m[2]}`, icon:t.icon, desc:t.desc };
+  }
+  return null;
+}
+function achievementReward(id){
+  if(COIN_REWARDS.achievement[id]) return COIN_REWARDS.achievement[id];
+  const m = /^(.+)_(\d+)$/.exec(id);
+  if(m){
+    const t = TIERED_ACHIEVEMENTS.find(x=>x.id===m[1]);
+    if(t) return t.rewards[Number(m[2])-1] || 0;
+  }
+  return 0;
+}
+function achievementTotalCount(){ return ACHIEVEMENTS.length + TIERED_ACHIEVEMENTS.reduce((n,t)=> n + t.tiers.length, 0); }
+function achievementUnlockedCount(unlocked){
+  unlocked = unlocked || loadUnlockedAchievements();
+  let n = ACHIEVEMENTS.filter(a=> unlocked[a.id]).length;
+  TIERED_ACHIEVEMENTS.forEach(t=> t.tiers.forEach((_,i)=>{ if(unlocked[t.id+'_'+(i+1)]) n++; }));
+  return n;
+}
+// Métriques partagées par les succès, calculées une fois par vérification.
+function achievementMetrics(){
+  const p = loadProgress();
+  const vals = Object.values(p);
+  const streak = loadStreak();
+  const clean = loadCleanStreaks();
+  const st = loadSentierStats();
+  const threeStars = vals.filter(v=> v===3).length;
+  return {
+    p, threeStars,
+    totalWins: streak.totalWins||0,
+    noHint: clean.noHintCount||0, noBlocked: clean.noBlockedCount||0,
+    dailyPerfect: loadDailyHistory().filter(e=> e.stars===3).length,
+    sentierSolved: st.totalSolved, sentierPerfect: st.totalPerfect,
+    sentierBestChain: st.bestChain, sentierBestScore: st.bestScore,
+    perfectTotal: threeStars + st.totalPerfect
+  };
+}
 const ACHIEVEMENTS_KEY = 'bcd_achievements_v1';
 function loadUnlockedAchievements(){
   const a = loadVersioned(ACHIEVEMENTS_KEY, 'achievements', null);
@@ -3287,12 +3414,12 @@ function checkAchievements(opts){
 
   if(p[0] !== undefined) unlock('first_step');
   if(Object.values(p).some(s=>s===3)) unlock('three_stars');
-  if(Object.values(p).filter(s=>s===3).length >= 20) unlock('perfection_20');
-  if((streak.totalWins||0) >= 7) unlock('streak_7');
-
-  const clean = loadCleanStreaks();
-  if((clean.noHintCount||0) >= 10) unlock('no_hint_10');
-  if((clean.noBlockedCount||0) >= 10) unlock('no_blocked_10');
+  // Tous les succès mesurables (metric/goal) se vérifient de la même façon.
+  const metrics = achievementMetrics();
+  ACHIEVEMENTS.forEach(a=>{ if(a.metric && (metrics[a.metric]||0) >= a.goal) unlock(a.id); });
+  TIERED_ACHIEVEMENTS.forEach(t=>{
+    t.tiers.forEach((goal,i)=>{ if((metrics[t.metric]||0) >= goal) unlock(t.id+'_'+(i+1)); });
+  });
 
   // Explorateur : au moins un niveau terminé dans CHAQUE monde de ALL_WORLDS.
   // Vérification agrégée séparée du forEach ci-dessous (qui teste chaque monde
@@ -3313,7 +3440,7 @@ function checkAchievements(opts){
     newly.forEach(id=>{
       if(!opts.inline) showAchievementToast(id);
       Analytics.track('achievement', { id });
-      const reward = COIN_REWARDS.achievement[id];
+      const reward = achievementReward(id);
       if(reward) addCoins(reward);
     });
   }
@@ -3360,7 +3487,7 @@ function showNextToast(){
 }
 
 function showAchievementToast(id){
-  const ach = ACHIEVEMENTS.find(a=>a.id===id);
+  const ach = achievementInfo(id);
   if(!ach) return;
   sfxAchievement();
   enqueueToast(buildToastEl(ach.icon, 'Succès débloqué', ach.name, ''), 3000);
@@ -3424,22 +3551,42 @@ function renderAchievements(){
   setText('statBestTime', stats.bestTime!==null ? formatTime(stats.bestTime) : '—');
 
   const unlocked = loadUnlockedAchievements();
+  const metrics = achievementMetrics();
   const list = document.getElementById('achievementsList');
   if(!list) return;
   list.innerHTML = '';
-  let count = 0;
+  const progressBar = (cur, goal)=>{
+    const pct = Math.max(0, Math.min(100, Math.round(cur/goal*100)));
+    return `<div class="ach-progress"><div class="ach-progress-bar"><div style="width:${pct}%"></div></div><span>${Math.min(cur,goal)} / ${goal}</span></div>`;
+  };
+  // Succès évolutifs en tête : ce sont les objectifs qui ne s'épuisent pas.
+  TIERED_ACHIEVEMENTS.forEach(t=>{
+    const cur = metrics[t.metric]||0;
+    let reached = 0;
+    t.tiers.forEach((_,i)=>{ if(unlocked[t.id+'_'+(i+1)]) reached = i+1; });
+    const maxed = reached >= t.tiers.length;
+    const nextGoal = maxed ? t.tiers[t.tiers.length-1] : t.tiers[reached];
+    const card = document.createElement('div');
+    card.className = 'achievement-card tiered' + (reached>0 ? ' unlocked' : '');
+    card.innerHTML = `<div class="ach-card-icon">${t.icon}</div>
+      <div class="ach-card-text"><div class="ach-card-name">${t.name} ${reached>0 ? ROMAN[reached-1] : ''}</div>
+      <div class="ach-card-desc">${t.desc}</div>
+      ${maxed ? '<div class="ach-card-desc"><b>Palier maximal atteint.</b></div>' : progressBar(cur, nextGoal)}</div>
+      <div class="ach-tier-dots" aria-label="Palier ${reached} sur ${t.tiers.length}">${t.tiers.map((_,i)=> `<i class="${i<reached?'on':''}"></i>`).join('')}</div>`;
+    list.appendChild(card);
+  });
   ACHIEVEMENTS.forEach(a=>{
     const done = !!unlocked[a.id];
-    if(done) count++;
     const card = document.createElement('div');
     card.className = 'achievement-card' + (done ? ' unlocked' : ' locked');
+    const prog = (!done && a.metric) ? progressBar(metrics[a.metric]||0, a.goal) : '';
     card.innerHTML = `<div class="ach-card-icon">${done ? a.icon : '🔒'}</div>
-      <div class="ach-card-text"><div class="ach-card-name">${a.name}</div><div class="ach-card-desc">${a.desc}</div></div>
+      <div class="ach-card-text"><div class="ach-card-name">${a.name}</div><div class="ach-card-desc">${a.desc}</div>${prog}</div>
       ${done ? '<div class="ach-card-check">✓</div>' : ''}`;
     list.appendChild(card);
   });
   const countEl = document.getElementById('achievementsCount');
-  if(countEl) countEl.textContent = `${count} / ${ACHIEVEMENTS.length}`;
+  if(countEl) countEl.textContent = `${achievementUnlockedCount(unlocked)} / ${achievementTotalCount()}`;
 }
 
 // Écran de référence consultable à tout moment (contrairement au toast
@@ -3479,9 +3626,13 @@ function renderMechanicHelp(){
    C. AUDIO (généré, aucun fichier externe requis)
 ========================================================= */
 let actx = null;
+// Aucun son (donc aucun AudioContext) avant le premier geste du joueur :
+// sinon le navigateur crée un contexte "suspendu" et avertit en console
+// (politique anti-lecture automatique). Voir C6.
+let audioUnlocked = false;
 function ac(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
 function beep(freq, dur, type, gainVal, delay){
-  if(!settings.audio) return;
+  if(!settings.audio || !audioUnlocked) return;
   try{
     const ctx = ac();
     const t0 = ctx.currentTime + (delay||0);
@@ -3704,7 +3855,7 @@ const MUSIC_CHORD_GLIDE_S = 3;
 const MUSIC_TARGET_VOLUME = 0.045; // volontairement très bas : ambiance, pas premier plan
 
 function startBackgroundMusic(){
-  if(!settings.music) return;
+  if(!settings.music || !audioUnlocked) return;
   if(musicNodes) return; // déjà en cours, ne jamais empiler deux boucles
   try{
     const ctx = ac();
@@ -3789,7 +3940,12 @@ function toggleBackgroundMusic(){
 ========================================================= */
 function resumeAudioContextOnFirstGesture(){
   const resume = ()=>{
+    audioUnlocked = true;
     try{ const ctx = ac(); if(ctx.state === 'suspended') ctx.resume(); }catch(e){}
+    // La musique d'ambiance (activée par défaut) n'était jamais démarrée :
+    // seul un aller-retour du réglage l'allumait. Elle démarre désormais au
+    // premier geste, comme le reste de l'audio.
+    startBackgroundMusic();
     document.removeEventListener('pointerdown', resume);
     document.removeEventListener('keydown', resume);
   };
@@ -3797,6 +3953,12 @@ function resumeAudioContextOnFirstGesture(){
   document.addEventListener('keydown', resume, { once:true });
 }
 resumeAudioContextOnFirstGesture();
+// Application en arrière-plan : on suspend tout l'audio (musique comprise),
+// on le reprend au retour — économie de batterie et politesse sonore.
+document.addEventListener('visibilitychange', ()=>{
+  if(!actx) return;
+  try{ if(document.hidden) actx.suspend(); else if(audioUnlocked) actx.resume(); }catch(e){}
+});
 
 
 /* =========================================================
@@ -4206,9 +4368,9 @@ function renderProfile(){
   if(coinsEl) coinsEl.textContent = `🪙 ${loadCoins()}`;
 
   const unlocked = loadUnlockedAchievements();
-  const unlockedCount = ACHIEVEMENTS.filter(a=>unlocked[a.id]).length;
+  const unlockedCount = achievementUnlockedCount(unlocked);
   const achEl = document.getElementById('profileAchCountPill');
-  if(achEl) achEl.textContent = `🏆 ${unlockedCount} / ${ACHIEVEMENTS.length}`;
+  if(achEl) achEl.textContent = `🏆 ${unlockedCount} / ${achievementTotalCount()}`;
 
   // Aperçu de la graine équipée : même donnée exacte que renderCosmetics()
   // (getCosmeticById/loadEquippedCosmetic), même formule de dégradé —
@@ -4408,6 +4570,9 @@ function refreshSettingsUI(){
   document.getElementById('toggleVibrate').setAttribute('aria-checked', String(settings.vibration));
   document.getElementById('toggleMusic').classList.toggle('on', settings.music);
   document.getElementById('toggleMusic').setAttribute('aria-checked', String(settings.music));
+  document.getElementById('toggleMotion').classList.toggle('on', !!settings.reducedMotion);
+  document.getElementById('toggleMotion').setAttribute('aria-checked', String(!!settings.reducedMotion));
+  document.documentElement.classList.toggle('reduce-motion', !!settings.reducedMotion);
 }
 function toggleSetting(key){
   settings[key] = !settings[key];
@@ -4423,10 +4588,12 @@ function toggleSetting(key){
 const toggleAudioEl = document.getElementById('toggleAudio');
 const toggleVibrateEl = document.getElementById('toggleVibrate');
 const toggleMusicEl = document.getElementById('toggleMusic');
+const toggleMotionEl = document.getElementById('toggleMotion');
+toggleMotionEl.addEventListener('click', ()=> toggleSetting('reducedMotion'));
 toggleAudioEl.addEventListener('click', ()=> toggleSetting('audio'));
 toggleVibrateEl.addEventListener('click', ()=> toggleSetting('vibration'));
 toggleMusicEl.addEventListener('click', ()=> toggleSetting('music'));
-[toggleAudioEl, toggleVibrateEl, toggleMusicEl].forEach(el=>{
+[toggleAudioEl, toggleVibrateEl, toggleMusicEl, toggleMotionEl].forEach(el=>{
   el.addEventListener('keydown', e=>{
     if(e.key==='Enter' || e.key===' '){ e.preventDefault(); el.click(); }
   });
@@ -5739,8 +5906,8 @@ let onWin = function(expectedSessionId){
 
   const newlyUnlocked = checkAchievements({ inline:true });
   newlyUnlocked.forEach(id=>{
-    const ach = ACHIEVEMENTS.find(a=>a.id===id);
-    const reward = COIN_REWARDS.achievement[id];
+    const ach = achievementInfo(id);
+    const reward = achievementReward(id);
     if(reward) coinsEarnedThisRun += reward;
     if(ach) rewards.push({ icon:ach.icon, text:'Succès : '+ach.name, kind:'achievement' });
   });
@@ -6325,7 +6492,7 @@ function renderSentierEnd(run, info){
   const rewards = [];
   if(info.coins > 0) rewards.push({ icon:'🪙', text:'+'+info.coins, kind:'coins' });
   (info.newly||[]).forEach(id=>{
-    const ach = ACHIEVEMENTS.find(a=>a.id===id);
+    const ach = achievementInfo(id);
     if(ach) rewards.push({ icon:ach.icon, text:'Succès : '+ach.name, kind:'achievement' });
   });
   const meadow = typeof meadowProgress==='function' ? meadowProgress(info.stats.totalPerfect) : null;
@@ -6623,6 +6790,18 @@ document.querySelectorAll('[role="button"][tabindex]').forEach(el=>{
 if(loadAnalyticsLog().length === 0){
   Analytics.track('first_open', null);
 }
+// Sessions (Blueprint §26 "session_start/end") : retour après combien de
+// jours, et durée. Tout reste local, rien n'est transmis.
+(function trackSessionStart(){
+  const log = loadAnalyticsLog();
+  const prev = log.filter(e=> e.t!=='first_open');
+  const last = prev.length ? prev[prev.length-1].at : null;
+  Analytics.track('session_start', { returning: last!==null, daysSince: last!==null ? Math.floor((Date.now()-last)/86400000) : null });
+})();
+const sessionStartedAt = Date.now();
+window.addEventListener('pagehide', ()=>{
+  Analytics.track('session_end', { durationS: Math.round((Date.now()-sessionStartedAt)/1000), screen:state.screen });
+});
 applySeedCosmetic();
 refreshHome();
 goto('home');
