@@ -57,7 +57,13 @@ function startStaticServer(root) {
   const wait = ms => page.waitForTimeout(ms);
   const solve = async () => {
     const moves = await page.evaluate(() => BCD_DEV.solutionFromHere());
-    for (const k of moves) { await page.keyboard.press(k); await wait(190); }
+    const start = Number(await page.textContent('#hudMoves'));
+    for (let i = 0; i < moves.length; i++) {
+      await page.keyboard.press(moves[i]);
+      // Attend que le coup soit compté avant le suivant (touche ignorée pendant une glissade).
+      if (i < moves.length - 1) await page.waitForFunction(n => document.getElementById('hudMoves').textContent === String(n), start + i + 1, { timeout: 3000 });
+      await wait(i < moves.length - 1 ? 120 : 190);
+    }
     return moves.length;
   };
 
@@ -70,12 +76,19 @@ function startStaticServer(root) {
   await page.click('#btnContinue'); await wait(300);
   check((await page.textContent('#gameLevelTitle')).startsWith('1.'), 'JOUER lance le niveau 1');
   check((await page.textContent('#gameTip')).length > 0, 'aide du tutoriel affichée sous la grille');
-  await page.keyboard.press('ArrowRight'); await wait(200);
-  const tf = await page.evaluate(() => getComputedStyle(document.getElementById('seed')).transform);
+  // Mesure chronométrée DANS la page : 150 ms après le coup, donc toujours
+  // avant onWin() (différé de 260 ms), qui masque l'écran de jeu.
+  const tf = await page.evaluate(() => new Promise(res => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    setTimeout(() => res(getComputedStyle(document.getElementById('seed')).transform), 150);
+  }));
+  await wait(200);
   check(tf !== 'none', `la graine reste en place pendant l'arrivée gagnante (${tf})`);
   await wait(2000);
   check(await screen() === 'screen-victory', 'victoire du niveau 1');
   check((await page.textContent('#victoryTitle')) === 'Parfait !', 'titre « Parfait ! » pour une solution au par');
+  check((await page.textContent('#victoryRewards')).includes('+3 rosée'), 'Jardin : 3 étoiles nouvelles → +3 rosée en victoire');
+  check(await page.evaluate(() => BCD_DEV.getGarden().rosee === 3), 'rosée créditée et sauvegardée');
   check(!(await page.textContent('#victoryRewards')).includes('Record'), 'pas de « record » à la première réussite');
   await shot('02-victoire');
 
@@ -97,7 +110,16 @@ function startStaticServer(root) {
     localStorage.setItem('bcd_ghosts_v1', JSON.stringify(raw));
   });
   await page.click('.level-card[aria-label^="Niveau 2 "]'); await wait(300);
-  for (const k of ['ArrowRight', 'ArrowLeft', 'ArrowRight', 'ArrowDown']) { await page.keyboard.press(k); await wait(220); }
+  // Chaque coup doit être compté (une touche pendant une glissade est
+  // ignorée) : sinon ce premier essai ferait 2 coups et resterait imbattable.
+  const slow = ['ArrowRight', 'ArrowLeft', 'ArrowRight', 'ArrowDown'];
+  for (let i = 0; i < slow.length; i++) {
+    await page.keyboard.press(slow[i]);
+    if (i < slow.length - 1) {
+      await page.waitForFunction(n => document.getElementById('hudMoves').textContent === String(n), i + 1, { timeout: 3000 });
+      await wait(120);
+    }
+  }
   await wait(2000);
   await page.click('#btnReplayVictory'); await wait(300);
   check(!!(await page.$('.piece-ghost')), 'fantôme du record affiché au rejeu');
@@ -187,12 +209,71 @@ function startStaticServer(root) {
   await page.click('#toggleMotion'); await wait(100);
   check(await page.evaluate(() => document.documentElement.classList.contains('reduce-motion')), 'réglage « Animations réduites » appliqué');
   await page.click('#toggleMotion');
+  await page.click('#btnBackHomeSettings'); await wait(200);
+
+  // 8b. L'Atelier : aperçu, achat, équipement (graine épique « Braise », 90 coins)
+  await page.evaluate(() => BCD_DEV.devSetCoins(100));
+  await page.click('#btnCosmetics'); await wait(300);
+  check(await screen() === 'screen-cosmetics', 'Atelier ouvert');
+  await page.click('#atelierGrid .item-card[data-id="braise"]'); await wait(300);
+  check((await page.textContent('#stageRarity')).length > 0 && !!(await page.$('#stageScene .stage-seed.fx-braise')), 'Atelier : aperçu de l\'objet sélectionné avec sa rareté');
+  check((await page.textContent('#atelierAction')).includes('90'), 'Atelier : prix affiché avant achat');
+  await page.click('#atelierAction'); await wait(400);
+  check((await page.evaluate(() => BCD_DEV.getCoins())) === 10, 'Atelier : achat débité (100 → 10 coins)');
+  check((await page.evaluate(() => BCD_DEV.getOwnedCosmetics())).includes('braise'), 'Atelier : graine achetée possédée');
+  if (!(await page.textContent('#atelierAction')).includes('Équipé')) { await page.click('#atelierAction'); await wait(300); }
+  check(await page.evaluate(() => BCD_DEV.getEquippedCosmetic() === 'braise' && document.documentElement.dataset.seedFx === 'braise'), 'Atelier : graine équipée et effet appliqué');
+  await shot('08-atelier');
+  await page.click('#btnBackHomeCosmetics'); await wait(200);
+
+  // 8c. Le Jardin endormi : objectif sur l'accueil, restauration, fête de zone, rituel, pub simulée
+  check((await page.textContent('#homeGardenNext')).length > 3, 'accueil : prochain chantier du jardin toujours visible');
+  await page.evaluate(() => { BCD_DEV.setGardenDone(0); BCD_DEV.setRosee(40); });
+  const coinsBeforeZone = await page.evaluate(() => BCD_DEV.getCoins());
+  await page.click('#homeGarden'); await wait(400);
+  check(await screen() === 'screen-garden' && !!(await page.$('#gzScene svg')), 'Jardin : scène de la zone affichée');
+  check((await page.$$('#gardenRitual .rc-mission')).length === 3, 'Jardin : rituel du jour à 3 missions');
+  check(await page.evaluate(() => { const r = BCD_DEV.getRitual(); return r.ids[0] === 'daily' && r.prog[0] === 1; }), 'rituel : le défi réussi plus tôt est compté');
+  for (let i = 0; i < 5; i++) { await page.click('#btnRestore'); await wait(750); }
+  const gAfter = await page.evaluate(() => BCD_DEV.getGarden());
+  check(gAfter.done === 5 && gAfter.rosee === 40 - 36, `5 chantiers réveillés, 36 💧 dépensés (${gAfter.done}, ${gAfter.rosee})`);
+  await wait(1400);
+  check(!!(await page.$('.zone-fete')), 'zone réveillée : la fête s\'affiche');
+  check((await page.evaluate(() => BCD_DEV.getCoins())) === coinsBeforeZone + 20 + 20, 'récompense de zone (+20) et succès « Jardinier » (+20) crédités');
+  await shot('09-jardin-fete');
+  await page.click('.zone-fete'); await wait(300);
+  check(!(await page.$('.zone-fete')) && (await page.textContent('#gzZoneName')) === 'La Fontaine', 'fête fermée d\'un toucher, zone suivante affichée');
+  check(await page.evaluate(() => document.getElementById('btnRestore').disabled), 'pas assez de rosée : bouton désactivé, jamais de dépense');
+  await page.evaluate(() => BCD_DEV.resetAdCaps());
+  await page.evaluate(() => { const r = document.getElementById('gzScene'); r.scrollIntoView(); });
+  await page.evaluate(() => { document.getElementById('btnBackHomeGarden').click(); }); await wait(200);
+  await page.click('#homeGarden'); await wait(300);
+  check(await page.evaluate(() => !document.getElementById('btnGardenBoost').hidden), 'pub récompensée proposée (arrosage bonus)');
+  await page.click('#btnGardenBoost'); await wait(400);
+  check(!!(await page.$('.ad-mock')), 'pub simulée affichée, étiquetée');
+  await wait(3300);
+  check(await page.evaluate(() => BCD_DEV.getGarden().rosee === 4 + 6 && document.getElementById('btnGardenBoost').hidden), 'pub regardée : +6 💧, puis plus proposée (plafond)');
+  await shot('10-jardin');
+  await page.evaluate(() => { document.getElementById('btnBackHomeGarden').click(); }); await wait(200);
 
   // 9. Persistance après rechargement
   await page.reload(); await wait(300);
   check((await page.textContent('#homeDailyBadge')).includes('Fait'), 'persistance : défi du jour après rechargement');
   const report = await page.evaluate(() => BCD_DEV.getRetentionReport());
   check(report.engagement.sessions >= 3 && report.depth.sentierRuns >= 2, 'rapport de rétention local alimenté');
+  check(report.retention.activeDays === 1 && report.retention.winsPerSession > 0 && report.ads.completed === 1 && report.ads.offered >= 1,
+    `rétention par jour et pubs mesurées (${JSON.stringify(report.retention)})`);
+
+  // 9a. Données corrompues : jamais de plantage, valeurs saines
+  await page.evaluate(() => {
+    localStorage.setItem('bcd_garden_v1', '{"schemaVersion":1,"data":{"rosee":"abc","done":-4}}');
+    localStorage.setItem('bcd_ritual_v1', 'pas du json');
+    localStorage.setItem('bcd_ads_v1', '[1,2,3]');
+    localStorage.setItem('bcd_retention_v1', '{"schemaVersion":99,"data":null}');
+  });
+  await page.reload(); await wait(300);
+  check(await page.evaluate(() => { const g = BCD_DEV.getGarden(); return g.rosee === 0 && g.done === 0; }) &&
+    (await page.textContent('#homeGardenNext')) === 'Arracher les ronces', 'sauvegardes corrompues : jeu intact, valeurs par défaut');
 
   // 9b. Coffre de la semaine : 5 défis du lundi au dimanche → +25, une seule fois
   const chest = await page.evaluate(() => {
