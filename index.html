@@ -88,6 +88,7 @@
   @property --tile{ syntax:'<color>'; inherits:true; initial-value:#2c473b; }
   @property --tile-line{ syntax:'<color>'; inherits:true; initial-value:#3a5c4b; }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  [hidden]{display:none !important;}
   html,body{
     margin:0; padding:0; height:100%;
     background:radial-gradient(120% 120% at 50% -10%, var(--bg) 0%, var(--bg-deep) 70%);
@@ -249,7 +250,7 @@
   .hud-chip b{color:var(--cream); font-size:15px;}
 
   .board-wrap{
-    flex:1; display:flex; align-items:center; justify-content:center;
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
     padding:6px 0 10px;
   }
   #board{
@@ -406,8 +407,29 @@
     border-radius:50%;
     box-shadow:0 6px 14px -4px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.5);
   }
-  .piece-seed.landed{animation:pop .3s ease;}
-  @keyframes pop{0%{transform:scale(1) translate(var(--tx),var(--ty));} 45%{transform:scale(1.22) translate(var(--tx),var(--ty));} 100%{transform:scale(1) translate(var(--tx),var(--ty));}}
+  /* --tx/--ty sont posées par positionPieces() à chaque placement : sans
+     elles, un transform d'animation invalide retombait sur "none" et la
+     graine sautait au coin haut-gauche pendant l'arrivée gagnante. La
+     translation passe AVANT le scale, sinon le scale agrandit aussi le
+     déplacement et la pièce "bondit" hors de sa case. */
+  .piece-seed.landed{animation:pop .34s ease;}
+  @keyframes pop{
+    0%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1);}
+    45%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1.24);}
+    100%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1);}
+  }
+  /* Compression à l'arrêt (Blueprint §20 : "légère compression visuelle lors
+     d'un arrêt") — orientée selon l'axe du glissement. */
+  .piece.squash-x{animation:squashX .2s ease-out;}
+  .piece.squash-y{animation:squashY .2s ease-out;}
+  @keyframes squashX{
+    0%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(.86,1.12);}
+    100%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1,1);}
+  }
+  @keyframes squashY{
+    0%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1.12,.86);}
+    100%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1,1);}
+  }
 
   .hint-arrow{
     position:absolute; font-size:26px; color:var(--cream); opacity:0;
@@ -465,7 +487,36 @@
     100%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
   }
 
-  .footer-controls{display:flex; justify-content:center; gap:14px; margin-top:6px;}
+  .footer-controls{display:flex; justify-content:center; gap:10px; margin-top:6px; flex-wrap:wrap;}
+  .hint-btn:disabled{opacity:.4; cursor:default; transform:none;}
+  .undo-btn{color:var(--cream);}
+  .undo-btn.attention{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.3); animation:attentionPulse 1.4s ease-in-out infinite;}
+  @keyframes attentionPulse{0%,100%{box-shadow:0 0 0 2px rgba(240,168,60,.25);} 50%{box-shadow:0 0 0 6px rgba(240,168,60,.45);}}
+  .skip-btn{color:var(--cream-dim);}
+
+  /* Jauge d'étoiles du HUD : étoiles encore atteignables avec le nombre de
+     coups déjà joués. Jamais une prédiction (elle ne consulte pas le
+     solveur) : seulement "combien d'étoiles restent possibles". */
+  .hud-par{color:var(--cream-dim);}
+  .hud-stars{display:inline-flex; gap:1px; font-size:13px; letter-spacing:0;}
+  .hud-stars i{font-style:normal; color:var(--gold); transition:color .25s ease, opacity .25s ease, transform .25s ease;}
+  .hud-stars i.lost{color:var(--cream-dim); opacity:.35; transform:scale(.8);}
+  .hud-stars i.just-lost{animation:starLost .5s ease;}
+  @keyframes starLost{0%{transform:scale(1.3); color:var(--danger);} 100%{transform:scale(.8);}}
+
+  .game-tip{
+    min-height:44px; display:flex; align-items:center; justify-content:center; gap:8px;
+    text-align:center; font-size:13px; font-weight:700; color:var(--cream-dim); line-height:1.35;
+    padding:0 6px; width:100%;
+  }
+  .game-tip .tip-icon{font-size:18px; flex:none;}
+  .game-tip.show{animation:tipIn .3s ease;}
+  .game-tip.warn{color:var(--cream);}
+  .game-tip.warn .tip-pill{
+    background:rgba(224,101,79,.14); border:1.5px solid rgba(224,101,79,.55);
+    border-radius:14px; padding:8px 12px; display:flex; align-items:center; gap:8px;
+  }
+  @keyframes tipIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
 
   /* ---------- VICTORY ---------- */
   #screen-victory{align-items:center; justify-content:center; text-align:center; gap:14px;}
@@ -475,8 +526,9 @@
     background:radial-gradient(circle at 35% 30%, var(--seed-skin-light), var(--seed-skin-mid) 55%, var(--seed-skin-deep) 100%);
     box-shadow:0 0 40px 10px rgba(240,168,60,.45);
     display:flex; align-items:center; justify-content:center; font-size:44px;
-    animation:pop .5s ease;
+    animation:corePop .5s ease;
   }
+  @keyframes corePop{0%{transform:scale(.6);} 55%{transform:scale(1.12);} 100%{transform:scale(1);}}
   .petal{
     position:absolute; width:10px; height:16px; border-radius:50% 50% 50% 0;
     background:var(--goal); left:50%; top:50%; opacity:0;
@@ -773,20 +825,35 @@
       <div class="topbar-title" id="gameLevelTitle">Niveau 1</div>
       <div class="icon-btn" id="btnRestart" role="button" aria-label="Recommencer le niveau" tabindex="0">↻</div>
     </div>
+    <!-- Bandeau du Sentier (mode infini) : masqué hors de ce mode. -->
+    <div class="sentier-bar" id="sentierBar" hidden>
+      <div class="sb-item"><span class="sb-lbl">Plateau</span><b id="sbBoard">1</b></div>
+      <div class="sb-item"><span class="sb-lbl">Score</span><b id="sbScore">0</b></div>
+      <div class="sb-item sb-mult" id="sbMultWrap"><span class="sb-lbl">Série</span><b id="sbMult">×1</b></div>
+      <div class="sb-item sb-clock" id="sbClockWrap"><span class="sb-lbl">Reste</span><b id="sbClock">3:00</b></div>
+    </div>
     <div class="hud">
       <div class="hud-chip" aria-label="Nombre de coups">Coups <b id="hudMoves" aria-live="polite">0</b></div>
-      <div class="hud-chip" aria-label="Temps écoulé">Temps <b id="hudTime" aria-live="off">0:00</b></div>
-      <div class="hud-chip" aria-label="Objectif de coups">Objectif <b id="hudPar">-</b></div>
+      <div class="hud-chip" id="hudTimeChip" aria-label="Temps écoulé">Temps <b id="hudTime" aria-live="off">0:00</b></div>
+      <div class="hud-chip hud-par" id="hudParChip" aria-label="Solution parfaite">
+        <span class="hud-stars" id="hudStars" aria-hidden="true"><i>★</i><i>★</i><i>★</i></span>
+        Par <b id="hudPar">-</b>
+      </div>
     </div>
     <div class="board-wrap">
       <div id="board" role="group" aria-label="Grille du puzzle. Utilise un geste de glissement ou les flèches du clavier.">
         <div id="cellGrid"></div>
         <div id="overlay"></div>
       </div>
+      <!-- Ligne d'aide contextuelle (tutoriel joué, nouvelle mécanique,
+           impasse) : hauteur réservée pour ne jamais décaler la grille. -->
+      <div class="game-tip" id="gameTip" aria-live="polite"></div>
       <p id="gameStatus" class="sr-only" aria-live="polite" aria-atomic="true"></p>
     </div>
     <div class="footer-controls">
+      <button class="hint-btn undo-btn" id="btnUndo" aria-label="Annuler le dernier coup (touche Z)" disabled>↶ Annuler</button>
       <button class="hint-btn" id="btnHint" aria-label="Obtenir un indice">💡 Indice</button>
+      <button class="hint-btn skip-btn" id="btnSkipBoard" aria-label="Passer ce plateau" hidden>⏭ Passer</button>
     </div>
   </section>
 
@@ -1711,8 +1778,21 @@ let state = {
   // Jeton de session : invalide un onWin() différé si la partie est relancée.
   sessionId:0,
   hintUsedThisAttempt:false, blockedMoveThisAttempt:false,
-  hintPreviewInProgress:false // palier 3 de l'indice : un vrai coup est bloqué tant qu'un aperçu anime le plateau
+  hintPreviewInProgress:false, // palier 3 de l'indice : un vrai coup est bloqué tant qu'un aperçu anime le plateau
+  // mode : 'campaign' | 'daily' | 'sentier'. isDaily est conservé tel quel
+  // (lu par de nombreux écrans) et reste égal à (mode==='daily').
+  mode:'campaign',
+  // Niveau réellement joué (objet normalisé) : un niveau de LEVELS, ou un
+  // plateau généré par le Sentier. Toute logique qui a besoin des données du
+  // niveau courant lit state.level plutôt que LEVELS[state.levelIndex].
+  level:null,
+  // Pile d'annulation : un instantané {seed, rocks, moves} par coup réussi.
+  history:[],
+  undoCount:0,
+  stuck:false // vrai quand le solveur prouve qu'aucune solution n'existe depuis la position courante
 };
+// Partie en cours du Sentier (mode infini, section S) — null hors de ce mode.
+let sentierRun = null;
 
 /* ---------------------------------------------------------
    Accès localStorage sécurisé : certains contextes (navigation
@@ -2216,14 +2296,20 @@ const MECHANIC_INFO = {
 // marque bien TOUTES les mécaniques inédites de ce niveau comme vues, sinon
 // la ou les mécaniques "sautées" redéclencheraient un toast plus tard alors
 // qu'elles ont déjà été rencontrées par le joueur sur ce même niveau.
+// Renvoie l'info de la mécanique inédite (ou null) : elle est désormais
+// affichée dans la ligne d'aide sous la grille (setGameTip), visible
+// pendant tout le niveau, plutôt que dans un toast éphémère de 2,6 s qui
+// pouvait disparaître avant d'être lu.
 function maybeShowMechanicIntro(level){
   const seen = loadSeenMechanics();
   const newMechs = (level.mechanics||[]).filter(m => m!=='glissement' && MECHANIC_INFO[m] && !seen[m]);
-  if(!newMechs.length) return;
-  const info = MECHANIC_INFO[newMechs[0]];
-  showSimpleToast(info.icon, 'Nouvelle mécanique', info.message, 'info-toast');
+  if(!newMechs.length) return null;
+  // La mécanique la plus récente du niveau est celle qu'il introduit.
+  const info = MECHANIC_INFO[newMechs[newMechs.length-1]];
   newMechs.forEach(m=>{ seen[m] = true; });
   saveSeenMechanics(seen);
+  Analytics.track('mechanic_discovered', { mechanics:newMechs });
+  return info;
 }
 
 /* =========================================================
@@ -2798,6 +2884,9 @@ function beep(freq, dur, type, gainVal, delay){
 }
 function sfxMove(){ beep(420, .09, 'sine', .12); }
 function sfxBlocked(){ beep(140, .12, 'sine', .10); }
+// Annulation : glissando bref et DESCENDANT (le temps "recule"), plus doux
+// qu'un coup joué pour ne jamais être confondu avec lui.
+function sfxUndo(){ beep(520, .05, 'sine', .07, 0); beep(390, .07, 'sine', .06, 0.04); }
 // Feedback sonore du palier 3 de l'indice (aperçu de mouvement) : plus
 // discret qu'un vrai coup (sfxMove), pour ne jamais donner l'impression
 // qu'un coup réel vient d'être joué — cohérent avec la contrainte du
@@ -3746,9 +3835,86 @@ function startLevel(index, isDaily){
     goto('home');
     return;
   }
+  startBoard(lvl, {
+    mode: isDaily ? 'daily' : 'campaign',
+    levelIndex: index,
+    title: isDaily ? '🌤 Défi du jour' : (index+1)+'. '+lvl.name
+  });
+}
+
+// Tutoriel JOUÉ (Blueprint §17 : "le niveau 1 montre le swipe, le niveau 2
+// introduit l'idée de trajectoire, le niveau 3 introduit un obstacle — aucun
+// mur de texte"). Une phrase max, affichée sous la grille pendant le niveau.
+const ONBOARDING_TIPS = {
+  0: { icon:'✨', text:"Glisse la graine jusqu'à la lumière." },
+  1: { icon:'↪', text:"La graine glisse jusqu'au bord : deux glissements pour tourner." },
+  2: { icon:'🧱', text:"Un mur arrête la graine juste devant lui : sers-t'en d'appui." }
+};
+
+// Mécanique réellement nouvelle d'un niveau de campagne = mécanique absente
+// de TOUS les niveaux précédents (calculé une fois, jamais saisi à la main).
+const LEVEL_NEW_MECHANICS = (function(){
+  const seenSoFar = new Set();
+  return LEVELS.map(lvl=>{
+    const fresh = (lvl.mechanics||[]).filter(m=> m!=='glissement' && !seenSoFar.has(m));
+    fresh.forEach(m=> seenSoFar.add(m));
+    return fresh;
+  });
+})();
+
+// Mécanique "vedette" d'un monde = celle que son niveau INTRO introduit.
+function worldFeaturedMechanic(world){
+  const i = LEVELS.findIndex(l=> l.world===world);
+  if(i<0) return null;
+  const fresh = LEVEL_NEW_MECHANICS[i];
+  return fresh && fresh.length ? fresh[fresh.length-1] : null;
+}
+
+function setGameTip(icon, text, variant){
+  const el = document.getElementById('gameTip');
+  if(!el) return;
+  el.classList.remove('show', 'warn');
+  el.innerHTML = '';
+  if(!text) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'tip-pill';
+  const ic = document.createElement('span'); ic.className = 'tip-icon'; ic.textContent = icon || '';
+  const tx = document.createElement('span'); tx.textContent = text;
+  wrap.append(ic, tx);
+  el.appendChild(wrap);
+  if(variant) el.classList.add(variant);
+  void el.offsetWidth; el.classList.add('show');
+}
+
+// Aide affichée au lancement d'un plateau, par ordre de priorité :
+// nouvelle mécanique rencontrée > rappel de la mécanique sur les niveaux
+// INTRO/TEACH > tutoriel joué des 3 premiers niveaux > rien.
+function defaultTipForBoard(lvl, mode, levelIndex, freshMechanicInfo){
+  if(freshMechanicInfo) return { icon:freshMechanicInfo.icon, text:'Nouveau : '+freshMechanicInfo.message };
+  if(mode==='campaign'){
+    if(lvl.tag==='INTRO' || lvl.tag==='TEACH'){
+      const m = worldFeaturedMechanic(lvl.world);
+      if(m && MECHANIC_INFO[m]) return { icon:MECHANIC_INFO[m].icon, text:MECHANIC_INFO[m].message };
+    }
+    if(ONBOARDING_TIPS[levelIndex]) return ONBOARDING_TIPS[levelIndex];
+  }
+  return null;
+}
+
+// Point d'entrée commun à TOUS les plateaux (campagne, défi du jour,
+// Sentier). opts = { mode, levelIndex, title }.
+function startBoard(lvl, opts){
+  opts = opts || {};
+  const index = Number.isInteger(opts.levelIndex) ? opts.levelIndex : -1;
+  const isDaily = opts.mode==='daily';
   applyWorldTheme(lvl.world);
   // Un callback différé d'une session précédente ne peut pas toucher celle-ci.
   state.sessionId++;
+  state.mode = opts.mode || 'campaign';
+  state.level = lvl;
+  state.history = [];
+  state.undoCount = 0;
+  state.stuck = false;
   state.levelIndex = index;
   state.isDaily = !!isDaily;
   state.cols = lvl.size; state.rows = lvl.size;
@@ -3770,12 +3936,21 @@ function startLevel(index, isDaily){
   state.blockedMoveThisAttempt = false;
   state.hintPreviewInProgress = false;
   hintPreviewGeneration++; // invalide tout aperçu du palier 3 encore en attente d'un précédent niveau
-  Analytics.track(isDaily ? 'daily_start' : 'level_start', { levelIndex:index });
+  if(state.mode==='sentier') Analytics.track('sentier_board_start', { board:opts.boardNumber||0, par:lvl.par });
+  else Analytics.track(isDaily ? 'daily_start' : 'level_start', { levelIndex:index });
+  if(state.mode==='campaign' && index===0 && Object.keys(loadProgress()).length===0){
+    Analytics.track('tutorial_start', null);
+  }
 
-  document.getElementById('gameLevelTitle').textContent = isDaily ? '🌤 Défi du jour' : (index+1)+'. '+lvl.name;
+  document.getElementById('gameLevelTitle').textContent = opts.title || lvl.name || '';
   document.getElementById('hudMoves').textContent = '0';
   document.getElementById('hudPar').textContent = lvl.par;
   document.getElementById('hudTime').textContent = '0:00';
+  updateStarMeter(false);
+  updateUndoButton();
+  document.getElementById('btnSkipBoard').hidden = state.mode!=='sentier';
+  document.getElementById('sentierBar').hidden = state.mode!=='sentier';
+  document.getElementById('hudTimeChip').hidden = state.mode==='sentier' && sentierRun && sentierRun.kind==='chrono';
 
   goto('game');
   sfxLevelStart(); // "prêt ?" doux + remet la série de combo à zéro (voir C1/C4)
@@ -3783,13 +3958,108 @@ function startLevel(index, isDaily){
   requestAnimationFrame(()=>{ positionPieces(false); });
   startTimer();
   resetHint();
-  maybeShowMechanicIntro(lvl);
+  const freshInfo = maybeShowMechanicIntro(lvl);
+  const tip = opts.tip || defaultTipForBoard(lvl, state.mode, index, freshInfo);
+  setGameTip(tip ? tip.icon : '', tip ? tip.text : '');
 
   // indice tactile uniquement au tout premier niveau jamais joué
   const p = loadProgress();
-  if(index===0 && !isDaily && Object.keys(p).length===0){
+  if(index===0 && state.mode==='campaign' && Object.keys(p).length===0){
     showSwipeHint();
   }
+}
+
+/* ---------------------------------------------------------
+   JAUGE D'ÉTOILES DU HUD — étoiles ENCORE atteignables compte tenu des
+   coups déjà joués (même règle que starsForMoves) : tant qu'il reste des
+   coups sous le par, 3 étoiles restent possibles ; une fois le par atteint
+   sans victoire, le coup suivant sera au mieux par+1 (2 étoiles), etc.
+   Ne consulte jamais le solveur : aucune information sur la solution.
+--------------------------------------------------------- */
+function maxStarsStillPossible(moves, par){
+  // Il faut au moins un coup de plus pour gagner (sinon on aurait déjà gagné).
+  return starsForMoves(moves + 1, par);
+}
+let lastStarMeterValue = 3;
+function updateStarMeter(animate){
+  const el = document.getElementById('hudStars');
+  if(!el) return;
+  const possible = state.won ? starsForMoves(state.moves, state.par) : maxStarsStillPossible(state.moves, state.par);
+  const stars = el.querySelectorAll('i');
+  stars.forEach((s,i)=>{
+    const lost = i >= possible;
+    const wasLost = s.classList.contains('lost');
+    s.classList.toggle('lost', lost);
+    if(animate && lost && !wasLost){ s.classList.remove('just-lost'); void s.offsetWidth; s.classList.add('just-lost'); }
+    if(!lost) s.classList.remove('just-lost');
+  });
+  const chip = document.getElementById('hudParChip');
+  if(chip) chip.setAttribute('aria-label', `Par ${state.par} coups. ${possible} étoile${possible>1?'s':''} encore possible${possible>1?'s':''}.`);
+  lastStarMeterValue = possible;
+}
+
+/* ---------------------------------------------------------
+   ANNULER (Blueprint §8 "chaque défaite doit pouvoir être expliquée" +
+   standard du genre) — gratuit et illimité : l'erreur devient une
+   expérience, jamais une punition. Le compteur de coups reflète la
+   longueur du chemin ACTUEL (un coup annulé ne compte plus), donc les
+   étoiles restent récupérables par la réflexion, pas par le hasard.
+--------------------------------------------------------- */
+function snapshotBoard(){
+  return { seed:{x:state.seed.x, y:state.seed.y}, rocks:state.rocks.map(r=>({x:r.x, y:r.y})), moves:state.moves };
+}
+function updateUndoButton(){
+  const btn = document.getElementById('btnUndo');
+  if(!btn) return;
+  btn.disabled = state.history.length===0 || state.won;
+  btn.classList.toggle('attention', state.stuck && state.history.length>0);
+}
+function undoMove(){
+  if(state.won || state.hintPreviewInProgress) return;
+  const snap = state.history.pop();
+  if(!snap){ updateUndoButton(); return; }
+  // Les rochers gardent leur identité (rock-i) : on restaure par index,
+  // trySlide() mutant toujours les mêmes objets dans le même ordre.
+  state.seed.x = snap.seed.x; state.seed.y = snap.seed.y;
+  snap.rocks.forEach((r,i)=>{ if(state.rocks[i]){ state.rocks[i].x = r.x; state.rocks[i].y = r.y; } });
+  state.moves = snap.moves;
+  state.undoCount++;
+  state.stuck = false;
+  document.getElementById('hudMoves').textContent = state.moves;
+  resetHint();
+  positionPieces(false);
+  updateStarMeter(false);
+  updateUndoButton();
+  resetComboStreak();
+  sfxUndo();
+  vibrate(8);
+  announceGameStatus(`Coup annulé. ${state.moves} coup${state.moves>1?'s':''}.`);
+  // L'aide d'impasse n'a plus lieu d'être : on revient à l'aide du plateau.
+  const tip = defaultTipForBoard(state.level, state.mode, state.levelIndex, null);
+  setGameTip(tip ? tip.icon : '', tip ? tip.text : '');
+  Analytics.track('undo', { mode:state.mode, levelIndex:state.levelIndex });
+}
+
+/* ---------------------------------------------------------
+   IMPASSE — le solveur (déjà utilisé par l'indice) vérifie après chaque
+   coup qu'une solution existe encore depuis la position courante. Si un
+   rocher a été poussé dans une position sans issue, on le DIT au joueur
+   au lieu de le laisser tourner en rond : cause lisible + voie de
+   récupération immédiate (Annuler / Recommencer).
+--------------------------------------------------------- */
+function checkStuckAfterMove(){
+  if(!state.level) return;
+  let result;
+  try{ result = Solver.solveNextMove(state.level, state.seed, state.rocks); }catch(e){ return; }
+  const nowStuck = !result.solvable;
+  if(nowStuck && !state.stuck){
+    state.stuck = true;
+    setGameTip('🪨', 'Impasse : plus aucune solution depuis ici. Annule ou recommence.', 'warn');
+    Analytics.track('stuck', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves });
+  } else if(!nowStuck && state.stuck){
+    state.stuck = false;
+  }
+  updateUndoButton();
 }
 
 function buildBoardDom(){
@@ -3886,13 +4156,17 @@ function positionPieces(animateLanding){
     const el = document.getElementById('rock-'+i);
     if(!el) return;
     el.style.width = size+'px'; el.style.height = size+'px';
-    el.style.transform = `translate(${r.x*cs+offset}px, ${r.y*cs+offset}px)`;
+    const rx = (r.x*cs+offset)+'px', ry = (r.y*cs+offset)+'px';
+    el.style.setProperty('--tx', rx); el.style.setProperty('--ty', ry);
+    el.style.transform = `translate(${rx}, ${ry})`;
   });
   const seedEl = document.getElementById('seed');
   const seedSize = size*0.82;
   const seedOffset = (cs-seedSize)/2;
   seedEl.style.width = seedSize+'px'; seedEl.style.height = seedSize+'px';
-  seedEl.style.transform = `translate(${state.seed.x*cs+seedOffset}px, ${state.seed.y*cs+seedOffset}px)`;
+  const sx = (state.seed.x*cs+seedOffset)+'px', sy = (state.seed.y*cs+seedOffset)+'px';
+  seedEl.style.setProperty('--tx', sx); seedEl.style.setProperty('--ty', sy);
+  seedEl.style.transform = `translate(${sx}, ${sy})`;
   if(animateLanding){
     seedEl.classList.remove('landed'); void seedEl.offsetWidth; seedEl.classList.add('landed');
   }
@@ -3996,6 +4270,31 @@ function spawnMoveEffect(fromCell, toCell){
   }
 }
 
+const SLIDE_TRANSITION_MS = 160; // doit rester égal à la transition CSS de .piece
+function playLandingFeedback(isWin, dx, before){
+  const gen = state.sessionId;
+  setTimeout(()=>{
+    if(gen !== state.sessionId) return;
+    const seedEl = document.getElementById('seed');
+    if(!seedEl) return;
+    if(isWin){
+      seedEl.classList.remove('landed', 'squash-x', 'squash-y'); void seedEl.offsetWidth; seedEl.classList.add('landed');
+      return;
+    }
+    const cls = dx!==0 ? 'squash-x' : 'squash-y';
+    const els = [];
+    if(before.seed.x!==state.seed.x || before.seed.y!==state.seed.y) els.push(seedEl);
+    state.rocks.forEach((r,i)=>{
+      const b = before.rocks[i];
+      if(b && (b.x!==r.x || b.y!==r.y)){ const el = document.getElementById('rock-'+i); if(el) els.push(el); }
+    });
+    els.forEach(el=>{
+      el.classList.remove('squash-x', 'squash-y'); void el.offsetWidth; el.classList.add(cls);
+      setTimeout(()=> el.classList.remove(cls), 220);
+    });
+  }, SLIDE_TRANSITION_MS);
+}
+
 function performMove(dx,dy){
   if(state.won) return;
   if(state.hintPreviewInProgress) return; // un aperçu du palier 3 anime le plateau : ignorer les vrais coups jusqu'à la fin
@@ -4013,6 +4312,7 @@ function performMove(dx,dy){
     doorMap.forEach((switchKey, doorKey)=> doorStatesBefore.set(doorKey, switchOccupiedBefore.has(switchKey)));
   }
 
+  const snapshot = snapshotBoard();
   const moved = trySlide(dx,dy);
   if(!moved){
     state.blockedMoveThisAttempt = true;
@@ -4024,12 +4324,21 @@ function performMove(dx,dy){
     board.classList.remove('shake'); void board.offsetWidth; board.classList.add('shake');
     return;
   }
+  state.history.push(snapshot);
   resetHint(); // l'état a changé : un indice affiché devient obsolète
   state.moves++;
   document.getElementById('hudMoves').textContent = state.moves;
   announceGameStatus(`Coup ${state.moves}.`);
   const isWin = state.seed.x===state.goal.x && state.seed.y===state.goal.y;
-  positionPieces(isWin);
+  // Les pièces glissent d'abord (transition CSS .16s), PUIS l'arrivée est
+  // marquée : compression dans l'axe du glissement, ou "pop" de victoire.
+  positionPieces(false);
+  playLandingFeedback(isWin, dx, snapshot);
+  if(!isWin){
+    updateStarMeter(true);
+    checkStuckAfterMove();
+  }
+  updateUndoButton();
 
   // Son du coup joué : un événement de mécanique spéciale remplace le clic
   // générique de sfxMove() (retour plus informatif, jamais superposé à
@@ -4079,6 +4388,8 @@ function performMove(dx,dy){
   vibrate(12);
   if(isWin){
     state.won = true;
+    updateStarMeter(false);
+    updateUndoButton();
     stopTimer();
     const winningSessionId = state.sessionId;
     setTimeout(()=>onWin(winningSessionId), 260);
@@ -4334,7 +4645,7 @@ function showSimpleToast(icon, title, message, extraClass){
 document.getElementById('btnHint').addEventListener('click', ()=>{
   if(state.won) return;
   if(state.hintPreviewInProgress) return; // éviter un chevauchement d'aperçus (palier 3)
-  const level = LEVELS[state.levelIndex];
+  const level = state.level || LEVELS[state.levelIndex];
   const result = Solver.solveNextMove(level, state.seed, state.rocks);
   if(!result.solvable || !result.firstMove){
     // Cas limite légitime dans un puzzle à rochers : le joueur a poussé un
@@ -4424,13 +4735,29 @@ function announceGameStatus(message){
 }
 document.addEventListener('keydown', e=>{
   if(state.screen!=='game') return;
+  // Flèches uniquement : ZQSD/WASD entreraient en conflit avec Z = Annuler
+  // selon la disposition du clavier (AZERTY/QWERTY).
   const map = {ArrowRight:[1,0], ArrowLeft:[-1,0], ArrowDown:[0,1], ArrowUp:[0,-1]};
-  if(map[e.key]){
+  const key = e.key.length===1 ? e.key.toLowerCase() : e.key;
+  if(map[key] && !e.ctrlKey && !e.metaKey && !e.altKey){
     e.preventDefault(); // empêcher le défilement de la page pendant le jeu
     hideSwipeHint();
-    performMove(map[e.key][0], map[e.key][1]);
+    performMove(map[key][0], map[key][1]);
+    return;
+  }
+  // Annuler : Z / U / Retour arrière (Ctrl+Z aussi, réflexe universel).
+  if(key==='z' || key==='u' || e.key==='Backspace'){
+    e.preventDefault();
+    undoMove();
+    return;
+  }
+  // Recommencer : R.
+  if(key==='r' && !e.ctrlKey && !e.metaKey){
+    e.preventDefault();
+    document.getElementById('btnRestart').click();
   }
 });
+document.getElementById('btnUndo').addEventListener('click', undoMove);
 
 function showSwipeHint(){
   const overlay = document.getElementById('overlay');
@@ -4698,10 +5025,15 @@ document.getElementById('btnReplayVictory').addEventListener('click', ()=>{
   startLevel(state.levelIndex, state.isDaily);
 });
 document.getElementById('btnRestart').addEventListener('click', ()=>{
+  if(!state.won) Analytics.track('level_restart', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves, stuck:state.stuck });
+  if(state.mode==='sentier'){ restartSentierBoard(); return; }
   startLevel(state.levelIndex, state.isDaily);
 });
 document.getElementById('btnExitGame').addEventListener('click', ()=>{
   stopTimer();
+  // Abandon = signal de frustration (Blueprint §26 "level_fail/restart").
+  if(!state.won) Analytics.track('level_quit', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves, stuck:state.stuck, time:state.elapsed });
+  if(state.mode==='sentier'){ endSentierRun('quit'); return; }
   if(state.isDaily){ refreshHome(); goto('home'); }
   else { renderLevelSelect(); goto('select'); }
 });
