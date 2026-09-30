@@ -70,3 +70,4 @@ NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attend
 - Pubs : uniquement **récompensées**, proposées par un bouton marqué « PUB », jamais au milieu d'un coup, jamais obligatoires. Tout nouvel emplacement s'ajoute à `AD_PLACEMENTS` (avec un plafond) et passe par `AdService`.
 - Le fichier reste autonome. Seule exception existante : les polices Google, qui retombent sur system-ui. Aucun autre fichier externe (audio, image, CDN).
 - Langue du code, des commentaires et de l'interface : français.
+- **Livraison** : à la fin de chaque amélioration demandée, envoyer à l'utilisateur la dernière version du jeu (`index.html`, et le zip avec la PWA si les fichiers PWA ont changé). Il ne passe pas par GitHub pour jouer.
