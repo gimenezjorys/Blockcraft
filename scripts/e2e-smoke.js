@@ -163,7 +163,8 @@ function startStaticServer(root) {
   await shot('04-defi-resultat');
   await page.click('#btnShareDaily'); await wait(300);
   const shareOut = await page.evaluate(() => { const t = document.getElementById('shareTextOut'); return t.hidden ? '' : t.value; });
-  check(shareOut.includes('BlockCraft Daily') && shareOut.includes('par'), 'texte de partage généré (repli sélectionnable)');
+  check(shareOut.includes('Seedrift') && shareOut.includes('par'), 'texte de partage généré avec le nom du jeu (repli sélectionnable)');
+  check((await page.title()) === 'Seedrift' && (await page.textContent('#gameTitle')) === 'Seedrift', 'nom du jeu appliqué (titre de page et logo)');
   await page.click('#btnBackHomeDaily'); await wait(300);
   check((await page.textContent('#homeDailyBadge')).includes('Fait'), 'accueil : défi marqué « Fait »');
 

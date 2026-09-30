@@ -1,7 +1,7 @@
 {
-  "name": "BlockCraft Daily",
-  "short_name": "BlockCraft",
-  "description": "Un petit puzzle de blocs à glisser : chaque plateau a une solution parfaite, prouvée.",
+  "name": "Seedrift",
+  "short_name": "Seedrift",
+  "description": "Fais glisser la graine vers la lumière et réveille un jardin endormi. Chaque plateau a une solution parfaite, prouvée.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

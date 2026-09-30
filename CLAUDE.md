@@ -1,8 +1,10 @@
-# BlockCraft Daily — contexte projet
+# Seedrift (ex-BlockCraft Daily) — contexte projet
 
 Jeu de puzzle mobile-first par glissement de blocs : une graine doit atteindre une case cible. Tout tient en **un seul fichier HTML** (`index.html`, avec HTML, CSS et JS inline), sans backend ni dépendance. Le jeu est publié via GitHub Pages.
 
 L'état du produit, les décisions prises, le plan de mesure et les prochaines priorités sont dans **`PRODUCTION_PROGRESS.md`**. Lis-le avant tout chantier important.
+
+**Nom visible** : `GAME_NAME` (section 0 du script, une ligne) + `manifest.webmanifest` + `<title>` statique. Les identifiants internes gardent le préfixe `bcd` (clés de sauvegarde) : ne jamais les renommer. Choix du nom : `NAMING.md`.
 
 ## Structure du dépôt
 

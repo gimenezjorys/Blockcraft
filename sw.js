@@ -1,10 +1,10 @@
-// Service worker de BlockCraft Daily : rend le jeu installable et jouable
+// Service worker de Seedrift (ex-BlockCraft Daily) : rend le jeu installable et jouable
 // hors ligne (Blueprint §23 : "le cœur du jeu doit rester jouable hors
 // connexion"). Stratégie RÉSEAU D'ABORD : en ligne, le joueur reçoit
 // toujours la dernière version publiée ; le cache ne sert qu'en secours,
 // hors connexion. Aucune donnée de jeu ici : la progression reste dans
 // localStorage, jamais dans ce cache.
-const CACHE = 'bcd-shell-v1';
+const CACHE = 'bcd-shell-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', event => {

@@ -17,12 +17,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BlockCraft Daily">
+<meta name="apple-mobile-web-app-title" content="Seedrift">
 <!-- Empêche iOS/Android de transformer automatiquement les nombres affichés
      (coups, temps, coins...) en liens cliquables (téléphone/adresse), ce qui
      casserait leur apparence sur certains appareils. -->
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
-<title>BlockCraft Daily</title>
+<!-- Titre statique (moteurs de recherche) ; réécrit au lancement depuis GAME_NAME. -->
+<title>Seedrift — puzzle à glisser au jardin</title>
+<meta name="description" content="Fais glisser la graine vers la lumière et réveille un jardin endormi. Un puzzle quotidien, zen et malin.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -1539,7 +1541,7 @@
       <!-- Logo : la mécanique en une image — une graine qui glisse vers la
            lumière, appuyée sur un bloc. Les couleurs de la graine suivent le
            skin équipé (variables --seed-skin-*). -->
-      <svg class="logo-mark" viewBox="0 0 64 64" role="img" aria-label="Logo BlockCraft Daily : une graine qui glisse vers la lumière">
+      <svg class="logo-mark" viewBox="0 0 64 64" role="img" id="logoMark" aria-label="Logo : une graine qui glisse vers la lumière">
         <defs>
           <linearGradient id="lgTile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#31594a"/><stop offset="1" stop-color="#15271f"/></linearGradient>
           <radialGradient id="lgSeed" cx=".35" cy=".3" r=".75"><stop offset="0" style="stop-color:var(--seed-skin-light,#ffcf7a)"/><stop offset=".55" style="stop-color:var(--seed-skin-mid,#f0a83c)"/><stop offset="1" style="stop-color:var(--seed-skin-deep,#c97e1f)"/></radialGradient>
@@ -1555,8 +1557,8 @@
         <circle cx="31" cy="32" r="9.5" fill="url(#lgSeed)"/>
         <ellipse cx="28" cy="28.5" rx="3.4" ry="2.2" fill="#ffffff" opacity=".45"/>
       </svg>
-      <div class="title">Block<span>Craft</span> Daily</div>
-      <div class="subtitle">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
+      <div class="title" id="gameTitle">Seed<span>rift</span></div>
+      <div class="subtitle" id="gameTagline">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
     </div>
     <div class="home-stats" id="homeStats">
       <span id="homeProgress" aria-label="Étoiles">⭐ 0 / 0</span>
@@ -1958,6 +1960,28 @@
 <script>
 (function(){
 "use strict";
+
+/* =========================================================
+   0. IDENTITÉ DU JEU — le nom VISIBLE se change ICI, en une ligne.
+   Les identifiants internes (clés bcd_*, BCD_DEV, noms de fonctions)
+   gardent l'ancien préfixe « bcd » : les renommer effacerait les
+   sauvegardes des joueurs. Seuls les textes affichés lisent ces
+   constantes. Hors de ce fichier, penser aussi à manifest.webmanifest
+   (nom de l'appli installée) et au <title> statique (moteurs de recherche).
+========================================================= */
+const GAME_NAME = 'Seedrift';
+const GAME_NAME_SPLIT = 4;   // le logo dore la fin du nom : « Seed » + « rift »
+const GAME_TAGLINE = 'Glisse. Réfléchis. Fais fleurir chaque niveau.';
+const GAME_SLUG = GAME_NAME.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'jeu';
+function applyGameIdentity(){
+  document.title = GAME_NAME;
+  const t = document.getElementById('gameTitle');
+  if(t){ t.textContent = GAME_NAME.slice(0, GAME_NAME_SPLIT); const sp = document.createElement('span'); sp.textContent = GAME_NAME.slice(GAME_NAME_SPLIT); t.appendChild(sp); }
+  const tg = document.getElementById('gameTagline'); if(tg) tg.textContent = GAME_TAGLINE;
+  const m = document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(m) m.setAttribute('content', GAME_NAME);
+  const logo = document.getElementById('logoMark'); if(logo) logo.setAttribute('aria-label', `Logo ${GAME_NAME} : une graine qui glisse vers la lumière`);
+}
+applyGameIdentity();
 
 /* =========================================================
    A. DONNÉES DES NIVEAUX
@@ -4702,7 +4726,7 @@ function renderMechanicHelp(){
 }
 
 /* =========================================================
-   C. AUDIO — SIGNATURE SONORE BLOCKCRAFT (refonte)
+   C. AUDIO — SIGNATURE SONORE DU JEU (refonte)
    Tout est synthétisé en WebAudio : aucun fichier audio externe.
    Deux familles de timbres, comme deux matières du jardin :
      - BOIS  : les actions (glisser, toucher un bouton, bloquer, annuler) ;
@@ -6503,7 +6527,7 @@ function startLevel(index, isDaily){
     // index corrompu ou obsolète) : ne jamais planter en tentant de lire
     // les propriétés d'un niveau qui n'existe pas. On revient simplement à
     // l'accueil plutôt que d'afficher un écran de jeu à moitié initialisé.
-    console.warn('BlockCraft Daily : niveau introuvable à l\'index', index, '— retour à l\'accueil.');
+    console.warn(GAME_NAME + ' : niveau introuvable à l\'index', index, '— retour à l\'accueil.');
     refreshHome();
     goto('home');
     return;
@@ -7895,7 +7919,7 @@ let onWin = function(expectedSessionId){
     : ['Niveau réussi !', 'Réussi !', 'Bien joué !', 'Parfait !'];
   document.getElementById('victoryTitle').textContent = titles[stars];
 
-  // Le "truc" de BlockCraft (audit §9) : le jeu SAIT si tu as trouvé la
+  // Le "truc" du jeu (audit §9) : le jeu SAIT si tu as trouvé la
   // solution la plus courte, parce que le solveur l'a prouvé.
   const masteryEl = document.getElementById('victoryMastery');
   if(masteryEl){
@@ -8654,7 +8678,7 @@ function buildShareImage(moves, timeStr, stars, isDaily, par){
   ctx.textAlign = 'center';
   ctx.fillStyle = '#efe8d8';
   ctx.font = '700 34px "Baloo 2", sans-serif';
-  ctx.fillText('BlockCraft Daily', W/2, 270);
+  ctx.fillText(GAME_NAME, W/2, 270);
 
   ctx.fillStyle = '#c9c2ae';
   ctx.font = '700 20px Nunito, sans-serif';
@@ -8784,14 +8808,14 @@ function buildShareText(isDaily){
     const d = loadTodayDailyResult() || { moves:state.moves, time:state.elapsed, stars:starsForMoves(state.moves, state.par), par:state.par };
     const rule = todayDailyRule();
     const k = todayKey();
-    lines.push(`BlockCraft Daily · ${k.slice(6,8)}/${k.slice(4,6)} · ${rule.icon} ${rule.label}`);
+    lines.push(`${GAME_NAME} · ${k.slice(6,8)}/${k.slice(4,6)} · ${rule.icon} ${rule.label}`);
     const par = Number.isFinite(d.par) ? d.par : null;
     lines.push(`${starEmojiLine(d.stars)} ${d.moves} coup${d.moves>1?'s':''}${par!==null ? ' (par '+par+')' : ''} · ${formatTime(d.time)}`);
     const streak = loadStreak();
     if(streak.current > 0) lines.push(`🔥 Série : ${streak.current} jour${streak.current>1?'s':''}`);
   } else {
     const stars = starsForMoves(state.moves, state.par);
-    lines.push(`BlockCraft Daily · Niveau ${state.levelIndex+1} « ${state.level ? state.level.name : ''} »`);
+    lines.push(`${GAME_NAME} · Niveau ${state.levelIndex+1} « ${state.level ? state.level.name : ''} »`);
     lines.push(`${starEmojiLine(stars)} ${state.moves} coup${state.moves>1?'s':''} (par ${state.par}) · ${formatTime(state.elapsed)}`);
     lines.push(stars===3 ? 'Solution parfaite. À toi de jouer !' : 'Le jeu sait si ta solution est parfaite. À toi !');
   }
@@ -8843,7 +8867,7 @@ function shareImage(isDaily){
     document.getElementById('sharePreviewWrap').style.display = 'block';
   }
   const link = document.createElement('a');
-  link.download = 'blockcraft-daily-score.png';
+  link.download = GAME_SLUG + '-score.png';
   link.href = dataUrl;
   link.click();
 }

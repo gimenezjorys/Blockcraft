@@ -1,4 +1,4 @@
-# BlockCraft Daily — suivi de production
+# Seedrift (ex-BlockCraft Daily) — suivi de production
 
 *Dernière mise à jour : 30/09/2026. Sources : `index.html` (vérité technique), `docs/audit-blockcraft-retention.md` et `docs/BlockCraft_Daily_Master_Blueprint.docx` (vérité produit).*
 
