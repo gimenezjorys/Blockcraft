@@ -2755,6 +2755,55 @@ window.BCD_DEV = {
     return (r.path||[]).map(d=> d.dx===1?'ArrowRight':d.dx===-1?'ArrowLeft':d.dy===1?'ArrowDown':'ArrowUp');
   },
   setSentierTimeLeft(ms){ if(sentierRun) sentierRun.timeLeftMs = ms; },
+  // QA audio : rend hors ligne la musique d'une humeur (ou une vitrine des
+  // effets) et renvoie un WAV en base64 — pour écouter et mesurer le son
+  // réellement produit par le moteur, sans haut-parleur.
+  async renderAudioPreview(kind, seconds){
+    const Off = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const sr = 44100, secs = seconds || 20;
+    const off = new Off(2, sr*secs, sr);
+    const saved = { actx, audioBus, audioUnlocked, noiseBuffer, mood:music.mood, rng:music.rng, beat:music.beat, prog:music.prog, motif:music.motif, motifB:music.motifB, duck:music.duckUntil, aud:settings.audio };
+    try{
+      actx = off; audioBus = null; noiseBuffer = null; audioUnlocked = true; settings.audio = true; music.duckUntil = 0;
+      const b = bus();
+      if(kind==='sfx'){
+        b.music.gain.value = 0;
+        const events = [
+          [0.2, ()=>{ resetComboStreak(); }], [0.3, sfxComboMove], [0.7, sfxComboMove], [1.1, sfxComboMove], [1.5, sfxComboMove], [1.9, sfxComboMove],
+          [2.4, sfxBlocked], [2.9, sfxUndo], [3.4, sfxAnchorStop], [3.9, sfxPortal], [4.5, sfxDoorOpen], [5.0, sfxButtonTap], [5.3, sfxButtonTap],
+          [6.0, sfxWin], [7.2, ()=>sfxStar(0)], [7.45, ()=>sfxStar(1)], [7.7, ()=>sfxStar(2)], [8.6, sfxCoinGain], [9.2, sfxAchievement],
+          [10.4, sfxPurchase], [11.2, sfxEquip], [12.2, ()=>sfxRarityUnlock(3)], [14.5, sfxStreakMilestone]
+        ];
+        events.forEach(([t, fn])=>{ audioTimeOffset = t; fn(); });
+        audioTimeOffset = 0;
+      } else {
+        b.music.gain.value = MUSIC_VOLUME;
+        music.mood = kind; music.rng = makeRng(20260930); music.beat = 0; musicNewPhrase();
+        let t = 0.05;
+        while(t < secs - 1.5){ scheduleMusicBeat(music.beat, t); t += 60 / MUSIC_MOODS[music.mood].bpm; music.beat++; }
+      }
+      const buf = await off.startRendering();
+      // WAV 16 bits stéréo
+      const n = buf.length, data = new DataView(new ArrayBuffer(44 + n*4));
+      const w = (o, str)=>{ for(let i=0;i<str.length;i++) data.setUint8(o+i, str.charCodeAt(i)); };
+      w(0,'RIFF'); data.setUint32(4, 36 + n*4, true); w(8,'WAVE'); w(12,'fmt '); data.setUint32(16,16,true); data.setUint16(20,1,true);
+      data.setUint16(22,2,true); data.setUint32(24,sr,true); data.setUint32(28,sr*4,true); data.setUint16(32,4,true); data.setUint16(34,16,true);
+      w(36,'data'); data.setUint32(40, n*4, true);
+      const L = buf.getChannelData(0), R = buf.getChannelData(1);
+      for(let i=0;i<n;i++){
+        data.setInt16(44+i*4, Math.max(-1, Math.min(1, L[i]))*32767, true);
+        data.setInt16(46+i*4, Math.max(-1, Math.min(1, R[i]))*32767, true);
+      }
+      let bin = ''; const bytes = new Uint8Array(data.buffer);
+      for(let i=0;i<bytes.length;i+=0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000));
+      return btoa(bin);
+    } finally {
+      actx = saved.actx; audioBus = saved.audioBus; audioUnlocked = saved.audioUnlocked; noiseBuffer = saved.noiseBuffer;
+      music.mood = saved.mood; music.rng = saved.rng; music.beat = saved.beat; music.prog = saved.prog;
+      music.motif = saved.motif; music.motifB = saved.motifB; music.duckUntil = saved.duck; settings.audio = saved.aud;
+      audioTimeOffset = 0;
+    }
+  },
   startSentierRun(kind){ return startSentierRun(kind||'chrono'); }
 };
 
@@ -4060,7 +4109,15 @@ function renderMechanicHelp(){
 }
 
 /* =========================================================
-   C. AUDIO (généré, aucun fichier externe requis)
+   C. AUDIO — SIGNATURE SONORE BLOCKCRAFT (refonte)
+   Tout est synthétisé en WebAudio : aucun fichier audio externe.
+   Deux familles de timbres, comme deux matières du jardin :
+     - BOIS  : les actions (glisser, toucher un bouton, bloquer, annuler) ;
+     - VERRE : la lumière et les récompenses (cible, étoiles, coins, succès).
+   Tout passe par un bus commun (compresseur doux + réverbération courte)
+   pour que chaque son semble joué dans la même pièce. La musique et les
+   coups partagent la même gamme (ré majeur pentatonique) : les coups
+   consécutifs MONTENT sur cette gamme, la victoire joue le motif signature.
 ========================================================= */
 let actx = null;
 // Aucun son (donc aucun AudioContext) avant le premier geste du joueur :
@@ -4068,302 +4125,303 @@ let actx = null;
 // (politique anti-lecture automatique). Voir C6.
 let audioUnlocked = false;
 function ac(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
-function beep(freq, dur, type, gainVal, delay){
-  if(!settings.audio || !audioUnlocked) return;
+
+let audioBus = null; // { master, sfx, music, reverb }
+let audioTimeOffset = 0; // décalage utilisé seulement par le rendu hors ligne (outil QA)
+function makeImpulse(ctx, seconds, decay){
+  const len = Math.floor(ctx.sampleRate * seconds);
+  const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  for(let ch=0; ch<2; ch++){
+    const d = buf.getChannelData(ch);
+    for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay);
+  }
+  return buf;
+}
+function bus(){
+  if(audioBus) return audioBus;
+  const ctx = ac();
+  const master = ctx.createDynamicsCompressor();
+  master.threshold.value = -16; master.ratio.value = 3; master.attack.value = 0.004; master.release.value = 0.25;
+  master.connect(ctx.destination);
+  const sfx = ctx.createGain(); sfx.gain.value = 1.4; sfx.connect(master);
+  const music = ctx.createGain(); music.gain.value = 0; music.connect(master);
+  const reverb = ctx.createConvolver(); reverb.buffer = makeImpulse(ctx, 1.9, 2.6);
+  const wet = ctx.createGain(); wet.gain.value = 0.28; reverb.connect(wet); wet.connect(master);
+  audioBus = { master, sfx, music, reverb };
+  return audioBus;
+}
+let noiseBuffer = null;
+function getNoise(ctx){
+  if(noiseBuffer) return noiseBuffer;
+  noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate*0.25), ctx.sampleRate);
+  const d = noiseBuffer.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i] = Math.random()*2-1;
+  return noiseBuffer;
+}
+// Note générique. dest 'sfx' (coupé par le réglage Sons) ou 'music'.
+// at : heure absolue (musique planifiée) ; sinon maintenant + delay.
+function voice(o){
+  if(!audioUnlocked) return;
+  if(o.dest!=='music' && !settings.audio) return;
   try{
-    const ctx = ac();
-    const t0 = ctx.currentTime + (delay||0);
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type||'sine';
-    osc.frequency.setValueAtTime(freq, t0);
-    gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
-    gain.gain.exponentialRampToValueAtTime(0.001, t0+dur);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(t0); osc.stop(t0+dur+0.02);
+    const ctx = ac(), b = bus();
+    const t0 = o.at != null ? o.at : ctx.currentTime + audioTimeOffset + (o.delay||0);
+    const dur = o.dur || 0.2, gain = o.gain || 0.1, attack = o.attack || 0.004;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + attack);
+    // hold : note TENUE (nappes) — palier puis relâche, au lieu d'une
+    // décroissance continue qui creusait le son entre deux accords.
+    if(o.hold){
+      g.gain.setValueAtTime(gain, t0 + attack + o.hold);
+    }
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    let out = g;
+    if(o.filter){ const f = ctx.createBiquadFilter(); f.type = o.filterType || 'lowpass'; f.frequency.value = o.filter; g.connect(f); out = f; }
+    out.connect(o.dest==='music' ? b.music : b.sfx);
+    const send = o.send != null ? o.send : 0.15;
+    if(send > 0){ const s = ctx.createGain(); s.gain.value = send; out.connect(s); s.connect(b.reverb); }
+    if(o.noise){
+      const src = ctx.createBufferSource(); src.buffer = getNoise(ctx);
+      src.connect(g); src.start(t0); src.stop(t0 + dur + 0.02);
+      return;
+    }
+    (o.partials || [[1,1]]).forEach(([mult, amp])=>{
+      const osc = ctx.createOscillator();
+      osc.type = o.type || 'sine';
+      osc.frequency.setValueAtTime(o.freq*mult, t0);
+      if(o.bend) osc.frequency.exponentialRampToValueAtTime(o.freq*mult*o.bend, t0 + dur);
+      if(o.detune) osc.detune.value = o.detune;
+      const og = ctx.createGain(); og.gain.value = amp;
+      osc.connect(og); og.connect(g);
+      osc.start(t0); osc.stop(t0 + dur + 0.05);
+    });
   }catch(e){}
 }
-function sfxMove(){ beep(420, .09, 'sine', .12); }
-function sfxBlocked(){ beep(140, .12, 'sine', .10); }
-// Annulation : glissando bref et DESCENDANT (le temps "recule"), plus doux
-// qu'un coup joué pour ne jamais être confondu avec lui.
-function sfxUndo(){ beep(520, .05, 'sine', .07, 0); beep(390, .07, 'sine', .06, 0.04); }
-// Feedback sonore du palier 3 de l'indice (aperçu de mouvement) : plus
-// discret qu'un vrai coup (sfxMove), pour ne jamais donner l'impression
-// qu'un coup réel vient d'être joué — cohérent avec la contrainte du
-// prompt ("un feedback plus discret est acceptable").
-function sfxHintPreview(){ beep(500, .08, 'sine', .07); }
-function sfxWin(){
-  [0,1,2,3].forEach(i=> beep(523+ i*130, .22, 'triangle', .14, i*0.09) );
+// Les deux matières de la signature.
+function wood(freq, gain, delay, dur){
+  voice({ freq, gain:gain||0.09, delay, dur:dur||0.09, type:'triangle', bend:0.62, partials:[[1,1],[2.01,0.22]], filter:2600, send:0.06 });
 }
-// Jingle court et distinct pour le déblocage d'un succès (Blueprint §19 :
-// "Succès : Jingle distinct"), différent de sfxWin (fanfare de fin de
-// niveau) pour que le joueur distingue les deux évènements à l'oreille.
-function sfxAchievement(){
-  beep(660, .12, 'sine', .13, 0);
-  beep(990, .18, 'sine', .13, 0.1);
+function glass(freq, gain, delay, dur){
+  voice({ freq, gain:gain||0.07, delay, dur:dur||0.9, type:'sine', attack:0.003, partials:[[1,1],[2.76,0.28],[5.4,0.08]], send:0.35 });
 }
-// Jingle court pour le déblocage d'un nouveau niveau (Blueprint §19 :
-// "Déblocage : Jingle de progression"), distinct de sfxWin (fin de niveau)
-// et de sfxAchievement (succès) : deux notes montantes en triangle, plus
-// discrètes que le triangle vif de sfxWin ou le sine cristallin des succès.
-function sfxUnlock(){
-  beep(500, .10, 'triangle', .11, 0);
-  beep(750, .14, 'triangle', .11, 0.07);
+// Compatibilité : ancien générateur, désormais routé par le bus commun.
+function beep(freq, dur, type, gainVal, delay){ voice({ freq, dur, type, gain:gainVal, delay, send:0.1 }); }
+
+// Gamme commune (ré majeur pentatonique) et motif signature.
+const NOTE_D4 = 293.66;
+function semi(base, n){ return base * Math.pow(2, n/12); }
+const PENTA = [0, 2, 4, 7, 9];
+function pentaStep(k){ return 12*Math.floor(k/5) + PENTA[((k%5)+5)%5]; }
+// Motif signature (4 notes montantes : ré – la – si – mi) : l'identité
+// sonore du jeu, jouée à la victoire et en ouverture de la musique.
+const SIGNATURE = [0, 7, 9, 14];
+
+function sfxMove(){ sfxComboMove(); }
+function sfxBlocked(){ voice({ freq:120, dur:0.14, type:'triangle', bend:0.7, gain:0.11, filter:520, send:0.04 }); }
+// Annulation : deux touches de bois qui DESCENDENT (le temps recule).
+function sfxUndo(){ wood(semi(NOTE_D4*2, 7), 0.06, 0); wood(semi(NOTE_D4*2, 2), 0.05, 0.05); }
+function sfxHintPreview(){ glass(semi(NOTE_D4*2, 9), 0.035, 0, 0.5); }
+// Victoire : le motif signature en verre, puis une nappe d'accord.
+function playSignature(root, gain, spacing, extra){
+  SIGNATURE.concat(extra||[]).forEach((n,i)=> glass(semi(root, n), gain, i*spacing, 1.1));
 }
-// Arrêt net sur une case ancre (Monde 4, Le Givre) : un seul beep froid et
-// bref (sine haute fréquence, attaque immédiate), distinct du "clic" chaud
-// de sfxMove — évoque un arrêt sec plutôt qu'un mouvement continu.
-function sfxAnchorStop(){
-  beep(880, .09, 'sine', .13, 0);
-}
-// Traversée d'un portail (Monde 5, Les Passages) : glissando bref simulé
-// par deux notes rapprochées qui montent puis un léger flottement descendant
-// ("whoosh"), en triangle pour un timbre plus aérien que le sine des autres
-// sons courts.
-function sfxPortal(){
-  beep(300, .07, 'triangle', .10, 0);
-  beep(720, .10, 'triangle', .09, 0.05);
-  beep(480, .08, 'triangle', .06, 0.12);
-}
-// Porte qui s'ouvre / se referme (Monde 7, Les Ruines) : deux jingles courts
-// et clairement opposés (montant = ouverture, descendant = fermeture) pour
-// que le joueur distingue les deux évènements à l'oreille sans les confondre
-// avec sfxUnlock (progression) ni sfxAchievement (succès).
-function sfxDoorOpen(){
-  beep(440, .08, 'square', .07, 0);
-  beep(660, .09, 'square', .07, 0.06);
-}
-function sfxDoorClose(){
-  beep(500, .08, 'square', .07, 0);
-  beep(340, .10, 'square', .07, 0.06);
-}
-// Gain de coins : petit son cristallin et très bref, distinct de
-// sfxAchievement (deux notes sine plus longues) — un seul triangle aigu et
-// discret pour ne pas rivaliser avec le jingle de succès quand les deux se
-// déclenchent au même moment (achievement qui rapporte aussi des coins).
-// Étoile de victoire (Blueprint §19 : "Étoile : note cristalline") : une
-// note par étoile, montante, synchronisée avec son apparition.
-function sfxStar(i){ beep(880 + i*220, .14, 'sine', .09); }
-// Jingle de déblocage d'un cosmétique : plus ample selon la rareté.
+function sfxWin(){ playSignature(NOTE_D4*2, 0.075, 0.085); duckMusic(); }
+function sfxAchievement(){ glass(semi(NOTE_D4*2, 14), 0.06, 0, 0.8); glass(semi(NOTE_D4*2, 19), 0.055, 0.09, 1.1); }
+function sfxUnlock(){ glass(semi(NOTE_D4*2, 7), 0.05, 0); glass(semi(NOTE_D4*2, 11), 0.05, 0.08); glass(semi(NOTE_D4*2, 14), 0.055, 0.16, 1.2); }
+// Ancre (givre) : un cristal net ; portail : un souffle qui monte.
+function sfxAnchorStop(){ glass(semi(NOTE_D4*4, 4), 0.06, 0, 0.35); wood(semi(NOTE_D4*2, 4), 0.05, 0); }
+function sfxPortal(){ voice({ freq:280, dur:0.22, type:'sine', bend:3.2, gain:0.06, send:0.35 }); glass(semi(NOTE_D4*2, 9), 0.04, 0.12, 0.5); }
+function sfxDoorOpen(){ wood(semi(NOTE_D4, 7), 0.07, 0); wood(semi(NOTE_D4, 12), 0.07, 0.07); }
+function sfxDoorClose(){ wood(semi(NOTE_D4, 12), 0.07, 0); wood(semi(NOTE_D4, 7), 0.07, 0.07); }
+// Déblocage d'un cosmétique : arpège de verre, plus ample selon la rareté.
 function sfxRarityUnlock(rank){
-  const notes = [[784, 988], [784, 988, 1175], [659, 784, 988, 1319], [587, 740, 880, 1175, 1480]][rank] || [784, 988];
-  notes.forEach((f,i)=> beep(f, .18 + (i===notes.length-1 ? .25 : 0), 'triangle', .11, i*0.075));
+  const seq = [[7, 14], [7, 11, 14], [0, 7, 11, 14, 19], [0, 7, 9, 14, 19, 21, 26]][rank] || [7, 14];
+  seq.forEach((n,i)=> glass(semi(NOTE_D4*2, n), 0.06 + rank*0.005, i*0.07, i===seq.length-1 ? 1.6 : 0.9));
+  if(rank >= 2) voice({ freq:semi(NOTE_D4, 0), dur:1.6, type:'triangle', gain:0.035, attack:0.3, partials:[[1,1],[1.5,0.6],[2,0.4]], send:0.4 });
+  duckMusic();
 }
-function sfxCoinGain(){
-  beep(1050, .06, 'triangle', .08, 0);
-}
+// Étoiles de victoire : trois notes de verre qui montent sur la gamme.
+function sfxStar(i){ glass(semi(NOTE_D4*2, [9, 14, 19][i] || 19), 0.06, 0, 0.8); }
+function sfxCoinGain(){ glass(semi(NOTE_D4*4, 7), 0.035, 0, 0.3); glass(semi(NOTE_D4*4, 14), 0.03, 0.05, 0.4); }
 function vibrate(pattern){ if(!settings.vibration) return; if(navigator.vibrate){ try{ navigator.vibrate(pattern); }catch(e){} } }
 
-/* =========================================================
-   C1. COMBO — le "moteur d'addiction" audio (aucun son existant retiré)
-   Chaque coup RÉUSSI et non bloqué fait monter la hauteur d'une note
-   courte façon "montée" satisfaisante (technique classique : Threes!,
-   Two Dots, Candy Crush). La série est remise à zéro sur un coup bloqué
-   (sfxBlocked) ou au chargement d'un niveau — à appeler depuis
-   resetHint()/startLevel() là où performMove() gère déjà ces transitions.
-   sfxComboMove() est une fonction NOUVELLE, indépendante de sfxMove() :
-   elle ne la remplace pas ici (je n'ai pas accès aux points d'appel de
-   performMove() dans cette session), mais elle est prête à être substituée
-   à sfxMove() au moment du câblage pour transformer chaque niveau en
-   petite montée en tension.
-========================================================= */
+/* ---------------------------------------------------------
+   C1. COMBO — chaque coup réussi et consécutif monte d'un degré sur la
+   gamme de la musique (tock de bois accordé) ; un coup bloqué ou un
+   nouveau plateau repartent du bas. Le plafond évite l'aigu agressif.
+--------------------------------------------------------- */
 let comboStreak = 0;
-const COMBO_BASE_FREQ = 420; // même fréquence de départ que sfxMove, pour une continuité perçue
-const COMBO_STEP = 38;       // écart de fréquence par palier, contenu pour rester agréable à l'oreille
-const COMBO_MAX_STEPS = 8;   // plafond : au-delà, la hauteur ne monte plus (évite un son suraigu désagréable)
-
+const COMBO_MAX_STEPS = 8;
 function sfxComboMove(){
   const step = Math.min(comboStreak, COMBO_MAX_STEPS);
-  const freq = COMBO_BASE_FREQ + step*COMBO_STEP;
-  const gainVal = 0.10 + Math.min(step,4)*0.008; // très légèrement plus présent avec la série, jamais agressif
-  beep(freq, .085, 'sine', gainVal);
+  wood(semi(NOTE_D4*2, pentaStep(step)), 0.085 + Math.min(step,4)*0.004);
   comboStreak++;
 }
 function resetComboStreak(){ comboStreak = 0; }
 
-/* =========================================================
-   C2. UI / NAVIGATION — couvre les évènements d'interface qui n'avaient
-   encore aucun retour sonore dédié (Blueprint §19 : "Bouton : Click doux").
-========================================================= */
-// Clic générique sur un bouton (accueil, écrans de menu). Volontairement
-// très discret : c'est le son le plus fréquent du jeu, il ne doit jamais
-// devenir fatigant sur une longue session.
-function sfxButtonTap(){
-  beep(360, .045, 'sine', .055, 0);
-}
-// Ouverture/fermeture d'un écran (goto()) : un souffle bref, montant à
-// l'ouverture, descendant à la fermeture — cohérent avec le glissando déjà
-// utilisé pour sfxPortal, mais beaucoup plus discret.
-function sfxScreenOpen(){
-  beep(500, .05, 'triangle', .045, 0);
-  beep(680, .06, 'triangle', .035, 0.03);
-}
-function sfxScreenClose(){
-  beep(680, .05, 'triangle', .04, 0);
-  beep(460, .06, 'triangle', .03, 0.03);
-}
-// Interrupteur des Paramètres (son/vibration/musique) : un clic mécanique
-// bref, plus haut quand on active, plus bas quand on désactive — pour que
-// l'état résultant soit perceptible sans regarder l'écran.
-function sfxToggleSwitch(isOn){
-  beep(isOn ? 620 : 300, .06, 'square', .06, 0);
-}
+/* C2. INTERFACE — un "tac" de bois très bref, jamais fatigant. */
+function sfxButtonTap(){ wood(1180, 0.035, 0, 0.05); }
+// Les transitions d'écran n'ont plus de son propre : le toucher du bouton
+// suffit (deux sons pour une seule action brouillaient la signature).
+function sfxScreenOpen(){}
+function sfxScreenClose(){}
+function sfxToggleSwitch(isOn){ wood(isOn ? 880 : 520, 0.05, 0, 0.06); }
 
-/* =========================================================
-   C3. ÉCONOMIE — achat/équipement de cosmétiques (coins déjà couverts par
-   sfxCoinGain ci-dessus, qui reste inchangée pour les GAINS).
-========================================================= */
-// Achat validé : différent de sfxCoinGain (qui célèbre un GAIN) — ici on
-// dépense, donc un mouvement descendant plutôt que montant, mais toujours
-// satisfaisant ("cha-ching" discret, jamais un son d'alarme).
-function sfxPurchase(){
-  beep(880, .05, 'triangle', .09, 0);
-  beep(660, .09, 'triangle', .08, 0.045);
-}
-// Équipement d'un cosmétique déjà possédé : un "snap" bref et net.
-function sfxEquip(){
-  beep(740, .05, 'square', .06, 0);
-}
-// Solde insuffisant : jamais un son punitif ou culpabilisant (cohérent
-// avec la règle économique du jeu : un achat refusé ne doit jamais mettre
-// le joueur mal à l'aise) — un simple "non" doux, deux notes descendantes
-// très courtes, sans dissonance agressive.
-function sfxInsufficientFunds(){
-  beep(300, .07, 'sine', .06, 0);
-  beep(230, .09, 'sine', .05, 0.05);
-}
+/* C3. ÉCONOMIE */
+function sfxPurchase(){ [26, 21, 19, 14].forEach((n,i)=> glass(semi(NOTE_D4*2, n), 0.035, i*0.045, 0.35)); }
+function sfxEquip(){ wood(700, 0.06, 0); glass(semi(NOTE_D4*2, 14), 0.04, 0.03, 0.5); }
+function sfxInsufficientFunds(){ wood(300, 0.05, 0); wood(230, 0.045, 0.06); }
 
-/* =========================================================
-   C4. JALONS DE PROGRESSION — records, streak, défi du jour. Chacun est
-   VOLONTAIREMENT distinct de sfxWin/sfxAchievement/sfxUnlock déjà en place
-   pour que l'oreille distingue "j'ai fini un niveau" de "j'ai battu MON
-   record" ou "série de 7 jours" sans ambiguïté.
-========================================================= */
-// Record personnel battu sur un niveau déjà terminé (à ne déclencher QUE
-// pour une vraie amélioration, jamais une première réussite — voir la
-// détection isNewRecord/hadPreviousBest déjà établie côté logique).
-function sfxRecordBeat(){
-  beep(784, .09, 'triangle', .11, 0);
-  beep(988, .09, 'triangle', .11, 0.06);
-  beep(1245, .16, 'triangle', .12, 0.12);
-}
-// Défi du jour réussi : une petite fanfare à part, plus "évènement du
-// jour" que la victoire générique d'un niveau de campagne.
-function sfxDailyChallengeWin(){
-  beep(587, .12, 'triangle', .12, 0);
-  beep(740, .12, 'triangle', .12, 0.08);
-  beep(880, .20, 'triangle', .13, 0.16);
-}
-// Jalon de série (streak) — 7 jours, 30 jours, etc. Volontairement plus
-// ample que sfxAchievement pour marquer un cap important sans se confondre
-// avec un succès ordinaire.
-function sfxStreakMilestone(){
-  [0,1,2,3,4].forEach(i=> beep(523 + i*98, .16, 'triangle', .11, i*0.07) );
-}
-// Chargement d'un niveau : un petit "prêt ?" doux au moment où le plateau
-// apparaît, pour marquer clairement le début d'une tentative (utile aussi
-// pour réinitialiser visuellement/sonorement la série de combo).
+/* C4. JALONS */
+function sfxRecordBeat(){ playSignature(NOTE_D4*2, 0.06, 0.06, [19]); }
+function sfxDailyChallengeWin(){ playSignature(NOTE_D4*2, 0.075, 0.09, [19]); duckMusic(); }
+function sfxStreakMilestone(){ [0, 4, 7, 9, 14, 19].forEach((n,i)=> glass(semi(NOTE_D4*2, n), 0.055, i*0.07, 1)); }
+// Début de plateau : la tonique et la quinte, douces — "prêt ?".
 function sfxLevelStart(){
-  beep(392, .10, 'sine', .07, 0);
-  beep(523, .12, 'sine', .07, 0.06);
+  glass(semi(NOTE_D4*2, 0), 0.03, 0, 0.6); glass(semi(NOTE_D4*2, 7), 0.03, 0.07, 0.7);
   resetComboStreak();
 }
 
 /* =========================================================
-   C5. MUSIQUE DE FOND — ambiance générée, aucun fichier externe (même
-   contrainte que tout le reste de ce module). Un pad doux à 3 notes,
-   changement d'accord toutes les ~16 secondes en glissando (jamais de
-   coupure nette), avec une respiration lente de volume (LFO). Volume très
-   bas par défaut : c'est une ambiance, pas une musique qui doit couvrir
-   les effets de jeu.
-   Contrôlée par un NOUVEAU réglage settings.music, indépendant de
-   settings.audio (le joueur doit pouvoir couper la musique sans perdre
-   les effets sonores, et inversement) — ce booléen doit être ajouté à
-   l'objet settings et à son écran Paramètres, que je n'ai pas dans cette
-   session (voir note de fin).
+   C5. MUSIQUE GÉNÉRATIVE — la bande-son du jardin
+   Pas une boucle : un petit compositeur. Chaque phrase de 8 mesures suit
+   une progression d'accords choisie parmi plusieurs (I–vi–IV–V…), une
+   mélodie construite sur un MOTIF de 2 mesures répété et varié (A A' B A,
+   donc reconnaissable sans devenir un disque rayé), une basse et une
+   nappe. Le motif signature ouvre la musique d'accueil.
+   Humeurs (changées par goto) : accueil calme, jeu discret (on
+   réfléchit), Sentier plus pulsé, Atelier plus cristallin.
+   Planification avec anticipation (les notes sont programmées ~0,3 s à
+   l'avance) : aucune dérive, aucun à-coup même si le fil JS est occupé.
 ========================================================= */
-let musicNodes = null; // { masterGain, oscillators[], lfo, intervalId }
-let musicChordIndex = 0;
-const MUSIC_CHORDS = [
-  [130.81, 164.81, 196.00], // Do majeur (C3-E3-G3) — ouverture chaleureuse
-  [146.83, 174.61, 220.00], // Ré mineur (D3-F3-A3) — légère tension
-  [174.61, 220.00, 261.63], // Fa majeur (F3-A3-C4) — résolution douce
-  [196.00, 246.94, 293.66], // Sol majeur (G3-B3-D4) — respiration avant la boucle
-];
-const MUSIC_CHORD_CHANGE_MS = 16000;
-const MUSIC_CHORD_GLIDE_S = 3;
-const MUSIC_TARGET_VOLUME = 0.045; // volontairement très bas : ambiance, pas premier plan
+const MUSIC_MOODS = {
+  menu:    { bpm:74,  pad:1.0, bass:0.9, melody:0.75, arp:0,    hats:0,   octave:1, bright:1500 },
+  game:    { bpm:78,  pad:0.8, bass:0.7, melody:0.35, arp:0.3,  hats:0,   octave:1, bright:1200 },
+  sentier: { bpm:100, pad:0.7, bass:0.9, melody:0.45, arp:0.55, hats:0.6, octave:1, bright:1900 },
+  atelier: { bpm:86,  pad:0.8, bass:0.6, melody:0.7,  arp:0.35, hats:0,   octave:2, bright:2400 }
+};
+// Accords en degrés de la gamme de ré majeur : fondamentale (demi-tons).
+const CHORDS = { I:[0,4,7], ii:[2,5,9], IV:[5,9,12], V:[7,11,14], vi:[9,12,16] };
+const PROGRESSIONS = [['I','vi','IV','V'], ['I','IV','vi','V'], ['vi','IV','I','V'], ['I','V','vi','IV'], ['IV','I','ii','V'], ['I','ii','IV','I']];
+// Réglé sur rendu hors ligne (BCD_DEV.renderAudioPreview) : musique
+// ≈ -36 dB RMS, stable ; effets ≈ -26/-33 dB par événement. La musique
+// reste audible mais toujours SOUS les actions du joueur.
+const MUSIC_VOLUME = 0.55;
+const music = { playing:false, mood:'menu', timer:null, nextTime:0, beat:0, rng:null, prog:null, motif:null, motifB:null, duckUntil:0 };
 
-function startBackgroundMusic(){
-  if(!settings.music || !audioUnlocked) return;
-  if(musicNodes) return; // déjà en cours, ne jamais empiler deux boucles
-  try{
-    const ctx = ac();
-    const masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(0, ctx.currentTime);
-    masterGain.gain.linearRampToValueAtTime(MUSIC_TARGET_VOLUME, ctx.currentTime + 2); // fade-in doux, jamais un démarrage brutal
-    masterGain.connect(ctx.destination);
-
-    musicChordIndex = 0;
-    const oscillators = MUSIC_CHORDS[0].map(freq=>{
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      const oscGain = ctx.createGain();
-      oscGain.gain.setValueAtTime(0.33, ctx.currentTime); // répartition égale entre les 3 notes de l'accord
-      osc.connect(oscGain);
-      oscGain.connect(masterGain);
-      osc.start();
-      return osc;
+function newMotif(rng){
+  // 2 mesures × 4 temps : une note sur ~60 % des temps, en degrés
+  // pentatoniques relatifs, mouvement surtout conjoint (chantable).
+  const m = []; let deg = 5 + Math.floor(rng()*3);
+  for(let t=0;t<8;t++){
+    if(t===0 || rng() < 0.6){
+      deg += [-2,-1,-1,1,1,2,0][Math.floor(rng()*7)];
+      deg = Math.max(3, Math.min(10, deg));
+      m.push({ t, deg, half: rng() < 0.25 });
+    }
+  }
+  return m;
+}
+function musicNewPhrase(){
+  const r = music.rng;
+  music.prog = PROGRESSIONS[Math.floor(r()*PROGRESSIONS.length)];
+  if(!music.motif || r() < 0.5) music.motif = newMotif(r);
+  music.motifB = newMotif(r);
+}
+function scheduleMusicBeat(beat, time){
+  const mood = MUSIC_MOODS[music.mood] || MUSIC_MOODS.menu;
+  const spb = 60 / mood.bpm;
+  const barInPhrase = Math.floor(beat/4) % 8, beatInBar = beat % 4;
+  if(beat % 32 === 0) musicNewPhrase();
+  const chordName = music.prog[Math.floor(barInPhrase/2) % 4];
+  const chord = CHORDS[chordName];
+  const root = semi(NOTE_D4/2, chord[0]); // D3…
+  const duck = time < music.duckUntil ? 0.35 : 1;
+  // Nappe : l'accord, attaque lente, tenu toute la mesure.
+  if(beatInBar===0 && mood.pad){
+    chord.forEach((n,i)=> voice({ dest:'music', at:time, freq:semi(NOTE_D4/2, n + (i===0?12:0)), dur:spb*5.2, attack:spb*0.6, hold:spb*3.2,
+      type:'triangle', gain:0.022*mood.pad*duck, partials:[[1,1],[1.003,0.6]], filter:mood.bright, send:0.3 }));
+  }
+  // Basse : la fondamentale au 1er temps (et parfois au 3e).
+  if(mood.bass && (beatInBar===0 || (beatInBar===2 && music.rng() < 0.4))){
+    voice({ dest:'music', at:time, freq:root/2, dur:spb*1.6, attack:0.02, type:'sine', gain:0.07*mood.bass*duck, partials:[[1,1],[2,0.15]], send:0.05 });
+  }
+  // Mélodie : motif A, A (transposé sur l'accord), B, A — en verre doux.
+  if(mood.melody){
+    const section = [music.motif, music.motif, music.motifB, music.motif][Math.floor(barInPhrase/2)];
+    const tInMotif = (barInPhrase%2)*4 + beatInBar;
+    const shift = (barInPhrase>=2 && barInPhrase<4) ? 1 : 0;
+    const notes = section.filter(n=> n.t===tInMotif);
+    notes.forEach(n=>{
+      if(music.rng() > mood.melody + 0.25) return;
+      const f = semi(NOTE_D4 * mood.octave, pentaStep(n.deg + shift));
+      voice({ dest:'music', at:time, freq:f, dur:spb*1.8, attack:0.005, type:'sine', gain:0.045*duck, partials:[[1,1],[4.01,0.12],[2.76,0.06]], send:0.4 });
+      if(n.half) voice({ dest:'music', at:time + spb/2, freq:semi(f, 2), dur:spb*1.2, attack:0.005, type:'sine', gain:0.03*duck, partials:[[1,1],[4.01,0.1]], send:0.4 });
     });
-
-    // LFO très lent sur le volume global : la boucle "respire" plutôt que
-    // de rester plate, cohérent avec le ton cozy déjà établi par les sfx.
-    const lfo = ctx.createOscillator();
-    lfo.frequency.setValueAtTime(0.08, ctx.currentTime); // ~12s par cycle
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(MUSIC_TARGET_VOLUME * 0.3, ctx.currentTime);
-    lfo.connect(lfoGain);
-    lfoGain.connect(masterGain.gain);
-    lfo.start();
-
-    const intervalId = setInterval(()=>{
-      musicChordIndex = (musicChordIndex + 1) % MUSIC_CHORDS.length;
-      const nextChord = MUSIC_CHORDS[musicChordIndex];
-      oscillators.forEach((osc,i)=>{
-        osc.frequency.linearRampToValueAtTime(nextChord[i], ctx.currentTime + MUSIC_CHORD_GLIDE_S);
-      });
-    }, MUSIC_CHORD_CHANGE_MS);
-
-    musicNodes = { masterGain, oscillators, lfo, intervalId };
-  }catch(e){}
+  }
+  // Arpège : croches légères sur les notes de l'accord (jeu, Sentier).
+  if(mood.arp && music.rng() < mood.arp){
+    [0, 0.5].forEach((off,k)=>{
+      const n = chord[(beatInBar*2 + k) % 3] + 24;
+      voice({ dest:'music', at:time + off*spb, freq:semi(NOTE_D4/2, n), dur:spb*0.6, type:'triangle', gain:0.018*duck, filter:mood.bright*1.4, send:0.25 });
+    });
+  }
+  // Pulsation du Sentier : un "tic" de bois aigu entre les temps (même
+  // matière que les coups : la musique et le jeu restent une seule voix).
+  if(mood.hats){
+    voice({ dest:'music', at:time + spb/2, freq:2400, dur:0.035, type:'triangle', bend:0.7, gain:0.016*mood.hats, send:0.02 });
+  }
+  // Ouverture de l'accueil : le motif signature, une fois par grande phrase.
+  if(music.mood==='menu' && beat % 64 === 0){
+    SIGNATURE.forEach((n,i)=> voice({ dest:'music', at:time + i*spb*0.5, freq:semi(NOTE_D4*2, n), dur:1.4, type:'sine',
+      gain:0.04*duck, partials:[[1,1],[2.76,0.25]], send:0.45 }));
+  }
 }
-
-function stopBackgroundMusic(fadeOutSeconds){
-  if(!musicNodes) return;
-  const nodes = musicNodes;
-  musicNodes = null; // libéré immédiatement : un stopBackgroundMusic() pendant le fondu n'agit jamais deux fois sur les mêmes noeuds
+function musicTick(){
+  if(!music.playing || !actx) return;
+  const ctx = actx;
+  if(ctx.state !== 'running') return;
+  if(music.nextTime < ctx.currentTime) music.nextTime = ctx.currentTime + 0.05;
+  while(music.nextTime < ctx.currentTime + 0.3){
+    scheduleMusicBeat(music.beat, music.nextTime);
+    music.nextTime += 60 / (MUSIC_MOODS[music.mood] || MUSIC_MOODS.menu).bpm;
+    music.beat++;
+  }
+}
+function startBackgroundMusic(){
+  if(!settings.music || !audioUnlocked || music.playing) return;
   try{
-    const ctx = ac();
-    const t = fadeOutSeconds!=null ? fadeOutSeconds : 1.2;
-    nodes.masterGain.gain.cancelScheduledValues(ctx.currentTime);
-    nodes.masterGain.gain.setValueAtTime(nodes.masterGain.gain.value, ctx.currentTime);
-    nodes.masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + t);
-    clearInterval(nodes.intervalId);
-    setTimeout(()=>{
-      try{
-        nodes.oscillators.forEach(o=>o.stop());
-        nodes.lfo.stop();
-      }catch(e){}
-    }, t*1000 + 150);
+    const ctx = ac(), b = bus();
+    music.playing = true;
+    music.rng = makeRng((Date.now() ^ 0x5bd1e995) >>> 0);
+    music.beat = 0;
+    music.nextTime = ctx.currentTime + 0.1;
+    musicNewPhrase();
+    b.music.gain.cancelScheduledValues(ctx.currentTime);
+    b.music.gain.setValueAtTime(b.music.gain.value, ctx.currentTime);
+    b.music.gain.linearRampToValueAtTime(MUSIC_VOLUME, ctx.currentTime + 2.5); // entrée douce
+    music.timer = setInterval(musicTick, 90);
+    musicTick();
+  }catch(e){ music.playing = false; }
+}
+function stopBackgroundMusic(fadeOutSeconds){
+  if(!music.playing) return;
+  music.playing = false;
+  clearInterval(music.timer); music.timer = null;
+  try{
+    const ctx = ac(), b = bus(), t = fadeOutSeconds!=null ? fadeOutSeconds : 1.2;
+    b.music.gain.cancelScheduledValues(ctx.currentTime);
+    b.music.gain.setValueAtTime(b.music.gain.value, ctx.currentTime);
+    b.music.gain.linearRampToValueAtTime(0, ctx.currentTime + t);
   }catch(e){}
 }
+// Humeur selon l'écran (appelée par goto) : prend effet au temps suivant.
+function setMusicMood(mood){ if(MUSIC_MOODS[mood]) music.mood = mood; }
+// Laisse la place aux jingles importants (victoire, déblocage).
+function duckMusic(){ if(actx) music.duckUntil = actx.currentTime + 2.2; }
 
-// Point d'entrée unique pour le toggle Paramètres (même patron que les
-// autres réglages settings.* déjà en place) : démarre ou arrête proprement
-// selon le nouvel état, sans jamais empiler deux boucles.
+// Point d'entrée unique pour le toggle Paramètres.
 function toggleBackgroundMusic(){
   if(settings.music) startBackgroundMusic();
   else stopBackgroundMusic();
@@ -4428,6 +4486,9 @@ function goto(name){
     target.classList.add(dir);
   }
   document.body.classList.toggle('in-game', name==='game');
+  setMusicMood(name==='game' ? (state.mode==='sentier' ? 'sentier' : 'game')
+    : name==='cosmetics' ? 'atelier'
+    : (name==='victory' || name==='sentierend') ? music.mood : 'menu');
   state.screen = name;
   // Un seul son par transition (ouverture), pas de sfxScreenClose() associé
   // ici : goto() ne modélise pas explicitement "quel écran se ferme", et
