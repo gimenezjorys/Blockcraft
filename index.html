@@ -483,6 +483,16 @@
   }
   /* Compression à l'arrêt (Blueprint §20 : "légère compression visuelle lors
      d'un arrêt") — orientée selon l'axe du glissement. */
+  .goal-ring{
+    position:absolute; border-radius:50%; pointer-events:none; z-index:3;
+    border:3px solid var(--goal); box-shadow:0 0 14px 2px rgba(245,230,168,.55);
+    transform:translate(-50%,-50%) scale(.4); opacity:0;
+    animation:goalRing .65s ease-out forwards;
+  }
+  @keyframes goalRing{
+    0%{opacity:.95; transform:translate(-50%,-50%) scale(.4);}
+    100%{opacity:0; transform:translate(-50%,-50%) scale(1.9);}
+  }
   .piece.squash-x{animation:squashX .2s ease-out;}
   .piece.squash-y{animation:squashY .2s ease-out;}
   @keyframes squashX{
@@ -1330,6 +1340,8 @@
       <div class="profile-stat-card"><div class="val" id="profileStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
       <div class="profile-stat-card"><div class="val" id="profileStreak">0</div><div class="lbl">Série (record)</div></div>
       <div class="profile-stat-card"><div class="val" id="profileWeekly">0/7</div><div class="lbl">Jours cette semaine</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileGarden">0/32</div><div class="lbl">Floraison du Jardin</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileSentier">—</div><div class="lbl">Record du Sentier</div></div>
     </div>
     <div class="btn-row" style="margin-top:4px; flex-direction:row; gap:10px;">
       <div class="stat-pill" id="profileCoinsPill">🪙 0</div>
@@ -4498,6 +4510,10 @@ function renderProfile(){
 
   const weekly = computeWeeklyDailySummary();
   setText('profileWeekly', `${weekly.daysPlayed}/${weekly.windowSize}`);
+  const garden = gardenTotals();
+  setText('profileGarden', `${garden.score}/${garden.max}`);
+  const sentier = loadSentierStats();
+  setText('profileSentier', sentier.bestScore>0 ? `${sentier.bestScore} pts` : (isSentierUnlocked() ? 'À poser' : '🔒'));
 
   const coinsEl = document.getElementById('profileCoinsPill');
   if(coinsEl) coinsEl.textContent = `🪙 ${loadCoins()}`;
@@ -5436,6 +5452,7 @@ function playLandingFeedback(isWin, dx, before){
     if(!seedEl) return;
     if(isWin){
       seedEl.classList.remove('landed', 'squash-x', 'squash-y'); void seedEl.offsetWidth; seedEl.classList.add('landed');
+      spawnGoalRings();
       return;
     }
     const cls = dx!==0 ? 'squash-x' : 'squash-y';
@@ -5450,6 +5467,24 @@ function playLandingFeedback(isWin, dx, before){
       setTimeout(()=> el.classList.remove(cls), 220);
     });
   }, SLIDE_TRANSITION_MS);
+}
+
+// Arrivée sur la cible (Blueprint §20 "animation d'arrivée", "glow de la
+// cible") : deux anneaux de lumière s'échappent de la case. Purement décoratif.
+function spawnGoalRings(){
+  const overlay = document.getElementById('overlay');
+  if(!overlay || !state.goal) return;
+  const cs = cellSize();
+  [0, 120].forEach(delay=>{
+    const r = document.createElement('div');
+    r.className = 'goal-ring';
+    r.style.left = (state.goal.x*cs + cs/2)+'px';
+    r.style.top = (state.goal.y*cs + cs/2)+'px';
+    r.style.width = r.style.height = (cs*0.9)+'px';
+    r.style.animationDelay = delay+'ms';
+    overlay.appendChild(r);
+    setTimeout(()=> r.remove(), 800 + delay);
+  });
 }
 
 function performMove(dx,dy){
@@ -6666,6 +6701,7 @@ function onSentierBoardWin(){
       sub = perfect ? `${run.chain} d'affilée` : `Par : ${state.par} coups`;
     }
     showBoardFloat(text, sub, perfect);
+    announceGameStatus(`${text}. ${sub}.`);
   }
   updateSentierBar(perfect);
   run.inTransition = true;
