@@ -83,6 +83,28 @@ function startStaticServer(root) {
   for (let i = 0; i < 2; i++) { await page.click('#btnNextLevel'); await wait(300); await solve(); await wait(2000); }
   check(await screen() === 'screen-victory', 'niveaux 2 et 3 terminés');
 
+  // 2b. Fantôme du record : rejouer le niveau 2 affiche le meilleur essai,
+  //     et le battre (moins de coups) est signalé.
+  await page.click('#btnExitGame').catch(() => {});
+  await page.evaluate(() => { document.getElementById('btnBackHome').click(); });
+  await wait(200);
+  await page.click('#btnPlay'); await wait(200);
+  // Point de départ déterministe : aucun fantôme sur ce niveau (le tutoriel
+  // en a déjà enregistré un en 2 coups, que 2 coups ne battraient qu'au chrono).
+  await page.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem('bcd_ghosts_v1') || '{"schemaVersion":1,"data":{}}');
+    delete raw.data.L1;
+    localStorage.setItem('bcd_ghosts_v1', JSON.stringify(raw));
+  });
+  await page.click('.level-card[aria-label^="Niveau 2 "]'); await wait(300);
+  for (const k of ['ArrowRight', 'ArrowLeft', 'ArrowRight', 'ArrowDown']) { await page.keyboard.press(k); await wait(220); }
+  await wait(2000);
+  await page.click('#btnReplayVictory'); await wait(300);
+  check(!!(await page.$('.piece-ghost')), 'fantôme du record affiché au rejeu');
+  check((await page.textContent('#gameTip')).includes('fantôme'), 'aide : course contre son fantôme');
+  await solve(); await wait(2000);
+  check((await page.textContent('#victoryRewards')).includes('Fantôme battu'), 'fantôme battu signalé en victoire');
+
   // 3. Annuler + impasse (niveau 9 : bas = impasse prouvée)
   await page.evaluate(() => { const d = {}; for (let i = 0; i < 8; i++) d[i] = 3; localStorage.setItem('bcd_progress_v1', JSON.stringify({ schemaVersion: 1, data: d })); });
   await page.reload(); await wait(300);

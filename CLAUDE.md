@@ -44,7 +44,7 @@ NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attend
 - **E** : accueil. **E3** : le Jardin (plantes SVG procédurales). **E2** : paramètres.
 - **F** : carte des mondes.
 - **G** : `startLevel` → `startBoard(level, opts)`, point d'entrée unique de tout plateau.
-- **H** : moteur de glissement, Annuler, détection d'impasse. **H2** : indice. **I** : entrées (swipe, flèches, Z annuler, R recommencer).
+- **H** : moteur de glissement, Annuler, détection d'impasse. **H2** : indice. **H3** : fantôme du record (trajets dans `bcd_ghosts_v1`). **I** : entrées (swipe, flèches, Z annuler, R recommencer).
 - **K** : victoire (puces de récompenses). **L** : défi du jour. **S** : le Sentier (mode infini). **M** : partage (texte type Wordle + carte image).
 - `window.BCD_DEV` : outils console (`validateLevels()`, `solutionFromHere()`, `generateSentierBoard()`, `getRetentionReport()`, `setSimulatedDate()`…).
 

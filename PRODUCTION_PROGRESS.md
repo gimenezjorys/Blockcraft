@@ -34,13 +34,13 @@
 | §3 Succès récurrents | Progression visible (« 10 / 20 ») et succès à paliers « Maître du par I–V » | Écran Succès, puces de victoire | E2E | Récompenses en coins modestes |
 | §3 Mise en scène du « presque complet » | Barres de progression, prochain objectif par plante, record à battre | Partout | Visuel | — |
 | §7 Fantôme du par | Ligne de maîtrise en victoire : « Solution parfaite : N coups, prouvée par le solveur » | Victoire | E2E | Ne révèle jamais le chemin |
+| §7 Fantôme de soi-même | Une graine translucide rejoue le **meilleur essai** au rythme réel. Puce « Fantôme battu » en victoire. Désactivable. | Rejeu d'un niveau, retentative du défi | E2E : affiché, battu, signalé | Jamais une pièce ; il ne bloque rien |
 | §12 Mode Zen | Sentier Zen (sans chrono ni score) | Sentier | E2E | — |
 | Blueprint §14 : pas de fausses données | Joueurs et rang **simulés supprimés** du défi | Résultat du défi | E2E (texte absent) | — |
 
 **Non appliqué (et pourquoi) :**
 - *Ligue Fantôme* (§3) : risque de doublon avec « Maître du par » et le record du Sentier. Reporté.
 - *Rattrapage de série après coup* : le gel de série existe déjà. Reporté.
-- *Fantôme de soi-même* : il faudrait enregistrer les trajectoires complètes. Reporté.
 
 ## 3. Hypothèses prises
 
@@ -93,7 +93,7 @@
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
 | `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis | 3 543 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus la PWA hors ligne et le coffre de la semaine | 41 vérifications, 0 échec, 0 erreur ou avertissement console |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus le fantôme, la PWA hors ligne et le coffre de la semaine | 44 vérifications, 0 échec, 0 erreur ou avertissement console |
 | CI GitHub Actions | Les trois suites, sur toutes les branches | Vert |
 
 Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin et les succès.
@@ -124,7 +124,7 @@ Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accue
 
 1. **Tests joueurs réels (5 à 10 personnes)** avec le rapport de rétention, pour calibrer le chrono du Sentier et la difficulté des défis.
 2. **Vérifier l'installation PWA sur de vrais téléphones** (Android Chrome, iOS Safari) une fois la branche fusionnée dans `main`.
-3. **Fantôme de soi-même** : rejouer sa meilleure trajectoire en surimpression (enregistrer le chemin gagnant).
+3. **Carnet de maîtrise / rejeu ciblé** : depuis la carte des mondes, proposer « les 3 niveaux les plus proches de ★★★ ».
 4. **Ligue Fantôme** (paliers de maîtrise absolus), si les tests montrent un besoin de sensation de rang.
 5. **Mondes 9-10** (barrières colorées, double graine, murs fragiles) : moteur + solveur + générateur, en appliquant la règle « mécanique qui compte ».
 6. **Backend minimal** : seulement par décision consciente (audit §15, Update 6).

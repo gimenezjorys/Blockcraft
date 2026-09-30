@@ -453,6 +453,14 @@
      translation passe AVANT le scale, sinon le scale agrandit aussi le
      déplacement et la pièce "bondit" hors de sa case. */
   .piece-seed.landed{animation:pop .34s ease;}
+  /* Fantôme du record (section H3) : silhouette translucide, pointillée,
+     sous les vraies pièces — lisible sans jamais être confondue avec la graine. */
+  .piece-ghost{
+    border-radius:50%; pointer-events:none; opacity:.55;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.45), rgba(255,207,122,.22) 60%, rgba(255,207,122,.05));
+    border:2px dashed rgba(255,236,190,.65);
+  }
+  .piece-ghost.ghost-arrived{opacity:.22;}
   @keyframes pop{
     0%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1);}
     45%{transform:translate(var(--tx,0px),var(--ty,0px)) scale(1.24);}
@@ -1229,6 +1237,13 @@
           <div class="sub">Moins de mouvements à l'écran (confort visuel)</div>
         </div>
         <div class="toggle" id="toggleMotion" role="switch" aria-checked="false" aria-label="Réduire les animations" tabindex="0"></div>
+      </div>
+      <div class="settings-row">
+        <div class="lbl-group">
+          <div class="lbl">Fantôme du record</div>
+          <div class="sub">Rejoue ton meilleur essai en transparence quand tu refais un niveau</div>
+        </div>
+        <div class="toggle" id="toggleGhost" role="switch" aria-checked="true" aria-label="Afficher le fantôme du record" tabindex="0"></div>
       </div>
     </div>
     <button class="settings-danger" id="btnResetProgress">Réinitialiser la progression</button>
@@ -2467,7 +2482,10 @@ let state = {
   // Pile d'annulation : un instantané {seed, rocks, moves} par coup réussi.
   history:[],
   undoCount:0,
-  stuck:false // vrai quand le solveur prouve qu'aucune solution n'existe depuis la position courante
+  stuck:false, // vrai quand le solveur prouve qu'aucune solution n'existe depuis la position courante
+  // Trajet de l'essai en cours : [dx, dy, ms depuis le début du plateau]
+  // (un coup annulé est retiré). Sert à enregistrer le fantôme du record.
+  pathLog:[], boardStartPerf:0
 };
 // Partie en cours du Sentier (mode infini, section S) — null hors de ce mode.
 let sentierRun = null;
@@ -2570,7 +2588,8 @@ const SCHEMA_MIGRATIONS = {
   profileFrameEquipped:{ current:1, migrations:{} },
   streakFreeze: { current:1, migrations:{} },
   sentier:      { current:1, migrations:{} },
-  weeklyChest:  { current:1, migrations:{} }
+  weeklyChest:  { current:1, migrations:{} },
+  ghosts:       { current:1, migrations:{} }
 };
 
 // Lit une donnée versionnée depuis safeStorage et applique en cascade les
@@ -2700,7 +2719,8 @@ let settings = (function(){
   // de la musique est volontairement très bas (voir MUSIC_TARGET_VOLUME).
   // reducedMotion : ajouté avec le réglage "Animations réduites" ; la
   // préférence système prefers-reduced-motion est de toute façon respectée.
-  return Object.assign({ audio:true, vibration:true, music:true, reducedMotion:false }, safe);
+  // ghost : fantôme du record (voir section H3), activé par défaut.
+  return Object.assign({ audio:true, vibration:true, music:true, reducedMotion:false, ghost:true }, safe);
 })();
 function saveSettings(){ saveVersioned(SETTINGS_KEY, 'settings', settings); }
 
@@ -4668,6 +4688,8 @@ function refreshSettingsUI(){
   document.getElementById('toggleMotion').classList.toggle('on', !!settings.reducedMotion);
   document.getElementById('toggleMotion').setAttribute('aria-checked', String(!!settings.reducedMotion));
   document.documentElement.classList.toggle('reduce-motion', !!settings.reducedMotion);
+  document.getElementById('toggleGhost').classList.toggle('on', settings.ghost!==false);
+  document.getElementById('toggleGhost').setAttribute('aria-checked', String(settings.ghost!==false));
 }
 function toggleSetting(key){
   settings[key] = !settings[key];
@@ -4685,10 +4707,12 @@ const toggleVibrateEl = document.getElementById('toggleVibrate');
 const toggleMusicEl = document.getElementById('toggleMusic');
 const toggleMotionEl = document.getElementById('toggleMotion');
 toggleMotionEl.addEventListener('click', ()=> toggleSetting('reducedMotion'));
+const toggleGhostEl = document.getElementById('toggleGhost');
+toggleGhostEl.addEventListener('click', ()=>{ if(settings.ghost===undefined) settings.ghost = true; toggleSetting('ghost'); });
 toggleAudioEl.addEventListener('click', ()=> toggleSetting('audio'));
 toggleVibrateEl.addEventListener('click', ()=> toggleSetting('vibration'));
 toggleMusicEl.addEventListener('click', ()=> toggleSetting('music'));
-[toggleAudioEl, toggleVibrateEl, toggleMusicEl, toggleMotionEl].forEach(el=>{
+[toggleAudioEl, toggleVibrateEl, toggleMusicEl, toggleMotionEl, toggleGhostEl].forEach(el=>{
   el.addEventListener('keydown', e=>{
     if(e.key==='Enter' || e.key===' '){ e.preventDefault(); el.click(); }
   });
@@ -4719,6 +4743,7 @@ document.getElementById('btnResetProgress').addEventListener('click', ()=>{
   safeStorage.remove(STREAK_FREEZE_KEY);
   safeStorage.remove(SENTIER_KEY);
   safeStorage.remove(WEEKLY_CHEST_KEY);
+  safeStorage.remove(GHOSTS_KEY);
   applySeedCosmetic(); // revient immédiatement au skin par défaut, sans attendre un rechargement
   refreshHome();
 });
@@ -4991,6 +5016,9 @@ function startBoard(lvl, opts){
   state.history = [];
   state.undoCount = 0;
   state.stuck = false;
+  state.pathLog = [];
+  state.boardStartPerf = performance.now();
+  stopGhost();
   state.levelIndex = index;
   state.isDaily = !!isDaily;
   state.cols = lvl.size; state.rows = lvl.size;
@@ -5036,7 +5064,13 @@ function startBoard(lvl, opts){
   startTimer();
   resetHint();
   const freshInfo = maybeShowMechanicIntro(lvl);
-  const tip = opts.tip || defaultTipForBoard(lvl, state.mode, index, freshInfo);
+  let tip = opts.tip || defaultTipForBoard(lvl, state.mode, index, freshInfo);
+  const ghost = startGhostForBoard(lvl);
+  // Sur un niveau déjà terminé, la course contre son fantôme prime sur le
+  // rappel du tutoriel (seule une mécanique inédite passe avant).
+  if(ghost && !freshInfo && !opts.tip){
+    tip = { icon:'👻', text:`Ton fantôme rejoue ton record : ${ghost.moves} coup${ghost.moves>1?'s':''} en ${formatTime(Math.round(ghost.ms/1000))}.` };
+  }
   setGameTip(tip ? tip.icon : '', tip ? tip.text : '');
 
   // indice tactile uniquement au tout premier niveau jamais joué
@@ -5100,6 +5134,7 @@ function undoMove(){
   state.seed.x = snap.seed.x; state.seed.y = snap.seed.y;
   snap.rocks.forEach((r,i)=>{ if(state.rocks[i]){ state.rocks[i].x = r.x; state.rocks[i].y = r.y; } });
   state.moves = snap.moves;
+  state.pathLog.pop();
   state.undoCount++;
   state.stuck = false;
   document.getElementById('hudMoves').textContent = state.moves;
@@ -5224,6 +5259,7 @@ function updateDoorVisuals(){
 
 function positionPieces(animateLanding){
   updateDoorVisuals();
+  positionGhost();
   const cs = cellSize();
   const gap = Math.max(3, cs*0.08);
   const size = cs - gap;
@@ -5402,6 +5438,7 @@ function performMove(dx,dy){
     return;
   }
   state.history.push(snapshot);
+  state.pathLog.push([dx, dy, Math.round(performance.now() - state.boardStartPerf)]);
   resetHint(); // l'état a changé : un indice affiché devient obsolète
   state.moves++;
   document.getElementById('hudMoves').textContent = state.moves;
@@ -5763,6 +5800,112 @@ document.getElementById('btnHint').addEventListener('click', ()=>{
 });
 
 /* =========================================================
+   H3. FANTÔME DU RECORD (audit §7 "fantôme de soi-même", Update 2)
+   Quand on rejoue un niveau (ou retente le défi du jour), une graine
+   translucide rejoue le MEILLEUR essai enregistré, coup par coup et au
+   rythme réel où il a été joué : une course contre soi-même, sans aucune
+   donnée partagée. Meilleur = moins de coups, puis plus rapide.
+   Aucun effet sur les règles : le fantôme ne bloque rien et n'est jamais
+   compté comme une pièce. Désactivable dans les Paramètres.
+========================================================= */
+const GHOSTS_KEY = 'bcd_ghosts_v1';
+function ghostKeyFor(){
+  if(state.mode==='campaign' && state.levelIndex>=0) return 'L'+state.levelIndex;
+  if(state.mode==='daily') return 'D'+((state.level && state.level.dateKey) || todayKey());
+  return null; // Sentier : chaque plateau est neuf
+}
+function loadGhosts(){
+  const g = loadVersioned(GHOSTS_KEY, 'ghosts', null);
+  return (g && typeof g==='object' && !Array.isArray(g)) ? g : {};
+}
+function isBetterGhost(path, old){
+  if(!Array.isArray(old) || !old.length) return true;
+  if(path.length !== old.length) return path.length < old.length;
+  return path[path.length-1][2] < old[old.length-1][2];
+}
+// Enregistre le trajet gagnant s'il bat le fantôme existant. Renvoie
+// { saved, hadGhost }. Un seul fantôme de défi est conservé (celui du jour).
+function maybeRecordGhost(){
+  const key = ghostKeyFor();
+  if(!key || !state.pathLog.length) return { saved:false, hadGhost:false };
+  const g = loadGhosts();
+  const hadGhost = Array.isArray(g[key]) && g[key].length>0;
+  if(!isBetterGhost(state.pathLog, g[key])) return { saved:false, hadGhost };
+  Object.keys(g).forEach(k=>{ if(k[0]==='D' && k!==key) delete g[k]; });
+  g[key] = state.pathLog.map(m=> [m[0], m[1], m[2]]);
+  saveVersioned(GHOSTS_KEY, 'ghosts', g);
+  return { saved:true, hadGhost };
+}
+
+let ghostRun = null; // { el, cells:[{x,y}], idx, timers:[] }
+function stopGhost(){
+  if(!ghostRun) return;
+  ghostRun.timers.forEach(t=> clearTimeout(t));
+  if(ghostRun.el) ghostRun.el.remove();
+  ghostRun = null;
+}
+// Positions successives de la graine du fantôme, rejouées avec le MÊME
+// moteur de règles que le solveur. Si le trajet ne mène plus à la cible
+// (niveau modifié par une mise à jour), le fantôme est simplement ignoré.
+function ghostCellsFor(lvl, path){
+  const wallSet = new Set((lvl.walls||[]).map(w=>w.x+','+w.y));
+  const anchorSet = new Set((lvl.anchors||[]).map(a=>a.x+','+a.y));
+  const portalMap = buildPortalMap(lvl.portals), onewayMap = buildOnewayMap(lvl.oneways);
+  const doorMap = buildDoorMap(lvl.switches), portalDirMap = buildPortalDirMap(lvl.portals);
+  let seed = { x:lvl.seed.x, y:lvl.seed.y };
+  let rocks = (lvl.rocks||[]).map(r=>({ x:r.x, y:r.y }));
+  const cells = [{ x:seed.x, y:seed.y }];
+  for(const m of path){
+    const next = Solver.slideState(lvl.size, lvl.size, wallSet, seed, rocks, m[0], m[1], anchorSet, portalMap, onewayMap, doorMap, portalDirMap);
+    if(!next) return null;
+    seed = next.seed; rocks = next.rocks;
+    cells.push({ x:seed.x, y:seed.y });
+  }
+  const last = cells[cells.length-1];
+  return (last.x===lvl.goal.x && last.y===lvl.goal.y) ? cells : null;
+}
+function startGhostForBoard(lvl){
+  stopGhost();
+  if(settings.ghost===false) return null;
+  const key = ghostKeyFor();
+  if(!key) return null;
+  const path = loadGhosts()[key];
+  if(!Array.isArray(path) || !path.length) return null;
+  let cells = null;
+  try{ cells = ghostCellsFor(lvl, path); }catch(e){ cells = null; }
+  if(!cells) return null;
+  const overlay = document.getElementById('overlay');
+  const el = document.createElement('div');
+  el.className = 'piece piece-ghost';
+  el.setAttribute('aria-hidden', 'true');
+  overlay.insertBefore(el, overlay.firstChild); // sous les vraies pièces
+  const run = { el, cells, idx:0, timers:[] };
+  ghostRun = run;
+  const session = state.sessionId;
+  path.forEach((m,i)=>{
+    run.timers.push(setTimeout(()=>{
+      if(ghostRun!==run || session!==state.sessionId) return;
+      run.idx = i+1;
+      positionGhost();
+      if(i===path.length-1) el.classList.add('ghost-arrived');
+    }, Math.max(0, m[2]|0)));
+  });
+  requestAnimationFrame(positionGhost);
+  return { moves:path.length, ms:path[path.length-1][2] };
+}
+function positionGhost(){
+  if(!ghostRun || !ghostRun.el) return;
+  const cs = cellSize();
+  const size = (cs - Math.max(3, cs*0.08)) * 0.82;
+  const off = (cs - size)/2;
+  const c = ghostRun.cells[ghostRun.idx];
+  ghostRun.el.style.width = size+'px'; ghostRun.el.style.height = size+'px';
+  const tx = (c.x*cs+off)+'px', ty = (c.y*cs+off)+'px';
+  ghostRun.el.style.setProperty('--tx', tx); ghostRun.el.style.setProperty('--ty', ty);
+  ghostRun.el.style.transform = `translate(${tx}, ${ty})`;
+}
+
+/* =========================================================
    I. ENTRÉES : SWIPE TACTILE + CLAVIER
 ========================================================= */
 let touchStart = null;
@@ -6014,6 +6157,11 @@ let onWin = function(expectedSessionId){
     }
   }
 
+  // Fantôme : enregistre ce trajet s'il bat le précédent meilleur essai.
+  const ghostResult = maybeRecordGhost();
+  if(ghostResult.saved && ghostResult.hadGhost){
+    rewards.push({ icon:'👻', text:'Fantôme battu : nouveau meilleur essai', kind:'record' });
+  }
   const newlyUnlocked = checkAchievements({ inline:true });
   newlyUnlocked.forEach(id=>{
     const ach = achievementInfo(id);
@@ -6163,6 +6311,7 @@ document.getElementById('btnRestart').addEventListener('click', ()=>{
 });
 document.getElementById('btnExitGame').addEventListener('click', ()=>{
   stopTimer();
+  stopGhost();
   // Abandon = signal de frustration (Blueprint §26 "level_fail/restart").
   if(!state.won) Analytics.track('level_quit', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves, stuck:state.stuck, time:state.elapsed });
   if(state.mode==='sentier'){ endSentierRun('quit'); return; }
@@ -6896,7 +7045,7 @@ function shareImage(isDaily){
   link.href = dataUrl;
   link.click();
 }
-document.getElementById('btnShare').addEventListener('click', ()=> doShare(false));
+document.getElementById('btnShare').addEventListener('click', ()=> doShare(state.isDaily));
 document.getElementById('btnShareDaily').addEventListener('click', ()=> doShare(true));
 document.getElementById('btnShareImageDaily').addEventListener('click', ()=> shareImage(true));
 
