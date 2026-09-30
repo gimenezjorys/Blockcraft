@@ -555,6 +555,33 @@
   }
   @keyframes hintPulse{0%{opacity:0; transform:translateX(0);} 30%{opacity:.9;} 100%{opacity:0; transform:translateX(22px);}}
 
+  /* Démo du geste au niveau 1 : graine fantôme + doigt qui glissent. */
+  .swipe-demo{ position:absolute; pointer-events:none; z-index:4; }
+  .swipe-demo .sd-seed, .swipe-demo .sd-hand{
+    position:absolute; left:50%; top:50%; animation:swipeDemo 2.4s cubic-bezier(.5,0,.2,1) .5s infinite both;
+  }
+  .swipe-demo .sd-seed{
+    width:62%; height:62%; margin:-31% 0 0 -31%; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.75), rgba(255,209,102,.35) 55%, transparent 72%);
+    box-shadow:0 0 16px rgba(255,209,102,.55);
+  }
+  .swipe-demo .sd-hand{ font-size:30px; margin:4px 0 0 -6px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+  @keyframes swipeDemo{
+    0%{ opacity:0; transform:translate(0,0); }
+    15%{ opacity:.95; transform:translate(0,0) scale(.92); }
+    25%{ transform:translate(0,0) scale(1); }
+    65%{ opacity:.95; transform:translate(var(--dx),var(--dy)); }
+    85%,100%{ opacity:0; transform:translate(var(--dx),var(--dy)); }
+  }
+  /* Projecteur sur une mécanique : halo doré, 3 pulsations, sans toucher
+     à transform (les pièces s'en servent pour leur position). */
+  .spotlight{ animation:spotPulse .9s ease-in-out .35s 3 both; z-index:2; }
+  @keyframes spotPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(255,209,102,0); }
+    50%{ box-shadow:0 0 0 3px rgba(255,209,102,.9), 0 0 18px 6px rgba(255,209,102,.55); }
+  }
+  html.reduce-motion .swipe-demo .sd-seed, html.reduce-motion .swipe-demo .sd-hand{ animation-duration:4s; }
+
   /* ---------- INDICE (SOLVEUR EN JEU) ---------- */
   .piece.hint-glow{ animation:hintGlowPulse 1.1s ease-in-out infinite; z-index:2; }
   @keyframes hintGlowPulse{
@@ -1246,6 +1273,10 @@
   .achievement-card.unlocked{border-color:var(--gold); box-shadow:inset 0 0 0 1px rgba(255,209,102,.2);}
   .achievement-card.locked{opacity:.55;}
   .ach-card-icon{font-size:26px; width:36px; text-align:center; flex:none;}
+  .mini-cell{ display:block; width:36px; height:36px; font-size:16px; line-height:36px; }
+  .mini-cell .piece{ inset:14%; transition:none; }
+  .mini-cell.portal-dir::after{ font-size:9px; line-height:1; right:1px; bottom:1px; }
+  .mini-cell.portal-dir::before{ font-size:13px; }
   .ach-card-text{flex:1; display:flex; flex-direction:column; gap:2px; min-width:0;}
   .ach-card-name{font-family:var(--font-display); font-weight:700; font-size:14px; color:var(--cream);}
   .ach-card-desc{font-size:11px; color:var(--cream-dim); font-weight:600;}
@@ -1543,8 +1574,8 @@
       </div>
     </div>
     <button class="settings-danger" id="btnResetProgress">Réinitialiser la progression</button>
-    <p class="note">La réinitialisation efface toute ta progression sur cet appareil : étoiles, niveaux débloqués, coins, succès, série, défis du jour, Sentier, Jardin et fantômes. Tes réglages sont conservés. Cette action est définitive.</p>
-    <p class="note">🔒 Confidentialité : toutes tes données (progression, étoiles, succès, réglages) restent uniquement sur cet appareil, dans le stockage local de ton navigateur. Aucune donnée personnelle n'est envoyée ni partagée avec un serveur — ce prototype n'a d'ailleurs aucun serveur. Un petit journal d'événements de jeu (ex. niveau commencé, indice utilisé) est aussi conservé localement à des fins de développement : il reste lui aussi strictement sur cet appareil et n'est jamais transmis.</p>
+    <p class="note">Efface toute ta progression : étoiles, coins, succès, série, Jardin, fantômes… Tes réglages restent. C'est définitif.</p>
+    <p class="note">🔒 Tout reste sur cet appareil : progression, réglages et petit journal de jeu. Rien n'est envoyé, il n'y a aucun serveur.</p>
   </section>
 
   <!-- ============ SUCCÈS ============ -->
@@ -1595,7 +1626,6 @@
       <div class="topbar-title">Profil</div>
       <div style="width:40px;"></div>
     </div>
-    <p class="note" style="margin-top:0;">Un aperçu de ta progression et de ta personnalisation actuelle. Rien ici n'est calculé différemment des écrans Succès et Cosmétiques — juste regroupé au même endroit.</p>
     <div class="profile-seed-preview">
       <div class="profile-seed-swatch" id="profileSeedSwatch"></div>
       <div class="profile-seed-text">
@@ -1629,7 +1659,6 @@
       <div class="topbar-title">Comment jouer</div>
       <div style="width:40px;"></div>
     </div>
-    <p class="note" style="margin-top:0;">Les règles des mécaniques que tu as déjà rencontrées en jeu, à consulter à tout moment. Continue à explorer les mondes pour débloquer les suivantes.</p>
     <div class="achievements-list" id="mechanicHelpList"></div>
   </section>
 
@@ -1644,7 +1673,7 @@
       <div class="gh-score" id="gardenScore">0 / 32</div>
       <div class="gh-lbl">floraison</div>
       <div class="world-bar" style="width:100%;"><div class="world-bar-fill" id="gardenScoreBar" style="width:0%"></div></div>
-      <p class="gh-hint">Chaque monde est une plante : termine ses niveaux pour la faire grandir, obtiens toutes ses étoiles pour la faire fleurir.</p>
+      <p class="gh-hint">Un monde, une plante. Finis ses niveaux pour la faire pousser, prends toutes ses étoiles pour la faire fleurir.</p>
     </div>
     <div class="garden-plots" id="gardenPlots"></div>
     <div class="meadow" id="gardenMeadow">
@@ -1663,7 +1692,7 @@
     </div>
     <div class="sentier-hero">
       <div class="sentier-hero-art" aria-hidden="true"></div>
-      <p class="sentier-pitch">Des plateaux <b>infinis</b>, générés pour toi. Chacun a une solution parfaite <b>prouvée par le solveur</b> : à toi de la trouver.</p>
+      <p class="sentier-pitch">Des plateaux <b>sans fin</b>. Chacun cache une solution parfaite : trouve-la.</p>
     </div>
     <div id="sentierLocked" class="sentier-locked" hidden>
       <div class="sl-icon">🔒</div>
@@ -1675,13 +1704,13 @@
       <button class="mode-card" id="btnSentierChrono">
         <span class="mc-icon">⏳</span>
         <span class="mc-text"><span class="mc-name">Chrono · 3 minutes</span>
-          <span class="mc-desc">Chaque solution parfaite rapporte des points, fait grimper la série (×5 max) et ajoute 10 s au sablier.</span></span>
+          <span class="mc-desc">Chaque parfait rapporte des points, fait monter la série (×5) et ajoute 10 s.</span></span>
         <span class="mc-best" id="sentierBestScore">—</span>
       </button>
       <button class="mode-card zen" id="btnSentierZen">
         <span class="mc-icon">🍃</span>
         <span class="mc-text"><span class="mc-name">Zen</span>
-          <span class="mc-desc">Sans chrono ni score. Des plateaux sans fin, à ton rythme.</span></span>
+          <span class="mc-desc">Ni chrono ni score. Juste des plateaux, à ton rythme.</span></span>
         <span class="mc-best" id="sentierZenCount">—</span>
       </button>
     </div>
@@ -1691,7 +1720,7 @@
       <div class="profile-stat-card"><div class="val" id="sentierBestChain">0</div><div class="lbl">Meilleure série</div></div>
       <div class="profile-stat-card"><div class="val" id="sentierRuns">0</div><div class="lbl">Parties chrono</div></div>
     </div>
-    <p class="note">Les plateaux n'utilisent que les mécaniques que tu as déjà découvertes. Tous les 6 plateaux, un « Écho » : un niveau que tu connais… retourné.</p>
+    <p class="note">Seulement les mécaniques que tu connais. Tous les 6 plateaux, un « Écho » : un niveau connu… retourné.</p>
   </section>
 
   <!-- ============ FIN DE PARTIE DU SENTIER ============ -->
@@ -2747,6 +2776,8 @@ window.BCD_DEV = {
   },
   transformLevel,
   getSentierStats(){ return loadSentierStats(); },
+  // Lance directement un niveau de campagne (index 0-based), pour la QA.
+  playLevel(index){ startLevel(index, false); },
   // QA : solution optimale depuis la position COURANTE (tableau de
   // directions), pour automatiser des parties complètes dans les tests.
   solutionFromHere(){
@@ -3377,13 +3408,13 @@ function saveSeenMechanics(s){ saveVersioned(SEEN_MECHANICS_KEY, 'seenMechanics'
 // "icon"/"message" restent utilisés tels quels par maybeShowMechanicIntro()
 // ci-dessous, inchangé — l'ajout de "name" est purement additif.
 const MECHANIC_INFO = {
-  murs:          { name:'Murs',                    icon:'🧱', message:"Les murs bloquent tout ce qui glisse : impossible de les traverser." },
-  rochers:       { name:'Rochers',                 icon:'🪨', message:"Les rochers glissent avec toi : pousse-les pour dégager la voie vers la cible." },
-  ancre:         { name:'Ancre',                   icon:'❄️', message:"Cette case arrête net toute pièce qui glisse dessus." },
-  portails:      { name:'Portails',                icon:'🌀', message:"Un portail téléporte la pièce vers sa case jumelle, qui continue ensuite de glisser." },
-  'sens-unique': { name:'Sens unique',             icon:'🍃', message:"Une case à sens unique ne se traverse que dans le sens indiqué par la flèche." },
-  interrupteurs: { name:'Interrupteurs et portes', icon:'🗝️', message:"Un interrupteur ouvre ou ferme sa porte associée quand une pièce s'arrête dessus." },
-  'portails-directionnels': { name:'Portails à sens unique', icon:'🔀', message:"Un portail directionnel ne se traverse que dans le sens indiqué par sa flèche : dans l'autre sens, il agit comme un mur." }
+  murs:          { name:'Murs',                    icon:'🧱', message:"Un mur arrête la graine juste devant lui." },
+  rochers:       { name:'Rochers',                 icon:'🪨', message:"Les rochers glissent avec toi : pousse-les pour ouvrir la voie." },
+  ancre:         { name:'Ancre',                   icon:'❄️', message:"Cette case arrête net tout ce qui glisse dessus." },
+  portails:      { name:'Portails',                icon:'🌀', message:"Entre dans un portail, ressors par son jumeau, et continue de glisser." },
+  'sens-unique': { name:'Sens unique',             icon:'🍃', message:"Ne se traverse que dans le sens de la flèche." },
+  interrupteurs: { name:'Interrupteurs et portes', icon:'🗝️', message:"Arrête une pièce sur l'interrupteur : sa porte s'ouvre ou se ferme." },
+  'portails-directionnels': { name:'Portails à sens unique', icon:'🔀', message:"On n'y entre que dans le sens de sa flèche. Sinon, c'est un mur." }
 };
 
 // Appelée à chaque chargement de niveau (startLevel). N'affiche JAMAIS plus
@@ -3401,7 +3432,8 @@ function maybeShowMechanicIntro(level){
   const newMechs = (level.mechanics||[]).filter(m => m!=='glissement' && MECHANIC_INFO[m] && !seen[m]);
   if(!newMechs.length) return null;
   // La mécanique la plus récente du niveau est celle qu'il introduit.
-  const info = MECHANIC_INFO[newMechs[newMechs.length-1]];
+  const key = newMechs[newMechs.length-1];
+  const info = Object.assign({ key }, MECHANIC_INFO[key]);
   newMechs.forEach(m=>{ seen[m] = true; });
   saveSeenMechanics(seen);
   Analytics.track('mechanic_discovered', { mechanics:newMechs });
@@ -4069,6 +4101,20 @@ function renderAchievements(){
 // et loadSeenMechanics() pour savoir ce que le joueur a déjà rencontré —
 // aucune mécanique non découverte n'est jamais révélée (même principe que
 // les succès verrouillés dans renderAchievements()).
+// Icône d'aide = une vraie case du plateau en miniature (mêmes classes que
+// buildBoardDom) : le joueur reconnaît exactement ce qu'il verra en jeu.
+const MINI_CELL_ICONS = {
+  glissement:'<span class="mini-cell cell"><span class="piece piece-seed"></span></span>',
+  murs:'<span class="mini-cell cell wall"></span>',
+  rochers:'<span class="mini-cell cell"><span class="piece piece-rock"></span></span>',
+  ancre:'<span class="mini-cell cell anchor"></span>',
+  portails:'<span class="mini-cell cell portal-a"></span>',
+  'sens-unique':'<span class="mini-cell cell oneway oneway-right"></span>',
+  interrupteurs:'<span class="mini-cell cell switch"></span>',
+  'portails-directionnels':'<span class="mini-cell cell portal-b portal-dir" data-portal-dir-glyph="►"></span>'
+};
+function miniCellIcon(key){ return MINI_CELL_ICONS[key] || ''; }
+
 function renderMechanicHelp(){
   const seen = loadSeenMechanics();
   const list = document.getElementById('mechanicHelpList');
@@ -4080,15 +4126,15 @@ function renderMechanicHelp(){
   // les autres mécaniques.
   const baseCard = document.createElement('div');
   baseCard.className = 'achievement-card unlocked';
-  baseCard.innerHTML = `<div class="ach-card-icon">👉</div>
-    <div class="ach-card-text"><div class="ach-card-name">Glissement</div><div class="ach-card-desc">Glisse dans une direction : tout ce qui peut bouger avance jusqu'à un mur, un bord, ou un obstacle.</div></div>`;
+  baseCard.innerHTML = `<div class="ach-card-icon">${miniCellIcon('glissement')}</div>
+    <div class="ach-card-text"><div class="ach-card-name">Glissement</div><div class="ach-card-desc">Tout ce qui bouge file tout droit jusqu'à un bord ou un obstacle.</div></div>`;
   list.appendChild(baseCard);
 
   // Règle des étoiles et commandes : jamais expliquées nulle part avant.
   [
-    { icon:'⭐', name:'Étoiles et par', desc:"Le par est le nombre minimal de coups, prouvé par le solveur. ★★★ au par, ★★ à un coup de plus, ★ au-delà." },
-    { icon:'⌨️', name:'Commandes', desc:"Glisse sur la grille ou utilise les flèches. ↶ Annuler (touche Z) reprend un coup, ↻ (touche R) recommence. Annuler est gratuit et illimité." },
-    { icon:'🚧', name:'Impasse', desc:"Si un rocher rend le niveau impossible, le jeu te le dit tout de suite : annule ou recommence." }
+    { icon:'⭐', name:'Étoiles et par', desc:"Le par, c'est le minimum de coups possible. ★★★ au par, ★★ à +1, ★ au-delà." },
+    { icon:'⌨️', name:'Commandes', desc:"Glisse, ou utilise les flèches. ↶ Annuler (Z) est gratuit et illimité. ↻ (R) recommence." },
+    { icon:'🚧', name:'Impasse', desc:"Niveau devenu impossible ? Le jeu te le dit tout de suite. Annule ou recommence." }
   ].forEach(r=>{
     const card = document.createElement('div');
     card.className = 'achievement-card unlocked';
@@ -4102,8 +4148,8 @@ function renderMechanicHelp(){
     const card = document.createElement('div');
     card.className = 'achievement-card' + (done ? ' unlocked' : ' locked');
     card.innerHTML = done
-      ? `<div class="ach-card-icon">${info.icon}</div><div class="ach-card-text"><div class="ach-card-name">${info.name}</div><div class="ach-card-desc">${info.message}</div></div>`
-      : `<div class="ach-card-icon">🔒</div><div class="ach-card-text"><div class="ach-card-name">Mécanique non découverte</div><div class="ach-card-desc">Continue à explorer les mondes pour la débloquer.</div></div>`;
+      ? `<div class="ach-card-icon">${miniCellIcon(key) || info.icon}</div><div class="ach-card-text"><div class="ach-card-name">${info.name}</div><div class="ach-card-desc">${info.message}</div></div>`
+      : `<div class="ach-card-icon">🔒</div><div class="ach-card-text"><div class="ach-card-name">À découvrir</div><div class="ach-card-desc">Continue d'explorer les mondes.</div></div>`;
     list.appendChild(card);
   });
 }
@@ -4131,9 +4177,14 @@ let audioTimeOffset = 0; // décalage utilisé seulement par le rendu hors ligne
 function makeImpulse(ctx, seconds, decay){
   const len = Math.floor(ctx.sampleRate * seconds);
   const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+  // Enveloppe calculée par blocs de 64 échantillons (inaudible) : le
+  // premier geste du joueur, qui crée ce bus, reste instantané sur mobile.
   for(let ch=0; ch<2; ch++){
     const d = buf.getChannelData(ch);
-    for(let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay);
+    for(let i=0;i<len;i+=64){
+      const env = Math.pow(1 - i/len, decay), end = Math.min(len, i+64);
+      for(let j=i;j<end;j++) d[j] = (Math.random()*2-1) * env;
+    }
   }
   return buf;
 }
@@ -4145,7 +4196,7 @@ function bus(){
   master.connect(ctx.destination);
   const sfx = ctx.createGain(); sfx.gain.value = 1.4; sfx.connect(master);
   const music = ctx.createGain(); music.gain.value = 0; music.connect(master);
-  const reverb = ctx.createConvolver(); reverb.buffer = makeImpulse(ctx, 1.9, 2.6);
+  const reverb = ctx.createConvolver(); reverb.buffer = makeImpulse(ctx, 1.5, 2.6);
   const wet = ctx.createGain(); wet.gain.value = 0.28; reverb.connect(wet); wet.connect(master);
   audioBus = { master, sfx, music, reverb };
   return audioBus;
@@ -5385,9 +5436,9 @@ function startLevel(index, isDaily){
 // introduit l'idée de trajectoire, le niveau 3 introduit un obstacle — aucun
 // mur de texte"). Une phrase max, affichée sous la grille pendant le niveau.
 const ONBOARDING_TIPS = {
-  0: { icon:'✨', text:"Glisse la graine jusqu'à la lumière." },
-  1: { icon:'↪', text:"La graine glisse jusqu'au bord : deux glissements pour tourner." },
-  2: { icon:'🧱', text:"Un mur arrête la graine juste devant lui : sers-t'en d'appui." }
+  0: { icon:'✨', text:"Glisse la graine vers la lumière." },
+  1: { icon:'↪', text:"La graine file jusqu'au bord. Deux glissements pour tourner." },
+  2: { icon:'🧱', text:"Un mur arrête la graine. Sers-t'en d'appui." }
 };
 
 // Mécanique réellement nouvelle d'un niveau de campagne = mécanique absente
@@ -5508,9 +5559,15 @@ function startBoard(lvl, opts){
   // Sur un niveau déjà terminé, la course contre son fantôme prime sur le
   // rappel du tutoriel (seule une mécanique inédite passe avant).
   if(ghost && !freshInfo && !opts.tip){
-    tip = { icon:'👻', text:`Ton fantôme rejoue ton record : ${ghost.moves} coup${ghost.moves>1?'s':''} en ${formatTime(Math.round(ghost.ms/1000))}.` };
+    tip = { icon:'👻', text:`Bats ton fantôme : ${ghost.moves} coup${ghost.moves>1?'s':''} en ${formatTime(Math.round(ghost.ms/1000))}.` };
   }
   setGameTip(tip ? tip.icon : '', tip ? tip.text : '');
+  // Montrer plutôt qu'expliquer : la mécanique nommée par l'aide pulse
+  // quelques fois sur le plateau (nouvelle mécanique, ou niveau INTRO/TEACH).
+  let spotKey = freshInfo ? freshInfo.key : null;
+  if(!spotKey && state.mode==='campaign' && !opts.tip && (lvl.tag==='INTRO' || lvl.tag==='TEACH')) spotKey = worldFeaturedMechanic(lvl.world);
+  if(!spotKey && state.mode==='sentier' && lvl.featured && lvl.tag!=='ECHO') spotKey = lvl.featured;
+  if(spotKey) spotlightMechanic(spotKey);
 
   // indice tactile uniquement au tout premier niveau jamais joué
   const p = loadProgress();
@@ -5605,7 +5662,7 @@ function checkStuckAfterMove(){
   const nowStuck = !result.solvable;
   if(nowStuck && !state.stuck){
     state.stuck = true;
-    setGameTip('🪨', 'Impasse : plus aucune solution depuis ici. Annule ou recommence.', 'warn');
+    setGameTip('🪨', 'Impasse : plus de solution d\'ici. Annule ou recommence.', 'warn');
     Analytics.track('stuck', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves });
   } else if(!nowStuck && state.stuck){
     state.stuck = false;
@@ -6463,16 +6520,43 @@ document.addEventListener('keydown', e=>{
 });
 document.getElementById('btnUndo').addEventListener('click', undoMove);
 
+// Démonstration muette du premier niveau : une graine fantôme, guidée par
+// un doigt, glisse de la graine jusqu'à la lumière, en boucle, jusqu'au
+// premier coup du joueur (hideSwipeHint).
 function showSwipeHint(){
+  hideSwipeHint();
   const overlay = document.getElementById('overlay');
-  const hint = document.createElement('div');
-  hint.className = 'hint-arrow';
-  hint.id = 'swipeHint';
-  hint.textContent = '→';
   const cs = cellSize();
-  hint.style.left = (cs*0.6)+'px';
-  hint.style.top = (state.seed.y*cs + cs*0.28)+'px';
-  overlay.appendChild(hint);
+  const demo = document.createElement('div');
+  demo.className = 'swipe-demo';
+  demo.id = 'swipeHint';
+  demo.setAttribute('aria-hidden', 'true');
+  demo.style.left = (state.seed.x*cs)+'px';
+  demo.style.top = (state.seed.y*cs)+'px';
+  demo.style.width = demo.style.height = cs+'px';
+  demo.style.setProperty('--dx', ((state.goal.x-state.seed.x)*cs)+'px');
+  demo.style.setProperty('--dy', ((state.goal.y-state.seed.y)*cs)+'px');
+  demo.innerHTML = '<span class="sd-seed"></span><span class="sd-hand">👆</span>';
+  overlay.appendChild(demo);
+}
+
+// Sélecteurs des éléments du plateau propres à chaque mécanique.
+const MECHANIC_SPOT_SELECTORS = {
+  murs:'.cell.wall', rochers:'.piece-rock', ancre:'.cell.anchor',
+  portails:'.cell.portal-a, .cell.portal-b', 'sens-unique':'.cell.oneway',
+  interrupteurs:'.cell.switch, .cell.door', 'portails-directionnels':'.cell.portal-dir'
+};
+function spotlightMechanic(key){
+  const sel = MECHANIC_SPOT_SELECTORS[key];
+  if(!sel) return;
+  const board = document.getElementById('screen-game');
+  board.querySelectorAll(sel).forEach(el=>{
+    el.classList.remove('spotlight'); void el.offsetWidth; el.classList.add('spotlight');
+    el.addEventListener('animationend', function done(e){
+      if(e.animationName!=='spotPulse') return;
+      el.classList.remove('spotlight'); el.removeEventListener('animationend', done);
+    });
+  });
 }
 function hideSwipeHint(){
   const h = document.getElementById('swipeHint');
@@ -6686,9 +6770,9 @@ let onWin = function(expectedSessionId){
   if(masteryEl){
     const hintNote = state.hintUsedThisAttempt ? ' (avec indice)' : '';
     if(state.moves <= state.par){
-      masteryEl.innerHTML = `Solution parfaite${hintNote} : <b>${state.par} coup${state.par>1?'s':''}</b>, le minimum prouvé par le solveur.`;
+      masteryEl.innerHTML = `<b>${state.par} coup${state.par>1?'s':''}</b> : le minimum possible${hintNote}.`;
     } else {
-      masteryEl.innerHTML = `La solution parfaite existe en <b>${state.par} coup${state.par>1?'s':''}</b>. Tu en as joué ${state.moves}${hintNote}.`;
+      masteryEl.innerHTML = `Parfait possible en <b>${state.par}</b>. Toi : ${state.moves}${hintNote}.`;
     }
   }
 

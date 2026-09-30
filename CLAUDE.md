@@ -39,14 +39,14 @@ NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attend
 - **A15–A18** : utilitaires des mécaniques (portails, sens unique, interrupteurs/portes, portails directionnels).
 - **B / B0** : état global (`state.mode` vaut `'campaign'`, `'daily'` ou `'sentier'` ; `state.level` est le plateau courant). Sauvegarde versionnée par `SCHEMA_MIGRATIONS` : toute modification de format passe par une migration.
 - **B2 / B3** : série quotidienne (+ gel) et succès. Les succès mesurables utilisent `metric`/`goal` ; les succès à paliers sont dans `TIERED_ACHIEVEMENTS`.
-- **C–C6** : audio WebAudio. Aucun son avant le premier geste (`audioUnlocked`).
+- **C–C6** : audio WebAudio. Aucun son avant le premier geste (`audioUnlocked`). Bus commun (`bus()` : compresseur + réverbération), `voice()` pour toute note ; timbres bois (actions) et verre (récompenses). Musique générative à ambiances (`MUSIC_MOODS`, `setMusicMood`). `BCD_DEV.renderAudioPreview(kind, s)` rend un WAV hors ligne pour régler les niveaux.
 - **D** : navigation (`goto`). Les menus reviennent au thème du Monde 1.
-- **E** : accueil. **E3** : le Jardin (plantes SVG procédurales). **E2** : paramètres.
+- **E** : accueil. **E1** : l'Atelier (cosmétiques : scène d'essai, rareté `RARITIES`, `COSMETIC_CATEGORIES`). **E3** : le Jardin (plantes SVG procédurales). **E2** : paramètres.
 - **F** : carte des mondes.
 - **G** : `startLevel` → `startBoard(level, opts)`, point d'entrée unique de tout plateau.
-- **H** : moteur de glissement, Annuler, détection d'impasse. **H2** : indice. **H3** : fantôme du record (trajets dans `bcd_ghosts_v1`). **I** : entrées (swipe, flèches, Z annuler, R recommencer).
-- **K** : victoire (puces de récompenses). **L** : défi du jour. **S** : le Sentier (mode infini). **M** : partage (texte type Wordle + carte image).
-- `window.BCD_DEV` : outils console (`validateLevels()`, `solutionFromHere()`, `generateSentierBoard()`, `getRetentionReport()`, `setSimulatedDate()`…).
+- **H** : moteur de glissement, Annuler, détection d'impasse. **H2** : indice. **H3** : fantôme du record (trajets dans `bcd_ghosts_v1`). **I** : entrées (swipe, flèches, Z annuler, R recommencer). Tutoriel visuel : `showSwipeHint` (démo du geste au niveau 1), `spotlightMechanic` (cases de la mécanique présentée qui pulsent).
+- **K** : victoire (emblème, puces de récompenses). **L** : défi du jour. **S** : le Sentier (mode infini). **M** : partage (texte type Wordle + carte image). **M3** : vie de l'interface (lucioles, son des boutons).
+- `window.BCD_DEV` : outils console (`validateLevels()`, `playLevel(i)`, `solutionFromHere()`, `generateSentierBoard()`, `getRetentionReport()`, `setSimulatedDate()`…).
 
 ## Règles de travail
 

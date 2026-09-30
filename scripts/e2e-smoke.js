@@ -57,7 +57,13 @@ function startStaticServer(root) {
   const wait = ms => page.waitForTimeout(ms);
   const solve = async () => {
     const moves = await page.evaluate(() => BCD_DEV.solutionFromHere());
-    for (const k of moves) { await page.keyboard.press(k); await wait(190); }
+    const start = Number(await page.textContent('#hudMoves'));
+    for (let i = 0; i < moves.length; i++) {
+      await page.keyboard.press(moves[i]);
+      // Attend que le coup soit compté avant le suivant (touche ignorée pendant une glissade).
+      if (i < moves.length - 1) await page.waitForFunction(n => document.getElementById('hudMoves').textContent === String(n), start + i + 1, { timeout: 3000 });
+      await wait(i < moves.length - 1 ? 120 : 190);
+    }
     return moves.length;
   };
 
@@ -70,8 +76,13 @@ function startStaticServer(root) {
   await page.click('#btnContinue'); await wait(300);
   check((await page.textContent('#gameLevelTitle')).startsWith('1.'), 'JOUER lance le niveau 1');
   check((await page.textContent('#gameTip')).length > 0, 'aide du tutoriel affichée sous la grille');
-  await page.keyboard.press('ArrowRight'); await wait(200);
-  const tf = await page.evaluate(() => getComputedStyle(document.getElementById('seed')).transform);
+  // Mesure chronométrée DANS la page : 150 ms après le coup, donc toujours
+  // avant onWin() (différé de 260 ms), qui masque l'écran de jeu.
+  const tf = await page.evaluate(() => new Promise(res => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    setTimeout(() => res(getComputedStyle(document.getElementById('seed')).transform), 150);
+  }));
+  await wait(200);
   check(tf !== 'none', `la graine reste en place pendant l'arrivée gagnante (${tf})`);
   await wait(2000);
   check(await screen() === 'screen-victory', 'victoire du niveau 1');
@@ -97,7 +108,16 @@ function startStaticServer(root) {
     localStorage.setItem('bcd_ghosts_v1', JSON.stringify(raw));
   });
   await page.click('.level-card[aria-label^="Niveau 2 "]'); await wait(300);
-  for (const k of ['ArrowRight', 'ArrowLeft', 'ArrowRight', 'ArrowDown']) { await page.keyboard.press(k); await wait(220); }
+  // Chaque coup doit être compté (une touche pendant une glissade est
+  // ignorée) : sinon ce premier essai ferait 2 coups et resterait imbattable.
+  const slow = ['ArrowRight', 'ArrowLeft', 'ArrowRight', 'ArrowDown'];
+  for (let i = 0; i < slow.length; i++) {
+    await page.keyboard.press(slow[i]);
+    if (i < slow.length - 1) {
+      await page.waitForFunction(n => document.getElementById('hudMoves').textContent === String(n), i + 1, { timeout: 3000 });
+      await wait(120);
+    }
+  }
   await wait(2000);
   await page.click('#btnReplayVictory'); await wait(300);
   check(!!(await page.$('.piece-ghost')), 'fantôme du record affiché au rejeu');
@@ -187,6 +207,22 @@ function startStaticServer(root) {
   await page.click('#toggleMotion'); await wait(100);
   check(await page.evaluate(() => document.documentElement.classList.contains('reduce-motion')), 'réglage « Animations réduites » appliqué');
   await page.click('#toggleMotion');
+  await page.click('#btnBackHomeSettings'); await wait(200);
+
+  // 8b. L'Atelier : aperçu, achat, équipement (graine épique « Braise », 90 coins)
+  await page.evaluate(() => BCD_DEV.devSetCoins(100));
+  await page.click('#btnCosmetics'); await wait(300);
+  check(await screen() === 'screen-cosmetics', 'Atelier ouvert');
+  await page.click('#atelierGrid .item-card[data-id="braise"]'); await wait(300);
+  check((await page.textContent('#stageRarity')).length > 0 && !!(await page.$('#stageScene .stage-seed.fx-braise')), 'Atelier : aperçu de l\'objet sélectionné avec sa rareté');
+  check((await page.textContent('#atelierAction')).includes('90'), 'Atelier : prix affiché avant achat');
+  await page.click('#atelierAction'); await wait(400);
+  check((await page.evaluate(() => BCD_DEV.getCoins())) === 10, 'Atelier : achat débité (100 → 10 coins)');
+  check((await page.evaluate(() => BCD_DEV.getOwnedCosmetics())).includes('braise'), 'Atelier : graine achetée possédée');
+  if (!(await page.textContent('#atelierAction')).includes('Équipé')) { await page.click('#atelierAction'); await wait(300); }
+  check(await page.evaluate(() => BCD_DEV.getEquippedCosmetic() === 'braise' && document.documentElement.dataset.seedFx === 'braise'), 'Atelier : graine équipée et effet appliqué');
+  await shot('08-atelier');
+  await page.click('#btnBackHomeCosmetics'); await wait(200);
 
   // 9. Persistance après rechargement
   await page.reload(); await wait(300);

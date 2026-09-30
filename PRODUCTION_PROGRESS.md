@@ -93,16 +93,28 @@
   - `manifest.webmanifest`, icônes générées depuis le logo, `sw.js` « réseau d'abord ».
   - Jeu installable et jouable hors ligne sur GitHub Pages ; aucun effet en `file://`.
 
+## 4b. Refonte visuelle et sonore
+
+**Direction artistique : « Jardin de nuit lumineux ».** Fond forêt, texte crème, or réservé aux récompenses. Formes arrondies ; cercles pour la lumière et les graines. Mouvement « glisse et tasse » : action rapide, ambiance lente. Son : **bois** pour les actions, **verre** pour la lumière et les récompenses.
+
+- **Ambiance** : halo, feuillage SVG et 12 lucioles en CSS pur (transform/opacity, aucune boucle JS), masquées en jeu. Transitions d'écran selon le sens (avancer, revenir, ouvrir).
+- **Victoire** : emblème lumineux avec rayons et badge du monde, bouton principal qui scintille, coins comptés à l'écran.
+- **L'Atelier (cosmétiques)** : scène d'essai en haut (la graine glisse vers la lumière avec sa traînée et son effet de victoire), rareté visible (commun, rare, épique, légendaire), comparaison avec l'objet équipé, bouton unique « Débloquer · prix » / « Équiper » / « Encore N 🪙 ». Déblocage célébré (étincelles, son selon la rareté). Nouveaux objets : graines Braise, Givre, Aurore, Nuit étoilée ; traînée Comète ; victoire Éclosion ; cadre Prisme animé. Aucun minuteur ni offre « limitée ».
+- **Audio** : bus commun (compresseur doux + réverbération courte). Musique générative en ré majeur pentatonique, 4 ambiances (accueil 74 bpm, jeu 78, Sentier 100, Atelier 86), phrases A A' B A. Les coups enchaînés montent sur la gamme ; la victoire joue le motif signature. Réglé par rendu hors ligne (`BCD_DEV.renderAudioPreview(kind, s)`) : musique ≈ −36 dB RMS, effets −24 à −32 dB, pas d'écrêtage.
+- **Tutoriels** : « montrer plutôt qu'expliquer ». Niveau 1 : graine fantôme et doigt qui glissent jusqu'à la lumière, jusqu'au premier coup. Mécanique présentée (nouvelle, INTRO/TEACH, vedette du Sentier) : ses cases pulsent 3 fois. Aide : vraies cases du plateau en miniature comme icônes.
+- **Textes** : messages de mécaniques, tutoriel, victoire, réglages, confidentialité, Sentier et Jardin raccourcis (une phrase, ton direct). Notes d'introduction inutiles supprimées (profil, aide).
+- **Performance** : mesuré sous CPU ×4 (proxy d'un téléphone moyen), 60 i/s stables sur l'accueil, en jeu et dans l'Atelier. Seul coût notable : la création de l'audio au tout premier geste (≈ 30 ms réels, une fois), réduite en calculant l'enveloppe de réverbération par blocs.
+
 ## 5. Tests exécutés (résultats observés)
 
 | Commande | Ce qu'elle vérifie | Résultat |
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
 | `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis | 3 543 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus le fantôme, la PWA hors ligne et le coffre de la semaine | 45 vérifications, 0 échec, 0 erreur ou avertissement console |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus le fantôme, l'Atelier (achat, équipement), la PWA hors ligne et le coffre de la semaine | 51 vérifications, 0 échec, 0 erreur ou avertissement console (stable sur 5 exécutions) |
 | CI GitHub Actions | Les trois suites, sur toutes les branches | Vert |
 
-Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin et les succès.
+Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin, l'Atelier, l'aide et les succès. Aucun débordement horizontal.
 
 ## 6. Plan de mesure (tests joueurs)
 
@@ -123,6 +135,7 @@ Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accue
 - **Défi du jour lié au code** : il dépend de la version du générateur. Changer celui-ci change les défis futurs ; `DAILY_GEN_VERSION` permet de le rendre explicite.
 - **Qualité ressentie des plateaux générés** : elle n'est mesurée que par des proxys (par, états explorés, mécanique qui compte). Elle n'a pas été validée par de vrais joueurs.
 - **Non testé** sur appareils physiques (iOS Safari, Android ancien), ni avec un lecteur d'écran réel.
+- **Audio jamais écouté par un humain** : il a été réglé par analyse numérique de rendus hors ligne. Le goût (mélodie, timbre) reste à valider à l'oreille.
 - **Équilibrage à calibrer en test** : chrono, bonus de temps et coins du Sentier.
 - **Blueprint non couvert** : les mondes 9 et 10 (mécaniques non implémentées), l'éditeur communautaire et la monétisation (publicité récompensée) restent à faire.
 
