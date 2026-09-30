@@ -22,7 +22,11 @@ const start = js.indexOf('const LEVELS = [');
 const end = js.indexOf('window.BCD_DEV = {');
 if (start < 0 || end < start) { console.error('✘ zone LEVELS…BCD_DEV introuvable'); process.exit(1); }
 const exportsList = 'LEVELS, Solver, makeRng, hashSeed, generateBoard, transformLevel, sentierProfile, ' +
-  'buildSentierBoard, buildEchoBoard, mechanicMatters, GEN_MECHANICS, buildDailyBoard, DAILY_RULES';
+  'buildSentierBoard, buildEchoBoard, mechanicMatters, GEN_MECHANICS, buildDailyBoard, DAILY_RULES, ' +
+  'GARDEN_ZONES, GARDEN_TOTAL_TASKS, GARDEN_TOTAL_COST, sanitizeGardenSave, gardenStatus, gardenRestoreNext, ' +
+  'ROSEE, roseeForLevelWin, roseeForDaily, roseeForSentier, RITUAL_POOL, ritualMissionsFor, ritualFresh, ' +
+  'sanitizeRitual, ritualApply, ritualAllDone, AD_PLACEMENTS, AD_DAILY_CAP, AD_MIN_INTERVAL_MS, sanitizeAdState, ' +
+  'adCanOffer, adRecordShown, sanitizeRetention, retentionBump, retentionSummary, dayDiff';
 const ctx = vm.createContext({ console: { log() {} } });
 vm.runInContext('"use strict";\n' + js.slice(start, end) + `\n;globalThis.__t = { ${exportsList} };`, ctx, { filename: 'logic.js' });
 const T = ctx.__t;
@@ -135,6 +139,98 @@ for (let i = 0; i < 400; i++) {
 }
 check(seenBoards.size > 390, `défis trop répétitifs (${seenBoards.size} distincts sur 400)`);
 console.log(`✔ ${dailyOk}/400 défis générés, déterministes, règle du jour respectée (pire cas ${dailyMs} ms, ${seenBoards.size} distincts)`);
+
+
+{ // 5. Le Jardin endormi, le rituel, les pubs (logique pure)
+section('Jardin endormi : économie et restauration');
+check(T.GARDEN_TOTAL_TASKS === 25, `25 chantiers attendus (${T.GARDEN_TOTAL_TASKS})`);
+check(T.GARDEN_ZONES.every(z => z.tasks.every((t, i) => i === 0 || t.cost >= z.tasks[i - 1].cost)), 'coûts croissants dans chaque zone');
+check(T.GARDEN_ZONES[0].tasks[0].cost <= 3, '1er chantier atteignable dès le 1er niveau à 3★');
+check(T.GARDEN_TOTAL_COST >= 600 && T.GARDEN_TOTAL_COST <= 900, `coût total dans la cible 3-6 semaines (${T.GARDEN_TOTAL_COST})`);
+// Données corrompues : jamais de plantage, valeurs saines.
+for (const bad of [null, 42, 'x', [], { rosee: -5, done: 999, earned: 'NaN' }, { rosee: 1e99 }]) {
+  const s = T.sanitizeGardenSave(bad);
+  check(s.rosee >= 0 && Number.isInteger(s.rosee) && s.done >= 0 && s.done <= 25, `sauvegarde corrompue assainie (${JSON.stringify(bad)})`);
+}
+// Parcours complet : on paie exactement le coût total, zones terminées dans l'ordre.
+let gs = T.sanitizeGardenSave({ rosee: T.GARDEN_TOTAL_COST });
+let zonesDone = 0;
+for (let i = 0; i < 25; i++) {
+  const r = T.gardenRestoreNext(gs);
+  check(r.ok, `chantier ${i} restaurable`);
+  if (r.zoneCompleted) zonesDone++;
+  gs = r.save;
+}
+check(gs.rosee === 0 && gs.done === 25 && zonesDone === 5, `jardin complet : 0 rosée restante, 5 zones (${gs.rosee}, ${zonesDone})`);
+check(T.gardenStatus(25).complete && !T.gardenRestoreNext(gs).ok, 'plus rien à restaurer une fois complet');
+const poor = T.gardenRestoreNext({ rosee: 2, done: 0 });
+check(!poor.ok && poor.reason === 'rosee' && poor.missing === 1 && poor.save.rosee === 2, 'pas assez de rosée : rien ne change, manque exact');
+check(T.gardenStatus(7).zoneIndex === 1 && T.gardenStatus(7).zoneDone === 2, 'statut : zone 2, 2 chantiers faits');
+check(T.roseeForLevelWin(0, 3) === 3 && T.roseeForLevelWin(2, 3) === 1 && T.roseeForLevelWin(3, 2) === 0, 'rosée = étoiles NOUVELLES seulement (anti-farm)');
+check(T.roseeForDaily(true, 3) === 6 && T.roseeForDaily(true, 1) === 4 && T.roseeForDaily(false, 3) === 0, 'rosée du défi : 1re réussite du jour seulement');
+let sen = T.roseeForSentier({}, 8, '20260930');
+check(sen.gain === 8, 'Sentier : 8 parfaits → 8 💧');
+sen = T.roseeForSentier(sen.save, 10, '20260930');
+check(sen.gain === T.ROSEE.sentierDailyCap - 8, 'Sentier : plafond quotidien respecté');
+check(T.roseeForSentier(sen.save, 3, '20261001').gain === 3, 'Sentier : plafond remis à zéro le lendemain');
+console.log(`✔ jardin : 25 chantiers, ${T.GARDEN_TOTAL_COST} 💧 au total, barème et plafonds vérifiés`);
+
+section('Rituel du jour');
+let ritualDays = 0;
+const r0 = Date.UTC(2026, 0, 1);
+for (let i = 0; i < 120; i++) {
+  const rd = new Date(r0 + i * 86400000);
+  const key = `${rd.getUTCFullYear()}${String(rd.getUTCMonth() + 1).padStart(2, '0')}${String(rd.getUTCDate()).padStart(2, '0')}`;
+  const ids = T.ritualMissionsFor(key, { sentier: true, gardenNext: true });
+  check(ids.length === 3 && ids[0] === 'daily' && new Set(ids).size === 3, `rituel ${key} : 3 missions distinctes dont le défi`);
+  check(JSON.stringify(ids) === JSON.stringify(T.ritualMissionsFor(key, { sentier: true, gardenNext: true })), `rituel ${key} déterministe`);
+  const noSentier = T.ritualMissionsFor(key, { sentier: false, gardenNext: false });
+  check(!noSentier.includes('sentier4') && !noSentier.includes('restore1'), `rituel ${key} : jamais de mission impossible`);
+  ritualDays++;
+}
+let rit = T.ritualFresh('20260930', { sentier: true, gardenNext: true });
+rit.ids = ['daily', 'levels3', 'perfect3']; rit.prog = [0, 0, 0];
+let res = T.ritualApply(rit, { type: 'level_win', stars: 3, perfect: true, hint: false });
+check(res.rit.prog.join() === '0,1,1' && res.completed.length === 0, 'victoire parfaite : niveaux +1, parfaits +1');
+res = T.ritualApply(res.rit, { type: 'daily_win', stars: 3, perfect: true });
+check(res.completed.includes(0) && res.rit.prog[2] === 2, 'défi : mission 1 accomplie, parfaits +1');
+res = T.ritualApply(res.rit, { type: 'level_win', stars: 2, perfect: false });
+res = T.ritualApply(res.rit, { type: 'level_win', stars: 3, perfect: true });
+check(T.ritualAllDone(res.rit), 'les 3 missions accomplies → coffre prêt');
+const after = T.ritualApply(res.rit, { type: 'level_win', stars: 3, perfect: true });
+check(after.completed.length === 0 && after.rit.prog.join() === res.rit.prog.join(), 'progression plafonnée, rien de compté deux fois');
+check(T.sanitizeRitual(res.rit, '20261001', {}).day === '20261001' && T.sanitizeRitual(res.rit, '20261001', {}).prog.every(p => p === 0), 'nouveau jour = nouveau rituel');
+check(T.sanitizeRitual({ day: '20260930', ids: ['zzz'], prog: [1] }, '20260930', {}).ids[0] === 'daily', 'rituel corrompu → rituel neuf');
+console.log(`✔ rituel : ${ritualDays} jours générés, missions possibles et déterministes`);
+
+section('Pubs récompensées : plafonds');
+let ad = T.sanitizeAdState(null, '20260930');
+let t = 1e12, shown = 0;
+for (let i = 0; i < 20; i++) {
+  const pl = ['victory_double', 'hint_bonus', 'garden_boost', 'ritual_chest_bonus', 'sentier_double'][i % 5];
+  if (T.adCanOffer(ad, pl, t).ok) { ad = T.adRecordShown(ad, pl, t); shown++; }
+  t += T.AD_MIN_INTERVAL_MS;
+}
+check(shown <= T.AD_DAILY_CAP, `plafond quotidien global (${shown} ≤ ${T.AD_DAILY_CAP})`);
+check(Object.keys(T.AD_PLACEMENTS).every(k => (ad.counts[k] || 0) <= T.AD_PLACEMENTS[k].cap), 'plafond par emplacement');
+const fresh = T.adRecordShown(T.sanitizeAdState(null, '20260930'), 'victory_double', 1000);
+check(T.adCanOffer(fresh, 'hint_bonus', 1000 + T.AD_MIN_INTERVAL_MS - 1).reason === 'interval', 'intervalle minimal entre deux pubs');
+check(T.sanitizeAdState(ad, '20261001').total === 0, 'compteurs remis à zéro le lendemain');
+check(!T.adCanOffer(ad, 'inconnu', t).ok, 'emplacement inconnu refusé');
+
+section('Compteurs de rétention');
+let ret = T.retentionBump(null, '20260901', 's');
+ret = T.retentionBump(ret, '20260901', 'l', 4);
+ret = T.retentionBump(ret, '20260902', 's');
+ret = T.retentionBump(ret, '20260908', 's');
+ret = T.retentionBump(ret, '20260908', 'ao', 2);
+ret = T.retentionBump(ret, '20260908', 'aa', 1);
+const sum = T.retentionSummary(ret);
+check(sum.returnedD1 && sum.returnedD7 && !sum.returnedD30 && sum.activeDays === 3, 'retours J1 et J7 détectés, pas J30');
+check(sum.winsPerSession === 1.33 && sum.adAcceptRate === 0.5, `moyennes calculées (${sum.winsPerSession}, ${sum.adAcceptRate})`);
+check(T.retentionSummary('garbage').activeDays === 0 && T.dayDiff('20260228', '20260301') === 1, 'données corrompues tolérées, écart de jours en UTC');
+console.log('✔ pubs plafonnées, rétention J1/J7/J30 calculée');
+}
 
 console.log(`\n${checks} vérifications, ${failures} échec(s).`);
 process.exit(failures ? 1 : 0);

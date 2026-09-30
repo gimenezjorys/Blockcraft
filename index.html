@@ -671,7 +671,7 @@
   @keyframes starLost{0%{transform:scale(1.3); color:var(--danger);} 100%{transform:scale(.8);}}
 
   .game-tip{
-    min-height:44px; display:flex; align-items:center; justify-content:center; gap:8px;
+    min-height:44px; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px;
     text-align:center; font-size:13px; font-weight:700; color:var(--cream-dim); line-height:1.35;
     padding:0 6px; width:100%;
   }
@@ -807,6 +807,8 @@
   .reward-chip.record, .reward-chip.achievement{border-color:var(--gold); background:linear-gradient(155deg, var(--surface-2), var(--surface));}
   .reward-chip.unlock{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.2);}
   .reward-chip.streak{border-color:rgba(224,101,79,.6);}
+  .reward-chip.rosee{border-color:rgba(111,195,232,.6); color:#bfe8ff;}
+  .reward-chip.ritual{border-color:rgba(111,195,232,.35);}
   @keyframes rewardIn{from{opacity:0; transform:translateY(6px) scale(.94);} to{opacity:1; transform:translateY(0) scale(1);}}
 
   /* ================= COSMÉTIQUES À EFFETS =================
@@ -912,6 +914,177 @@
     66%{box-shadow:0 0 14px 2px rgba(255,158,199,.7); border-color:#ff9ec7 !important;}
   }
 
+  /* ================= LE JARDIN ENDORMI (boucle de rétention) ================= */
+  /* Accueil : objectif toujours visible (scène miniature + prochain chantier). */
+  .home-garden.hg-v2{flex-direction:row; align-items:center; gap:12px; padding:8px 10px; text-align:left; position:relative;}
+  .hg-scene{flex:none; width:92px; height:58px; border-radius:12px; overflow:hidden; box-shadow:0 0 0 1px rgba(255,255,255,.08);}
+  .hg-scene svg{width:100%; height:100%; display:block;}
+  .hg-scene svg *{animation:none !important;}
+  .hg-info{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+  .hg-title{font-size:11px; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--cream-dim);}
+  .hg-next{font-family:var(--font-display); font-weight:800; font-size:15px; line-height:1.15; color:var(--cream); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .hg-bar{display:block; height:6px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden;}
+  .hg-fill{display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg, #6fc3e8, #bfe8ff); transition:width .6s ease;}
+  .hg-v2 .hg-caption{font-size:11.5px; color:#bfe8ff;}
+  .hg-badge{position:absolute; top:-8px; right:10px; font-size:11px; font-weight:800; color:#1a2a1f; background:linear-gradient(90deg,#ffe08a,#ffd166);
+    border-radius:99px; padding:3px 9px; box-shadow:0 2px 10px rgba(255,209,102,.5); animation:badgeBob 1.6s ease-in-out infinite;}
+  @keyframes badgeBob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-2px);}}
+  .home-ritual{display:flex; align-items:center; gap:8px; width:100%; max-width:320px; padding:7px 12px; border-radius:14px; cursor:pointer;
+    background:rgba(0,0,0,.18); border:1px dashed rgba(255,255,255,.14); color:var(--cream); font-family:var(--font-body); font-size:12.5px; font-weight:800;}
+  .home-ritual .hr-dots{display:flex; gap:5px; margin-left:auto;}
+  .hr-dot{width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,.25); display:grid; place-items:center; font-size:10px; line-height:1;}
+  .hr-dot.on{background:#6fc3e8; border-color:#bfe8ff; color:#0d2230;}
+  .home-ritual.ready{border-style:solid; border-color:var(--gold); box-shadow:0 0 14px rgba(255,209,102,.35);}
+  .home-ritual.ready .hr-chest{animation:badgeBob 1.2s ease-in-out infinite;}
+
+  /* Écran du Jardin */
+  #screen-garden{gap:12px;}
+  .rosee-pill{font-family:var(--font-display); font-weight:800; font-size:14px; color:#bfe8ff; background:var(--surface);
+    border:1px solid rgba(111,195,232,.35); border-radius:999px; padding:6px 12px; min-width:40px; text-align:center; transition:transform .2s ease;}
+  .rosee-pill.bump{animation:pillBump .45s ease;}
+  @keyframes pillBump{0%{transform:scale(1);} 40%{transform:scale(1.18);} 100%{transform:scale(1);}}
+  .gz-stage{position:relative; width:100%; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.06);}
+  .gz-scene{position:relative; width:100%; aspect-ratio:320/200;}
+  .gz-scene svg{position:absolute; inset:0; width:100%; height:100%; display:block;}
+  .gz-caption{position:absolute; left:10px; right:10px; bottom:8px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;}
+  .gz-zone{font-family:var(--font-display); font-weight:800; font-size:15px; color:#fff8e0; text-shadow:0 1px 6px rgba(0,0,0,.7);}
+  .gz-pips{display:flex; gap:4px;}
+  .gz-pip{width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,.18); box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);}
+  .gz-pip.on{background:#ffd166; box-shadow:0 0 6px rgba(255,209,102,.8);}
+  .gz-nav{position:absolute; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.18);
+    background:rgba(8,18,24,.55); color:#fff8e0; font-size:18px; font-weight:800; cursor:pointer; display:grid; place-items:center;}
+  .gz-nav.prev{left:8px;} .gz-nav.next{right:8px;}
+  .gz-nav[hidden]{display:none;}
+  .gz-locked{position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:20px;
+    background:rgba(6,14,20,.55); color:#fff8e0; font-weight:800; font-size:13px; text-shadow:0 1px 4px rgba(0,0,0,.8);}
+  .gz-cheer{position:absolute; left:50%; top:12px; transform:translateX(-50%); white-space:nowrap; font-weight:800; font-size:13px; color:#1a2a1f;
+    background:linear-gradient(90deg,#ffe08a,#ffd166); border-radius:99px; padding:5px 12px; box-shadow:0 4px 18px rgba(255,209,102,.5);
+    animation:cheerIn 2.6s ease both; pointer-events:none;}
+  @keyframes cheerIn{0%{opacity:0; transform:translate(-50%,-8px) scale(.9);} 12%{opacity:1; transform:translate(-50%,0) scale(1);} 82%{opacity:1;} 100%{opacity:0; transform:translate(-50%,-4px);}}
+
+  /* Éléments de scène : pousse, départ, ambiance. */
+  .gz-new, .gz-leaving, .gz-flicker, .gz-ripple, .gz-swing, .gz-fly, .gz-pulse, .gz-marker{transform-box:fill-box;}
+  .gz-new{animation:gzGrow .9s cubic-bezier(.2,1.5,.45,1) both; transform-origin:50% 100%;}
+  @keyframes gzGrow{0%{transform:scale(.15); opacity:0;} 45%{opacity:1;} 100%{transform:scale(1); opacity:1;}}
+  .gz-leaving{animation:gzLeave .6s ease-in both; transform-origin:50% 100%; pointer-events:none;}
+  @keyframes gzLeave{0%{opacity:1; transform:scale(1);} 100%{opacity:0; transform:scale(.7) translateY(6px);}}
+  .gz-veil{transition:opacity 1.4s ease;}
+  .gz-flicker{animation:gzFlicker 2.8s ease-in-out infinite alternate; transform-origin:50% 50%;}
+  @keyframes gzFlicker{0%{opacity:.7; transform:scale(.94);} 50%{opacity:.95;} 100%{opacity:1; transform:scale(1.04);}}
+  .gz-star{animation:gzTwinkle 3s ease-in-out infinite alternate;}
+  .gz-twinkle{animation:gzTwinkle 1.6s ease-in-out infinite alternate;}
+  @keyframes gzTwinkle{0%{opacity:.35;} 100%{opacity:1;}}
+  .gz-water path{animation:gzFlow .9s linear infinite;}
+  @keyframes gzFlow{to{stroke-dashoffset:-22;}}
+  .gz-ripple{animation:gzRipple 2.2s ease-out infinite; transform-origin:50% 50%;}
+  @keyframes gzRipple{0%{opacity:.8; transform:scale(.3);} 100%{opacity:0; transform:scale(2.2);}}
+  .gz-swing{animation:gzSwing 3.6s ease-in-out infinite alternate; transform-origin:50% 0;}
+  @keyframes gzSwing{0%{transform:rotate(-7deg);} 100%{transform:rotate(7deg);}}
+  .gz-fly{animation:gzFly 4s ease-in-out infinite alternate;}
+  @keyframes gzFly{0%{transform:translate(-4px,3px); opacity:.3;} 100%{transform:translate(5px,-6px); opacity:1;}}
+  .gz-pulse{animation:gzPulse 2.4s ease-in-out infinite alternate; transform-origin:50% 50%;}
+  @keyframes gzPulse{0%{transform:scale(.88); opacity:.7;} 100%{transform:scale(1.08); opacity:1;}}
+  .gz-sheen{animation:gzSheen 5s ease-in-out infinite;}
+  @keyframes gzSheen{0%,100%{opacity:.4;} 50%{opacity:1;}}
+  .gz-marker{animation:gzMarker 1.3s ease-in-out infinite alternate; transform-origin:50% 50%;}
+  @keyframes gzMarker{0%{transform:scale(.8); opacity:.55;} 100%{transform:scale(1.1); opacity:1;}}
+  /* Particules de la fête : gouttes de rosée qui volent vers le chantier, étincelles. */
+  .gz-drop{position:absolute; width:10px; height:13px; margin:-6px 0 0 -5px; pointer-events:none; z-index:5;
+    background:radial-gradient(circle at 40% 35%, #ffffff, #9ed8f5 45%, #3f8fae); border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    box-shadow:0 0 8px rgba(158,216,245,.9); animation:gzDrop .75s cubic-bezier(.5,0,.6,1) forwards;}
+  @keyframes gzDrop{0%{transform:translate(0,0) scale(.6); opacity:0;} 15%{opacity:1;} 100%{transform:translate(var(--dx),var(--dy)) scale(1); opacity:.9;}}
+  .gz-spark{position:absolute; width:6px; height:6px; margin:-3px 0 0 -3px; border-radius:50%; background:#fff3c4; pointer-events:none; z-index:5;
+    box-shadow:0 0 10px 2px rgba(255,209,102,.9); animation:gzSpark .8s ease-out forwards;}
+  @keyframes gzSpark{0%{transform:rotate(var(--r)) translateY(0) scale(1); opacity:1;} 100%{transform:rotate(var(--r)) translateY(-38px) scale(.3); opacity:0;}}
+  .gz-bloomring{position:absolute; width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%; border:2px solid #ffd166; pointer-events:none; z-index:4;
+    animation:gzRing .8s ease-out forwards;}
+  @keyframes gzRing{0%{transform:scale(.3); opacity:1;} 100%{transform:scale(4.2); opacity:0;}}
+
+  /* Carte « prochain chantier » */
+  .gz-task{width:100%; display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:18px;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.2)); border:1px solid var(--tile-line);}
+  .gzt-kicker{font-size:11px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--cream-dim);}
+  .gzt-name{font-family:var(--font-display); font-weight:800; font-size:18px; color:var(--cream);}
+  .gzt-row{display:flex; align-items:center; gap:10px;}
+  .gzt-bar{flex:1; height:10px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden;}
+  .gzt-fill{height:100%; width:0; border-radius:99px; background:linear-gradient(90deg, #4aa3c2, #bfe8ff); transition:width .7s cubic-bezier(.3,1.2,.5,1);}
+  .gzt-count{font-weight:800; font-size:13px; color:#bfe8ff; white-space:nowrap;}
+  .gzt-help{font-size:12px; font-weight:700; color:var(--cream-dim); line-height:1.35;}
+  #btnRestore{width:100%;}
+  #btnRestore:disabled{opacity:.55; filter:saturate(.4); cursor:default;}
+  .garden-sub{margin:6px 0 0; width:100%; display:flex; justify-content:space-between; align-items:baseline; font-family:var(--font-display);
+    font-size:15px; font-weight:800; color:var(--cream);}
+  .garden-sub span{font-size:13px; color:var(--gold);}
+
+  /* Rituel du jour */
+  .ritual-card{width:100%; display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:18px;
+    background:linear-gradient(180deg, rgba(111,195,232,.07), rgba(0,0,0,.2)); border:1px solid rgba(111,195,232,.25);}
+  .rc-head{display:flex; justify-content:space-between; align-items:baseline;}
+  .rc-head b{font-family:var(--font-display); font-size:16px;}
+  .rc-head span{font-size:12px; font-weight:800; color:var(--cream-dim);}
+  .rc-mission{display:flex; align-items:center; gap:10px; font-size:13.5px; font-weight:700;}
+  .rc-check{flex:none; width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,.25); display:grid; place-items:center; font-size:12px;}
+  .rc-mission.done .rc-check{background:#6fc3e8; border-color:#bfe8ff; color:#0d2230;}
+  .rc-mission.done .rc-text{color:var(--cream-dim); text-decoration:line-through; text-decoration-color:rgba(255,255,255,.35);}
+  .rc-text{flex:1;}
+  .rc-prog{font-size:12px; font-weight:800; color:#bfe8ff;}
+  .rc-chest{display:flex; align-items:center; gap:10px; padding-top:4px; border-top:1px dashed rgba(255,255,255,.12);}
+  .rc-chest-icon{font-size:26px; line-height:1;}
+  .rc-chest-icon.ready{animation:chestWiggle 1.1s ease-in-out infinite;}
+  @keyframes chestWiggle{0%,100%{transform:rotate(0);} 20%{transform:rotate(-10deg) scale(1.08);} 40%{transform:rotate(9deg) scale(1.08);} 60%{transform:rotate(0);}}
+  .rc-chest-text{flex:1; font-size:12.5px; font-weight:700; color:var(--cream-dim);}
+  .rc-chest .btn{padding:8px 14px; font-size:13px;}
+
+  /* Pubs récompensées : toujours facultatives, toujours signalées « pub ». */
+  .ad-offer{display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:8px 14px; border-radius:999px; cursor:pointer;
+    font-family:var(--font-body); font-weight:800; font-size:13px; color:#bfe8ff; background:rgba(111,195,232,.1); border:1px solid rgba(111,195,232,.4);}
+  .ad-offer[hidden]{display:none;}
+  .game-tip .ad-offer{flex-basis:auto; margin:2px auto 0;}
+  .game-tip .ad-offer + *, .game-tip > .ad-offer{order:2;}
+  .ad-offer .ad-tag{font-size:10px; font-weight:800; letter-spacing:.5px; padding:1px 5px; border-radius:5px; background:rgba(255,255,255,.14); color:var(--cream-dim);}
+  .ad-offer:disabled{opacity:.5;}
+  .ad-mock{position:fixed; inset:0; z-index:200; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px;
+    background:radial-gradient(circle at 50% 30%, #1d3a4a, #07121a 70%); color:#fff8e0; text-align:center;}
+  .ad-mock .am-label{position:absolute; top:14px; left:14px; font-size:11px; font-weight:800; letter-spacing:.8px; padding:4px 8px; border-radius:6px; background:#ffd166; color:#1a2a1f;}
+  .ad-mock .am-close{position:absolute; top:10px; right:10px; width:auto; min-width:0; padding:8px 12px; font-size:13px;}
+  .ad-mock .am-title{font-family:var(--font-display); font-size:22px; font-weight:800;}
+  .ad-mock .am-text{font-size:13.5px; font-weight:700; color:var(--cream-dim); max-width:300px; line-height:1.4;}
+  .ad-mock .am-bar{width:220px; height:8px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden;}
+  .ad-mock .am-fill{height:100%; width:0; background:linear-gradient(90deg,#6fc3e8,#ffd166);}
+
+  /* Zone réveillée : la petite fête (non bloquante, fermée d'un toucher). */
+  .zone-fete{position:fixed; inset:0; z-index:150; display:grid; place-items:center; padding:24px; background:rgba(4,10,14,.62); cursor:pointer;
+    animation:feteIn .35s ease both;}
+  @keyframes feteIn{from{opacity:0;} to{opacity:1;}}
+  .zf-card{position:relative; width:100%; max-width:320px; padding:22px 18px 18px; border-radius:24px; text-align:center;
+    background:linear-gradient(180deg, #1f3d33, #102219); border:1px solid rgba(255,209,102,.45); box-shadow:0 0 40px rgba(255,209,102,.25);
+    animation:fetePop .55s cubic-bezier(.2,1.5,.4,1) both;}
+  @keyframes fetePop{from{transform:scale(.7); opacity:0;} to{transform:scale(1); opacity:1;}}
+  .zf-kicker{font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--gold);}
+  .zf-title{font-family:var(--font-display); font-size:24px; font-weight:800; margin:4px 0 10px;}
+  .zf-scene{border-radius:14px; overflow:hidden; margin-bottom:12px;}
+  .zf-scene svg{display:block; width:100%; height:auto;}
+  .zf-rewards{display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  .zf-hint{font-size:11.5px; font-weight:700; color:var(--cream-dim); margin-top:8px;}
+  .zf-petal{position:absolute; top:40%; left:50%; width:8px; height:12px; border-radius:50% 50% 50% 0; pointer-events:none;
+    animation:zfPetal 1.4s ease-out forwards;}
+  @keyframes zfPetal{0%{transform:translate(0,0) rotate(0); opacity:1;} 100%{transform:translate(var(--dx),var(--dy)) rotate(var(--rot)); opacity:0;}}
+  @media (max-height:700px){ .gz-task{padding:10px 12px; gap:6px;} .gzt-name{font-size:16px;} }
+
+  /* Graine de lune (exclusive au Jardin, légendaire) : clair de lune qui respire. */
+  .fx-lune, html[data-seed-fx="lune"] .piece-seed, html[data-seed-fx="lune"] .burst .core, html[data-seed-fx="lune"] .profile-seed-swatch{
+    background:radial-gradient(circle at 36% 30%, #ffffff, #dbe9ff 40%, #8fa8e0 78%, #5b6fb8) !important;
+  }
+  .fx-lune::before, html[data-seed-fx="lune"] .piece-seed::before, html[data-seed-fx="lune"] .burst .core::before{
+    content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle at 62% 58%, rgba(110,130,190,.35) 0 9%, transparent 11%), radial-gradient(circle at 40% 70%, rgba(110,130,190,.28) 0 6%, transparent 8%),
+               radial-gradient(circle at 70% 32%, rgba(110,130,190,.25) 0 5%, transparent 7%);
+  }
+  .fx-lune::after, html[data-seed-fx="lune"] .piece-seed::after, html[data-seed-fx="lune"] .burst .core::after{
+    content:""; position:absolute; inset:-26%; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, transparent 48%, rgba(191,227,255,.55) 56%, rgba(191,227,255,0) 74%);
+    animation:auraFlicker 2.8s ease-in-out infinite alternate;
+  }
   /* ================= L'ATELIER (boutique de cosmétiques) ================= */
   #screen-cosmetics{gap:12px;}
   .atelier-coins{font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--gold);
@@ -1390,10 +1563,21 @@
       <span id="homeStreakPill" aria-label="Série quotidienne">🔥 0</span>
       <span id="homeCoinsPill" aria-label="Coins">🪙 0</span>
     </div>
-    <!-- Le Jardin : méta-progression visuelle (section E3), une plante par monde. -->
-    <button class="home-garden" id="homeGarden" aria-label="Ouvrir le Jardin">
-      <span class="hg-plants" id="homeGardenPlants" aria-hidden="true"></span>
-      <span class="hg-caption" id="homeGardenCaption">Ton jardin</span>
+    <!-- Le Jardin endormi (sections A4/E4) : le prochain chantier, toujours visible. -->
+    <button class="home-garden hg-v2" id="homeGarden" aria-label="Ouvrir le Jardin">
+      <span class="hg-scene" id="homeGardenScene" aria-hidden="true"></span>
+      <span class="hg-info">
+        <span class="hg-title" id="homeGardenTitle">Le Jardin</span>
+        <span class="hg-next" id="homeGardenNext">—</span>
+        <span class="hg-bar"><span class="hg-fill" id="homeGardenFill"></span></span>
+        <span class="hg-caption" id="homeGardenCaption">💧 0</span>
+      </span>
+      <span class="hg-badge" id="homeGardenBadge" hidden>Prêt ✨</span>
+    </button>
+    <button class="home-ritual" id="homeRitual" aria-label="Rituel du jour">
+      <span>🌅 Rituel du jour</span>
+      <span class="hr-dots" id="homeRitualDots"></span>
+      <span class="hr-chest" id="homeRitualChest">🎁</span>
     </button>
     <button class="btn btn-primary btn-play shimmer" id="btnContinue" aria-label="Jouer au prochain niveau">
       <span class="bp-main">▶ JOUER</span>
@@ -1491,6 +1675,7 @@
         <button class="btn btn-secondary btn-small" id="btnReplayVictory">↻ Rejouer</button>
         <button class="btn btn-secondary btn-small" id="btnShare">📤 Partager</button>
       </div>
+      <button class="ad-offer" id="btnAdVictory" hidden style="align-self:center;"></button>
     </div>
   </section>
 
@@ -1668,13 +1853,30 @@
     <div class="topbar">
       <div class="icon-btn" id="btnBackHomeGarden" aria-label="Retour" role="button" tabindex="0">←</div>
       <div class="topbar-title">Le Jardin</div>
-      <div style="width:40px;"></div>
+      <div class="rosee-pill" id="gardenRoseePill" aria-label="Rosée">💧 0</div>
     </div>
+    <div class="gz-stage" id="gzStage">
+      <div class="gz-scene" id="gzScene"></div>
+      <button class="gz-nav prev" id="gzPrev" aria-label="Zone précédente">‹</button>
+      <button class="gz-nav next" id="gzNext" aria-label="Zone suivante">›</button>
+      <div class="gz-caption"><span class="gz-zone" id="gzZoneName">Le Portail</span><span class="gz-pips" id="gzPips"></span></div>
+    </div>
+    <div class="gz-task" id="gzTask">
+      <span class="gzt-kicker" id="gztKicker">Prochain chantier</span>
+      <span class="gzt-name" id="gztName">—</span>
+      <div class="gzt-row"><div class="gzt-bar"><div class="gzt-fill" id="gztFill"></div></div><span class="gzt-count" id="gztCount">💧 0 / 0</span></div>
+      <button class="btn btn-primary" id="btnRestore">Réveiller</button>
+      <div class="gzt-help" id="gztHelp">La rosée vient des nouvelles étoiles, du défi du jour, du rituel et du Sentier.</div>
+      <button class="ad-offer" id="btnGardenBoost" hidden>▶ Arrosage bonus : +6 💧 <span class="ad-tag">PUB</span></button>
+    </div>
+    <div class="ritual-card" id="gardenRitual"></div>
+    <p id="gardenLive" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+    <div class="garden-sub">Les plantes des mondes</div>
     <div class="garden-head">
       <div class="gh-score" id="gardenScore">0 / 32</div>
       <div class="gh-lbl">floraison</div>
       <div class="world-bar" style="width:100%;"><div class="world-bar-fill" id="gardenScoreBar" style="width:0%"></div></div>
-      <p class="gh-hint">Un monde, une plante. Finis ses niveaux pour la faire pousser, prends toutes ses étoiles pour la faire fleurir.</p>
+      <p class="gh-hint">Un monde, une plante : elle pousse avec tes niveaux et fleurit avec tes étoiles.</p>
     </div>
     <div class="garden-plots" id="gardenPlots"></div>
     <div class="meadow" id="gardenMeadow">
@@ -1738,6 +1940,7 @@
       <div class="stat-box"><div class="val" id="seChain">0</div><div class="lbl">Série max</div></div>
     </div>
     <div class="victory-rewards" id="seRewards"></div>
+    <button class="ad-offer" id="btnAdSentier" hidden style="align-self:center;"></button>
     <p class="victory-mastery" id="seNext" style="align-self:center; text-align:center;"></p>
     <div class="btn-row">
       <button class="btn btn-primary" id="btnSentierAgain">↻ REJOUER</button>
@@ -2687,6 +2890,258 @@ function buildDailyBoard(dateKey, weekday){
   return null; // repli géré par l'appelant (niveau de campagne, ancien comportement)
 }
 
+/* =========================================================
+   A4. LE JARDIN ENDORMI, LE RITUEL DU JOUR, LES PUBS — LOGIQUE PURE
+   Boucle de rétention (voir ROADMAP-RETENTION.md). Tout ce qui suit est
+   PUR (aucun accès au DOM ni au stockage) : testé par test-logic.js.
+   - La ROSÉE 💧 se gagne en jouant (étoiles nouvelles, défi du jour,
+     solutions parfaites du Sentier, rituel) et ne s'achète jamais.
+   - Elle réveille le jardin : 5 zones × 5 chantiers, dans l'ordre.
+   - Elle n'influence ni score, ni étoiles, ni record (lignes rouges).
+========================================================= */
+const GARDEN_ZONES = [
+  { id:'portail', name:'Le Portail', reward:{ coins:20 }, tasks:[
+    { id:'ronces',    name:'Arracher les ronces',   cost:3,  cheer:'Le passage respire enfin.' },
+    { id:'allee',     name:'Tracer l\'allée',        cost:5,  cheer:'Une allée de pierres claires.' },
+    { id:'portique',  name:'Relever le portail',     cost:7,  cheer:'Le vieux portail tient debout.' },
+    { id:'haie',      name:'Planter la haie',        cost:9,  cheer:'La haie fleurit déjà.' },
+    { id:'lanternes', name:'Allumer les lanternes',  cost:12, cheer:'La lumière est revenue.' }
+  ]},
+  { id:'fontaine', name:'La Fontaine', reward:{ coins:30 }, tasks:[
+    { id:'feuilles',  name:'Vider les feuilles mortes', cost:12, cheer:'Le bassin revoit le ciel.' },
+    { id:'vasque',    name:'Réparer la vasque',         cost:14, cheer:'La pierre est comme neuve.' },
+    { id:'jet',       name:'Faire jaillir l\'eau',      cost:16, cheer:'La fontaine chante à nouveau.' },
+    { id:'nenuphars', name:'Poser les nénuphars',       cost:18, cheer:'Les nénuphars s\'ouvrent.' },
+    { id:'banc',      name:'Installer le banc',         cost:22, cheer:'Une place pour rêver.' }
+  ]},
+  { id:'potager', name:'Le Potager', reward:{ coins:40 }, tasks:[
+    { id:'becher',    name:'Bêcher la terre',        cost:20, cheer:'La terre est prête.' },
+    { id:'semis',     name:'Semer les graines',      cost:24, cheer:'Les premières pousses !' },
+    { id:'tuteurs',   name:'Monter les tuteurs',     cost:28, cheer:'Les haricots grimpent.' },
+    { id:'puits',     name:'Rouvrir le puits',       cost:32, cheer:'L\'eau fraîche remonte.' },
+    { id:'tournesols',name:'Faire pousser les tournesols', cost:36, cheer:'Les tournesols cherchent la lune.' }
+  ]},
+  { id:'serre', name:'La Serre', reward:{ coins:50 }, tasks:[
+    { id:'lierre',    name:'Dégager la verrière',    cost:30, cheer:'Le lierre a lâché prise.' },
+    { id:'vitres',    name:'Remplacer les vitres',   cost:34, cheer:'La serre brille.' },
+    { id:'pots',      name:'Ranger les pots',        cost:38, cheer:'Tout est à sa place.' },
+    { id:'orchidees', name:'Faire fleurir les orchidées', cost:42, cheer:'Des orchidées de nuit !' },
+    { id:'guirlande', name:'Accrocher la guirlande', cost:46, cheer:'La serre scintille.' }
+  ]},
+  { id:'arbre', name:'Le Grand Arbre', reward:{ coins:80, cosmetic:'lune' }, tasks:[
+    { id:'tailler',   name:'Tailler le vieil arbre',  cost:44, cheer:'Le vieil arbre reverdit.' },
+    { id:'pont',      name:'Jeter un pont',           cost:48, cheer:'Le ruisseau se traverse.' },
+    { id:'balancoire',name:'Suspendre la balançoire', cost:52, cheer:'Elle se balance doucement.' },
+    { id:'lucioles',  name:'Réveiller les lucioles',  cost:58, cheer:'Mille petites lumières.' },
+    { id:'fleurlune', name:'Faire éclore la Fleur de lune', cost:70, cheer:'Le jardin est entièrement réveillé.' }
+  ]}
+];
+const GARDEN_TASKS = GARDEN_ZONES.flatMap((z, zi)=> z.tasks.map((t, ti)=> ({ zi, ti, zone:z, task:t })));
+const GARDEN_TOTAL_TASKS = GARDEN_TASKS.length;
+const GARDEN_TOTAL_COST = GARDEN_TASKS.reduce((a, e)=> a + e.task.cost, 0);
+
+// Entier borné, sinon valeur par défaut (données corrompues = jamais de plantage).
+function safeInt(v, min, max, dflt){
+  const n = Math.floor(Number(v));
+  if(!Number.isFinite(n)) return dflt;
+  return Math.max(min, Math.min(max, n));
+}
+// Sauvegarde du jardin : { rosee, earned, done, sentierDay, sentierCount, boostDay }.
+function sanitizeGardenSave(raw){
+  const r = (raw && typeof raw==='object' && !Array.isArray(raw)) ? raw : {};
+  return {
+    rosee: safeInt(r.rosee, 0, 1e7, 0),
+    earned: safeInt(r.earned, 0, 1e8, 0),
+    done: safeInt(r.done, 0, GARDEN_TOTAL_TASKS, 0),
+    sentierDay: typeof r.sentierDay==='string' ? r.sentierDay : '',
+    sentierCount: safeInt(r.sentierCount, 0, 1e4, 0)
+  };
+}
+// Où en est le jardin après `done` chantiers terminés (dans l'ordre).
+function gardenStatus(done){
+  done = safeInt(done, 0, GARDEN_TOTAL_TASKS, 0);
+  const next = done < GARDEN_TOTAL_TASKS ? GARDEN_TASKS[done] : null;
+  const zi = next ? next.zi : GARDEN_ZONES.length - 1;
+  let before = 0;
+  for(let i=0;i<zi;i++) before += GARDEN_ZONES[i].tasks.length;
+  return {
+    done, total:GARDEN_TOTAL_TASKS, complete: !next, next,
+    zoneIndex: zi, zoneDone: done - before, zoneSize: GARDEN_ZONES[zi].tasks.length,
+    zonesComplete: GARDEN_ZONES.filter((z, i)=> done >= GARDEN_ZONES.slice(0, i+1).reduce((a, zz)=> a + zz.tasks.length, 0)).length
+  };
+}
+// Nombre de chantiers terminés dans la zone zi (0..5).
+function gardenZoneDone(done, zi){
+  let before = 0;
+  for(let i=0;i<zi;i++) before += GARDEN_ZONES[i].tasks.length;
+  return Math.max(0, Math.min(GARDEN_ZONES[zi].tasks.length, done - before));
+}
+// Tente le prochain chantier. Renvoie { ok, save, task, zoneCompleted } sans rien muter.
+function gardenRestoreNext(save){
+  const s = sanitizeGardenSave(save);
+  const st = gardenStatus(s.done);
+  if(!st.next) return { ok:false, reason:'complete', save:s };
+  if(s.rosee < st.next.task.cost) return { ok:false, reason:'rosee', save:s, missing: st.next.task.cost - s.rosee };
+  const out = Object.assign({}, s, { rosee: s.rosee - st.next.task.cost, done: s.done + 1 });
+  const zoneCompleted = gardenZoneDone(out.done, st.next.zi) === GARDEN_ZONES[st.next.zi].tasks.length;
+  return { ok:true, save:out, task:st.next, zoneCompleted, zone: zoneCompleted ? GARDEN_ZONES[st.next.zi] : null };
+}
+
+// Sources de rosée (barème unique, voir PRODUCTION_PROGRESS.md) :
+const ROSEE = {
+  perNewStar: 1,          // chaque étoile de campagne gagnée pour la 1re fois
+  dailyFirst: 4,          // 1re réussite du défi du jour
+  dailyPerfectBonus: 2,   // … en 3★
+  sentierPerPerfect: 1,   // solution parfaite du Sentier
+  sentierDailyCap: 12,    // plafond quotidien du Sentier (rythme, pas de farm)
+  mission: 3,             // mission du rituel accomplie
+  chest: 5, chestCoins: 10,   // coffre du rituel
+  adBoost: 6,             // arrosage bonus (pub récompensée, 1×/jour)
+  adChest: 5              // coffre bonus (pub récompensée, 1×/jour)
+};
+function roseeForLevelWin(prevStars, stars){
+  return Math.max(0, safeInt(stars,0,3,0) - safeInt(prevStars,0,3,0)) * ROSEE.perNewStar;
+}
+function roseeForDaily(firstOfDay, stars){
+  if(!firstOfDay) return 0;
+  return ROSEE.dailyFirst + (stars===3 ? ROSEE.dailyPerfectBonus : 0);
+}
+// Solutions parfaites du Sentier → rosée, plafonnée par jour.
+function roseeForSentier(save, perfectDelta, dayKey){
+  const s = sanitizeGardenSave(save);
+  const already = s.sentierDay===dayKey ? s.sentierCount : 0;
+  const gain = Math.max(0, Math.min(safeInt(perfectDelta,0,1e4,0) * ROSEE.sentierPerPerfect, ROSEE.sentierDailyCap - already));
+  return { gain, save: Object.assign({}, s, { sentierDay:dayKey, sentierCount: already + gain }) };
+}
+
+// ---- Rituel du jour : 3 missions (la 1re est toujours le défi du jour) ----
+const RITUAL_POOL = [
+  { id:'daily',    text:'Réussis le défi du jour',        target:1, on:e=> e.type==='daily_win' },
+  { id:'levels3',  text:'Termine 3 niveaux',              target:3, on:e=> e.type==='level_win' },
+  { id:'stars3x2', text:'Obtiens ★★★ deux fois',          target:2, on:e=> (e.type==='level_win' || e.type==='daily_win') && e.stars===3 },
+  { id:'perfect3', text:'Trouve 3 solutions parfaites',   target:3, on:e=> (e.type==='level_win' || e.type==='daily_win' || e.type==='sentier_board') && !!e.perfect },
+  { id:'sentier4', text:'Résous 4 plateaux du Sentier',   target:4, on:e=> e.type==='sentier_board', needs:'sentier' },
+  { id:'nohint2',  text:'Gagne 2 niveaux sans indice',    target:2, on:e=> e.type==='level_win' && !e.hint },
+  { id:'restore1', text:'Réveille un coin du jardin',     target:1, on:e=> e.type==='garden_restore', needs:'gardenNext' }
+];
+function ritualMission(id){ return RITUAL_POOL.find(m=> m.id===id) || null; }
+// Missions du jour : déterministes (même jour = mêmes missions), filtrées
+// selon ce que le joueur peut faire. ctx = { sentier:bool, gardenNext:bool }.
+function ritualMissionsFor(dayKey, ctx){
+  ctx = ctx || {};
+  const rng = makeRng(hashSeed('rituel:' + dayKey));
+  const pool = RITUAL_POOL.filter(m=> m.id!=='daily' && (!m.needs || ctx[m.needs]));
+  const picks = [];
+  while(picks.length < 2 && pool.length){
+    picks.push(pool.splice(Math.floor(rng()*pool.length), 1)[0].id);
+  }
+  return ['daily'].concat(picks);
+}
+function ritualFresh(dayKey, ctx){
+  const ids = ritualMissionsFor(dayKey, ctx);
+  return { day:dayKey, ids, prog: ids.map(()=> 0), chest:false, bonus:false };
+}
+// Le rituel stocké n'est valable que pour SON jour ; sinon (ou si corrompu) : neuf.
+function sanitizeRitual(raw, dayKey, ctx){
+  const r = raw && typeof raw==='object' ? raw : null;
+  if(!r || r.day!==dayKey || !Array.isArray(r.ids) || !Array.isArray(r.prog) ||
+     r.ids.length!==r.prog.length || !r.ids.every(id=> ritualMission(id))) return ritualFresh(dayKey, ctx);
+  return { day:dayKey, ids:r.ids.slice(),
+    prog: r.prog.map((p, i)=> safeInt(p, 0, ritualMission(r.ids[i]).target, 0)),
+    chest: !!r.chest, bonus: !!r.bonus };
+}
+// Applique un événement de jeu. Renvoie { rit, completed:[indices des missions terminées à l'instant] }.
+function ritualApply(rit, event){
+  const out = { day:rit.day, ids:rit.ids.slice(), prog:rit.prog.slice(), chest:rit.chest, bonus:rit.bonus };
+  const completed = [];
+  out.ids.forEach((id, i)=>{
+    const m = ritualMission(id);
+    if(!m || out.prog[i] >= m.target) return;
+    if(m.on(event||{})){
+      out.prog[i]++;
+      if(out.prog[i] >= m.target) completed.push(i);
+    }
+  });
+  return { rit:out, completed };
+}
+function ritualAllDone(rit){ return rit.ids.every((id, i)=> rit.prog[i] >= ritualMission(id).target); }
+
+// ---- Pubs récompensées : plafonds (logique pure, indépendante du fournisseur) ----
+const AD_PLACEMENTS = {
+  victory_double:     { cap:3 },  // doubler rosée + coins d'une victoire
+  hint_bonus:         { cap:3 },  // indice ciblé sans coins
+  garden_boost:       { cap:1 },  // arrosage bonus du jardin
+  ritual_chest_bonus: { cap:1 },  // second coffre du rituel
+  sentier_double:     { cap:2 }   // doubler les coins d'une partie du Sentier
+};
+const AD_DAILY_CAP = 8;
+const AD_MIN_INTERVAL_MS = 20000;
+function sanitizeAdState(raw, dayKey){
+  const r = raw && typeof raw==='object' ? raw : {};
+  const sameDay = r.day===dayKey;
+  const counts = {};
+  Object.keys(AD_PLACEMENTS).forEach(k=>{ counts[k] = sameDay && r.counts ? safeInt(r.counts[k], 0, 99, 0) : 0; });
+  return { day:dayKey, counts, total: sameDay ? safeInt(r.total, 0, 999, 0) : 0, lastAt: safeInt(r.lastAt, 0, 1e15, 0) };
+}
+function adCanOffer(adState, placement, nowMs){
+  const p = AD_PLACEMENTS[placement];
+  if(!p) return { ok:false, reason:'unknown' };
+  if(adState.total >= AD_DAILY_CAP) return { ok:false, reason:'daily_cap' };
+  if((adState.counts[placement]||0) >= p.cap) return { ok:false, reason:'placement_cap' };
+  if(adState.lastAt && nowMs - adState.lastAt < AD_MIN_INTERVAL_MS) return { ok:false, reason:'interval' };
+  return { ok:true };
+}
+function adRecordShown(adState, placement, nowMs){
+  const counts = Object.assign({}, adState.counts);
+  counts[placement] = (counts[placement]||0) + 1;
+  return { day:adState.day, counts, total: adState.total + 1, lastAt: nowMs };
+}
+
+// ---- Compteurs de rétention par jour (J1/J7/J30, sessions/jour…) ----
+// Distinct du journal Analytics (plafonné à 1500 événements, qui oublie
+// les premiers jours) : un petit agrégat par jour, gardé 120 jours.
+function dayKeyToUtcMs(k){
+  const m = /^(\d{4})(\d{2})(\d{2})$/.exec(String(k||''));
+  return m ? Date.UTC(+m[1], +m[2]-1, +m[3]) : NaN;
+}
+function dayDiff(a, b){ return Math.round((dayKeyToUtcMs(b) - dayKeyToUtcMs(a)) / 86400000); }
+const RETENTION_FIELDS = ['s', 'l', 'ao', 'aa'];  // sessions, niveaux/plateaux gagnés, pubs proposées, pubs regardées
+function sanitizeRetention(raw){
+  const r = raw && typeof raw==='object' ? raw : {};
+  const days = {};
+  if(r.days && typeof r.days==='object'){
+    Object.keys(r.days).filter(k=> Number.isFinite(dayKeyToUtcMs(k))).sort().slice(-120).forEach(k=>{
+      const d = r.days[k] || {};
+      days[k] = {};
+      RETENTION_FIELDS.forEach(f=>{ days[k][f] = safeInt(d[f], 0, 1e6, 0); });
+    });
+  }
+  const first = Number.isFinite(dayKeyToUtcMs(r.first)) ? r.first : (Object.keys(days).sort()[0] || '');
+  return { first, days };
+}
+function retentionBump(ret, dayKey, field, n){
+  const r = sanitizeRetention(ret);
+  if(!r.first) r.first = dayKey;
+  const d = r.days[dayKey] || { s:0, l:0, ao:0, aa:0 };
+  d[field] = (d[field]||0) + (n===undefined ? 1 : n);
+  r.days[dayKey] = d;
+  return sanitizeRetention(r);
+}
+function retentionSummary(ret){
+  const r = sanitizeRetention(ret);
+  const keys = Object.keys(r.days);
+  const offsets = new Set(keys.map(k=> dayDiff(r.first, k)));
+  const sum = f=> keys.reduce((a, k)=> a + r.days[k][f], 0);
+  const sessions = sum('s'), levels = sum('l'), ao = sum('ao'), aa = sum('aa');
+  return {
+    firstDay: r.first, activeDays: keys.length,
+    returnedD1: offsets.has(1), returnedD7: offsets.has(7), returnedD30: offsets.has(30),
+    sessionsPerActiveDay: keys.length ? +(sessions / keys.length).toFixed(2) : 0,
+    winsPerSession: sessions ? +(levels / sessions).toFixed(2) : 0,
+    adsOffered: ao, adsWatched: aa, adAcceptRate: ao ? +(aa / ao).toFixed(2) : 0
+  };
+}
+
 // Point d'entrée console pour les développeurs uniquement.
 // Dans les outils de développement du navigateur, taper :
 //   BCD_DEV.validateLevels()               → valide tous les niveaux de LEVELS
@@ -2728,7 +3183,12 @@ window.BCD_DEV = {
       comprehension: { stuck: count('stuck'), hints: count('hint_used'), mechanicsDiscovered: count('mechanic_discovered') },
       depth: { sentierRuns: count('sentier_start'), sentierBoards: count('sentier_board_complete'),
         sentierAvgScore: sentierEnds.length ? Math.round(sentierEnds.reduce((a,e)=> a + (e.p.score||0), 0)/sentierEnds.length) : null },
-      return: { dailyCompleted: count('daily_complete'), gardenOpened: count('garden_open'), shares: count('share') }
+      return: { dailyCompleted: count('daily_complete'), gardenOpened: count('garden_open'), shares: count('share') },
+      // Agrégat par jour (ne s'efface pas avec le journal plafonné) : J1/J7/J30, sessions/jour, pubs.
+      retention: retentionSummary(loadRetention()),
+      garden: { tasksDone: loadGarden().done, roseeEarned: loadGarden().earned, zones: count('garden_zone'),
+        ritualMissions: count('ritual_mission'), ritualChests: count('ritual_chest') },
+      ads: { offered: count('ad_offered'), started: count('ad_start'), completed: count('ad_completed'), skipped: count('ad_skipped') }
     };
   },
   getAnalyticsSummary(){
@@ -2779,6 +3239,13 @@ window.BCD_DEV = {
   getSentierStats(){ return loadSentierStats(); },
   // Lance directement un niveau de campagne (index 0-based), pour la QA.
   playLevel(index){ startLevel(index, false); },
+  // Jardin endormi / rituel / pubs (QA uniquement).
+  getGarden(){ return loadGarden(); },
+  setRosee(n){ const g = loadGarden(); g.rosee = safeInt(n, 0, 1e7, 0); saveGarden(g); refreshHome(); return g.rosee; },
+  setGardenDone(n){ const g = loadGarden(); g.done = safeInt(n, 0, GARDEN_TOTAL_TASKS, 0); saveGarden(g); refreshHome(); return g.done; },
+  getRitual(){ return loadRitual(); },
+  getAdState(){ return loadAdState(); },
+  resetAdCaps(){ safeStorage.remove(ADS_KEY); },
   // QA : solution optimale depuis la position COURANTE (tableau de
   // directions), pour automatiser des parties complètes dans les tests.
   solutionFromHere(){
@@ -2971,7 +3438,12 @@ const SCHEMA_MIGRATIONS = {
   streakFreeze: { current:1, migrations:{} },
   sentier:      { current:1, migrations:{} },
   weeklyChest:  { current:1, migrations:{} },
-  ghosts:       { current:1, migrations:{} }
+  ghosts:       { current:1, migrations:{} },
+  // Boucle de rétention (sections A4/B5).
+  garden:       { current:1, migrations:{} },
+  ritual:       { current:1, migrations:{} },
+  ads:          { current:1, migrations:{} },
+  retention:    { current:1, migrations:{} }
 };
 
 // Lit une donnée versionnée depuis safeStorage et applique en cascade les
@@ -3296,6 +3768,72 @@ function maybeClaimWeeklyChest(){
 }
 
 /* ---------------------------------------------------------
+   B5. JARDIN ENDORMI, RITUEL, PUBS, RÉTENTION — STOCKAGE
+   Fines enveloppes autour de la logique pure (section A4). Toute lecture
+   passe par un sanitize* : une donnée corrompue retombe sur une valeur
+   saine, jamais d'exception. Le jour est la clé locale todayKey(), la
+   même que le défi du jour et la série (un seul « minuit » dans le jeu).
+--------------------------------------------------------- */
+const GARDEN_KEY = 'bcd_garden_v1';
+const RITUAL_KEY = 'bcd_ritual_v1';
+const ADS_KEY = 'bcd_ads_v1';
+const RETENTION_KEY = 'bcd_retention_v1';
+function loadGarden(){ return sanitizeGardenSave(loadVersioned(GARDEN_KEY, 'garden', null)); }
+function saveGarden(g){ saveVersioned(GARDEN_KEY, 'garden', sanitizeGardenSave(g)); }
+function loadRosee(){ return loadGarden().rosee; }
+// Crédite de la rosée (source : 'level', 'daily', 'sentier', 'mission', 'chest', 'ad'…).
+function addRosee(amount, source){
+  const n = safeInt(amount, 0, 1e5, 0);
+  const g = loadGarden();
+  if(n <= 0) return g.rosee;
+  g.rosee += n; g.earned += n;
+  saveGarden(g);
+  Analytics.track('rosee_gain', { source:source||'?', amount:n });
+  return g.rosee;
+}
+function ritualCtx(){
+  return { sentier: isSentierUnlocked(), gardenNext: !gardenStatus(loadGarden().done).complete };
+}
+function loadRitual(){
+  const day = todayKey();
+  const raw = loadVersioned(RITUAL_KEY, 'ritual', null);
+  const rit = sanitizeRitual(raw, day, ritualCtx());
+  if(!raw || raw.day!==day) saveVersioned(RITUAL_KEY, 'ritual', rit); // fige les missions du jour
+  return rit;
+}
+function saveRitual(rit){ saveVersioned(RITUAL_KEY, 'ritual', rit); }
+// Un événement de jeu fait avancer le rituel. Chaque mission accomplie
+// crédite sa rosée tout de suite. Renvoie les missions accomplies.
+function ritualEvent(event){
+  try{
+    const { rit, completed } = ritualApply(loadRitual(), event);
+    saveRitual(rit);
+    completed.forEach(i=>{
+      addRosee(ROSEE.mission, 'mission');
+      Analytics.track('ritual_mission', { id:rit.ids[i] });
+    });
+    return completed.map(i=> ({ id:rit.ids[i], text:ritualMission(rit.ids[i]).text, allDone: ritualAllDone(rit) && !rit.chest }));
+  }catch(e){ return []; }
+}
+// Ouvre le coffre du rituel (une fois par jour, quand les 3 missions sont faites).
+function claimRitualChest(){
+  const rit = loadRitual();
+  if(rit.chest || !ritualAllDone(rit)) return null;
+  rit.chest = true;
+  saveRitual(rit);
+  addRosee(ROSEE.chest, 'chest');
+  addCoins(ROSEE.chestCoins);
+  Analytics.track('ritual_chest', null);
+  return { rosee:ROSEE.chest, coins:ROSEE.chestCoins };
+}
+function loadAdState(){ return sanitizeAdState(loadVersioned(ADS_KEY, 'ads', null), todayKey()); }
+function saveAdState(a){ saveVersioned(ADS_KEY, 'ads', a); }
+function retentionTrack(field, n){
+  try{ saveVersioned(RETENTION_KEY, 'retention', retentionBump(loadVersioned(RETENTION_KEY, 'retention', null), todayKey(), field, n)); }catch(e){}
+}
+function loadRetention(){ return sanitizeRetention(loadVersioned(RETENTION_KEY, 'retention', null)); }
+
+/* ---------------------------------------------------------
    HISTORIQUE DU DÉFI QUOTIDIEN (Blueprint §14 : "Hebdomadaire : total de
    performances quotidiennes") — système en LECTURE SEULE distinct du
    streak (STREAK_KEY, inchangé) et du record absolu (DAILY_BEST_KEY,
@@ -3508,7 +4046,9 @@ const COIN_REWARDS = {
     sentier_first: 15,
     sentier_chain_5: 30,
     sentier_score_150: 40,
-    sentier_perfect_25: 40
+    sentier_perfect_25: 40,
+    garden_5: 20,
+    garden_all: 60
   }
 };
 function loadCoins(){
@@ -3562,7 +4102,9 @@ const SEED_COSMETICS = [
   { id:'braise',     name:'Graine de braise',  price:90,  rarity:'epic',      fx:'braise', light:'#ffe6a8', mid:'#ff8a3a', deep:'#c2331a' },
   { id:'givre',      name:'Graine de givre',   price:90,  rarity:'epic',      fx:'givre',  light:'#f2fbff', mid:'#9fd8f2', deep:'#3f7fa8' },
   { id:'aurore',     name:'Graine d\'aurore',  price:140, rarity:'legendary', fx:'aurore', light:'#d4fbf5', mid:'#b98cf0', deep:'#2e8f83' },
-  { id:'nuit',       name:'Nuit étoilée',      price:150, rarity:'legendary', fx:'nuit',   light:'#8b9bf0', mid:'#2a2f7a', deep:'#0c0e2a' }
+  { id:'nuit',       name:'Nuit étoilée',      price:150, rarity:'legendary', fx:'nuit',   light:'#8b9bf0', mid:'#2a2f7a', deep:'#0c0e2a' },
+  // Exclusive au Jardin endormi : ne s'achète pas, se mérite (zone 5 réveillée).
+  { id:'lune',       name:'Graine de lune',    price:0, exclusive:'Réveille le Grand Arbre du Jardin', rarity:'legendary', fx:'lune', light:'#f4fbff', mid:'#bcd8f5', deep:'#5b6fb8' }
 ];
 // Raretés : une couleur par rang, reprise partout (cartes, étiquettes,
 // éclat de déblocage, son). Aucune rareté n'est aléatoire ni cachée : le
@@ -3621,6 +4163,7 @@ function purchaseCosmetic(id){
   if(!cos) return { ok:false, reason:'unknown' };
   const owned = loadOwnedCosmetics();
   if(owned.includes(id)) return { ok:true, alreadyOwned:true };
+  if(cos.exclusive) return { ok:false, reason:'exclusive' }; // se mérite au Jardin, jamais en coins
   if(!spendCoins(cos.price)){ sfxInsufficientFunds(); return { ok:false, reason:'insufficient_coins' }; }
   owned.push(id);
   saveOwnedCosmetics(owned);
@@ -3836,7 +4379,9 @@ const ACHIEVEMENTS = [
   { id:'sentier_first', name:'Premiers pas sur le Sentier', desc:'Résous un plateau du Sentier.',        icon:'🌿', metric:'sentierSolved', goal:1 },
   { id:'sentier_chain_5', name:'En rythme',       desc:'Enchaîne 5 solutions parfaites dans le Sentier.', icon:'🎵', metric:'sentierBestChain', goal:5 },
   { id:'sentier_score_150', name:'Sprint',        desc:'Marque 150 points en une partie Chrono.',        icon:'⚡', metric:'sentierBestScore', goal:150 },
-  { id:'sentier_perfect_25', name:'Œil du solveur', desc:'Trouve 25 solutions parfaites dans le Sentier.', icon:'👁️', metric:'sentierPerfect', goal:25 }
+  { id:'sentier_perfect_25', name:'Œil du solveur', desc:'Trouve 25 solutions parfaites dans le Sentier.', icon:'👁️', metric:'sentierPerfect', goal:25 },
+  { id:'garden_5',   name:'Jardinier',           desc:'Réveille 5 coins du Jardin.',     icon:'🪴', metric:'gardenDone', goal:5 },
+  { id:'garden_all', name:'Le jardin s’éveille', desc:'Réveille tout le Jardin endormi.', icon:'🌙', metric:'gardenDone', goal:GARDEN_TOTAL_TASKS }
 ];
 // Succès ÉVOLUTIFS (audit §3 : "aucun succès n'est récurrent ou
 // évolutif") : un seul succès à paliers qui ne s'épuise jamais vraiment.
@@ -3889,7 +4434,8 @@ function achievementMetrics(){
     dailyPerfect: loadDailyHistory().filter(e=> e.stars===3).length,
     sentierSolved: st.totalSolved, sentierPerfect: st.totalPerfect,
     sentierBestChain: st.bestChain, sentierBestScore: st.bestScore,
-    perfectTotal: threeStars + st.totalPerfect
+    perfectTotal: threeStars + st.totalPerfect,
+    gardenDone: loadGarden().done
   };
 }
 const ACHIEVEMENTS_KEY = 'bcd_achievements_v1';
@@ -4296,6 +4842,17 @@ function sfxRarityUnlock(rank){
 // Étoiles de victoire : trois notes de verre qui montent sur la gamme.
 function sfxStar(i){ glass(semi(NOTE_D4*2, [9, 14, 19][i] || 19), 0.06, 0, 0.8); }
 function sfxCoinGain(){ glass(semi(NOTE_D4*4, 7), 0.035, 0, 0.3); glass(semi(NOTE_D4*4, 14), 0.03, 0.05, 0.4); }
+// Jardin endormi : la rosée tinte (verre aigu, en goutte), un chantier
+// « pousse » (arpège montant bois → verre), une zone réveillée joue le
+// motif signature, le coffre du rituel s'ouvre (bois puis étincelles).
+function sfxRoseeDrop(i){ glass(semi(NOTE_D4*2, [19, 21, 24, 26][(i||0)%4]), 0.03, 0, 0.35); }
+function sfxRestore(){
+  wood(semi(NOTE_D4, 0), 0.07, 0, 0.18);
+  [0, 4, 7, 9, 14].forEach((n,i)=> glass(semi(NOTE_D4*2, n + 2), 0.05, 0.06 + i*0.07, i===4 ? 1.3 : 0.7));
+  duckMusic();
+}
+function sfxZoneComplete(){ playSignature(NOTE_D4*2, 0.07, 0.12); sfxRarityUnlock(2); }
+function sfxChestOpen(){ wood(semi(NOTE_D4, -5), 0.08, 0, 0.2); wood(semi(NOTE_D4, 0), 0.07, 0.08, 0.2); [14, 19, 21, 26].forEach((n,i)=> glass(semi(NOTE_D4*2, n), 0.045, 0.18 + i*0.06, 0.8)); }
 function vibrate(pattern){ if(!settings.vibration) return; if(navigator.vibrate){ try{ navigator.vibrate(pattern); }catch(e){} } }
 
 /* ---------------------------------------------------------
@@ -4522,6 +5079,8 @@ document.addEventListener('visibilitychange', ()=>{
 const THEMED_SCREENS = ['game', 'victory'];
 function goto(name){
   if(!THEMED_SCREENS.includes(name) && typeof applyWorldTheme==='function') applyWorldTheme(1);
+  // La fête d'une zone du jardin ne survit pas à un changement d'écran (bouton Retour).
+  document.querySelectorAll('.zone-fete').forEach(e=> e.remove());
   // Chaque écran s'ouvre en haut (la carte des mondes gère son propre défilement).
   if(name!=='select'){ try{ window.scrollTo(0, 0); }catch(e){} }
   // Un toast en attente venu d'un autre écran n'a plus de sens en jeu :
@@ -4768,12 +5327,12 @@ function renderAtelierGrid(){
     card.setAttribute('role', 'listitem');
     card.setAttribute('aria-pressed', String(item.id===atelier.sel));
     const isOwned = owned.includes(item.id), isEq = equipped===item.id;
-    card.setAttribute('aria-label', `${item.name}, ${r.label}, ${isEq ? 'équipé' : isOwned ? 'possédé' : item.price+' coins'}`);
+    card.setAttribute('aria-label', `${item.name}, ${r.label}, ${isEq ? 'équipé' : isOwned ? 'possédé' : item.exclusive ? 'à gagner au Jardin' : item.price+' coins'}`);
     card.appendChild(itemSwatchEl(cat.id, item));
     const name = document.createElement('div'); name.className = 'item-name'; name.textContent = item.name;
     const foot = document.createElement('div');
     foot.className = 'item-foot' + (isEq ? ' equipped' : isOwned ? ' owned' : '');
-    foot.textContent = isEq ? '✓ Équipé' : isOwned ? 'Possédé' : `${item.price} 🪙`;
+    foot.textContent = isEq ? '✓ Équipé' : isOwned ? 'Possédé' : item.exclusive ? '🌙 Jardin' : `${item.price} 🪙`;
     card.append(name, foot);
     card.addEventListener('click', ()=>{
       atelier.sel = item.id;
@@ -4802,6 +5361,7 @@ function renderAtelierStage(){
   btn.disabled = false;
   if(item.id===equippedId){ btn.textContent = '✓ Équipé'; btn.classList.add('is-equipped'); btn.disabled = true; }
   else if(owned){ btn.textContent = 'Équiper'; }
+  else if(item.exclusive){ btn.textContent = `🌙 ${item.exclusive}`; btn.classList.add('is-locked'); btn.disabled = true; }
   else if(loadCoins() >= item.price){ btn.textContent = `Débloquer · ${item.price} 🪙`; btn.classList.add('shimmer'); }
   else { btn.textContent = `Encore ${item.price - loadCoins()} 🪙`; btn.classList.add('is-locked'); btn.disabled = true; }
   buildStageScene();
@@ -5078,19 +5638,8 @@ function plantSVG(stage, world, extraClass){
   return `<svg viewBox="0 0 40 56" class="${cls}" role="img" aria-hidden="true">${g}</svg>`;
 }
 
-function renderHomeGarden(){
-  const wrap = document.getElementById('homeGardenPlants');
-  if(!wrap) return;
-  const p = loadProgress();
-  wrap.innerHTML = ALL_WORLDS.map(w=> plantSVG(gardenStageFor(w, p).stage, w)).join('');
-  const t = gardenTotals(p);
-  const cap = document.getElementById('homeGardenCaption');
-  if(cap) cap.textContent = t.score===0 ? '🌱 8 graines attendent d\'être plantées' : `🌷 Le Jardin · floraison ${t.score}/${t.max}`;
-  const btn = document.getElementById('homeGarden');
-  if(btn) btn.setAttribute('aria-label', `Ouvrir le Jardin : floraison ${t.score} sur ${t.max}`);
-}
-
-function renderGarden(){
+// Les plantes des mondes (partie basse de l'écran du Jardin).
+function renderGardenPlants(){
   const p = loadProgress();
   const t = gardenTotals(p);
   document.getElementById('gardenScore').textContent = `${t.score} / ${t.max}`;
@@ -5138,8 +5687,537 @@ function renderGarden(){
     nextEl.innerHTML = `Encore <b>${m.toNext}</b> solution${m.toNext>1?'s':''} parfaite${m.toNext>1?'s':''} dans le Sentier pour la prochaine fleur.`;
   }
 }
-function openGarden(){ renderGarden(); goto('garden'); Analytics.track('garden_open', { score:gardenTotals().score }); }
-document.getElementById('homeGarden').addEventListener('click', openGarden);
+/* =========================================================
+   E4. LE JARDIN ENDORMI — SCÈNES SVG (procédurales, aucun asset)
+   Une scène par zone (viewBox 320×200). Chaque chantier a un état
+   « avant » (ronces, bassin plein de feuilles…) et un état « après »
+   (allée, fontaine…). Un voile de nuit s'éclaircit à chaque chantier :
+   le jardin se RALLUME au fil des jours (direction « jardin de nuit
+   lumineux »). Animations : transform/opacity uniquement, coupées par
+   « Animations réduites ».
+========================================================= */
+const GZ_DEFS = `<defs>
+  <linearGradient id="gzSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a1820"/><stop offset=".62" stop-color="#15322e"/><stop offset="1" stop-color="#21493a"/></linearGradient>
+  <radialGradient id="gzMoonGlow"><stop offset="0" stop-color="#f5e6a8" stop-opacity=".55"/><stop offset="1" stop-color="#f5e6a8" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gzGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a5634"/><stop offset="1" stop-color="#132a1c"/></linearGradient>
+  <linearGradient id="gzStone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfc8b2"/><stop offset="1" stop-color="#857e6c"/></linearGradient>
+  <linearGradient id="gzWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a8743f"/><stop offset="1" stop-color="#6b4526"/></linearGradient>
+  <linearGradient id="gzWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4aa3c2"/><stop offset="1" stop-color="#1c4d63"/></linearGradient>
+  <radialGradient id="gzLamp"><stop offset="0" stop-color="#fff4c2" stop-opacity=".95"/><stop offset=".35" stop-color="#ffd166" stop-opacity=".45"/><stop offset="1" stop-color="#ffd166" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gzLeaf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6cc478"/><stop offset="1" stop-color="#2f7a45"/></linearGradient>
+  <linearGradient id="gzGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8f4ff" stop-opacity=".38"/><stop offset="1" stop-color="#7cc3dd" stop-opacity=".12"/></linearGradient>
+  <radialGradient id="gzMoonFlower"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".4" stop-color="#bfe3ff" stop-opacity=".55"/><stop offset="1" stop-color="#8fb8ff" stop-opacity="0"/></radialGradient>
+</defs>`;
+
+// Petits outils de dessin (chaînes SVG).
+const gz = {
+  f: n=> (Math.round(n*10)/10),
+  bush(x, y, r, c){ return `<circle cx="${gz.f(x)}" cy="${gz.f(y)}" r="${gz.f(r)}" fill="${c||'url(#gzLeaf)'}"/>`; },
+  flower(x, y, c, s){ s = s||1.6; let o=''; for(let k=0;k<5;k++) o += `<ellipse cx="${gz.f(x)}" cy="${gz.f(y-s)}" rx="${gz.f(s*.6)}" ry="${gz.f(s)}" fill="${c}" transform="rotate(${k*72} ${gz.f(x)} ${gz.f(y)})"/>`; return o + `<circle cx="${gz.f(x)}" cy="${gz.f(y)}" r="${gz.f(s*.5)}" fill="#ffe08a"/>`; },
+  tuft(x, y, c){ return `<path d="M${gz.f(x-4)} ${y} Q${gz.f(x-3)} ${y-7} ${gz.f(x-1)} ${y-9} M${x} ${y} Q${x} ${y-9} ${gz.f(x+1)} ${y-11} M${gz.f(x+4)} ${y} Q${gz.f(x+3)} ${y-6} ${gz.f(x+5)} ${y-8}" stroke="${c||'#5fae62'}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`; },
+  lampGlow(x, y, r, cls){ return `<circle class="${cls||'gz-flicker'}" cx="${x}" cy="${y}" r="${r}" fill="url(#gzLamp)"/>`; }
+};
+
+function gzBackdrop(zi){
+  const rng = makeRng(101 + zi*7);
+  let s = `<rect width="320" height="200" fill="url(#gzSky)"/>`;
+  for(let i=0;i<22;i++){
+    s += `<circle class="${i%3===0 ? 'gz-star' : ''}" style="animation-delay:${(rng()*3).toFixed(2)}s" cx="${gz.f(rng()*320)}" cy="${gz.f(rng()*78)}" r="${gz.f(.4 + rng()*.8)}" fill="#fff8e0" opacity="${(.35 + rng()*.5).toFixed(2)}"/>`;
+  }
+  s += `<circle cx="266" cy="34" r="40" fill="url(#gzMoonGlow)"/><circle cx="266" cy="34" r="13" fill="#f7ebbd"/><circle cx="261" cy="31" r="2.6" fill="#e6d79e"/><circle cx="270" cy="38" r="1.8" fill="#e6d79e"/>`;
+  s += `<path d="M0 104 C 40 86, 80 92, 120 100 S 200 84, 240 94 S 300 88, 320 96 L320 200 L0 200 Z" fill="#12281f"/>`;
+  s += `<path d="M0 112 C 50 102, 110 108, 160 110 S 260 102, 320 108 L320 200 L0 200 Z" fill="url(#gzGround)"/>`;
+  for(let i=0;i<14;i++) s += gz.tuft(gz.f(8 + rng()*304), gz.f(150 + rng()*48), i%2 ? '#3f8a4a' : '#4f9d58');
+  return s;
+}
+
+// Chaque zone : { base, tasks:[{ before, after, at:[x,y] }] } (5 chantiers).
+const GZ_ZONES_ART = [
+  // ---------- 1. Le Portail ----------
+  function(){
+    const rng = makeRng(11);
+    let brambles = '';
+    for(let i=0;i<9;i++){
+      const x = 50 + i*25 + rng()*10, y = 196 - rng()*8, h = 38 + rng()*30;
+      brambles += `<path d="M${gz.f(x)} ${gz.f(y)} C ${gz.f(x+14)} ${gz.f(y-h*.6)}, ${gz.f(x-18)} ${gz.f(y-h*.8)}, ${gz.f(x+8)} ${gz.f(y-h)}" stroke="#7a4a52" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+      brambles += `<path d="M${gz.f(x-6)} ${gz.f(y-h*.35)} l-5 -3 M${gz.f(x+4)} ${gz.f(y-h*.55)} l5 -2 M${gz.f(x-2)} ${gz.f(y-h*.75)} l-4 -4" stroke="#8a5a60" stroke-width="1.6" stroke-linecap="round"/>`;
+      brambles += `<ellipse cx="${gz.f(x+6)}" cy="${gz.f(y-h*.5)}" rx="3.4" ry="2" fill="#2f3f2c" transform="rotate(-30 ${gz.f(x+6)} ${gz.f(y-h*.5)})"/>`;
+    }
+    let tufts = ''; for(let i=0;i<8;i++){ tufts += gz.tuft(gz.f(60 + i*27), gz.f(178 + (i%3)*6)); if(i%2) tufts += gz.flower(gz.f(66 + i*27), gz.f(172 + (i%3)*6), '#f2efe2', 1.5); }
+    let stones = ''; for(let i=0;i<9;i++){ const t = i/8, y = 192 - t*76, w = 20 - t*13; stones += `<ellipse cx="${gz.f(160 + (i%2?3:-3)*(1-t))}" cy="${gz.f(y)}" rx="${gz.f(w)}" ry="${gz.f(4.6 - t*2.6)}" fill="url(#gzStone)" opacity=".92"/>`; }
+    let hedge = ''; [[16,112,15],[40,106,17],[66,110,15],[92,106,16],[116,112,12],[204,112,12],[228,106,16],[254,110,15],[280,106,17],[304,112,15]].forEach(([x,y,r],i)=>{ hedge += gz.bush(x, y, r, i%2 ? '#2f7a45' : 'url(#gzLeaf)'); hedge += gz.flower(x-4+(i%3)*4, y-6+(i%2)*5, i%2 ? '#e88fa8' : '#f2efe2', 1.7); });
+    const lantern = x=> `<rect x="${x-2}" y="128" width="4" height="46" fill="#2a2d2b"/><rect x="${x-7}" y="114" width="14" height="15" rx="2.5" fill="#3a2d22"/><rect x="${x-4.5}" y="117" width="9" height="9" rx="1.5" fill="#ffe7a3"/><path d="M${x-8} 114 L${x} 108 L${x+8} 114 Z" fill="#2a2d2b"/>` + gz.lampGlow(x, 121, 30);
+    return {
+      base: `<path d="M0 108 L118 108 L118 102 L0 102 Z M202 108 L320 108 L320 102 L202 102 Z" fill="#2c3a33" opacity=".85"/>`,
+      tasks: [
+        { at:[160,166], before:brambles, after:tufts },
+        { at:[160,150], before:'', after:`<path d="M134 200 L186 200 L168 113 L152 113 Z" fill="#5e5a4c" opacity=".55"/>` + stones },
+        { at:[160,86],
+          before:`<rect x="128" y="100" width="30" height="8" rx="2" fill="#8a8370" transform="rotate(-18 143 104)"/><rect x="164" y="104" width="24" height="7" rx="2" fill="#7a7462" transform="rotate(12 176 107)"/><rect x="150" y="92" width="7" height="20" fill="#6f6958" transform="rotate(-40 153 102)"/>`,
+          after:`<rect x="139" y="62" width="8" height="52" rx="1.5" fill="url(#gzStone)"/><rect x="173" y="62" width="8" height="52" rx="1.5" fill="url(#gzStone)"/><path d="M139 66 Q160 38 181 66" stroke="url(#gzStone)" stroke-width="7" fill="none"/>` +
+                `<path d="M148 112 L148 82 L159 80 L159 112 Z" fill="url(#gzWood)"/><path d="M172 112 L172 82 L164 84 L164 112 Z" fill="url(#gzWood)"/><path d="M150 90 H157 M150 100 H157 M166 92 H170 M166 102 H170" stroke="#5a3a1f" stroke-width="1"/>` +
+                gz.bush(141,66,4,'#3f8a4a') + gz.bush(150,52,3.6,'#4f9d58') + gz.bush(170,52,3.6,'#3f8a4a') + gz.bush(179,66,4,'#4f9d58') + gz.flower(146,58,'#e88fa8',1.6) + gz.flower(174,58,'#e88fa8',1.6) + gz.flower(160,44,'#f2efe2',1.6) },
+        { at:[64,110], before:`<rect x="30" y="108" width="5" height="9" fill="#4a3526"/><rect x="88" y="106" width="5" height="11" fill="#4a3526"/><rect x="232" y="107" width="5" height="10" fill="#4a3526"/><rect x="280" y="108" width="5" height="9" fill="#4a3526"/>`, after:hedge },
+        { at:[104,122], before:`<path d="M100 174 L114 136" stroke="#3a3b38" stroke-width="4" stroke-linecap="round"/><path d="M220 174 L206 140" stroke="#3a3b38" stroke-width="4" stroke-linecap="round"/>`, after: lantern(104) + lantern(216) }
+      ]
+    };
+  },
+  // ---------- 2. La Fontaine ----------
+  function(){
+    const rng = makeRng(22);
+    let leaves = ''; for(let i=0;i<30;i++){ const a = rng()*Math.PI*2, r = Math.sqrt(rng()); const x = 160 + Math.cos(a)*r*62, y = 150 + Math.sin(a)*r*14; leaves += `<ellipse cx="${gz.f(x)}" cy="${gz.f(y)}" rx="4" ry="2.2" fill="${['#7a4b25','#9c6a2e','#5b3a1e','#8a5a28'][i%4]}" transform="rotate(${Math.round(rng()*180)} ${gz.f(x)} ${gz.f(y)})"/>`; }
+    const water = `<ellipse cx="160" cy="150" rx="70" ry="16.5" fill="url(#gzWater)"/><ellipse cx="160" cy="146" rx="52" ry="9" fill="#ffffff" opacity=".07"/><ellipse cx="186" cy="152" rx="7" ry="2" fill="#f7ebbd" opacity=".5"/><path d="M110 152 H132 M190 156 H214 M140 158 H160" stroke="#dff6ff" stroke-width=".8" opacity=".35"/>`;
+    const jets = `<g class="gz-water"><path d="M160 76 C 160 56, 146 60, 134 98" stroke="#d6f3ff" stroke-width="2.2" fill="none" stroke-dasharray="6 5"/><path d="M160 76 C 160 56, 174 60, 186 98" stroke="#d6f3ff" stroke-width="2.2" fill="none" stroke-dasharray="6 5"/><path d="M160 76 L160 60" stroke="#e9f9ff" stroke-width="2" stroke-dasharray="4 3"/></g>` +
+                 `<ellipse class="gz-ripple" cx="160" cy="150" rx="24" ry="5" fill="none" stroke="#dff6ff" stroke-width="1"/><ellipse class="gz-ripple" style="animation-delay:1.1s" cx="160" cy="150" rx="24" ry="5" fill="none" stroke="#dff6ff" stroke-width="1"/>` +
+                 `<circle cx="134" cy="99" r="1.6" fill="#e9f9ff"/><circle cx="186" cy="99" r="1.6" fill="#e9f9ff"/>`;
+    const pad = (x, y, r)=> `<path d="M${x} ${y} m-${r} 0 a${r} ${gz.f(r*.42)} 0 1 0 ${2*r} 0 a${r} ${gz.f(r*.42)} 0 1 0 -${2*r} 0" fill="#3f8f5a"/><path d="M${x} ${y} L${gz.f(x+r)} ${gz.f(y-r*.2)}" stroke="#2c6b41" stroke-width="1.2"/>`;
+    let lotus = ''; for(let k=0;k<7;k++) lotus += `<ellipse cx="205" cy="144" rx="2.4" ry="6" fill="${k%2 ? '#f6b7cf' : '#ffd6e6'}" transform="rotate(${-54 + k*18} 205 150)"/>`;
+    return {
+      base: `<ellipse cx="160" cy="152" rx="112" ry="34" fill="#263a30"/><ellipse cx="160" cy="152" rx="80" ry="23" fill="url(#gzStone)"/><ellipse cx="160" cy="150" rx="70" ry="16.5" fill="#1b2622"/>`,
+      tasks: [
+        { at:[160,150], before:leaves, after:water },
+        { at:[160,110], before:`<path d="M122 142 Q132 128 144 138" stroke="#9b947f" stroke-width="5" fill="none" transform="rotate(-14 134 136)"/><path d="M178 140 Q190 130 198 142" stroke="#9b947f" stroke-width="5" fill="none"/><rect x="152" y="130" width="16" height="16" fill="#8a8370"/>`,
+          after:`<rect x="152" y="96" width="16" height="54" fill="url(#gzStone)"/><path d="M128 96 Q160 120 192 96 Z" fill="url(#gzStone)"/><ellipse cx="160" cy="96" rx="32" ry="5" fill="#d8d2bd"/><rect x="156" y="78" width="8" height="18" fill="url(#gzStone)"/><ellipse cx="160" cy="78" rx="12" ry="3.4" fill="#d8d2bd"/>` },
+        { at:[160,66], before:'', after:jets },
+        { at:[206,150], before:'', after: pad(118,152,9) + pad(200,156,10) + pad(222,146,7) + pad(138,159,6) + lotus + `<circle cx="205" cy="148" r="2.2" fill="#ffe08a"/>` },
+        { at:[56,146], before:'', after:`<rect x="24" y="146" width="64" height="5" rx="1.5" fill="url(#gzWood)"/><rect x="26" y="130" width="60" height="4" rx="1.5" fill="url(#gzWood)"/><rect x="26" y="137" width="60" height="3" rx="1.5" fill="#7a5130"/><path d="M30 151 V162 M82 151 V162 M30 130 V146 M82 130 V146" stroke="#4a2f1c" stroke-width="3"/>` +
+                 `<path d="M98 150 L104 162 L112 162 L118 150 Z" fill="#c46b3f"/>` + gz.bush(108,145,6,'#3f8a4a') + gz.flower(106,141,'#ffd166',1.7) + gz.flower(111,146,'#f2efe2',1.5) }
+      ]
+    };
+  },
+  // ---------- 3. Le Potager ----------
+  function(){
+    const rng = makeRng(33);
+    const bedA = '34,170 136,170 126,136 46,136', bedB = '150,170 252,170 240,136 160,136';
+    let weeds = ''; for(let i=0;i<22;i++){ const x = 36 + rng()*220, y = 142 + rng()*28; weeds += `<path d="M${gz.f(x)} ${gz.f(y)} l-3 -10 l3 4 l2 -12 l2 12 l3 -6 l-1 12 Z" fill="${i%2 ? '#44612f' : '#5b6b2a'}"/>`; }
+    const tilled = `<polygon points="${bedA}" fill="#4a3322"/><polygon points="${bedB}" fill="#4a3322"/>` +
+      [144,152,160].map(y=> `<path d="M${50 - (y-136)*.3} ${y} H${122 + (y-136)*.3} M${164 - (y-136)*.3} ${y} H${236 + (y-136)*.3}" stroke="#2f1f14" stroke-width="2" stroke-linecap="round"/>`).join('');
+    let sprouts = ''; [144,152,160].forEach(y=>{ for(let k=0;k<6;k++){ const xa = 56 + k*13, xb = 170 + k*13; [xa, xb].forEach(x=>{ sprouts += `<path d="M${x} ${y} q-3 -5 -5 -5 M${x} ${y} q3 -6 6 -6" stroke="#7ed17f" stroke-width="1.5" fill="none" stroke-linecap="round"/>`; }); } });
+    let poles = ''; [[180,200],[220,200]].forEach(([a,b])=>{ const top = (a+b)/2; poles += `<path d="M${a-12} 140 L${top} 88 M${top} 88 L${b+12} 140 M${top} 88 L${top} 140" stroke="#8a6a44" stroke-width="2"/>`; });
+    let vines = `<path d="M170 140 C 174 128, 166 118, 174 108 S 186 96, 190 90 M230 140 C 226 126, 236 118, 228 106 S 214 96, 210 90" stroke="#5fae62" stroke-width="1.6" fill="none"/>`;
+    for(let i=0;i<10;i++) vines += `<ellipse cx="${gz.f(172 + (i%5)*14 + (i>4?8:0))}" cy="${gz.f(96 + (i%5)*9)}" rx="3.2" ry="2" fill="#4f9d58" transform="rotate(${i*37} ${gz.f(172 + (i%5)*14 + (i>4?8:0))} ${gz.f(96 + (i%5)*9)})"/>`;
+    const well = `<rect x="266" y="136" width="40" height="32" fill="url(#gzStone)"/><ellipse cx="286" cy="136" rx="20" ry="5" fill="#d8d2bd"/><ellipse cx="286" cy="136" rx="15" ry="3.4" fill="#1c4d63"/>` +
+                 `<path d="M268 136 V104 M304 136 V104" stroke="#6b4526" stroke-width="3"/><path d="M260 106 L286 88 L312 106 Z" fill="#7a4b2c"/><path d="M286 106 V124" stroke="#c8b89a" stroke-width="1"/><rect x="281" y="124" width="10" height="8" rx="1.5" fill="url(#gzWood)"/>` +
+                 [140,148,156,164].map(y=> `<path d="M266 ${y} H306" stroke="#6f6958" stroke-width=".8" opacity=".6"/>`).join('');
+    const sunflower = (x, top)=>{ let s = `<path d="M${x} 136 L${x} ${top}" stroke="#4f8f3f" stroke-width="2.4"/><ellipse cx="${x-5}" cy="${top+22}" rx="6" ry="2.6" fill="#4f9d58" transform="rotate(-25 ${x-5} ${top+22})"/><ellipse cx="${x+5}" cy="${top+30}" rx="6" ry="2.6" fill="#3f8a4a" transform="rotate(25 ${x+5} ${top+30})"/>`;
+      for(let k=0;k<12;k++) s += `<ellipse cx="${x}" cy="${top-8}" rx="2.4" ry="5" fill="${k%2 ? '#ffc93c' : '#ffd96a'}" transform="rotate(${k*30} ${x} ${top})"/>`;
+      return s + `<circle cx="${x}" cy="${top}" r="5" fill="#6b4020"/><circle cx="${x-1.4}" cy="${top-1.4}" r="1.6" fill="#8a5a2c"/>`; };
+    return {
+      base: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].map(i=> `<rect x="${6 + i*20}" y="100" width="4" height="14" fill="#4a3526"/>`).join('') + `<path d="M4 104 H316" stroke="#4a3526" stroke-width="2"/>` +
+            `<polygon points="${bedA}" fill="#34281c"/><polygon points="${bedB}" fill="#34281c"/><polygon points="${bedA}" fill="none" stroke="url(#gzWood)" stroke-width="3"/><polygon points="${bedB}" fill="none" stroke="url(#gzWood)" stroke-width="3"/>`,
+      tasks: [
+        { at:[143,152], before:weeds, after:tilled },
+        { at:[90,150], before:'', after:sprouts },
+        { at:[200,112], before:'', after:poles + vines },
+        { at:[286,140], before:`<ellipse cx="286" cy="164" rx="20" ry="6" fill="#6f6958"/><circle cx="276" cy="158" r="6" fill="#8a8370"/><circle cx="292" cy="156" r="7" fill="#7a7462"/><circle cx="284" cy="150" r="5" fill="#9b947f"/>`, after:well },
+        { at:[72,92], before:'', after: sunflower(46,96) + sunflower(66,84) + sunflower(88,92) + sunflower(108,80) }
+      ]
+    };
+  },
+  // ---------- 4. La Serre ----------
+  function(){
+    const rng = makeRng(44);
+    const frame = `<path d="M92 128 V64 H228 V128 M86 64 L160 34 L234 64" stroke="#43564f" stroke-width="3" fill="none" stroke-linejoin="round"/>` +
+      [109,126,143,160,177,194,211].map(x=> `<path d="M${x} 64 V128" stroke="#43564f" stroke-width="1.6"/>`).join('') + `<path d="M92 96 H228" stroke="#43564f" stroke-width="1.6"/>` +
+      [110,135,160,185,210].map(x=> `<path d="M${x} ${64 - (x<160 ? (x-86) : (234-x))*30/74} L${x} 64" stroke="#43564f" stroke-width="1.4"/>`).join('');
+    let ivy = `<path d="M92 128 C 100 100, 86 80, 110 66 S 150 40, 168 46 M228 128 C 222 104, 236 90, 214 72" stroke="#2b4a2f" stroke-width="2" fill="none"/>`;
+    for(let i=0;i<46;i++){ const x = 90 + rng()*140, y = 40 + rng()*88; ivy += `<ellipse cx="${gz.f(x)}" cy="${gz.f(y)}" rx="${gz.f(3 + rng()*2.5)}" ry="${gz.f(2 + rng()*1.6)}" fill="${['#24452b','#2f5a36','#3a6b40'][i%3]}" transform="rotate(${Math.round(rng()*180)} ${gz.f(x)} ${gz.f(y)})"/>`; }
+    const glass = `<rect x="93" y="65" width="134" height="62" fill="url(#gzGlass)"/><polygon points="88,63 160,35 232,63" fill="url(#gzGlass)"/>` +
+      `<g class="gz-sheen"><path d="M104 124 L130 68 M150 124 L176 68 M196 124 L218 76" stroke="#ffffff" stroke-width="2.2" opacity=".22"/></g>`;
+    const pot = (x, y, s)=> `<path d="M${x-5*s} ${y} L${x-3.6*s} ${y+8*s} L${x+3.6*s} ${y+8*s} L${x+5*s} ${y} Z" fill="#c46b3f"/><rect x="${x-5.6*s}" y="${y-1.6*s}" width="${11.2*s}" height="${2.4*s}" rx="1" fill="#d88453"/>` + gz.bush(x-2*s, y-3*s, 3*s, '#3f8a4a') + gz.bush(x+2*s, y-4*s, 3.2*s, '#4f9d58');
+    let pots = `<rect x="100" y="112" width="120" height="4" fill="url(#gzWood)"/><rect x="104" y="88" width="112" height="3" fill="url(#gzWood)"/><path d="M104 116 V128 M216 116 V128" stroke="#5a3a1f" stroke-width="2.4"/>`;
+    [112,134,156,178,200].forEach(x=>{ pots += pot(x, 102, 1); });
+    [118,146,174,202].forEach(x=>{ pots += pot(x, 80, .8); });
+    let orchids = ''; [[112,94],[134,94],[156,94],[178,94],[200,94],[118,73],[146,73],[174,73],[202,73]].forEach(([x,y],i)=>{ orchids += gz.flower(x, y, ['#c79bf0','#f6b7cf','#f2efe2','#e88fa8'][i%4], 2.1); });
+    let lights = `<path d="M88 64 Q124 58 160 36 Q196 58 232 64" stroke="#2a2d2b" stroke-width=".8" fill="none"/>`;
+    for(let i=0;i<=12;i++){ const t = i/12, x = 88 + t*144, y = t<.5 ? 64 - (t/.5)*28 + Math.sin(t*Math.PI*2)*3 : 36 + ((t-.5)/.5)*28 + Math.sin(t*Math.PI*2)*3;
+      lights += `<circle class="gz-twinkle" style="animation-delay:${(i*.23).toFixed(2)}s" cx="${gz.f(x)}" cy="${gz.f(y+2)}" r="2.2" fill="${['#ffd166','#fff3c4','#ffb86b'][i%3]}"/>`; }
+    lights += `<rect class="gz-flicker" x="93" y="65" width="134" height="62" fill="#ffd166" opacity=".12"/>`;
+    return {
+      base: `<rect x="80" y="126" width="160" height="8" rx="2" fill="#3a3f38"/>` + frame,
+      tasks: [
+        { at:[160,92], before:ivy, after: gz.bush(96,126,3,'#3f8a4a') + gz.bush(224,126,3,'#3f8a4a') },
+        { at:[122,84], before:'', after:glass },
+        { at:[160,108], before:'', after:pots },
+        { at:[146,82], before:'', after:orchids },
+        { at:[160,44], before:'', after:lights }
+      ]
+    };
+  },
+  // ---------- 5. Le Grand Arbre ----------
+  function(){
+    const rng = makeRng(55);
+    const stream = `<path d="M320 118 C 280 126, 262 140, 250 156 S 214 188, 196 200 L236 200 C 250 186, 268 168, 282 156 S 306 136, 320 132 Z" fill="url(#gzWater)"/><path d="M300 128 C 286 136, 272 148, 262 160 M232 190 C 244 178, 256 168, 266 160" stroke="#dff6ff" stroke-width=".8" opacity=".35" fill="none"/>`;
+    const trunk = `<path d="M108 172 C 114 150, 112 118, 118 92 C 120 80, 126 70, 130 62 L138 64 C 134 76, 132 88, 132 100 C 132 126, 134 150, 140 172 Z" fill="#5a3a24"/><path d="M104 172 C 110 168, 116 166, 122 170 M140 172 C 134 166, 128 168, 124 172" stroke="#4a2f1c" stroke-width="3" fill="none"/>` +
+                  `<path d="M130 74 C 150 66, 170 64, 196 66" stroke="#5a3a24" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M122 86 C 106 76, 92 72, 78 70" stroke="#5a3a24" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    let dead = ''; [[130,62,-10,-26],[130,62,14,-24],[196,66,10,-14],[78,70,-12,-12],[118,82,-16,-20],[160,66,6,-20]].forEach(([x,y,dx,dy])=>{ dead += `<path d="M${x} ${y} l${dx} ${dy} m${-dx*.4} ${-dy*.4} l${dx*.5} ${-4}" stroke="#6f6a60" stroke-width="2" fill="none" stroke-linecap="round"/>`; });
+    let canopy = ''; [[80,64,22],[104,46,26],[134,36,28],[164,44,26],[192,58,22],[116,70,20],[152,68,22],[178,74,16],[92,82,14]].forEach(([x,y,r],i)=>{ canopy += gz.bush(x, y, r, i%3===0 ? '#2f7a45' : (i%3===1 ? 'url(#gzLeaf)' : '#3f8a4a')); });
+    [[100,40,8],[136,28,9],[170,40,8],[124,58,7]].forEach(([x,y,r])=>{ canopy += `<circle cx="${x}" cy="${y}" r="${r}" fill="#8fd694" opacity=".35"/>`; });
+    let bridge = `<path d="M232 170 Q266 136 304 150" stroke="url(#gzWood)" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+    for(let i=0;i<7;i++){ const t = i/6, x = 232 + t*72, y = (1-t)*(1-t)*170 + 2*t*(1-t)*136 + t*t*150; bridge += `<path d="M${gz.f(x)} ${gz.f(y-3)} V${gz.f(y-15)}" stroke="#7a4b2c" stroke-width="1.8"/>`; }
+    bridge += `<path d="M232 155 Q266 121 304 135" stroke="#8a5a2c" stroke-width="2" fill="none"/>`;
+    const swing = `<g class="gz-swing"><path d="M172 70 V128 M190 70 V128" stroke="#d8c7a2" stroke-width="1.2"/><rect x="167" y="127" width="28" height="4.5" rx="1.5" fill="url(#gzWood)"/></g>`;
+    let flies = ''; for(let i=0;i<16;i++){ const x = 60 + rng()*170, y = 30 + rng()*120;
+      flies += `<g class="gz-fly" style="animation-delay:${(rng()*4).toFixed(2)}s;animation-duration:${(3 + rng()*3).toFixed(2)}s"><circle cx="${gz.f(x)}" cy="${gz.f(y)}" r="6" fill="url(#gzLamp)"/><circle cx="${gz.f(x)}" cy="${gz.f(y)}" r="1.4" fill="#fff6c2"/></g>`; }
+    let moon = `<circle class="gz-pulse" cx="120" cy="162" r="30" fill="url(#gzMoonFlower)"/><path d="M120 176 V166" stroke="#6fbf73" stroke-width="2"/>`;
+    for(let k=0;k<8;k++) moon += `<ellipse cx="120" cy="153" rx="3.6" ry="8" fill="${k%2 ? '#e8f3ff' : '#cfe6ff'}" transform="rotate(${k*45} 120 161)"/>`;
+    moon += `<circle cx="120" cy="161" r="3.4" fill="#fff8d6"/>`;
+    return {
+      base: stream + trunk,
+      tasks: [
+        { at:[134,52], before:dead, after:canopy },
+        { at:[268,150], before:'', after:bridge },
+        { at:[181,112], before:'', after:swing },
+        { at:[150,96], before:'', after:flies },
+        { at:[120,160], before:`<path d="M120 176 V164" stroke="#5f6f5a" stroke-width="2"/><ellipse cx="120" cy="161" rx="3.4" ry="5.4" fill="#7c8a88"/>`, after:moon }
+      ]
+    };
+  }
+];
+const GZ_ART_CACHE = [];
+function gardenZoneArt(zi){ return GZ_ART_CACHE[zi] || (GZ_ART_CACHE[zi] = GZ_ZONES_ART[zi]()); }
+
+// Scène complète d'une zone. doneInZone : chantiers faits (0..5).
+// opts.justK : indice du chantier qui vient d'être fait (animation de pousse).
+// opts.marker : montre où aura lieu le prochain chantier.
+function gardenSceneSVG(zi, doneInZone, opts){
+  opts = opts || {};
+  const art = gardenZoneArt(zi);
+  const life = doneInZone / art.tasks.length;
+  let s = `<svg viewBox="0 0 320 200" class="gz-svg" role="img" aria-label="${GARDEN_ZONES[zi].name} : ${doneInZone} sur ${art.tasks.length} chantiers">${GZ_DEFS}${gzBackdrop(zi)}${art.base}`;
+  art.tasks.forEach((t, k)=>{
+    const done = k < doneInZone;
+    if(!done && t.before) s += `<g class="gz-before">${t.before}</g>`;
+    if(done) s += `<g class="gz-after${opts.justK===k ? ' gz-new' : ''}">${t.after}</g>`;
+  });
+  if(opts.justK!==undefined && opts.justK!==null){
+    const t = art.tasks[opts.justK];
+    if(t && t.before) s += `<g class="gz-leaving">${t.before}</g>`;
+  }
+  // Voile de nuit : s'éclaircit à chaque chantier (le jardin se rallume).
+  s += `<rect class="gz-veil" width="320" height="200" fill="#07121a" style="opacity:${(0.44*(1-life)).toFixed(3)}"/>`;
+  if(opts.marker && doneInZone < art.tasks.length){
+    const [x, y] = art.tasks[doneInZone].at;
+    s += `<g class="gz-marker"><circle cx="${x}" cy="${y}" r="11" fill="none" stroke="#ffd166" stroke-width="1.6" stroke-dasharray="3 3"/><circle cx="${x}" cy="${y}" r="2.4" fill="#ffd166"/></g>`;
+  }
+  // Identifiants de dégradés UNIQUES par rendu : plusieurs scènes coexistent
+  // (accueil, jardin, fête) et un url(#id) visant un SVG masqué ne se peint pas.
+  const idp = 'gz' + (++gardenSvgSeq) + '_';
+  return (s + '</svg>').replace(/gz(?=(Sky|MoonGlow|Ground|Stone|Wood|Water|Lamp|Leaf|Glass|MoonFlower)\b)/g, idp);
+}
+let gardenSvgSeq = 0;
+
+/* ---------------------------------------------------------
+   E4 (suite). ÉCRAN DU JARDIN ENDORMI : scène, prochain chantier, fête.
+--------------------------------------------------------- */
+const gardenView = { zone:null };
+function bumpPill(el){ if(!el) return; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+function renderRoseePill(){
+  const el = document.getElementById('gardenRoseePill');
+  if(el) el.textContent = `💧 ${loadRosee()}`;
+}
+// Zone visible : la zone en cours par défaut ; on peut revoir les zones
+// réveillées et apercevoir la suivante (verrouillée, en silhouette).
+function renderGardenScene(opts){
+  opts = opts || {};
+  const g = loadGarden(), st = gardenStatus(g.done);
+  const maxZone = Math.min(GARDEN_ZONES.length - 1, st.zoneIndex + (st.complete ? 0 : 1));
+  if(gardenView.zone===null || gardenView.zone > maxZone) gardenView.zone = st.zoneIndex;
+  const zi = gardenView.zone;
+  const locked = zi > st.zoneIndex;
+  const doneHere = locked ? 0 : gardenZoneDone(g.done, zi);
+  const scene = document.getElementById('gzScene');
+  scene.innerHTML = gardenSceneSVG(zi, doneHere, { justK:opts.justK, marker: !locked && zi===st.zoneIndex && !st.complete });
+  if(locked){
+    const lk = document.createElement('div');
+    lk.className = 'gz-locked';
+    lk.textContent = `🔒 Réveille « ${GARDEN_ZONES[st.zoneIndex].name} » pour ouvrir ce coin du jardin.`;
+    scene.appendChild(lk);
+  }
+  document.getElementById('gzZoneName').textContent = GARDEN_ZONES[zi].name;
+  document.getElementById('gzPips').innerHTML = GARDEN_ZONES[zi].tasks.map((t, k)=> `<span class="gz-pip${k < doneHere ? ' on' : ''}"></span>`).join('');
+  document.getElementById('gzPips').setAttribute('aria-label', `${doneHere} chantiers sur ${GARDEN_ZONES[zi].tasks.length}`);
+  document.getElementById('gzPrev').hidden = zi <= 0;
+  document.getElementById('gzNext').hidden = zi >= maxZone;
+}
+function renderGardenTask(){
+  const g = loadGarden(), st = gardenStatus(g.done);
+  const btn = document.getElementById('btnRestore');
+  const fill = document.getElementById('gztFill');
+  if(st.complete){
+    document.getElementById('gztKicker').textContent = 'Le jardin est entièrement réveillé';
+    document.getElementById('gztName').textContent = '🌙 Merci, jardinier.';
+    fill.style.width = '100%';
+    document.getElementById('gztCount').textContent = `💧 ${g.rosee}`;
+    btn.hidden = true;
+    document.getElementById('gztHelp').textContent = 'Ta rosée reste en réserve.';
+  } else {
+    const cost = st.next.task.cost, can = g.rosee >= cost;
+    document.getElementById('gztKicker').textContent = `Prochain chantier · ${st.next.zone.name}`;
+    document.getElementById('gztName').textContent = st.next.task.name;
+    fill.style.width = Math.min(100, Math.round(g.rosee / cost * 100)) + '%';
+    document.getElementById('gztCount').textContent = `💧 ${Math.min(g.rosee, cost)} / ${cost}`;
+    btn.hidden = false;
+    btn.disabled = !can;
+    btn.classList.toggle('shimmer', can);
+    btn.textContent = can ? `✨ Réveiller · ${cost} 💧` : `Encore ${cost - g.rosee} 💧`;
+    document.getElementById('gztHelp').textContent = can
+      ? 'Touche pour réveiller ce coin du jardin.'
+      : 'La rosée vient des nouvelles étoiles, du défi du jour, du rituel et du Sentier.';
+  }
+  const boost = document.getElementById('btnGardenBoost');
+  const canBoost = AdService.canOffer('garden_boost') && !st.complete;
+  boost.hidden = !canBoost;
+  if(canBoost) AdService.offered('garden_boost', boost);
+  renderRoseePill();
+}
+function renderGardenMain(){
+  renderGardenScene();
+  renderGardenTask();
+  renderRitualCard();
+}
+
+// Position (en px, relative à la scène) d'un point de la scène (coordonnées SVG).
+function gardenPointPx(zi, k){
+  const scene = document.getElementById('gzScene');
+  const [x, y] = gardenZoneArt(zi).tasks[k].at;
+  return { x: x / 320 * scene.clientWidth, y: y / 200 * scene.clientHeight };
+}
+function gardenSparks(stage, x, y, n){
+  const ring = document.createElement('div');
+  ring.className = 'gz-bloomring'; ring.style.left = x+'px'; ring.style.top = y+'px';
+  stage.appendChild(ring); setTimeout(()=> ring.remove(), 900);
+  for(let i=0;i<(n||10);i++){
+    const sp = document.createElement('div');
+    sp.className = 'gz-spark'; sp.style.left = x+'px'; sp.style.top = y+'px';
+    sp.style.setProperty('--r', Math.round(i*360/(n||10) + Math.random()*20)+'deg');
+    sp.style.animationDelay = (Math.random()*0.08).toFixed(2)+'s';
+    stage.appendChild(sp); setTimeout(()=> sp.remove(), 1000);
+  }
+}
+// Gouttes de rosée qui volent d'un point de départ (écran) vers la scène.
+function gardenDrops(stage, fromEl, to, n){
+  const sr = stage.getBoundingClientRect();
+  const fr = fromEl.getBoundingClientRect();
+  const x0 = fr.left + fr.width/2 - sr.left, y0 = fr.top + fr.height/2 - sr.top;
+  for(let i=0;i<n;i++){
+    const d = document.createElement('div');
+    d.className = 'gz-drop';
+    d.style.left = (x0 + (Math.random()*40-20))+'px'; d.style.top = (y0 + (Math.random()*10-5))+'px';
+    d.style.setProperty('--dx', (to.x - x0 + (Math.random()*16-8))+'px');
+    d.style.setProperty('--dy', (to.y - y0 + (Math.random()*10-5))+'px');
+    d.style.animationDelay = (i*0.06)+'s';
+    stage.appendChild(d);
+    setTimeout(()=>{ d.remove(); }, 800 + i*60);
+    setTimeout(()=> sfxRoseeDrop(i), i*60 + 120);
+  }
+}
+let restoreBusy = false;
+function restoreNextTask(){
+  if(restoreBusy) return;
+  const r = gardenRestoreNext(loadGarden());
+  if(!r.ok){ if(r.reason==='rosee'){ sfxInsufficientFunds(); vibrate(20); } return; }
+  restoreBusy = true;
+  saveGarden(r.save);
+  const zi = r.task.zi, k = r.task.ti;
+  Analytics.track('garden_task', { zone:r.task.zone.id, task:r.task.task.id, done:r.save.done });
+  gardenView.zone = zi;
+  renderGardenScene(); // revient sur la zone du chantier si on regardait ailleurs
+  renderGardenTask();
+  const stage = document.getElementById('gzStage');
+  const to = gardenPointPx(zi, k);
+  const reduced = document.documentElement.classList.contains('reduce-motion') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if(!reduced) gardenDrops(stage, document.getElementById('btnRestore'), to, 6);
+  const delay = reduced ? 0 : 560;
+  setTimeout(()=>{
+    renderGardenScene({ justK:k });
+    if(!reduced) gardenSparks(stage, to.x, to.y, 12);
+    sfxRestore();
+    vibrate([10, 30, 20]);
+    const cheer = document.createElement('div');
+    cheer.className = 'gz-cheer';
+    cheer.textContent = '✨ ' + r.task.task.cheer;
+    stage.appendChild(cheer);
+    setTimeout(()=> cheer.remove(), 2700);
+    announceGardenStatus(`${r.task.task.name} : fait. ${r.task.task.cheer}`);
+    restoreBusy = false;
+  }, delay);
+  // Le rituel compte ce geste (mission « Réveille un coin du jardin »).
+  const missions = ritualEvent({ type:'garden_restore' });
+  if(missions.length) setTimeout(()=>{ renderRitualCard(); renderGardenTask(); showSimpleToast('✅', 'Rituel', missions[0].text + ' · +' + ROSEE.mission + ' 💧', 'info-toast'); }, delay + 900);
+  else renderRitualCard();
+  if(r.zoneCompleted){
+    const rewards = grantZoneRewards(r.zone);
+    setTimeout(()=> showZoneFete(zi, rewards), delay + 1500);
+  }
+  checkAchievements({ inline:false });
+}
+function grantZoneRewards(zone){
+  const out = [];
+  if(zone.reward.coins){ addCoins(zone.reward.coins); out.push({ icon:'🪙', text:'+' + zone.reward.coins, kind:'coins' }); }
+  if(zone.reward.cosmetic){
+    const owned = loadOwnedCosmetics();
+    if(!owned.includes(zone.reward.cosmetic)){ owned.push(zone.reward.cosmetic); saveOwnedCosmetics(owned); }
+    const c = SEED_COSMETICS.find(x=> x.id===zone.reward.cosmetic);
+    if(c) out.push({ icon:'🌙', text:c.name + ' (légendaire)', kind:'unlock' });
+  }
+  Analytics.track('garden_zone', { zone:zone.id });
+  return out;
+}
+// La petite fête d'une zone réveillée : jamais bloquante, fermée d'un toucher.
+function showZoneFete(zi, rewards){
+  document.querySelectorAll('.zone-fete').forEach(e=> e.remove());
+  const zone = GARDEN_ZONES[zi];
+  const next = GARDEN_ZONES[zi+1];
+  const wrap = document.createElement('div');
+  wrap.className = 'zone-fete';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-label', `${zone.name} est réveillé`);
+  wrap.innerHTML = `<div class="zf-card"><div class="zf-kicker">Zone réveillée</div><div class="zf-title">${zone.name}</div>
+    <div class="zf-scene">${gardenSceneSVG(zi, zone.tasks.length, {})}</div><div class="zf-rewards"></div>
+    <button class="btn btn-primary" type="button">${next ? 'Découvrir : ' + next.name + ' →' : 'Admirer le jardin'}</button>
+    <div class="zf-hint">Touche n'importe où pour continuer</div></div>`;
+  const rw = wrap.querySelector('.zf-rewards');
+  rewards.forEach(r=>{ const c = document.createElement('div'); c.className = 'reward-chip ' + r.kind; c.innerHTML = `<span>${r.icon}</span><span>${r.text}</span>`; rw.appendChild(c); });
+  const card = wrap.querySelector('.zf-card');
+  const colors = ['#ffd166', '#e88fa8', '#f2efe2', '#8fcfe8', '#c79bf0'];
+  for(let i=0;i<22;i++){
+    const p = document.createElement('div');
+    p.className = 'zf-petal';
+    const a = Math.random()*Math.PI*2, d = 90 + Math.random()*110;
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty('--dx', Math.round(Math.cos(a)*d)+'px'); p.style.setProperty('--dy', Math.round(Math.sin(a)*d + 60)+'px');
+    p.style.setProperty('--rot', Math.round(Math.random()*540)+'deg');
+    p.style.animationDelay = (Math.random()*0.25).toFixed(2)+'s';
+    card.appendChild(p);
+  }
+  const close = ()=>{
+    if(!wrap.isConnected) return;
+    wrap.remove();
+    if(next){ gardenView.zone = zi + 1; renderGardenScene(); }
+  };
+  wrap.addEventListener('click', close);
+  wrap.addEventListener('keydown', e=>{ if(e.key==='Escape'){ e.preventDefault(); close(); } });
+  document.body.appendChild(wrap);
+  sfxZoneComplete();
+  vibrate([20, 40, 20, 40, 60]);
+  wrap.querySelector('button').focus();
+}
+function announceGardenStatus(text){ const el = document.getElementById('gardenLive'); if(el) el.textContent = text; }
+
+// ---- Rituel du jour : carte (Jardin) et bandeau (accueil) ----
+function renderRitualCard(){
+  const wrap = document.getElementById('gardenRitual');
+  if(!wrap) return;
+  const rit = loadRitual();
+  const allDone = ritualAllDone(rit);
+  const n = rit.ids.filter((id, i)=> rit.prog[i] >= ritualMission(id).target).length;
+  let html = `<div class="rc-head"><b>🌅 Rituel du jour</b><span>${n} / 3</span></div>`;
+  rit.ids.forEach((id, i)=>{
+    const m = ritualMission(id), done = rit.prog[i] >= m.target;
+    html += `<div class="rc-mission${done ? ' done' : ''}"><span class="rc-check">${done ? '✓' : ''}</span><span class="rc-text">${m.text}</span>` +
+            `<span class="rc-prog">${done ? '+' + ROSEE.mission + ' 💧' : rit.prog[i] + ' / ' + m.target}</span></div>`;
+  });
+  html += `<div class="rc-chest"><span class="rc-chest-icon${allDone && !rit.chest ? ' ready' : ''}">${rit.chest ? '✅' : '🎁'}</span><span class="rc-chest-text" id="rcChestText"></span></div>`;
+  wrap.innerHTML = html;
+  const chest = wrap.querySelector('.rc-chest');
+  const txt = wrap.querySelector('#rcChestText');
+  if(!rit.chest && allDone){
+    txt.textContent = `Coffre prêt : +${ROSEE.chest} 💧 +${ROSEE.chestCoins} 🪙`;
+    const b = document.createElement('button'); b.className = 'btn btn-primary shimmer'; b.id = 'btnRitualChest'; b.textContent = 'Ouvrir';
+    b.addEventListener('click', openRitualChest);
+    chest.appendChild(b);
+  } else if(rit.chest){
+    txt.textContent = 'Coffre ouvert. Un nouveau rituel t\'attend demain.';
+    if(!rit.bonus && AdService.canOffer('ritual_chest_bonus')){
+      const b = document.createElement('button'); b.className = 'ad-offer'; b.id = 'btnRitualBonus';
+      b.innerHTML = `▶ Second coffre : +${ROSEE.adChest} 💧 <span class="ad-tag">PUB</span>`;
+      b.addEventListener('click', ()=> watchAdFor('ritual_chest_bonus', b, ()=>{
+        const r = loadRitual(); r.bonus = true; saveRitual(r);
+        addRosee(ROSEE.adChest, 'ad'); sfxChestOpen(); renderGardenMain(); bumpPill(document.getElementById('gardenRoseePill'));
+      }));
+      chest.appendChild(b);
+      AdService.offered('ritual_chest_bonus', b);
+    }
+  } else {
+    txt.textContent = `Les 3 missions ouvrent le coffre : +${ROSEE.chest} 💧 +${ROSEE.chestCoins} 🪙`;
+  }
+}
+function openRitualChest(){
+  const got = claimRitualChest();
+  if(!got) return;
+  sfxChestOpen();
+  vibrate([15, 30, 15]);
+  const icon = document.querySelector('#gardenRitual .rc-chest-icon');
+  const stage = document.getElementById('gzStage');
+  if(icon && stage && !document.documentElement.classList.contains('reduce-motion')){
+    const st = gardenStatus(loadGarden().done);
+    const target = st.complete ? { x:stage.clientWidth/2, y:stage.clientHeight/2 } : gardenPointPx(st.next.zi, st.next.ti);
+    if(gardenView.zone===null || gardenView.zone===st.zoneIndex) gardenDrops(stage, icon, target, 5);
+  }
+  showSimpleToast('🎁', 'Coffre du rituel', `+${got.rosee} 💧 · +${got.coins} 🪙`, 'info-toast');
+  renderGardenMain();
+  bumpPill(document.getElementById('gardenRoseePill'));
+}
+function renderHomeRitual(){
+  const btn = document.getElementById('homeRitual');
+  if(!btn) return;
+  const rit = loadRitual();
+  const allDone = ritualAllDone(rit);
+  document.getElementById('homeRitualDots').innerHTML = rit.ids.map((id, i)=> {
+    const done = rit.prog[i] >= ritualMission(id).target;
+    return `<span class="hr-dot${done ? ' on' : ''}">${done ? '✓' : ''}</span>`;
+  }).join('');
+  document.getElementById('homeRitualChest').textContent = rit.chest ? '✅' : '🎁';
+  btn.classList.toggle('ready', allDone && !rit.chest);
+  const n = rit.ids.filter((id, i)=> rit.prog[i] >= ritualMission(id).target).length;
+  btn.setAttribute('aria-label', `Rituel du jour : ${n} missions sur 3${allDone && !rit.chest ? ', coffre prêt' : ''}`);
+}
+
+// ---- Accueil : le prochain chantier, toujours visible ----
+function renderHomeGarden(){
+  const g = loadGarden(), st = gardenStatus(g.done);
+  const sceneEl = document.getElementById('homeGardenScene');
+  if(!sceneEl) return;
+  const zi = st.zoneIndex;
+  sceneEl.innerHTML = gardenSceneSVG(zi, gardenZoneDone(g.done, zi), {});
+  const badge = document.getElementById('homeGardenBadge');
+  if(st.complete){
+    document.getElementById('homeGardenTitle').textContent = 'Le Jardin · réveillé';
+    document.getElementById('homeGardenNext').textContent = '🌙 Tout le jardin brille';
+    document.getElementById('homeGardenFill').style.width = '100%';
+    document.getElementById('homeGardenCaption').textContent = `💧 ${g.rosee} en réserve`;
+    badge.hidden = true;
+  } else {
+    const cost = st.next.task.cost, can = g.rosee >= cost;
+    document.getElementById('homeGardenTitle').textContent = `${st.next.zone.name} · ${st.zoneDone}/${st.zoneSize}`;
+    document.getElementById('homeGardenNext').textContent = st.next.task.name;
+    document.getElementById('homeGardenFill').style.width = Math.min(100, Math.round(g.rosee / cost * 100)) + '%';
+    document.getElementById('homeGardenCaption').textContent = can ? `💧 ${g.rosee} · de quoi le réveiller !` : `💧 ${g.rosee} / ${cost}`;
+    badge.hidden = !can;
+  }
+  const btn = document.getElementById('homeGarden');
+  if(btn) btn.setAttribute('aria-label', st.complete ? 'Ouvrir le Jardin : entièrement réveillé' :
+    `Ouvrir le Jardin. Prochain chantier : ${st.next.task.name}, ${g.rosee} sur ${st.next.task.cost} rosée`);
+  renderHomeRitual();
+}
+
+function renderGarden(){ renderGardenMain(); renderGardenPlants(); }
+function openGarden(scrollToRitual){
+  gardenView.zone = null;
+  renderGarden(); goto('garden');
+  Analytics.track('garden_open', { score:gardenTotals().score, done:loadGarden().done });
+  if(scrollToRitual===true){ const r = document.getElementById('gardenRitual'); if(r) setTimeout(()=> r.scrollIntoView({ block:'center', behavior:'smooth' }), 80); }
+}
+document.getElementById('btnRestore').addEventListener('click', restoreNextTask);
+document.getElementById('gzPrev').addEventListener('click', ()=>{ gardenView.zone = Math.max(0, (gardenView.zone||0) - 1); renderGardenScene(); });
+document.getElementById('gzNext').addEventListener('click', ()=>{ gardenView.zone = (gardenView.zone||0) + 1; renderGardenScene(); });
+document.getElementById('homeRitual').addEventListener('click', ()=> openGarden(true));
+document.getElementById('btnGardenBoost').addEventListener('click', e=> watchAdFor('garden_boost', e.currentTarget, ()=>{
+  addRosee(ROSEE.adBoost, 'ad'); renderGardenTask(); bumpPill(document.getElementById('gardenRoseePill')); sfxRoseeDrop(2);
+  showSimpleToast('💧', 'Arrosage bonus', `+${ROSEE.adBoost} 💧`, 'info-toast');
+}));
+document.getElementById('homeGarden').addEventListener('click', ()=> openGarden(false));
 document.getElementById('btnBackHomeGarden').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 
 /* =========================================================
@@ -5210,6 +6288,10 @@ document.getElementById('btnResetProgress').addEventListener('click', ()=>{
   safeStorage.remove(STREAK_FREEZE_KEY);
   safeStorage.remove(SENTIER_KEY);
   safeStorage.remove(WEEKLY_CHEST_KEY);
+  safeStorage.remove(GARDEN_KEY);
+  safeStorage.remove(RITUAL_KEY);
+  safeStorage.remove(ADS_KEY);
+  safeStorage.remove(RETENTION_KEY); // comme le journal Analytics, effacé avec le reste
   safeStorage.remove(GHOSTS_KEY);
   applySeedCosmetic(); // revient immédiatement au skin par défaut, sans attendre un rechargement
   refreshHome();
@@ -6208,6 +7290,29 @@ function showHintTier2(dir, tier1El){
    niveau (restart, niveau suivant, sortie).
 --------------------------------------------------------- */
 const HINT_PREVIEW_DURATION_MS = 700;
+// Pas assez de coins pour l'indice ciblé (palier 3) : on PROPOSE, jamais
+// n'impose, de le débloquer avec une pub récompensée. Campagne et défi
+// seulement (le Sentier Chrono garde son sablier intact). Le chrono du
+// niveau est en pause pendant la pub.
+let hintAdGrant = false;
+function offerHintAd(){
+  if(state.mode==='sentier' || !AdService.canOffer('hint_bonus')) return;
+  const tip = document.getElementById('gameTip');
+  if(!tip || tip.querySelector('.ad-offer')) return;
+  const b = document.createElement('button');
+  b.className = 'ad-offer';
+  b.innerHTML = `▶ Indice ciblé offert <span class="ad-tag">PUB</span>`;
+  const session = state.sessionId;
+  b.addEventListener('click', ()=> watchAdFor('hint_bonus', b, ()=>{
+    if(session !== state.sessionId || state.won) return;
+    hintAdGrant = true;
+    b.remove();
+    document.getElementById('btnHint').click();
+  }));
+  tip.appendChild(b);
+  tip.classList.add('show');
+  AdService.offered('hint_bonus', b);
+}
 function showHintTier3(dir){
   if(state.hintPreviewInProgress) return; // un aperçu joue déjà, ignorer
   const myGeneration = hintPreviewGeneration;
@@ -6323,8 +7428,11 @@ document.getElementById('btnHint').addEventListener('click', ()=>{
   // blocage ni message culpabilisant (mission explicite, même principe
   // déjà en place pour le palier 3).
   let targetTier = hintState.tier >= 4 ? 4 : hintState.tier + 1;
-  if(targetTier >= 3 && hintState.tier < 3 && !spendCoins(HINT_TIER3_COST)){
+  if(targetTier >= 3 && hintState.tier < 3 && hintAdGrant){
+    hintAdGrant = false; // palier 3 offert par une pub récompensée (voir offerHintAd)
+  } else if(targetTier >= 3 && hintState.tier < 3 && !spendCoins(HINT_TIER3_COST)){
     targetTier = 2;
+    setTimeout(offerHintAd, 0); // après l'affichage de l'indice (qui réécrit la ligne d'aide)
   } else if(targetTier >= 4 && hintState.tier < 4 && !spendCoins(HINT_TIER4_COST)){
     targetTier = 3;
   }
@@ -6653,6 +7761,7 @@ let onWin = function(expectedSessionId){
   let coinsEarnedThisRun = 0;
   let levelInfo = null, hadPreviousBest = false, wasFirstCompletion = false, prevStars = 0;
   let nextIsNewWorld = false;
+  let dailyFirstToday = false;
   const sentierWasUnlocked = isSentierUnlocked();
 
   // L'emoji de victoire reflète le monde du niveau terminé (Blueprint §18).
@@ -6673,7 +7782,7 @@ let onWin = function(expectedSessionId){
     const gardenAfter = gardenStageFor(lvl.world, p).stage;
     if(gardenAfter > gardenBefore){
       const wm = WORLD_META[lvl.world] || { name:'Monde '+lvl.world };
-      rewards.push({ icon: gardenAfter===4 ? '🌸' : '🌱', text:`Jardin : ${wm.name.replace(/^(Le |La |Les )/,'')} → ${GARDEN_STAGE_NAMES[gardenAfter]}`, kind:'unlock' });
+      rewards.push({ icon: gardenAfter===4 ? '🌸' : '🌱', text:`Plante « ${wm.name.replace(/^(Le |La |Les )/,'')} » → ${GARDEN_STAGE_NAMES[gardenAfter]}`, kind:'unlock' });
       Analytics.track('garden_grow', { world:lvl.world, stage:gardenAfter });
     }
     // "Record" = amélioration RÉELLE d'un score déjà existant. Une première
@@ -6712,6 +7821,7 @@ let onWin = function(expectedSessionId){
     }
   } else {
     const previousToday = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
+    dailyFirstToday = !previousToday;
     const streakBefore = loadStreak();
     const dailyInfo = recordDailyCompletion(state.moves, state.elapsed, stars);
     Analytics.track('daily_complete', { moves:state.moves, time:state.elapsed, stars, retry:!!previousToday });
@@ -6757,6 +7867,25 @@ let onWin = function(expectedSessionId){
   }
   if(coinsEarnedThisRun > 0) rewards.unshift({ icon:'🪙', text:'+'+coinsEarnedThisRun, kind:'coins' });
 
+  // Jardin endormi + rituel du jour (sections A4/B5/E4) : la rosée vient
+  // des étoiles NOUVELLES et de la 1re réussite du défi du jour ; le
+  // rituel compte la victoire. Rien ici ne touche au score ni aux étoiles.
+  const roseeBefore = loadRosee();
+  const roseeGain = state.isDaily ? roseeForDaily(dailyFirstToday, stars) : roseeForLevelWin(prevStars, stars);
+  if(roseeGain > 0){
+    addRosee(roseeGain, state.isDaily ? 'daily' : 'level');
+    rewards.splice(coinsEarnedThisRun > 0 ? 1 : 0, 0, { icon:'💧', text:`+${roseeGain} rosée`, kind:'rosee' });
+  }
+  const ritualDone = ritualEvent({ type: state.isDaily ? 'daily_win' : 'level_win', stars, perfect: state.moves <= state.par, hint: state.hintUsedThisAttempt });
+  ritualDone.forEach(m=> rewards.push({ icon:'✅', text:'Rituel : ' + m.text, kind:'ritual' }));
+  if(ritualDone.some(m=> m.allDone)) rewards.push({ icon:'🎁', text:'Coffre du rituel prêt !', kind:'unlock' });
+  const gardenNow = gardenStatus(loadGarden().done);
+  if(gardenNow.next && roseeBefore < gardenNow.next.task.cost && loadRosee() >= gardenNow.next.task.cost){
+    rewards.push({ icon:'✨', text:`Prêt à réveiller : ${gardenNow.next.task.name}`, kind:'unlock' });
+  }
+  retentionTrack('l');
+  const baseCoins = state.isDaily ? COIN_REWARDS.dailyComplete : (wasFirstCompletion ? COIN_REWARDS.levelFirstComplete : 0);
+
   if(stillInGame) spawnVictoryEffect();
   document.getElementById('vMoves').textContent = state.moves;
   document.getElementById('vTime').textContent = formatTime(state.elapsed);
@@ -6797,6 +7926,7 @@ let onWin = function(expectedSessionId){
     }
   }
   renderVictoryRewards(rewards);
+  setupVictoryAd(roseeGain, baseCoins);
 
   // Bouton principal : prochaine étape claire (Blueprint §16).
   const nextBtn = document.getElementById('btnNextLevel');
@@ -6812,6 +7942,26 @@ let onWin = function(expectedSessionId){
   if(replayBtn) replayBtn.textContent = stars < 3 ? `↻ Viser ★★★` : '↻ Rejouer';
 
   if(stillInGame) goto('victory');
+}
+
+// Pub récompensée « Doubler » : proposée seulement s'il y a quelque chose
+// à doubler (rosée ou coins de base de la victoire, jamais les succès).
+function setupVictoryAd(roseeGain, baseCoins){
+  const btn = document.getElementById('btnAdVictory');
+  if(!btn) return;
+  btn.dataset.offered = '';
+  btn.disabled = false;
+  const show = (roseeGain > 0 || baseCoins > 0) && AdService.canOffer('victory_double');
+  btn.hidden = !show;
+  if(!show) return;
+  const parts = [roseeGain > 0 ? `+${roseeGain} 💧` : '', baseCoins > 0 ? `+${baseCoins} 🪙` : ''].filter(Boolean).join(' ');
+  btn.innerHTML = `▶ Doubler : ${parts} <span class="ad-tag">PUB</span>`;
+  btn.onclick = ()=> watchAdFor('victory_double', btn, ()=>{
+    if(roseeGain > 0) addRosee(roseeGain, 'ad');
+    if(baseCoins > 0) addCoins(baseCoins);
+    showSimpleToast('✨', 'Récompense doublée', parts, 'info-toast');
+  });
+  AdService.offered('victory_double', btn);
 }
 
 function renderVictoryRewards(rewards){
@@ -7218,6 +8368,10 @@ function onSentierBoardWin(){
     run.score += gained;
     run.timeLeftMs += bonusMs;
   }
+  // Rituel du jour + compteurs de rétention (le score n'est pas touché).
+  const ritualDone = ritualEvent({ type:'sentier_board', perfect, stars });
+  if(ritualDone.length) run.ritualDone = (run.ritualDone||[]).concat(ritualDone);
+  retentionTrack('l');
   Analytics.track('sentier_board_complete', { board:run.boardNumber, par:state.par, moves:state.moves, perfect,
     hint:run.hintUsedOnBoard, undo:state.undoCount, time:state.elapsed, echo:run.board && run.board.tag==='ECHO' });
 
@@ -7303,7 +8457,7 @@ function tickSentierClock(){
   run.lastTick = now;
   // Pause équitable : application en arrière-plan, ou transition entre
   // deux plateaux (le temps d'animation n'est jamais compté contre le joueur).
-  if(document.hidden || run.inTransition || state.screen!=='game') return;
+  if(document.hidden || run.inTransition || state.screen!=='game' || adOverlayOpen) return;
   run.timeLeftMs -= dt;
   if(run.timeLeftMs <= 0){
     run.timeLeftMs = 0;
@@ -7336,11 +8490,16 @@ function commitSentierRun(run){
   } else {
     stats.zenSolved += run.solved - saved.solved;
   }
+  // Rosée : 1 par solution parfaite, plafonnée par jour (voir ROSEE).
+  const rs = roseeForSentier(loadGarden(), run.perfect - saved.perfect, todayKey());
+  saveGarden(rs.save);
+  if(rs.gain > 0) addRosee(rs.gain, 'sentier');
+  saved.rosee = (saved.rosee||0) + rs.gain;
   saved.solved = run.solved; saved.perfect = run.perfect; saved.counted = true;
   run.saved = saved;
   saveSentierStats(stats);
   if(coinsNow > 0) addCoins(coinsNow);
-  return { stats, prevBest, isRecord, coins:saved.coins };
+  return { stats, prevBest, isRecord, coins:saved.coins, rosee:saved.rosee };
 }
 window.addEventListener('pagehide', ()=>{
   if(sentierRun && !sentierRun.ended && sentierRun.solved > (sentierRun.saved ? sentierRun.saved.solved : 0)){
@@ -7354,7 +8513,7 @@ function endSentierRun(reason){
   run.ended = true;
   stopSentierClock();
   stopTimer();
-  const { stats, prevBest, isRecord, coins } = commitSentierRun(run);
+  const { stats, prevBest, isRecord, coins, rosee } = commitSentierRun(run);
   Analytics.track('sentier_end', { kind:run.kind, reason, score:run.score, solved:run.solved, perfect:run.perfect,
     bestChain:run.bestChain, skipped:run.skipped, boards:run.boardNumber });
   const newly = checkAchievements({ inline:true });
@@ -7362,7 +8521,7 @@ function endSentierRun(reason){
   const board = document.getElementById('board');
   if(board) board.classList.remove('board-exit');
   if(run.solved===0 && reason==='quit'){ renderSentierHub(); goto('sentier'); return; }
-  renderSentierEnd(run, { isRecord, prevBest, coins, newly, reason, stats });
+  renderSentierEnd(run, { isRecord, prevBest, coins, newly, reason, stats, rosee });
   goto('sentierend');
   if(isRecord) setTimeout(sfxRecordBeat, 250);
 }
@@ -7383,6 +8542,8 @@ function renderSentierEnd(run, info){
   }
   const rewards = [];
   if(info.coins > 0) rewards.push({ icon:'🪙', text:'+'+info.coins, kind:'coins' });
+  if(info.rosee > 0) rewards.push({ icon:'💧', text:`+${info.rosee} rosée`, kind:'rosee' });
+  (run.ritualDone||[]).forEach(m=> rewards.push({ icon:'✅', text:'Rituel : ' + m.text, kind:'ritual' }));
   (info.newly||[]).forEach(id=>{
     const ach = achievementInfo(id);
     if(ach) rewards.push({ icon:ach.icon, text:'Succès : '+ach.name, kind:'achievement' });
@@ -7402,6 +8563,19 @@ function renderSentierEnd(run, info){
       const tx = document.createElement('span'); tx.textContent = r.text;
       chip.append(ic, tx); wrap.appendChild(chip);
     });
+  }
+  // Pub récompensée facultative : doubler les coins de la partie (jamais le score).
+  const adBtn = document.getElementById('btnAdSentier');
+  if(adBtn){
+    adBtn.dataset.offered = ''; adBtn.disabled = false;
+    const show = info.coins > 0 && AdService.canOffer('sentier_double');
+    adBtn.hidden = !show;
+    if(show){
+      const bonus = info.coins;
+      adBtn.innerHTML = `▶ Doubler les coins : +${bonus} 🪙 <span class="ad-tag">PUB</span>`;
+      adBtn.onclick = ()=> watchAdFor('sentier_double', adBtn, ()=>{ addCoins(bonus); showSimpleToast('✨', 'Coins doublés', `+${bonus} 🪙`, 'info-toast'); });
+      AdService.offered('sentier_double', adBtn);
+    }
   }
   let next = '';
   if(chrono){
@@ -7689,6 +8863,128 @@ document.querySelectorAll('[role="button"][tabindex]').forEach(el=>{
   });
 });
 
+
+/* =========================================================
+   M4. PUBS RÉCOMPENSÉES — AdService (indépendant du fournisseur)
+   Règles (lignes rouges du Blueprint) :
+   - uniquement des pubs RÉCOMPENSÉES, proposées par un bouton marqué
+     « PUB », jamais imposées, jamais au milieu d'un coup ;
+   - le jeu reste 100 % jouable sans aucune pub ;
+   - plafonds : par emplacement, par jour (AD_DAILY_CAP) et intervalle
+     minimal (AD_MIN_INTERVAL_MS), voir la logique pure en A4 ;
+   - une pub ne donne jamais d'avantage de score, d'étoiles ou de record.
+   Fournisseur actif : AD_PROVIDER. 'mock' affiche une pub SIMULÉE (écran
+   de test clairement étiqueté). Pour la production, brancher un vrai
+   fournisseur dans AD_PROVIDERS (voir PRODUCTION_PROGRESS.md §Monétisation)
+   et mettre AD_PROVIDER à son nom ; 'none' masque tous les boutons.
+   Contrat d'un fournisseur :
+     available() -> bool
+     showRewarded(placement) -> Promise<{ rewarded:bool, error?:string }>
+========================================================= */
+const AD_PROVIDER = 'mock';
+let adOverlayOpen = false;
+const AD_PROVIDERS = {
+  none: { available:()=> false, showRewarded:()=> Promise.resolve({ rewarded:false, error:'no_provider' }) },
+  mock: {
+    available:()=> true,
+    // Pub simulée : 3 s, fermable à tout moment (sans récompense).
+    showRewarded(placement){
+      return new Promise(resolve=>{
+        const el = document.createElement('div');
+        el.className = 'ad-mock';
+        el.setAttribute('role', 'dialog');
+        el.setAttribute('aria-label', 'Publicité simulée');
+        el.innerHTML = `<span class="am-label">PUB SIMULÉE · TEST</span>
+          <button class="btn btn-ghost am-close" type="button">✕ Fermer</button>
+          <div style="font-size:44px">📺</div>
+          <div class="am-title">Ici, une vraie pub</div>
+          <div class="am-text">Mode test : aucune vraie publicité n'est affichée. Fermer maintenant = pas de récompense.</div>
+          <div class="am-bar"><div class="am-fill"></div></div><div class="am-text" data-left>3 s</div>`;
+        document.body.appendChild(el);
+        const fill = el.querySelector('.am-fill'), left = el.querySelector('[data-left]');
+        const DURATION = 3000, t0 = performance.now();
+        let done = false;
+        const finish = rewarded=>{ if(done) return; done = true; clearInterval(iv); el.remove(); resolve({ rewarded }); };
+        const iv = setInterval(()=>{
+          const t = performance.now() - t0;
+          fill.style.width = Math.min(100, t / DURATION * 100) + '%';
+          left.textContent = Math.max(0, Math.ceil((DURATION - t) / 1000)) + ' s';
+          if(t >= DURATION) finish(true);
+        }, 100);
+        el.querySelector('.am-close').addEventListener('click', ()=> finish(false));
+      });
+    }
+  }
+  // Exemple de branchement (voir PRODUCTION_PROGRESS.md) :
+  // admob: { available:()=> !!window.Capacitor, showRewarded: p=> AdMobBridge.showRewarded(p) },
+  // crazygames: { available:()=> !!window.CrazyGames, showRewarded: p=> new Promise(r=> window.CrazyGames.SDK.ad.requestAd('rewarded', { adFinished:()=> r({rewarded:true}), adError:e=> r({rewarded:false, error:String(e)}) })) },
+};
+const AdService = {
+  provider(){ return AD_PROVIDERS[AD_PROVIDER] || AD_PROVIDERS.none; },
+  canOffer(placement){
+    try{ return !adOverlayOpen && this.provider().available() && adCanOffer(loadAdState(), placement, Date.now()).ok; }
+    catch(e){ return false; }
+  },
+  // À appeler quand un bouton de pub est AFFICHÉ (mesure : proposé/accepté).
+  // Compté une fois par affichage réel : un simple re-rendu du même écran
+  // dans les 30 s ne recompte pas.
+  _lastOffered:{},
+  offered(placement, el){
+    if(el && el.dataset.offered) return;
+    if(el) el.dataset.offered = '1';
+    const now = Date.now();
+    if(this._lastOffered[placement] && now - this._lastOffered[placement] < 30000) return;
+    this._lastOffered[placement] = now;
+    Analytics.track('ad_offered', { placement });
+    retentionTrack('ao');
+  },
+  async show(placement){
+    if(!this.canOffer(placement)) return { rewarded:false, error:'not_available' };
+    saveAdState(adRecordShown(loadAdState(), placement, Date.now()));
+    Analytics.track('ad_start', { placement });
+    adOverlayOpen = true;
+    pauseGameTimerForAd();
+    const musicWasOn = settings.music;
+    if(musicWasOn) stopBackgroundMusic(0.3);
+    let res;
+    try{ res = await this.provider().showRewarded(placement); }
+    catch(e){ res = { rewarded:false, error:String(e) }; }
+    adOverlayOpen = false;
+    if(musicWasOn) startBackgroundMusic();
+    resumeGameTimerAfterAd();
+    Analytics.track(res.rewarded ? 'ad_completed' : 'ad_skipped', { placement, error:res.error||null });
+    if(res.rewarded) retentionTrack('aa');
+    return res;
+  }
+};
+// Bouton de pub → pub → récompense (grant) si elle est allée au bout.
+function watchAdFor(placement, btn, grant){
+  if(btn) btn.disabled = true;
+  AdService.show(placement).then(res=>{
+    if(res.rewarded){ try{ grant(); }catch(e){} if(btn){ btn.textContent = '✓ Récompense obtenue'; btn.disabled = true; } }
+    else if(btn){ btn.disabled = !AdService.canOffer(placement); if(btn.disabled) btn.hidden = true; }
+  });
+}
+// Le chrono d'un niveau ne tourne pas pendant une pub (ni son sablier au Sentier).
+let adTimerPaused = false;
+function pauseGameTimerForAd(){
+  if(state.screen!=='game' || state.won || !state.timerId) return;
+  state.pausedElapsed = (state.pausedElapsed||0) + Math.floor((Date.now()-state.startTime)/1000);
+  clearInterval(state.timerId);
+  state.timerId = null;
+  adTimerPaused = true;
+}
+function resumeGameTimerAfterAd(){
+  if(!adTimerPaused) return;
+  adTimerPaused = false;
+  if(state.screen!=='game' || state.won) return;
+  state.startTime = Date.now();
+  state.timerId = setInterval(()=>{
+    const secs = state.pausedElapsed + Math.floor((Date.now()-state.startTime)/1000);
+    document.getElementById('hudTime').textContent = formatTime(secs);
+  }, 250);
+}
+
 /* =========================================================
    M3. VIE DE L'INTERFACE — lucioles d'ambiance, retour des boutons
 ========================================================= */
@@ -7738,7 +9034,20 @@ if(loadAnalyticsLog().length === 0){
   const prev = log.filter(e=> e.t!=='first_open');
   const last = prev.length ? prev[prev.length-1].at : null;
   Analytics.track('session_start', { returning: last!==null, daysSince: last!==null ? Math.floor((Date.now()-last)/86400000) : null });
+  retentionTrack('s');
 })();
+// Sur mobile, l'app reste souvent ouverte en arrière-plan : un retour après
+// 30 min d'absence compte comme une nouvelle session (mesure J1/J7/J30).
+let hiddenSince = null;
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ hiddenSince = Date.now(); return; }
+  if(hiddenSince && Date.now() - hiddenSince > 30*60*1000){
+    Analytics.track('session_start', { returning:true, daysSince: Math.floor((Date.now()-hiddenSince)/86400000), resumed:true });
+    retentionTrack('s');
+    if(state.screen==='home') refreshHome();
+  }
+  hiddenSince = null;
+});
 const sessionStartedAt = Date.now();
 window.addEventListener('pagehide', ()=>{
   Analytics.track('session_end', { durationS: Math.round((Date.now()-sessionStartedAt)/1000), screen:state.screen });
