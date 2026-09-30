@@ -1,51 +1,60 @@
 # BlockCraft Daily — contexte projet
 
-Jeu de puzzle mobile-first par glissement de blocs, avec une graine qui doit atteindre une case cible. Il tient en **un seul fichier HTML** (`index.html`, HTML + CSS + JS inline), n'a aucun backend et aucune dépendance, et il est publié via GitHub Pages.
+Jeu de puzzle mobile-first par glissement de blocs : une graine doit atteindre une case cible. Tout tient en **un seul fichier HTML** (`index.html`, avec HTML, CSS et JS inline), sans backend ni dépendance. Le jeu est publié via GitHub Pages.
+
+L'état du produit, les décisions prises, le plan de mesure et les prochaines priorités sont dans **`PRODUCTION_PROGRESS.md`**. Lis-le avant tout chantier important.
 
 ## Structure du dépôt
 
 | Chemin | Rôle |
 |---|---|
-| `index.html` | Le jeu complet. Il est servi tel quel par GitHub Pages. |
-| `scripts/check-game.js` | Vérification : `node --check` sur le JS extrait, puis `Solver.validateLevels(LEVELS)`. |
-| `.github/workflows/ci.yml` | CI : lance `scripts/check-game.js` à chaque push sur `main` et sur chaque PR. |
+| `index.html` | Le jeu complet, servi tel quel par GitHub Pages. |
+| `scripts/check-game.js` | `node --check` sur le JS extrait, puis `Solver.validateLevels(LEVELS)`. |
+| `scripts/test-logic.js` | Tests sans navigateur : symétries des niveaux, générateur du Sentier, défi du jour généré. |
+| `scripts/e2e-smoke.js` | Parcours joueur complet dans Chromium (Playwright). Échoue sur toute erreur ou avertissement console. |
+| `.github/workflows/ci.yml` | CI : les trois scripts, sur toutes les branches et PR. |
+| `PRODUCTION_PROGRESS.md` | Vision, recommandations appliquées, hypothèses, tests, limites, priorités. |
 | `docs/` | Master Blueprint (.docx), audit de rétention, étude de marché. Ce sont des références, pas du code. |
 
 ## Vérifier avant chaque commit
 
 ```bash
-node scripts/check-game.js index.html
+node scripts/check-game.js index.html        # attendu : 60 niveaux, 0 cassé, 4 avertissements
+node scripts/test-logic.js                   # attendu : 0 échec
+NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attendu : 0 échec
 ```
 
-- Le code de sortie vaut 1 si le JS ne compile pas ou si au moins un niveau est marqué ❌ (cassé ou non solvable).
-- Un avertissement ⚠️ ne fait pas échouer la vérification. Aujourd'hui il y en a 4 : les niveaux INTRO résolus en 1 coup, ce qui est voulu.
-- Résultat de référence : **60 niveaux, 0 cassé, 4 avertissements**.
-
-Ne déclare jamais une modification « finie » sans avoir lancé cette vérification.
+- Les 4 avertissements ⚠️ de référence sont voulus : ce sont les niveaux INTRO, résolus en 1 coup.
+- Pour l'E2E, Playwright doit être disponible (installation globale, ou `npm i --no-save playwright` puis `npx playwright install chromium`).
+- Ne déclare jamais une modification « finie » sans avoir lancé ces vérifications.
 
 ## Architecture de `index.html` (sections repérées par des bannières `/* ==== */`)
 
-- **A. Données des niveaux** : `const LEVELS = [...]`, 60 niveaux répartis sur 8 mondes (Racines, Cailloux, Impasses, Givre, Passages, Courants, Ruines, Failles). Chaque niveau contient `size`, `seed`, `goal`, `walls`, `rocks`, `anchors`, `par`, etc. Le `par` doit être égal à la solution minimale calculée par le solveur.
-- **A2. Solveur** (`const Solver`) : un BFS qui expose `analyze`, `validateLevels`, `slideState` et `solveNextMove`. C'est un outil de développement que le joueur ne voit jamais, sauf à travers l'indice (H2).
-- **A15–A18** : utilitaires pour les mécaniques, à savoir portails, sens unique, interrupteurs/portes et portails directionnels.
-- **B / B0** : état global, sauvegarde en `localStorage` versionnée avec `SCHEMA_MIGRATIONS` (toute modification du format de sauvegarde passe par une migration).
-- **B2 / B3** : série quotidienne (streak + gel) et succès.
-- **C–C6** : audio généré par WebAudio (aucun fichier externe), combo, musique de fond.
-- **D–G** : navigation, accueil, paramètres, carte des mondes (`WORLD_THEMES`), chargement d'un niveau.
-- **H** : l'algorithme de glissement (moteur). **H2** : l'indice. **I** : les entrées (swipe + clavier).
-- `window.BCD_DEV` : outils console pour le développement (`validateLevels()`, `analyzeLevel()`, `setSimulatedDate()`, etc.).
+- **A. Niveaux** : `const LEVELS = [...]`, 60 niveaux sur 8 mondes. Le `par` de chaque niveau doit égaler la solution minimale du solveur.
+- **A2. Solveur** (`Solver`) : BFS exposant `analyze`, `validateLevels`, `slideState` et `solveNextMove`. Il sert aussi à l'indice, à la détection d'impasse et au générateur.
+- **A3. Générateur** (code PUR, testé par `test-logic.js`) :
+  - `makeRng` / `hashSeed`, `generateBoard`, `transformLevel` (8 symétries, par conservé), `buildSentierBoard` (avec repli sur un « Écho »).
+  - `buildDailyBoard` : défi du jour calculé depuis la date, avec une règle par jour de la semaine (`DAILY_RULES`).
+- **A15–A18** : utilitaires des mécaniques (portails, sens unique, interrupteurs/portes, portails directionnels).
+- **B / B0** : état global (`state.mode` vaut `'campaign'`, `'daily'` ou `'sentier'` ; `state.level` est le plateau courant). Sauvegarde versionnée par `SCHEMA_MIGRATIONS` : toute modification de format passe par une migration.
+- **B2 / B3** : série quotidienne (+ gel) et succès. Les succès mesurables utilisent `metric`/`goal` ; les succès à paliers sont dans `TIERED_ACHIEVEMENTS`.
+- **C–C6** : audio WebAudio. Aucun son avant le premier geste (`audioUnlocked`).
+- **D** : navigation (`goto`). Les menus reviennent au thème du Monde 1.
+- **E** : accueil. **E3** : le Jardin (plantes SVG procédurales). **E2** : paramètres.
+- **F** : carte des mondes.
+- **G** : `startLevel` → `startBoard(level, opts)`, point d'entrée unique de tout plateau.
+- **H** : moteur de glissement, Annuler, détection d'impasse. **H2** : indice. **I** : entrées (swipe, flèches, Z annuler, R recommencer).
+- **K** : victoire (puces de récompenses). **L** : défi du jour. **S** : le Sentier (mode infini). **M** : partage (texte type Wordle + carte image).
+- `window.BCD_DEV` : outils console (`validateLevels()`, `solutionFromHere()`, `generateSentierBoard()`, `getRetentionReport()`, `setSimulatedDate()`…).
 
 ## Règles de travail
 
-- **Aucun backend.** Tout est local (`localStorage`). Une fonctionnalité qui exige un serveur (ligues, duels, guildes, vrais classements) est un projet d'infrastructure séparé, pas une simple feature (voir `docs/audit-blockcraft-retention.md`, §0).
-- Le moteur (H) et le solveur (A2) doivent appliquer **exactement les mêmes règles** de glissement. Une nouvelle mécanique s'ajoute aux deux.
-- Tout nouveau niveau doit passer le solveur : solvable, `par` exact, non trivial sauf s'il porte le tag INTRO.
+- **Aucun backend.** Tout est local (`localStorage`). Une fonctionnalité qui exige un serveur (ligues, duels, guildes, vrais classements) est un projet d'infrastructure séparé (voir `docs/audit-blockcraft-retention.md`, §0).
+- **Jamais de fausses données** montrées au joueur : pas de joueurs ni de rangs simulés (Blueprint §14).
+- Le moteur (H), le solveur (A2) et l'aperçu d'indice (`simulateSlidePreserveIdentity`) appliquent **exactement les mêmes règles**. Une nouvelle mécanique s'ajoute aux trois, puis au générateur (`randomLayout`, `stripMechanic`).
+- Tout niveau (écrit à la main ou généré) doit passer le solveur : solvable, `par` exact, non trivial sauf tag INTRO. La mécanique vedette d'un plateau généré doit **compter** (sans elle, le par change).
+- Le Sentier et le défi n'utilisent que des mécaniques connues du joueur (Sentier) ou expliquées dans la ligne d'aide (défi).
+- Si le générateur change de façon incompatible, incrémenter `DAILY_GEN_VERSION`, sinon les défis futurs changent en silence.
 - Pas de pay-to-win : les coins ne servent qu'aux cosmétiques, à l'indice et au gel de série.
-- Le fichier reste autonome : pas de CDN et pas de fichier audio ou image externe.
+- Le fichier reste autonome. Seule exception existante : les polices Google, qui retombent sur system-ui. Aucun autre fichier externe (audio, image, CDN).
 - Langue du code, des commentaires et de l'interface : français.
-
-## Pistes prioritaires (audit de rétention)
-
-1. Mode Infini de Maîtrise : plateaux générés procéduralement puis validés par le solveur existant.
-2. Fantômes locaux (par / soi-même) et carnet de maîtrise.
-3. « Le Jardin » : méta-progression visuelle reliée aux 8 mondes.

@@ -285,8 +285,13 @@
     flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
     padding:6px 0 10px;
   }
+  /* La grille s'adapte à la hauteur disponible : --board-reserve = hauteur
+     occupée par la barre, le HUD, l'aide et les boutons (plus grande dans le
+     Sentier, qui ajoute son bandeau). Jamais de défilement en pleine partie. */
+  #screen-game{--board-reserve:300px;}
+  #screen-game.sentier-mode{--board-reserve:356px;}
   #board{
-    position:relative; width:100%; max-width:400px; aspect-ratio:1/1;
+    position:relative; width:100%; max-width:min(400px, calc(100vh - var(--board-reserve)), calc(100dvh - var(--board-reserve))); aspect-ratio:1/1;
     background:var(--bg-deep); border-radius:20px; padding:10px;
     box-shadow:inset 0 2px 10px rgba(0,0,0,.5), 0 12px 30px -12px rgba(0,0,0,.6);
     touch-action:none;
@@ -519,8 +524,28 @@
     100%{ opacity:1; transform:translate(-50%,-50%) scale(1); }
   }
 
-  .footer-controls{display:flex; justify-content:center; gap:8px; margin-top:6px; flex-wrap:wrap;}
-  .footer-controls .hint-btn{padding:11px 16px; font-size:14px;}
+  .footer-controls{display:flex; justify-content:center; gap:8px; margin-top:6px; flex-wrap:nowrap;}
+  .footer-controls .hint-btn{padding:10px 13px; font-size:14px; white-space:nowrap;}
+  /* Écrans courts (petits téléphones, paysage) : tout se resserre. */
+  @media (max-height:700px){
+    .screen{padding:14px 16px 16px;}
+    .topbar{margin-bottom:10px;}
+    .hud{margin-bottom:8px;}
+    .sentier-bar{margin:-4px 0 8px; padding:6px 10px;}
+    .sb-item b{font-size:16px;}
+    .board-wrap{gap:6px; padding:2px 0 4px;}
+    .game-tip{min-height:36px; font-size:12px;}
+    #screen-game{--board-reserve:250px;}
+    #screen-game.sentier-mode{--board-reserve:300px;}
+    #screen-home{gap:10px; padding-top:62px;}
+    .logo-mark{width:50px; height:50px; border-radius:16px;}
+    .logo-mark::after{inset:9px; border-radius:9px;}
+    .title{font-size:26px;}
+    .subtitle{display:none;}
+    .hg-plants{height:40px;}
+    .hg-plants svg{height:36px;}
+    .home-card{padding:9px 12px;}
+  }
   .hint-btn:disabled{opacity:.4; cursor:default; transform:none;}
   .undo-btn{color:var(--cream);}
   .undo-btn.attention{border-color:var(--seed); box-shadow:0 0 0 3px rgba(240,168,60,.3); animation:attentionPulse 1.4s ease-in-out infinite;}
@@ -3610,6 +3635,18 @@ function renderMechanicHelp(){
     <div class="ach-card-text"><div class="ach-card-name">Glissement</div><div class="ach-card-desc">Glisse dans une direction : tout ce qui peut bouger avance jusqu'à un mur, un bord, ou un obstacle.</div></div>`;
   list.appendChild(baseCard);
 
+  // Règle des étoiles et commandes : jamais expliquées nulle part avant.
+  [
+    { icon:'⭐', name:'Étoiles et par', desc:"Le par est le nombre minimal de coups, prouvé par le solveur. ★★★ au par, ★★ à un coup de plus, ★ au-delà." },
+    { icon:'⌨️', name:'Commandes', desc:"Glisse sur la grille ou utilise les flèches. ↶ Annuler (touche Z) reprend un coup, ↻ (touche R) recommence. Annuler est gratuit et illimité." },
+    { icon:'🪨', name:'Impasse', desc:"Si un rocher rend le niveau impossible, le jeu te le dit tout de suite : annule ou recommence." }
+  ].forEach(r=>{
+    const card = document.createElement('div');
+    card.className = 'achievement-card unlocked';
+    card.innerHTML = `<div class="ach-card-icon">${r.icon}</div><div class="ach-card-text"><div class="ach-card-name">${r.name}</div><div class="ach-card-desc">${r.desc}</div></div>`;
+    list.appendChild(card);
+  });
+
   Object.keys(MECHANIC_INFO).forEach(key=>{
     const info = MECHANIC_INFO[key];
     const done = !!seen[key];
@@ -4081,7 +4118,7 @@ function refreshHome(){
   const sentierCard = document.getElementById('btnSentier');
   if(isSentierUnlocked()){
     const st = loadSentierStats();
-    setT('homeSentierStatus', st.bestScore>0 ? `Record ${st.bestScore} · ${st.totalPerfect} solutions parfaites` : 'Plateaux infinis · Chrono ou Zen');
+    setT('homeSentierStatus', st.bestScore>0 ? `Record ${st.bestScore} · ${st.totalPerfect} solutions parfaites` : 'Chrono ou Zen, sans fin');
     setT('homeSentierBadge', st.runs===0 && st.zenSolved===0 ? 'Nouveau' : '');
     if(sentierCard) sentierCard.classList.remove('locked');
   } else {
@@ -4921,6 +4958,7 @@ function startBoard(lvl, opts){
   updateUndoButton();
   document.getElementById('btnSkipBoard').hidden = state.mode!=='sentier';
   document.getElementById('sentierBar').hidden = state.mode!=='sentier';
+  document.getElementById('screen-game').classList.toggle('sentier-mode', state.mode==='sentier');
   document.getElementById('hudTimeChip').hidden = state.mode==='sentier' && sentierRun && sentierRun.kind==='chrono';
 
   goto('game');
@@ -6441,28 +6479,47 @@ function tickSentierClock(){
   updateSentierBar(false);
 }
 
+// Enregistre ce que la partie a apporté DEPUIS le dernier enregistrement
+// (deltas) : appelée en fin de partie, mais aussi si la page se ferme en
+// pleine partie — les plateaux résolus ne sont jamais perdus, et une page
+// restaurée depuis le cache ne compte jamais deux fois les mêmes plateaux.
+function commitSentierRun(run){
+  const saved = run.saved || { solved:0, perfect:0, coins:0, counted:false };
+  const stats = loadSentierStats();
+  const prevBest = stats.bestScore;
+  stats.totalSolved += run.solved - saved.solved;
+  stats.totalPerfect += run.perfect - saved.perfect;
+  stats.bestChain = Math.max(stats.bestChain, run.bestChain);
+  let coinsNow = 0, isRecord = false;
+  if(run.kind==='chrono'){
+    if(!saved.counted) stats.runs++;
+    stats.lastScore = run.score;
+    if(run.score > prevBest){ stats.bestScore = run.score; isRecord = run.score > 0; }
+    const coinsTotal = Math.floor(run.score / SENTIER_COINS_PER_POINTS);
+    coinsNow = Math.max(0, coinsTotal - saved.coins);
+    saved.coins = coinsTotal;
+  } else {
+    stats.zenSolved += run.solved - saved.solved;
+  }
+  saved.solved = run.solved; saved.perfect = run.perfect; saved.counted = true;
+  run.saved = saved;
+  saveSentierStats(stats);
+  if(coinsNow > 0) addCoins(coinsNow);
+  return { stats, prevBest, isRecord, coins:saved.coins };
+}
+window.addEventListener('pagehide', ()=>{
+  if(sentierRun && !sentierRun.ended && sentierRun.solved > (sentierRun.saved ? sentierRun.saved.solved : 0)){
+    commitSentierRun(sentierRun);
+  }
+});
+
 function endSentierRun(reason){
   const run = sentierRun;
   if(!run || run.ended) return;
   run.ended = true;
   stopSentierClock();
   stopTimer();
-  const stats = loadSentierStats();
-  const prevBest = stats.bestScore;
-  stats.totalSolved += run.solved;
-  stats.totalPerfect += run.perfect;
-  stats.bestChain = Math.max(stats.bestChain, run.bestChain);
-  let coins = 0, isRecord = false;
-  if(run.kind==='chrono'){
-    stats.runs++;
-    stats.lastScore = run.score;
-    if(run.score > prevBest){ stats.bestScore = run.score; isRecord = run.score > 0; }
-    coins = Math.floor(run.score / SENTIER_COINS_PER_POINTS);
-  } else {
-    stats.zenSolved += run.solved;
-  }
-  saveSentierStats(stats);
-  if(coins > 0) addCoins(coins);
+  const { stats, prevBest, isRecord, coins } = commitSentierRun(run);
   Analytics.track('sentier_end', { kind:run.kind, reason, score:run.score, solved:run.solved, perfect:run.perfect,
     bestChain:run.bestChain, skipped:run.skipped, boards:run.boardNumber });
   const newly = checkAchievements({ inline:true });
@@ -6896,10 +6953,14 @@ goto('home');
 
    À VALIDER PAR EXÉCUTION RÉELLE : ces corrections sont issues de la lecture
    statique uniquement ; aucune exécution du jeu n'a été effectuée.
+   MISE À JOUR : le jeu est désormais exécuté dans Chromium par
+   scripts/e2e-smoke.js (voir PRODUCTION_PROGRESS.md), qui couvre
+   notamment le redémarrage, l'annulation, l'impasse et la victoire.
 
    EXPLICITEMENT HORS DE PORTÉE D'UN FICHIER HTML UNIQUE (Blueprint §37) :
-   - Classement quotidien réel : nécessite un backend (actuellement simulé
-     localement, clairement indiqué au joueur — voir §13/§14 du Blueprint).
+   - Classement quotidien réel : nécessite un backend. Les anciennes
+     statistiques simulées (joueurs, rang) ont été SUPPRIMÉES (Blueprint
+     §14) : le résultat est comparé au par prouvé et à l'historique local.
    - Notifications de rappel du défi quotidien : nécessite un Service
      Worker + permission navigateur, hors cadre d'un fichier unique.
    - manifest.json + Service Worker (installation "à l'écran d'accueil"
