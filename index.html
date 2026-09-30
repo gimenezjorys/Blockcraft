@@ -1277,7 +1277,7 @@
       </div>
     </div>
     <button class="settings-danger" id="btnResetProgress">Réinitialiser la progression</button>
-    <p class="note">La réinitialisation efface tes étoiles, tes niveaux débloqués, tes coins et le résultat du défi du jour sur cet appareil. Cette action est définitive.</p>
+    <p class="note">La réinitialisation efface toute ta progression sur cet appareil : étoiles, niveaux débloqués, coins, succès, série, défis du jour, Sentier, Jardin et fantômes. Tes réglages sont conservés. Cette action est définitive.</p>
     <p class="note">🔒 Confidentialité : toutes tes données (progression, étoiles, succès, réglages) restent uniquement sur cet appareil, dans le stockage local de ton navigateur. Aucune donnée personnelle n'est envoyée ni partagée avec un serveur — ce prototype n'a d'ailleurs aucun serveur. Un petit journal d'événements de jeu (ex. niveau commencé, indice utilisé) est aussi conservé localement à des fins de développement : il reste lui aussi strictement sur cet appareil et n'est jamais transmis.</p>
   </section>
 
@@ -3747,7 +3747,7 @@ function renderMechanicHelp(){
   [
     { icon:'⭐', name:'Étoiles et par', desc:"Le par est le nombre minimal de coups, prouvé par le solveur. ★★★ au par, ★★ à un coup de plus, ★ au-delà." },
     { icon:'⌨️', name:'Commandes', desc:"Glisse sur la grille ou utilise les flèches. ↶ Annuler (touche Z) reprend un coup, ↻ (touche R) recommence. Annuler est gratuit et illimité." },
-    { icon:'🪨', name:'Impasse', desc:"Si un rocher rend le niveau impossible, le jeu te le dit tout de suite : annule ou recommence." }
+    { icon:'🚧', name:'Impasse', desc:"Si un rocher rend le niveau impossible, le jeu te le dit tout de suite : annule ou recommence." }
   ].forEach(r=>{
     const card = document.createElement('div');
     card.className = 'achievement-card unlocked';
@@ -7181,6 +7181,10 @@ window.addEventListener('pagehide', ()=>{
 applySeedCosmetic();
 refreshHome();
 goto('home');
+// Succès rattrapés au démarrage : un joueur qui met à jour le jeu voit
+// tout de suite ceux qu'il a déjà mérités (ils ne se vérifiaient qu'à une
+// victoire). Léger délai pour ne pas masquer l'accueil dès l'ouverture.
+setTimeout(()=>{ if(state.screen==='home'){ const n = checkAchievements(); if(n.length) refreshHome(); } }, 1200);
 
 // Service worker : seulement servi en http(s) (GitHub Pages), jamais en
 // file:// où il n'existe pas. Un échec d'enregistrement ne gêne jamais le jeu.
