@@ -9,9 +9,10 @@ L'état du produit, les décisions prises, le plan de mesure et les prochaines p
 | Chemin | Rôle |
 |---|---|
 | `index.html` | Le jeu complet, servi tel quel par GitHub Pages. |
+| `manifest.webmanifest`, `sw.js`, `icons/` | PWA : installation sur l'écran d'accueil et jeu hors ligne. Le service worker est « réseau d'abord » et n'est jamais nécessaire pour jouer. Icônes générées depuis le logo SVG de l'accueil. |
 | `scripts/check-game.js` | `node --check` sur le JS extrait, puis `Solver.validateLevels(LEVELS)`. |
 | `scripts/test-logic.js` | Tests sans navigateur : symétries des niveaux, générateur du Sentier, défi du jour généré. |
-| `scripts/e2e-smoke.js` | Parcours joueur complet dans Chromium (Playwright). Échoue sur toute erreur ou avertissement console. |
+| `scripts/e2e-smoke.js` | Parcours joueur complet dans Chromium (Playwright), plus la PWA hors ligne via un mini-serveur local. Échoue sur toute erreur ou avertissement console. |
 | `.github/workflows/ci.yml` | CI : les trois scripts, sur toutes les branches et PR. |
 | `PRODUCTION_PROGRESS.md` | Vision, recommandations appliquées, hypothèses, tests, limites, priorités. |
 | `docs/` | Master Blueprint (.docx), audit de rétention, étude de marché. Ce sont des références, pas du code. |
@@ -55,6 +56,7 @@ NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attend
 - Tout niveau (écrit à la main ou généré) doit passer le solveur : solvable, `par` exact, non trivial sauf tag INTRO. La mécanique vedette d'un plateau généré doit **compter** (sans elle, le par change).
 - Le Sentier et le défi n'utilisent que des mécaniques connues du joueur (Sentier) ou expliquées dans la ligne d'aide (défi).
 - Si le générateur change de façon incompatible, incrémenter `DAILY_GEN_VERSION`, sinon les défis futurs changent en silence.
+- Si tu ajoutes un fichier nécessaire au jeu hors ligne, ajoute-le à `SHELL` dans `sw.js` et incrémente `CACHE`.
 - Pas de pay-to-win : les coins ne servent qu'aux cosmétiques, à l'indice et au gel de série.
 - Le fichier reste autonome. Seule exception existante : les polices Google, qui retombent sur system-ui. Aucun autre fichier externe (audio, image, CDN).
 - Langue du code, des commentaires et de l'interface : français.

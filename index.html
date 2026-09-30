@@ -8,10 +8,12 @@
      que le navigateur/l'OS n'affiche jamais un bandeau clair qui jure avec
      le thème sombre du jeu, y compris avant que le CSS n'ait fini de charger. -->
 <meta name="theme-color" content="#0e1c17">
-<!-- Prépare un futur ajout à l'écran d'accueil (PWA-like) sans construire de
-     vrai manifest.json/service worker ici : ces deux fichiers sortent du
-     cadre d'un fichier HTML unique et devront être ajoutés séparément lors
-     d'un empaquetage mobile réel (voir note de fin de fichier). -->
+<!-- Installation sur l'écran d'accueil + jeu hors ligne : manifest et
+     service worker (sw.js, réseau d'abord) livrés à côté de ce fichier.
+     Le jeu reste entièrement jouable sans eux (ex. ouvert en file://). -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -165,18 +167,10 @@
   .home-card.done .hc-badge{color:var(--gold); border-color:rgba(255,209,102,.5);}
   .logo-wrap{display:flex; flex-direction:column; align-items:center; gap:10px;}
   .logo-mark{
-    width:64px; height:64px; border-radius:20px;
-    background:linear-gradient(155deg, var(--seed-light), var(--seed) 60%, #c97e1f 100%);
-    box-shadow:0 10px 24px -6px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.35);
-    display:flex; align-items:center; justify-content:center;
-    position:relative;
+    width:76px; height:76px; display:block;
+    filter:drop-shadow(0 10px 18px rgba(0,0,0,.5));
   }
-  .logo-mark::after{
-    content:""; position:absolute; inset:11px; border-radius:11px;
-    background:var(--goal); opacity:.9;
-    box-shadow:0 0 18px 4px rgba(245,230,168,.55);
-    animation:breathe 2.6s ease-in-out infinite;
-  }
+  .logo-mark .logo-goal{animation:breathe 2.6s ease-in-out infinite; transform-origin:52px 32px; transform-box:view-box;}
   @keyframes breathe{0%,100%{transform:scale(.85); opacity:.75;} 50%{transform:scale(1); opacity:1;}}
   .title{font-size:30px; font-weight:800; color:var(--cream);}
   .title span{color:var(--seed-light);}
@@ -538,8 +532,7 @@
     #screen-game{--board-reserve:250px;}
     #screen-game.sentier-mode{--board-reserve:300px;}
     #screen-home{gap:10px; padding-top:62px;}
-    .logo-mark{width:50px; height:50px; border-radius:16px;}
-    .logo-mark::after{inset:9px; border-radius:9px;}
+    .logo-mark{width:56px; height:56px;}
     .title{font-size:26px;}
     .subtitle{display:none;}
     .hg-plants{height:40px;}
@@ -1030,7 +1023,25 @@
       <button class="icon-btn" id="btnSettings" aria-label="Paramètres">⚙</button>
     </div>
     <div class="logo-wrap">
-      <div class="logo-mark"></div>
+      <!-- Logo : la mécanique en une image — une graine qui glisse vers la
+           lumière, appuyée sur un bloc. Les couleurs de la graine suivent le
+           skin équipé (variables --seed-skin-*). -->
+      <svg class="logo-mark" viewBox="0 0 64 64" role="img" aria-label="Logo BlockCraft Daily : une graine qui glisse vers la lumière">
+        <defs>
+          <linearGradient id="lgTile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#31594a"/><stop offset="1" stop-color="#15271f"/></linearGradient>
+          <radialGradient id="lgSeed" cx=".35" cy=".3" r=".75"><stop offset="0" style="stop-color:var(--seed-skin-light,#ffcf7a)"/><stop offset=".55" style="stop-color:var(--seed-skin-mid,#f0a83c)"/><stop offset="1" style="stop-color:var(--seed-skin-deep,#c97e1f)"/></radialGradient>
+          <radialGradient id="lgGoal"><stop offset="0" stop-color="#fff8dc"/><stop offset=".42" stop-color="#f5e6a8" stop-opacity=".95"/><stop offset="1" stop-color="#f5e6a8" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect x="1" y="1" width="62" height="62" rx="16" fill="url(#lgTile)" stroke="#4a7462" stroke-width="1.5"/>
+        <path d="M22 3v58M42 3v58M3 22h58M3 42h58" stroke="#ffffff" stroke-opacity=".07" stroke-width="1.2"/>
+        <rect x="45" y="6" width="13" height="13" rx="4" fill="#5c4d3f"/><rect x="45" y="6" width="13" height="4" rx="2" fill="#6e5d4c"/>
+        <circle class="logo-goal" cx="52" cy="32" r="12" fill="url(#lgGoal)"/>
+        <circle cx="52" cy="32" r="4.6" fill="#fff3c4"/>
+        <rect x="4" y="29.6" width="10" height="4.8" rx="2.4" fill="#ffcf7a" opacity=".22"/>
+        <rect x="11" y="28.6" width="9" height="6.8" rx="3.4" fill="#ffcf7a" opacity=".38"/>
+        <circle cx="31" cy="32" r="9.5" fill="url(#lgSeed)"/>
+        <ellipse cx="28" cy="28.5" rx="3.4" ry="2.2" fill="#ffffff" opacity=".45"/>
+      </svg>
       <div class="title">Block<span>Craft</span> Daily</div>
       <div class="subtitle">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
     </div>
@@ -6862,6 +6873,14 @@ window.addEventListener('pagehide', ()=>{
 applySeedCosmetic();
 refreshHome();
 goto('home');
+
+// Service worker : seulement servi en http(s) (GitHub Pages), jamais en
+// file:// où il n'existe pas. Un échec d'enregistrement ne gêne jamais le jeu.
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').then(()=> Analytics.track('sw_registered', null)).catch(()=>{});
+  });
+}
 
 /* =========================================================
    JOURNAL DE CETTE PASSE D’AUDIT — changements statiques

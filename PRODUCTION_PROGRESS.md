@@ -80,6 +80,10 @@
   - File des toasts plafonnée et vidée en entrant en jeu.
   - Menus remis sur le thème de référence.
 - **Analytics locale** : sessions, tutoriel, annuler, impasse, abandons, Sentier, Jardin. Rapport disponible via `BCD_DEV.getRetentionReport()`.
+- **Identité** : nouveau logo SVG qui raconte la mécanique (une graine qui glisse vers la lumière, appuyée sur un bloc). Il suit le skin équipé. Remplace un carré générique.
+- **PWA** :
+  - `manifest.webmanifest`, icônes générées depuis le logo, `sw.js` « réseau d'abord ».
+  - Jeu installable et jouable hors ligne sur GitHub Pages ; aucun effet en `file://`.
 
 ## 5. Tests exécutés (résultats observés)
 
@@ -87,7 +91,7 @@
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
 | `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis | 3 543 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium | 37 vérifications, 0 échec, 0 erreur ou avertissement console |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium, plus la PWA hors ligne | 40 vérifications, 0 échec, 0 erreur ou avertissement console |
 | CI GitHub Actions | Les trois suites, sur toutes les branches | Vert |
 
 Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin et les succès.
@@ -107,7 +111,7 @@ Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accue
 
 ## 7. Limites restantes
 
-- **Pas de backend** : pas de classement réel ni de notifications de rappel (il faudrait un Service Worker), pas de PWA installable (manifest et Service Worker absents).
+- **Pas de backend** : pas de classement réel, pas de notifications de rappel (il faudrait un service de push).
 - **Défi du jour lié au code** : il dépend de la version du générateur. Changer celui-ci change les défis futurs ; `DAILY_GEN_VERSION` permet de le rendre explicite.
 - **Qualité ressentie des plateaux générés** : elle n'est mesurée que par des proxys (par, états explorés, mécanique qui compte). Elle n'a pas été validée par de vrais joueurs.
 - **Non testé** sur appareils physiques (iOS Safari, Android ancien), ni avec un lecteur d'écran réel.
@@ -117,7 +121,7 @@ Vérifications visuelles faites par captures : 390×844 et 360×640, sur l'accue
 ## 8. Prochaines priorités (par impact attendu)
 
 1. **Tests joueurs réels (5 à 10 personnes)** avec le rapport de rétention, pour calibrer le chrono du Sentier et la difficulté des défis.
-2. **PWA** (`manifest.json` + Service Worker) : installation sur l'écran d'accueil et jeu hors ligne garanti.
+2. **Vérifier l'installation PWA sur de vrais téléphones** (Android Chrome, iOS Safari) une fois la branche fusionnée dans `main`.
 3. **Fantôme de soi-même** : rejouer sa meilleure trajectoire en surimpression (enregistrer le chemin gagnant).
 4. **Ligue Fantôme** (paliers de maîtrise absolus), si les tests montrent un besoin de sensation de rang.
 5. **Mondes 9-10** (barrières colorées, double graine, murs fragiles) : moteur + solveur + générateur, en appliquant la règle « mécanique qui compte ».

@@ -21,6 +21,26 @@ const FILE = 'file://' + path.resolve(__dirname, '..', 'index.html');
 let failures = 0, checks = 0;
 function check(cond, msg) { checks++; if (!cond) { failures++; console.error('✘ ' + msg); } else console.log('✔ ' + msg); }
 
+// Serveur statique minimal (aucune dépendance) pour tester la PWA en http.
+function startStaticServer(root) {
+  const http = require('http');
+  const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.json': 'application/json' };
+  return new Promise(resolve => {
+    const srv = http.createServer((req, res) => {
+      let p = decodeURIComponent(req.url.split('?')[0]);
+      if (p.endsWith('/')) p += 'index.html';
+      const file = path.join(root, path.normalize(p));
+      if (!file.startsWith(root)) { res.writeHead(403); return res.end(); }
+      fs.readFile(file, (err, data) => {
+        if (err) { res.writeHead(404); return res.end(); }
+        res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
+        res.end(data);
+      });
+    });
+    srv.listen(0, '127.0.0.1', () => resolve({ port: srv.address().port, close: () => srv.close() }));
+  });
+}
+
 (async () => {
   const launchOpts = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
   const browser = await chromium.launch(launchOpts);
@@ -152,6 +172,25 @@ function check(cond, msg) { checks++; if (!cond) { failures++; console.error('�
 
   // 10. Aucune erreur/avertissement console
   check(consoleProblems.length === 0, 'aucune erreur ni avertissement console' + (consoleProblems.length ? ' :\n  ' + consoleProblems.join('\n  ') : ''));
+
+  // 11. PWA : service worker + jeu hors ligne (serveur statique local minimal,
+  //     car un service worker n'existe pas en file://).
+  const server = await startStaticServer(path.resolve(__dirname, '..'));
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const pw = await ctx.newPage();
+  await pw.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+  await pw.goto(`http://localhost:${server.port}/index.html`);
+  await pw.waitForTimeout(1500);
+  await pw.reload(); await pw.waitForTimeout(800);
+  check(await pw.evaluate(() => !!navigator.serviceWorker.controller), 'PWA : service worker actif');
+  const man = await pw.evaluate(async () => (await (await fetch(document.querySelector('link[rel=manifest]').href)).json()));
+  check(man.icons && man.icons.length === 3 && man.start_url === './', 'PWA : manifest valide (3 icônes)');
+  await ctx.setOffline(true);
+  await pw.reload(); await pw.waitForTimeout(800);
+  await pw.click('#btnContinue'); await pw.waitForTimeout(300);
+  check(await pw.evaluate(() => document.querySelector('.screen.active').id) === 'screen-game', 'PWA : jeu lancé hors ligne');
+  await ctx.close();
+  server.close();
 
   await browser.close();
   console.log(`\n${checks} vérifications, ${failures} échec(s).`);
