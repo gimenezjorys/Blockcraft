@@ -133,6 +133,42 @@
   }
   .screen.active{display:flex;}
   @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  /* Transitions directionnelles (goto) : on "avance" vers la droite, on
+     "revient" vers la gauche, la victoire "éclot". Courtes (.28 s) : le jeu
+     doit toujours sembler répondre instantanément. */
+  .screen.enter-fwd{animation:enterFwd .28s cubic-bezier(.2,.8,.2,1);}
+  .screen.enter-back{animation:enterBack .28s cubic-bezier(.2,.8,.2,1);}
+  .screen.enter-pop{animation:enterPop .34s cubic-bezier(.2,.9,.25,1.15);}
+  @keyframes enterFwd{from{opacity:0; transform:translateX(22px);} to{opacity:1; transform:none;}}
+  @keyframes enterBack{from{opacity:0; transform:translateX(-22px);} to{opacity:1; transform:none;}}
+  @keyframes enterPop{from{opacity:0; transform:scale(.95);} to{opacity:1; transform:none;}}
+
+  /* ---------- AMBIANCE : "jardin de nuit" ----------
+     Couche fixe derrière l'application : un halo de lumière en haut, un
+     feuillage en silhouette en bas, et quelques lucioles — écho visuel de la
+     cible lumineuse du plateau. Uniquement transform/opacity (GPU), masquée
+     en partie pour laisser toute l'attention au plateau. */
+  #ambient{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;}
+  #ambient::before{
+    content:""; position:absolute; left:50%; top:-18vh; width:120vw; height:60vh; transform:translateX(-50%);
+    background:radial-gradient(closest-side, rgba(255,214,140,.10), rgba(255,214,140,0));
+  }
+  #ambient .foliage{position:absolute; left:0; right:0; bottom:0; width:100%; height:120px; opacity:.55;}
+  .firefly{
+    position:absolute; width:4px; height:4px; border-radius:50%;
+    background:#ffe9a8; box-shadow:0 0 8px 3px rgba(255,214,120,.55); opacity:0;
+    animation:ffDrift var(--d,14s) ease-in-out infinite, ffGlow var(--g,4s) ease-in-out infinite;
+    animation-delay:var(--dl,0s), var(--dl,0s);
+  }
+  @keyframes ffDrift{
+    0%,100%{transform:translate(0,0);}
+    33%{transform:translate(var(--x1,14px), var(--y1,-22px));}
+    66%{transform:translate(var(--x2,-12px), var(--y2,-40px));}
+  }
+  @keyframes ffGlow{0%,100%{opacity:0;} 45%,60%{opacity:.85;}}
+  body.in-game .firefly{display:none;}
+  body.in-game #ambient .foliage{opacity:.25;}
+  #app{z-index:1;}
 
   h1,h2,h3{font-family:var(--font-display); margin:0; letter-spacing:.2px;}
 
@@ -187,6 +223,15 @@
     transition:transform .12s ease, filter .12s ease;
   }
   .btn:active{transform:scale(.96);}
+  /* Reflet lent sur l'action principale : attire l'œil sans clignoter. */
+  .btn-primary.shimmer{position:relative; overflow:hidden;}
+  .btn-primary.shimmer::after{
+    content:""; position:absolute; top:0; bottom:0; left:-40%; width:30%;
+    background:linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.45), rgba(255,255,255,0));
+    transform:skewX(-18deg); animation:ctaSweep 5.5s ease-in-out infinite; pointer-events:none;
+  }
+  @keyframes ctaSweep{0%,78%{left:-40%;} 100%{left:130%;}}
+  .btn:hover{filter:brightness(1.06);}
   .btn-primary{
     background:linear-gradient(155deg, var(--seed-light), var(--seed));
     color:#2a1a06;
@@ -613,14 +658,31 @@
 
   /* ---------- VICTORY ---------- */
   #screen-victory{align-items:center; justify-content:center; text-align:center; gap:14px;}
-  .burst{position:relative; width:120px; height:120px; margin-bottom:4px;}
+  /* Emblème de victoire : TA graine (skin équipé, effets compris) posée
+     dans un halo de rayons lents — la récompense a le visage du joueur. */
+  .burst{position:relative; width:120px; height:120px; margin:6px 0 8px;}
+  .burst .rays{
+    position:absolute; inset:-70px; border-radius:50%; pointer-events:none;
+    background:repeating-conic-gradient(from 0deg, rgba(255,214,120,.16) 0deg 9deg, rgba(255,214,120,0) 9deg 24deg);
+    -webkit-mask:radial-gradient(circle, #000 25%, transparent 68%); mask:radial-gradient(circle, #000 25%, transparent 68%);
+    animation:raysIn .6s ease both, raysSpin 24s linear infinite;
+  }
+  @keyframes raysIn{from{opacity:0; transform:scale(.6);} to{opacity:1;}}
+  @keyframes raysSpin{to{rotate:360deg;}}
   .burst .core{
-    width:100%; height:100%; border-radius:50%;
+    position:relative; width:100%; height:100%; border-radius:50%;
     background:radial-gradient(circle at 35% 30%, var(--seed-skin-light), var(--seed-skin-mid) 55%, var(--seed-skin-deep) 100%);
-    box-shadow:0 0 40px 10px rgba(240,168,60,.45);
-    display:flex; align-items:center; justify-content:center; font-size:44px;
+    box-shadow:0 0 44px 12px rgba(255,190,90,.4), inset 0 3px 0 rgba(255,255,255,.45), inset 0 -8px 16px rgba(0,0,0,.18);
     animation:corePop .5s ease;
   }
+  .burst .core-shine{position:absolute; left:22%; top:16%; width:34%; height:22%; border-radius:50%; background:rgba(255,255,255,.5); filter:blur(1px); transform:rotate(-20deg);}
+  .burst .core-badge{
+    position:absolute; right:-6px; bottom:-4px; width:44px; height:44px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+    background:var(--surface-2); border:2px solid var(--tile-line); box-shadow:0 6px 14px -4px rgba(0,0,0,.5);
+    animation:badgeIn .4s .25s cubic-bezier(.2,.9,.25,1.3) both;
+  }
+  @keyframes badgeIn{from{opacity:0; transform:scale(.3);} to{opacity:1; transform:scale(1);}}
   @keyframes corePop{0%{transform:scale(.6);} 55%{transform:scale(1.12);} 100%{transform:scale(1);}}
   .petal{
     position:absolute; width:10px; height:16px; border-radius:50% 50% 50% 0;
@@ -1053,6 +1115,12 @@
 </style>
 </head>
 <body>
+<div id="ambient" aria-hidden="true">
+  <svg class="foliage" viewBox="0 0 390 120" preserveAspectRatio="none">
+    <path fill="#081510" d="M0 120V70c18-6 30-26 52-22 14 3 18 18 30 16 16-3 20-30 42-30 20 0 26 24 40 26 12 2 18-14 32-14 18 0 22 22 38 20 14-2 20-26 38-26 20 0 24 24 42 24 12 0 18-12 30-10 20 3 26 20 46 18V120Z"/>
+    <path fill="#0b1c15" d="M0 120V92c22-4 36-18 58-14 18 3 24 16 44 14 22-2 30-20 52-18 20 2 26 18 46 18 22 0 30-18 52-16 20 2 28 18 48 16 20-2 30-14 50-12 16 2 28 10 40 10V120Z"/>
+  </svg>
+</div>
 <div id="app">
 
   <!-- ============ HOME ============ -->
@@ -1097,7 +1165,7 @@
       <span class="hg-plants" id="homeGardenPlants" aria-hidden="true"></span>
       <span class="hg-caption" id="homeGardenCaption">Ton jardin</span>
     </button>
-    <button class="btn btn-primary btn-play" id="btnContinue" aria-label="Jouer au prochain niveau">
+    <button class="btn btn-primary btn-play shimmer" id="btnContinue" aria-label="Jouer au prochain niveau">
       <span class="bp-main">▶ JOUER</span>
       <span class="bp-sub" id="continueLevelName">Niveau 1 · Le Jardin</span>
     </button>
@@ -1172,7 +1240,7 @@
 
   <!-- ============ VICTORY ============ -->
   <section id="screen-victory" class="screen">
-    <div class="burst"><div class="core" id="burstCore">🌱</div></div>
+    <div class="burst"><div class="rays" aria-hidden="true"></div><div class="core" id="burstCore"><span class="core-shine"></span><span class="core-badge" id="burstBadge">🌱</span></div></div>
     <h2 id="victoryTitle">Niveau réussi !</h2>
     <div class="stars-row" id="victoryStars" aria-hidden="true">
       <span class="star">★</span><span class="star">★</span><span class="star">★</span>
@@ -1188,7 +1256,7 @@
          (au lieu de toasts empilés qui masquaient l'emblème). -->
     <div class="victory-rewards" id="victoryRewards" aria-live="polite"></div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btnNextLevel">NIVEAU SUIVANT →</button>
+      <button class="btn btn-primary shimmer" id="btnNextLevel">NIVEAU SUIVANT →</button>
       <div class="btn-pair">
         <button class="btn btn-secondary btn-small" id="btnReplayVictory">↻ Rejouer</button>
         <button class="btn btn-secondary btn-small" id="btnShare">📤 Partager</button>
@@ -4120,8 +4188,17 @@ function goto(name){
   // Un toast en attente venu d'un autre écran n'a plus de sens en jeu :
   // il masquerait les boutons du haut pendant la réflexion.
   if(name==='game' && typeof toastQueue!=='undefined') toastQueue.length = 0;
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
+  const prev = state.screen;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active', 'enter-fwd', 'enter-back', 'enter-pop'));
+  const target = document.getElementById('screen-'+name);
+  target.classList.add('active');
+  if(prev !== name){
+    const dir = (name==='victory' || name==='sentierend') ? 'enter-pop'
+      : (name==='home' || (name==='select' && prev==='game')) ? 'enter-back' : 'enter-fwd';
+    void target.offsetWidth;
+    target.classList.add(dir);
+  }
+  document.body.classList.toggle('in-game', name==='game');
   state.screen = name;
   // Un seul son par transition (ouverture), pas de sfxScreenClose() associé
   // ici : goto() ne modélise pas explicitement "quel écran se ferme", et
@@ -6175,10 +6252,10 @@ let onWin = function(expectedSessionId){
   const sentierWasUnlocked = isSentierUnlocked();
 
   // L'emoji de victoire reflète le monde du niveau terminé (Blueprint §18).
-  const burstCoreEl = document.getElementById('burstCore');
-  if(burstCoreEl){
+  const burstBadgeEl = document.getElementById('burstBadge');
+  if(burstBadgeEl){
     const meta = !state.isDaily && lvl ? WORLD_META[lvl.world] : null;
-    burstCoreEl.textContent = (meta && meta.emoji) ? meta.emoji : '🌱';
+    burstBadgeEl.textContent = state.isDaily ? '🌤' : ((meta && meta.emoji) ? meta.emoji : '🌱');
   }
 
   if(!state.isDaily){
@@ -6345,7 +6422,22 @@ function renderVictoryRewards(rewards){
     const tx = document.createElement('span'); tx.textContent = r.text;
     chip.append(ic, tx);
     wrap.appendChild(chip);
+    // Les coins "tombent" dans le compteur : +0 → +N quand la puce apparaît.
+    const m = r.kind==='coins' && /^\+(\d+)$/.exec(r.text);
+    if(m) countUp(tx, Number(m[1]), (550 + i*120), '+');
   });
+}
+function countUp(el, target, delayMs, prefix){
+  el.textContent = (prefix||'') + '0';
+  const start = performance.now() + delayMs, dur = 650;
+  const step = now=>{
+    if(!el.isConnected) return;
+    const t = Math.max(0, Math.min(1, (now - start)/dur));
+    el.textContent = (prefix||'') + Math.round(target * (1 - Math.pow(1-t, 3)));
+    if(t < 1) requestAnimationFrame(step);
+    else if(typeof sfxCoinGain==='function') sfxCoinGain();
+  };
+  requestAnimationFrame(step);
 }
 // Couleurs festives pour les confettis uniquement (les autres effets
 // utilisent des couleurs fixes définies en CSS, cohérentes avec la
@@ -7179,6 +7271,39 @@ document.querySelectorAll('[role="button"][tabindex]').forEach(el=>{
 });
 
 /* =========================================================
+   M3. VIE DE L'INTERFACE — lucioles d'ambiance, retour des boutons
+========================================================= */
+// Une douzaine de lucioles réparties sur l'écran, chacune avec sa propre
+// dérive et sa propre respiration (variables CSS) : aucune boucle JS.
+function spawnFireflies(){
+  const amb = document.getElementById('ambient');
+  if(!amb || amb.querySelector('.firefly')) return;
+  const rng = makeRng(7);
+  for(let i=0;i<12;i++){
+    const f = document.createElement('span');
+    f.className = 'firefly';
+    f.style.left = (4 + rng()*92)+'%';
+    f.style.top = (18 + rng()*72)+'%';
+    f.style.setProperty('--d', (11 + rng()*9).toFixed(1)+'s');
+    f.style.setProperty('--g', (3 + rng()*4).toFixed(1)+'s');
+    f.style.setProperty('--dl', (-rng()*12).toFixed(1)+'s');
+    f.style.setProperty('--x1', Math.round(rng()*40-20)+'px');
+    f.style.setProperty('--y1', Math.round(-10-rng()*30)+'px');
+    f.style.setProperty('--x2', Math.round(rng()*40-20)+'px');
+    f.style.setProperty('--y2', Math.round(-30-rng()*40)+'px');
+    amb.appendChild(f);
+  }
+}
+// Retour immédiat au toucher de tout bouton : un "tac" de bois discret.
+// (Le plateau n'est pas un bouton : ses coups ont leurs propres sons.)
+document.addEventListener('pointerdown', e=>{
+  const el = e.target.closest && e.target.closest('button, [role="button"], [role="switch"]');
+  if(!el || el.disabled || el.getAttribute('aria-disabled')==='true') return;
+  if(el.id==='btnUndo' || el.id==='btnHint') return; // sons dédiés
+  sfxButtonTap();
+}, { passive:true });
+
+/* =========================================================
    N. INITIALISATION
 ========================================================= */
 // first_open (Blueprint §26, "mesurer acquisition réelle") : un journal
@@ -7200,6 +7325,7 @@ window.addEventListener('pagehide', ()=>{
   Analytics.track('session_end', { durationS: Math.round((Date.now()-sessionStartedAt)/1000), screen:state.screen });
 });
 applySeedCosmetic();
+spawnFireflies();
 refreshHome();
 goto('home');
 // Succès rattrapés au démarrage : un joueur qui met à jour le jeu voit
