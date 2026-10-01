@@ -193,7 +193,8 @@ function check(cond, msg) { checks++; if (cond) console.log('✔ ' + msg); else 
   for (let i = 0; i < 3; i++) { await page.click('#coach .c-primary').catch(() => {}); await wait(page, 600); }
   check((await tuto(page)).news === 'done' && !(await page.$('.coach-ring')), 'visite terminée, jamais reproposée');
   await page.reload(); await wait(page, 1300);
-  check((await coach(page)) === '', 'rechargement : Germain ne revient pas sans raison');
+  const afterReload = await coach(page);
+  check(afterReload === '', `rechargement : Germain ne revient pas sans raison (« ${afterReload} »)`);
   await page.context().close();
 
   // ================= 5. Animations réduites =================
