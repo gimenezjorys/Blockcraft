@@ -266,6 +266,26 @@ function startStaticServer(root) {
   await wait(3300);
   check(await page.evaluate(left => BCD_DEV.getGarden().rosee === left + 6 && document.getElementById('btnGardenBoost').hidden, roseeLeft), 'pub regardée : +6 💧, puis plus proposée (plafond)');
   await shot('10-jardin');
+  // 8d. Jardin vivant (vrai rendu Chromium) : panorama, rosée touchée au doigt, ciels.
+  check(await page.evaluate(() => document.querySelectorAll('#gzScene .gp-panel').length === 5 && document.querySelectorAll('#gzScene .gp-bed').length === 8), 'Jardin vivant : 5 tableaux, 8 plantes');
+  const stageH = await page.evaluate(() => document.getElementById('gzStage').getBoundingClientRect().height);
+  check(stageH >= 330, `Jardin vivant : la scène occupe l'écran (${Math.round(stageH)} px de haut)`);
+  const dewInfo = await page.evaluate(() => BCD_DEV.getDew());
+  if (dewInfo.left > 0) {
+    await page.evaluate(() => { window.scrollTo(0, 0); document.getElementById('gpDewChip').click(); }); await wait(700);
+    const drop = await page.evaluate(() => { const d = [...document.querySelectorAll('#gzScene .gp-dew')].find(x => { const r = x.getBoundingClientRect(); return r.left > 0 && r.right < innerWidth; }); if (!d) return null; const r = d.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    const rBefore = await page.evaluate(() => BCD_DEV.getGarden().rosee);
+    if (drop) { await page.mouse.click(drop.x, drop.y); await wait(400); }
+    const rAfter = await page.evaluate(() => BCD_DEV.getGarden().rosee);
+    check(!!drop && rAfter === rBefore + 1, `rosée du matin : une goutte touchée = +1 💧 (${rBefore} → ${rAfter}, ${JSON.stringify(drop)}, coach ${await page.evaluate(() => !document.getElementById('coach').hidden)})`);
+  } else check(true, 'rosée du matin déjà cueillie aujourd\'hui');
+  for (const ph of ['jour', 'crepuscule']) {
+    await page.evaluate(p => { BCD_DEV.setGardenPhase(p); document.getElementById('btnBackHomeGarden').click(); }, ph); await wait(150);
+    await page.click('#homeGarden'); await wait(500);
+    check(await page.evaluate(p => document.getElementById('gzStage').dataset.phase === p, ph), `ciel « ${ph} » appliqué`);
+    await shot('11-jardin-' + ph);
+  }
+  await page.evaluate(() => BCD_DEV.setGardenPhase(null));
   await page.evaluate(() => { document.getElementById('btnBackHomeGarden').click(); }); await wait(200);
 
   // 9. Persistance après rechargement

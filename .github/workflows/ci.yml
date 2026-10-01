@@ -7,7 +7,7 @@ on:
 
 jobs:
   check-game:
-    name: Syntaxe JS + solveur + générateur
+    name: Syntaxe JS + solveur + générateur + jsdom
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,6 +21,12 @@ jobs:
 
       - name: Tests logiques (symétries, Sentier, défi du jour)
         run: node scripts/test-logic.js index.html
+
+      - name: Installer jsdom
+        run: npm install --no-save --no-package-lock jsdom@30.1.1
+
+      - name: Tests jsdom (vrais KeyboardEvent / PointerEvent, sauvegardes, dates UTC, jardin vivant)
+        run: node scripts/test-dom.js index.html
 
   e2e:
     name: Parcours joueur dans Chromium

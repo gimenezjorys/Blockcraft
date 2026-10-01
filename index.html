@@ -157,7 +157,7 @@
   #ambient{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;}
   #ambient::before{
     content:""; position:absolute; left:50%; top:-18vh; width:120vw; height:60vh; transform:translateX(-50%);
-    background:radial-gradient(closest-side, rgba(255,214,140,.10), rgba(255,214,140,0));
+    background:radial-gradient(closest-side, var(--amb-halo, rgba(255,214,140,.10)), rgba(255,214,140,0)); transition:background .6s ease;
   }
   #ambient .foliage{position:absolute; left:0; right:0; bottom:0; width:100%; height:120px; opacity:.55;}
   .firefly{
@@ -1709,6 +1709,7 @@
     text-shadow:0 1px 6px rgba(0,40,80,.8); pointer-events:none; animation:gpFloat 1s ease-out forwards;}
   @keyframes gpFloat{0%{opacity:0; transform:translate(-50%,-30%);} 20%{opacity:1;} 100%{opacity:0; transform:translate(-50%,-180%);}}
   .gz-cheer.grow{background:linear-gradient(90deg,#d6ffd0,#ffe08a);}
+  .gp-stage .gz-cheer{top:104px; z-index:6;}
   .gp-tip{position:absolute; z-index:6; transform:translate(-50%,-100%); max-width:220px; display:flex; flex-direction:column; gap:1px; padding:9px 12px; border-radius:14px;
     background:rgba(12,24,20,.92); border:1px solid rgba(255,209,102,.45); color:var(--cream); font-size:11.5px; font-weight:700; text-align:center; pointer-events:none;
     box-shadow:0 8px 24px rgba(0,0,0,.45); animation:gpTipIn .25s ease-out;}
@@ -1766,10 +1767,112 @@
   .hh-chip.dew{color:#0d2230; background:linear-gradient(180deg, #e8f8ff, #9fdcff); border-color:transparent; animation:badgeBob 1.6s ease-in-out infinite;}
   @media (max-height:700px){ .home-hero{height:clamp(200px, 34vh, 260px); margin-top:-10px;} .hh-logo .subtitle{display:none;} .hh-chips{top:58px;} #screen-home{padding-top:58px;} }
 
+  /* ================= PLATEAU : MATIÈRE, RELIEF, IMPACTS (refonte) ================= */
+  #board{
+    background:linear-gradient(160deg, rgba(255,255,255,.05), rgba(255,255,255,0) 40%, rgba(0,0,0,.25)), var(--bg-deep);
+    border:1px solid rgba(255,255,255,.07);
+    box-shadow:inset 0 2px 14px rgba(0,0,0,.6), inset 0 -1px 0 rgba(255,255,255,.05), 0 0 0 5px rgba(0,0,0,.16),
+      0 22px 40px -16px rgba(0,0,0,.8), 0 0 60px -18px var(--amb-halo, rgba(255,214,140,.2));
+  }
+  .cell{background:linear-gradient(155deg, rgba(255,255,255,.08), rgba(255,255,255,0) 46%, rgba(0,0,0,.16)), var(--tile);
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.08);}
+  .cell.goal{background:radial-gradient(circle at 50% 50%, rgba(255,240,190,.20), rgba(255,240,190,0) 70%), var(--tile);}
+  .cell.wall{
+    background:radial-gradient(circle at 28% 22%, rgba(255,255,255,.16), rgba(255,255,255,0) 42%),
+      linear-gradient(90deg, rgba(0,0,0,0) 48%, rgba(0,0,0,.14) 49%, rgba(0,0,0,.14) 51%, rgba(0,0,0,0) 52%) 0 50%/100% 50% no-repeat,
+      linear-gradient(0deg, rgba(0,0,0,0) 48%, rgba(0,0,0,.16) 49%, rgba(0,0,0,.16) 52%, rgba(0,0,0,0) 53%),
+      linear-gradient(160deg, var(--wall-light), var(--wall));
+    box-shadow:inset 0 -6px 0 rgba(0,0,0,.34), inset 0 2px 0 rgba(255,255,255,.14), 0 6px 9px -3px rgba(0,0,0,.6);
+    transform:translateY(-2px);
+  }
+  .cell.wall::before{opacity:.22;}
+  .piece-rock{
+    border-radius:30%;
+    background:radial-gradient(circle at 30% 24%, rgba(255,255,255,.38), rgba(255,255,255,0) 36%),
+      radial-gradient(circle at 72% 80%, rgba(0,0,0,.24), rgba(0,0,0,0) 48%),
+      linear-gradient(155deg, var(--rock-light), var(--rock));
+    box-shadow:inset 0 -5px 0 rgba(0,0,0,.24), inset 0 2px 0 rgba(255,255,255,.24), 0 8px 12px -4px rgba(0,0,0,.6);
+  }
+  .piece-seed{box-shadow:0 9px 16px -6px rgba(0,0,0,.65), inset 0 -4px 7px rgba(0,0,0,.2), inset 0 3px 0 rgba(255,255,255,.5), 0 0 22px -6px var(--seed-skin-light);}
+  html[data-seed-fx=""] .piece-seed::before, html:not([data-seed-fx]) .piece-seed::before{
+    content:""; position:absolute; left:20%; top:13%; width:32%; height:22%; border-radius:50%; background:rgba(255,255,255,.7); transform:rotate(-25deg); pointer-events:none;}
+  /* La lumière de la cible tourne doucement (rayons) sous le disque. */
+  .cell.goal::after{content:""; position:absolute; inset:2%; border-radius:50%; box-shadow:none; pointer-events:none;
+    background:repeating-conic-gradient(from 0deg, rgba(255,244,200,.34) 0deg 9deg, rgba(255,244,200,0) 9deg 30deg);
+    -webkit-mask:radial-gradient(closest-side, #000 38%, transparent 74%); mask:radial-gradient(closest-side, #000 38%, transparent 74%);
+    animation:goalSpin 10s linear infinite;}
+  @keyframes goalSpin{to{transform:rotate(360deg);}}
+  /* Impact : un petit nuage de poussière au point d'arrêt, le plateau « encaisse ». */
+  .dust{position:absolute; width:7px; height:7px; margin:-3.5px 0 0 -3.5px; border-radius:50%; pointer-events:none; z-index:2;
+    background:rgba(240,228,200,.55); animation:dustPuff .42s ease-out forwards;}
+  @keyframes dustPuff{0%{opacity:.85; transform:translate(0,0) scale(.6);} 100%{opacity:0; transform:translate(var(--px),var(--py)) scale(1.5);}}
+  #board.nudge{animation:boardNudge .2s ease-out;}
+  @keyframes boardNudge{0%{transform:translate(0,0);} 35%{transform:translate(var(--nx,0),var(--ny,0));} 100%{transform:translate(0,0);}}
+  /* ================= AMBIANCES DES MONDES ================= */
+  #ambient .world-art{position:absolute; inset:0;}
+  #ambient .wa-top{position:absolute; left:0; right:0; top:0; width:100%; height:120px; opacity:.7;}
+  #ambient .wa-bottom{position:absolute; left:0; right:0; bottom:0; width:100%; height:150px; opacity:.85;}
+  body:not([data-world="1"]) #ambient .foliage{opacity:0;}
+  body:not([data-world="1"]) .firefly{display:none;}
+  .wa-rift{animation:riftGlow 2.6s ease-in-out infinite alternate;}
+  @keyframes riftGlow{from{opacity:.35;} to{opacity:1;}}
+  .wp{position:absolute; display:block; pointer-events:none; opacity:0;}
+  .wp-dust{width:3px; height:3px; border-radius:50%; background:#ffcf9a; animation:wpDrift 12s ease-in-out infinite;}
+  .wp-spore{width:4px; height:4px; border-radius:50%; background:#c8f5a0; box-shadow:0 0 6px 2px rgba(180,240,140,.45); animation:wpRise 11s linear infinite;}
+  .wp-snow{width:5px; height:5px; border-radius:50%; background:#f2f9ff; box-shadow:0 0 4px rgba(255,255,255,.7); top:-4% !important; animation:wpFall 10s linear infinite;}
+  .wp-wisp{width:9px; height:9px; border-radius:50%; background:radial-gradient(circle, rgba(230,200,255,.95), rgba(200,150,255,0)); animation:wpDrift 14s ease-in-out infinite;}
+  .wp-leaf{width:10px; height:6px; border-radius:60% 0 60% 0; background:#7fd8b8; left:-6% !important; animation:wpBlow 9s linear infinite;}
+  .wp-ember{width:4px; height:4px; border-radius:50%; background:#ffb45a; box-shadow:0 0 8px 2px rgba(255,150,60,.6); animation:wpRise 9s linear infinite;}
+  .wp-spark{width:3px; height:3px; border-radius:50%; background:#d6d6ff; box-shadow:0 0 8px 3px rgba(150,150,255,.7); animation:wpTwinkle 4s ease-in-out infinite;}
+  @keyframes wpDrift{0%,100%{opacity:0; transform:translate(0,0);} 25%{opacity:.7;} 50%{transform:translate(var(--sx),-30px); opacity:.5;} 75%{opacity:.7;}}
+  @keyframes wpRise{0%{opacity:0; transform:translate(0,40px);} 15%{opacity:.8;} 85%{opacity:.6;} 100%{opacity:0; transform:translate(var(--sx),-160px);}}
+  @keyframes wpFall{0%{opacity:0; transform:translate(0,0);} 10%{opacity:.85;} 100%{opacity:.2; transform:translate(var(--sx),110vh);}}
+  @keyframes wpBlow{0%{opacity:0; transform:translate(0,0) rotate(0);} 10%{opacity:.7;} 100%{opacity:0; transform:translate(115vw,-40px) rotate(540deg);}}
+  @keyframes wpTwinkle{0%,100%{opacity:0; transform:scale(.5);} 50%{opacity:.95; transform:scale(1.3);}}
+  body.in-game .wp{animation-play-state:running;}
+
+  /* ================= CARTE DES MONDES, PROFIL, VICTOIRE (refonte) ================= */
+  .world-section{position:relative; overflow:hidden; isolation:isolate;
+    background:radial-gradient(120% 80% at 100% 0%, var(--surface), var(--bg-deep) 60%);}
+  .world-deco{position:absolute; left:0; right:0; bottom:0; height:120px; z-index:-1; opacity:.55; pointer-events:none;}
+  .world-deco svg{position:absolute; left:0; right:0; width:100%;}
+  .world-deco .wa-bottom{bottom:0; height:110px;}
+  .world-deco .wa-top{display:none;}
+  .world-plant-badge{width:52px; height:58px; border-radius:16px; position:relative; overflow:visible; padding:0;
+    background:radial-gradient(circle at 50% 70%, rgba(255,240,190,.14), rgba(0,0,0,.22));}
+  .world-plant-badge .plant-badge{position:absolute; left:2px; right:2px; bottom:-2px; width:48px; height:62px; overflow:visible;}
+  .wpb-emoji{position:absolute; right:-6px; top:-6px; font-size:13px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
+  .level-card{background:linear-gradient(155deg, rgba(255,255,255,.07), rgba(255,255,255,0) 50%, rgba(0,0,0,.14)), var(--surface);
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.07); transition:transform .12s ease;}
+  .level-card:not(.locked):active{transform:scale(.95);}
+  .level-card .stars{text-shadow:0 0 6px rgba(255,209,102,.55);}
+  .level-card.perfect{border-color:rgba(255,209,102,.55); box-shadow:inset 0 -3px 0 rgba(0,0,0,.22), inset 0 0 14px rgba(255,209,102,.16), 0 0 0 1px rgba(255,209,102,.12);}
+  .profile-rank{margin-bottom:12px;}
+  .victory-plant{display:flex; align-items:center; gap:12px; width:100%; max-width:320px; margin:4px auto 2px; padding:8px 14px 8px 8px; border-radius:20px; cursor:pointer;
+    background:linear-gradient(135deg, rgba(150,230,140,.16), rgba(255,209,102,.10)); border:1.5px solid rgba(160,230,150,.45); color:var(--cream);
+    font-family:var(--font-body); text-align:left; animation:vpIn .7s cubic-bezier(.2,1.4,.4,1) .45s both;}
+  .victory-plant[hidden]{display:none;}
+  .vp-art{width:58px; height:70px; flex:none; display:grid; place-items:end center; border-radius:14px; background:radial-gradient(circle at 50% 75%, rgba(255,240,190,.22), rgba(0,0,0,.2));}
+  .vp-svg{width:56px; height:72px; overflow:visible;}
+  .vp-text{display:flex; flex-direction:column; gap:1px; font-size:12.5px; font-weight:700; color:var(--cream-dim);}
+  .vp-text b{font-family:var(--font-display); font-size:16px; color:var(--cream);}
+  .vp-kicker{font-size:10.5px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:#a8f0a0;}
+  @keyframes vpIn{from{opacity:0; transform:translateY(10px) scale(.92);} to{opacity:1; transform:none;}}
+  /* Transitions : les éléments d'un écran entrent en cascade (léger, rapide). */
+  .screen.enter-fwd > *, .screen.enter-back > *{animation:riseIn .42s cubic-bezier(.2,.8,.2,1) both;}
+  .screen.enter-fwd > *:nth-child(2), .screen.enter-back > *:nth-child(2){animation-delay:.03s;}
+  .screen.enter-fwd > *:nth-child(3), .screen.enter-back > *:nth-child(3){animation-delay:.06s;}
+  .screen.enter-fwd > *:nth-child(4), .screen.enter-back > *:nth-child(4){animation-delay:.09s;}
+  .screen.enter-fwd > *:nth-child(5), .screen.enter-back > *:nth-child(5){animation-delay:.12s;}
+  .screen.enter-fwd > *:nth-child(n+6), .screen.enter-back > *:nth-child(n+6){animation-delay:.15s;}
+  @keyframes riseIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+  #screen-game.enter-fwd > *, #screen-game.enter-back > *{animation:none;}
+
 </style>
 </head>
 <body>
 <div id="ambient" aria-hidden="true">
+  <div class="world-art" id="worldArt"></div>
   <svg class="foliage" viewBox="0 0 390 120" preserveAspectRatio="none">
     <path fill="#081510" d="M0 120V70c18-6 30-26 52-22 14 3 18 18 30 16 16-3 20-30 42-30 20 0 26 24 40 26 12 2 18-14 32-14 18 0 22 22 38 20 14-2 20-26 38-26 20 0 24 24 42 24 12 0 18-12 30-10 20 3 26 20 46 18V120Z"/>
     <path fill="#0b1c15" d="M0 120V92c22-4 36-18 58-14 18 3 24 16 44 14 22-2 30-20 52-18 20 2 26 18 46 18 22 0 30-18 52-16 20 2 28 18 48 16 20-2 30-14 50-12 16 2 28 10 40 10V120Z"/>
@@ -1923,6 +2026,7 @@
     <div class="level-record-line" id="victoryLevelRecordLine" style="display:none;">Ton record : <b id="vLevelRecordText">-</b></div>
     <!-- Récompenses de cette partie, hiérarchisées et intégrées à l'écran
          (au lieu de toasts empilés qui masquaient l'emblème). -->
+    <button class="victory-plant" id="victoryPlant" type="button" hidden aria-label="Ta plante a grandi : voir le jardin"></button>
     <div class="victory-rewards" id="victoryRewards" aria-live="polite"></div>
     <div class="btn-row">
       <button class="btn btn-primary shimmer" id="btnNextLevel">NIVEAU SUIVANT →</button>
@@ -2076,6 +2180,7 @@
         <div class="profile-seed-sub" id="profileMoveFxName">➖ Aucun effet</div>
       </div>
     </div>
+    <div class="garden-rank profile-rank" id="profileRank" role="group"></div>
     <div class="profile-stats-grid">
       <div class="profile-stat-card"><div class="val" id="profileLevelsCompleted">0/0</div><div class="lbl">Niveaux</div></div>
       <div class="profile-stat-card"><div class="val" id="profileStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
@@ -2087,6 +2192,7 @@
     <div class="btn-row" style="margin-top:4px; flex-direction:row; gap:10px;">
       <div class="stat-pill" id="profileCoinsPill">🪙 0</div>
       <div class="stat-pill" id="profileAchCountPill">🏆 0 / 0</div>
+      <div class="stat-pill" id="profileCollectionPill">🎨 0 / 0</div>
     </div>
     <div class="btn-row" style="margin-top:16px;">
       <button class="btn btn-secondary" id="btnProfileToAchievements">🏆 Succès</button>
@@ -3501,6 +3607,7 @@ const COACH_LINES = {
     tip_plant_grow:  "Tes étoiles font grandir les plantes. Touche-les pour les voir !",
     tip_rank:        "Ton rang de jardinier monte avec tout ce que tu accomplis.",
     tip_repair:      "Ta série s'est arrêtée hier ? Rejoue ce défi pour la sauver.",
+    tip_garland:     "Chaque défi du jour réussi allume une lanterne de la guirlande.",
     welcome_back:    "Te revoilà ! Le jardin t'a gardé un peu de rosée.",
     btn_go:    "C'est parti !",
     btn_next:  "Suivant",
@@ -3785,6 +3892,10 @@ window.BCD_DEV = {
   resetTips(){ safeStorage.remove(TIPS_KEY); },
   getStreakRepair(){ return streakRepairNow(); },
   getDew(){ const d = todayKey(), s = streakAliveNow(); return { total: dewTotalFor(d, s), left: dewLeft(loadGarden(), d, s), weather: gardenWeatherFor(d).id }; },
+  // Points d'accroche publicitaires (tests) : voir M4.
+  adShowRewarded(placement, cb){ return showRewardedAd(placement, cb); },
+  adShowInterstitial(placement){ return showInterstitial(placement); },
+  todayKey(){ return todayKey(); },
   clearSimulatedDate(){ simulatedDate = null; },
   // Rejoue exactement la logique de réussite du défi du jour (streak +
   // record perso) sans passer par l'écran de jeu, pour tester rapidement
@@ -4085,8 +4196,8 @@ const SCHEMA_MIGRATIONS = {
   // v2 : jardin vivant (rosée du matin, plantes vues, rang, bon retour,
   // rattrapage). Les anciennes sauvegardes gardent tout ; les nouveaux
   // champs démarrent « jamais vu » (aucune fête rétroactive).
-  garden:       { current:2, migrations:{ 1: old=> Object.assign({}, (old && typeof old==='object' && !Array.isArray(old)) ? old : {},
-                  { dewDay:'', dewTaken:0, plantSeen:null, rankSeen:-1, welcomeDay:'', repairDay:'' }) } },
+  garden:       { current:2, migrations:{ 1: old=> Object.assign({ dewDay:'', dewTaken:0, plantSeen:null, rankSeen:-1, welcomeDay:'', repairDay:'' },
+                  (old && typeof old==='object' && !Array.isArray(old)) ? old : {}) } },
   ritual:       { current:1, migrations:{} },
   ads:          { current:1, migrations:{} },
   retention:    { current:1, migrations:{} },
@@ -5750,6 +5861,7 @@ document.addEventListener('visibilitychange', ()=>{
 // tous les autres reviennent à la palette de référence du Jardin, pour que
 // les menus ne "déteignent" pas selon le dernier monde joué.
 const THEMED_SCREENS = ['game', 'victory'];
+let gotoEnterTimer = 0;
 function goto(name){
   if(!THEMED_SCREENS.includes(name) && typeof applyWorldTheme==='function') applyWorldTheme(1);
   // La fête d'une zone du jardin ne survit pas à un changement d'écran (bouton Retour).
@@ -5768,6 +5880,10 @@ function goto(name){
       : (name==='home' || (name==='select' && prev==='game')) ? 'enter-back' : 'enter-fwd';
     void target.offsetWidth;
     target.classList.add(dir);
+    // La classe d'entrée ne sert qu'à l'animation : retirée ensuite, pour ne
+    // jamais écraser les animations propres des éléments de l'écran.
+    clearTimeout(gotoEnterTimer);
+    gotoEnterTimer = setTimeout(()=> target.classList.remove(dir), 700);
   }
   document.body.classList.toggle('in-game', name==='game');
   setMusicMood(name==='game' ? (state.mode==='sentier' ? 'sentier' : 'game')
@@ -5902,7 +6018,7 @@ function refreshHome(){
   if(typeof renderHomeGarden==='function') renderHomeGarden();
   // Nouveau rang du jardinier : célébré sur l'accueil (une seule fois).
   const ru = checkRankUp();
-  if(ru) setTimeout(()=>{ if(state.screen==='home'){ celebrateRankUp(ru); setTimeout(()=> showTipOnce('rank', coachLine('tip_rank'), { position:'bottom' }), 3300); } }, 700);
+  if(ru) setTimeout(()=>{ celebrateRankUp(ru); setTimeout(()=>{ if(state.screen==='home') showTipOnce('rank', coachLine('tip_rank'), { position:'bottom' }); }, 3300); }, 700);
 }
 
 document.getElementById('btnContinue').addEventListener('click', ()=>{
@@ -6197,6 +6313,11 @@ function renderProfile(){
   const unlockedCount = achievementUnlockedCount(unlocked);
   const achEl = document.getElementById('profileAchCountPill');
   if(achEl) achEl.textContent = `🏆 ${unlockedCount} / ${achievementTotalCount()}`;
+  // Compteur de collection (audit §3) : tous les cosmétiques possédés.
+  const col = collectionCount();
+  const colEl = document.getElementById('profileCollectionPill');
+  if(colEl){ colEl.textContent = `🎨 ${col.owned} / ${col.total}`; colEl.setAttribute('aria-label', `Collection : ${col.owned} objets sur ${col.total}`); }
+  renderRankCard('profileRank');
 
   // Aperçu de la graine équipée : même donnée exacte que renderCosmetics()
   // (getCosmeticById/loadEquippedCosmetic), même formule de dégradé —
@@ -6848,6 +6969,19 @@ function gpPlantBed(w, x, stage, opts){
   return s + '</g>';
 }
 
+// Médaillon d'une plante (carte des mondes, victoire) : SVG autonome.
+function gpPlantBadgeSVG(w, stage, cls){
+  const idp = 'pb' + (++gpSeq) + '_';
+  // Cadrage selon le stade : une jeune pousse reste lisible en petit.
+  const full = GP_PLANT_H[w] || 100;
+  const H = [26, 36, full * .55 + 22, full + 30, full + 34][Math.max(0, Math.min(4, stage|0))];
+  const defs = `<defs><linearGradient id="§stone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8d0b8"/><stop offset="1" stop-color="#8a836f"/></linearGradient>` +
+    [1,2,3,4,5,6,7,8].map(k=> `<radialGradient id="§bloom${k}"><stop offset="0" stop-color="${GP_SPECIES[k].glow}" stop-opacity=".55"/><stop offset="1" stop-color="${GP_SPECIES[k].glow}" stop-opacity="0"/></radialGradient>`).join('') + `</defs>`;
+  const halfW = Math.max(28, H * .42);
+  const svg = `<svg class="${cls||'plant-badge'}" viewBox="${gpf(-halfW)} ${gpf(-H)} ${gpf(halfW * 2)} ${gpf(H + 12)}" aria-hidden="true">${defs}${gpSoil(w)}<g class="gp-sway">${gpSpeciesArt(w, stage)}</g></svg>`;
+  return svg.replace(/§/g, idp);
+}
+
 /* ---------- Animaux des zones réveillées (un par zone terminée) ---------- */
 function gpCritter(zi){
   switch(zi){
@@ -7081,7 +7215,7 @@ function gpWeatherHTML(ctx, n){
 }
 
 /* ---------- L'écran du Jardin : construction et défilement ---------- */
-const gpView = { built:false, sig:'', W:0, raf:0, io:null, lastZone:-1 };
+const gpView = { built:false, sig:'', W:0, raf:0, io:null, lastZone:-1, buildToken:0 };
 function gpStageSignature(ctx){ return ctx.phase + '|' + ctx.weather.id + '|' + ctx.day; }
 function renderGardenPanorama(opts){
   opts = opts || {};
@@ -7099,10 +7233,21 @@ function renderGardenPanorama(opts){
     strip.insertAdjacentHTML('afterend', gpFrameHTML() + gpWeatherHTML(ctx));
     gpView.sig = sig;
   }
-  // Les cinq tableaux.
-  strip.innerHTML = GARDEN_ZONES.map((z, zi)=> `<div class="gp-panel" data-zone="${zi}">${gpPanelSVG(zi, ctx, {
-    marker:true, germain: zi===ctx.st.zoneIndex, justK: opts.justZone===zi ? opts.justK : undefined,
-    growth: opts.growth && gpPanelOfWorld(opts.growth.world)===zi ? opts.growth : null })}</div>`).join('');
+  // Les cinq tableaux : celui qu'on regarde tout de suite, les autres juste
+  // après (une tâche chacun) pour que le jardin s'ouvre sans attendre.
+  const first = (gardenView.zone===null || gardenView.zone===undefined) ? ctx.st.zoneIndex : gardenView.zone;
+  const build = zi=> gpPanelSVG(zi, ctx, { marker:true, germain: zi===ctx.st.zoneIndex });
+  const token = ++gpView.buildToken;
+  strip.innerHTML = GARDEN_ZONES.map((z, zi)=> `<div class="gp-panel" data-zone="${zi}">${zi===first ? build(zi) : ''}</div>`).join('');
+  const rest = GARDEN_ZONES.map((z, zi)=> zi).filter(zi=> zi!==first).sort((a, b)=> Math.abs(a - first) - Math.abs(b - first));
+  const next = ()=>{
+    if(token !== gpView.buildToken || !rest.length) return;
+    const zi = rest.shift();
+    const panel = strip.querySelector(`.gp-panel[data-zone="${zi}"]`);
+    if(panel && !panel.firstChild) panel.innerHTML = build(zi);
+    setTimeout(next, 0);
+  };
+  setTimeout(next, 0);
   // Guirlande des 7 derniers défis.
   const gl = document.getElementById('gpGarland');
   if(gl) gl.innerHTML = gpGarlandHTML(ctx);
@@ -7200,6 +7345,14 @@ function gpRenderDewChip(ctx){
   if(!chip) return;
   const left = ctx.dewLeftSpots.length;
   chip.hidden = left <= 0;
+  // Seconde rosée (pub) : seulement une fois toute la rosée du jour cueillie.
+  const bonus = document.getElementById('btnDewBonus');
+  if(bonus){
+    const day = todayKey();
+    const show = left <= 0 && dewTakenToday(loadGarden(), day) > 0 && AdService.canOffer('dew_bonus');
+    if(bonus.hidden !== !show){ bonus.hidden = !show; bonus.disabled = false; bonus.innerHTML = '▶ Seconde rosée : +3 💧 <span class="ad-tag">PUB</span>'; }
+    if(show) AdService.offered('dew_bonus', bonus);
+  }
   chip.innerHTML = `💧 <b>${left}</b> goutte${left>1?'s':''} de rosée`;
   chip.setAttribute('aria-label', `Rosée du matin : ${left} goutte${left>1?'s':''} à cueillir. Touche pour aller à la prochaine.`);
 }
@@ -7220,7 +7373,7 @@ function gpPointPx(zi, x, y){
 /* ---------- Interactions : rosée, plantes, Germain, lanternes ---------- */
 function gpOnSceneTap(e){
   const dew = e.target.closest && e.target.closest('[data-dew]');
-  if(dew){ gpCollectDew(dew); return; }
+  if(dew){ if(!dew.classList.contains('picked')) gpCollectDew(dew); return; } // double toucher : une seule goutte
   const bed = e.target.closest && e.target.closest('[data-plant]');
   if(bed){ gpPlantInfo(+bed.getAttribute('data-plant'), bed); return; }
   const gm = e.target.closest && e.target.closest('[data-germain]');
@@ -7273,14 +7426,7 @@ function gpFlyTo(stage, from, to){
   setTimeout(()=> d.remove(), 900);
 }
 // Seconde rosée (pub récompensée, une fois par jour, jamais obligatoire).
-function gpOfferDewBonus(){
-  if(!AdService.canOffer('dew_bonus')) return;
-  const chip = document.getElementById('gpDewChip');
-  const b = document.getElementById('btnDewBonus');
-  if(!b) return;
-  b.hidden = false;
-  AdService.offered('dew_bonus', b);
-}
+function gpOfferDewBonus(){ gpRenderDewChip(gpContext()); }
 function gpPlantInfo(w, bed){
   const p = loadProgress();
   const info = gardenStageFor(w, p);
@@ -7657,8 +7803,15 @@ function gardenerStatsNow(){
     achievements: Object.keys(loadUnlockedAchievements()).length };
 }
 function gardenerRankNow(){ return gardenerRank(gardenerXP(gardenerStatsNow())); }
-function renderGardenRank(){
-  const el = document.getElementById('gardenRank');
+function collectionCount(){
+  const lists = [[SEED_COSMETICS, loadOwnedCosmetics()], [VICTORY_EFFECTS, loadOwnedVictoryEffects()], [MOVE_EFFECTS, loadOwnedMoveEffects()], [PROFILE_FRAMES, loadOwnedFrames()]];
+  let owned = 0, total = 0;
+  lists.forEach(([all, mine])=>{ total += all.length; owned += all.filter(x=> (mine||[]).includes(x.id)).length; });
+  return { owned, total };
+}
+function renderGardenRank(){ renderRankCard('gardenRank'); }
+function renderRankCard(id){
+  const el = document.getElementById(id);
   if(!el) return;
   const rk = gardenerRankNow();
   el.innerHTML = `<div class="gr-icon" aria-hidden="true">${rk.icon}</div><div class="gr-text"><div class="gr-kicker">Ton rang de jardinier</div><div class="gr-name">${rk.name}</div>` +
@@ -7678,8 +7831,13 @@ function checkRankUp(){
   }
   return null;
 }
-function celebrateRankUp(rk){
+function celebrateRankUp(rk, tries){
   if(!rk) return;
+  // Jamais par-dessus une fenêtre ou une bulle : on attend qu'elle se ferme.
+  if(document.querySelector('.zone-fete, .ad-mock') || (Coach && Coach.isOpen())){
+    if((tries||0) < 6) setTimeout(()=> celebrateRankUp(rk, (tries||0) + 1), 2500);
+    return;
+  }
   sfxRankUp();
   vibrate([12, 40, 12, 40, 30]);
   const wrap = document.createElement('div');
@@ -7737,10 +7895,13 @@ function openGarden(scrollToRitual){
   Analytics.track('garden_open', { score:gardenTotals().score, done:loadGarden().done, dew: gpContextLight().dewZones.size });
   if(scrollToRitual===true){ const r = document.getElementById('gardenRitual'); if(r) setTimeout(()=> r.scrollIntoView({ block:'center', behavior:'smooth' }), 80); return; }
   if(growth.length) setTimeout(()=> gpPlayGrowth(growth), 450);
-  else if(gpContextLight().dewZones.size){
-    // Première rosée : Germain montre le geste (une seule fois, passable).
-    setTimeout(()=>{ if(state.screen==='garden') showTipOnce('dew', coachLine('tip_dew'), { position:'top' }); }, 700);
-  }
+  else setTimeout(()=>{
+    if(state.screen!=='garden') return;
+    // Chaque nouveauté du jardin s'explique une fois, quand elle apparaît :
+    // la rosée du matin d'abord, puis la guirlande dès la 1re lanterne allumée.
+    if(gpContextLight().dewZones.size && showTipOnce('dew', coachLine('tip_dew'), { position:'top' })) return;
+    if(gpWeekLights().some(d=> d.done)) showTipOnce('garland', coachLine('tip_garland'), { position:'top' });
+  }, 700);
 }
 document.getElementById('btnRestore').addEventListener('click', restoreNextTask);
 document.getElementById('gzPrev').addEventListener('click', ()=> gpScrollToZone((gardenView.zone||0) - 1, true));
@@ -7930,6 +8091,61 @@ function applyWorldTheme(world){
   root.setProperty('--surface-2', theme.surface2);
   root.setProperty('--tile', theme.tile);
   root.setProperty('--tile-line', theme.tileLine);
+  renderWorldAmbience(world);
+}
+
+/* ---------------------------------------------------------
+   AMBIANCE DE CHAQUE MONDE (refonte) : un décor en silhouette (haut et
+   bas de l'écran), une lumière et des particules propres au monde, en
+   CSS pur (transform/opacity). Les menus reviennent au Monde 1 (goto).
+--------------------------------------------------------- */
+const WORLD_AMBIENCE = {
+  1:{ halo:'rgba(255,214,140,.11)', particle:'firefly-w', n:0 },
+  2:{ halo:'rgba(255,170,90,.12)',  particle:'wp-dust',  n:14 },
+  3:{ halo:'rgba(150,220,120,.10)', particle:'wp-spore', n:16 },
+  4:{ halo:'rgba(170,220,255,.14)', particle:'wp-snow',  n:22 },
+  5:{ halo:'rgba(200,150,255,.13)', particle:'wp-wisp',  n:12 },
+  6:{ halo:'rgba(120,230,210,.12)', particle:'wp-leaf',  n:12 },
+  7:{ halo:'rgba(255,190,110,.12)', particle:'wp-ember', n:16 },
+  8:{ halo:'rgba(150,150,255,.15)', particle:'wp-spark', n:18 }
+};
+function worldArtSVG(world){
+  const top = (d, fill, op)=> `<svg class="wa-top" viewBox="0 0 390 140" preserveAspectRatio="none"><path d="${d}" fill="${fill}" opacity="${op||1}"/></svg>`;
+  const bottom = (d, fill, op)=> `<svg class="wa-bottom" viewBox="0 0 390 150" preserveAspectRatio="none"><path d="${d}" fill="${fill}" opacity="${op||1}"/></svg>`;
+  switch(world){
+    case 2: return bottom('M0 150V112c14-10 30-12 44-4 8-18 34-24 50-10 12-12 36-12 46 4 14-8 32-6 40 6 16-16 46-14 58 4 10-6 26-6 34 4 16-12 40-10 52 4 8-4 20-4 28 2 12-8 26-6 38 4V150Z', '#120d08') +
+                     bottom('M0 150V130c20-6 36-2 52 2 20-10 44-8 60 2 22-8 50-6 70 2 24-6 50-4 70 2 22-6 50-6 70 0 18-4 36-2 52 2V150Z', '#1a130c');
+    case 3: return top('M0 0H390V18c-10 22-14 46-8 70-12-18-16-40-14-62-8 30-6 60 4 88-16-22-22-54-20-86-10 18-12 40-8 62-10-16-14-38-12-60-14 26-16 56-6 84-18-24-24-56-22-90-8 24-10 50-4 74-12-18-16-42-14-66-12 22-14 48-8 72-14-20-18-46-16-72-10 20-12 44-6 66-14-18-18-42-16-66-8 18-10 40-6 60-14-22-18-48-16-74C30 40 22 70 26 96 12 74 6 46 8 18Z', '#0a140b') +
+                     bottom('M0 150V96c18 4 30-10 44-4 14 6 18 22 34 18 16-4 18-26 36-26 18 0 22 22 38 22s20-20 38-20 20 22 38 22 22-24 40-22 20 22 36 20 22-18 40-16 18 18 34 16 18-12 32-8V150Z', '#071009');
+    case 4: return bottom('M0 150V92l38-38 26 22 44-56 40 46 22-20 50 58 34-34 40 30 36-44 60 52V150Z', '#0d1a26', .95) +
+                     bottom('M0 150V118l50-20 40 16 50-26 46 24 54-18 48 22 52-16 50 18V150Z', '#122535') +
+                     top('M20 0h10l-5 26Zm60 0h12l-6 34Zm70 0h8l-4 20Zm80 0h12l-6 30Zm70 0h10l-5 24Zm60 0h12l-6 36Z', '#bfe3ff', .25);
+    case 5: return top('M0 0H390V10l-12 40-10-34-14 52-12-48-16 60-10-44-14 36-12-50-18 64-12-54-14 40-12-36-16 58-14-50-12 34-14-42-18 62-12-46-14 30-10-38-16 54-14-48-12 36-16-30-14 50-12-44-16 40L0 10Z', '#0c0814') +
+                     bottom('M0 150V120l22-40 14 40 18-58 20 58 16-30 14 30 30-66 24 66 18-36 16 36 24-52 22 52 20-44 18 44 30-60 26 60 18-30 14 30V150Z', '#130c1f');
+    case 6: return bottom('M0 150V110c30-16 60-16 90 0s60 16 90 0 60-16 90 0 60 16 90 0 30-8 30-8V150Z', '#0a1d19') +
+                     bottom('M0 150V126c30-12 60-12 90 0s60 12 90 0 60-12 90 0 60 12 90 0 30-6 30-6V150Z', '#0e2722');
+    case 7: return bottom('M0 150V60h22v90H0Zm52 0V78h18v-8h8v80Zm70 0V40h26v110Zm80 0V92h14l6-10 4 10h10v58Zm70 0V54h24v96Zm64 0V86h22v64Z', '#120e08', .95) +
+                     bottom('M0 150V128c40-8 80-8 120 0s80 8 120 0 80-8 150 0V150Z', '#18120a');
+    case 8: return bottom('M0 150V100l40 10 30-24 50 30 40-40 46 36 44-18 50 26 40-20 50 18V150Z', '#0a0a18') +
+                     top('M120 0 136 30 126 44 146 80M260 0 248 26 262 40 250 70', 'none', 1).replace('fill="none"', 'fill="none" stroke="#8c8cff" stroke-width="2" class="wa-rift"');
+  }
+  return '';
+}
+let ambienceWorld = 0;
+function renderWorldAmbience(world){
+  if(ambienceWorld === world) return;
+  ambienceWorld = world;
+  const conf = WORLD_AMBIENCE[world] || WORLD_AMBIENCE[1];
+  document.body.dataset.world = String(world);
+  document.documentElement.style.setProperty('--amb-halo', conf.halo);
+  const art = document.getElementById('worldArt');
+  if(!art) return;
+  let html = worldArtSVG(world);
+  const rng = makeRng(500 + world);
+  for(let i = 0; i < conf.n; i++){
+    html += `<i class="wp ${conf.particle}" style="left:${(rng()*100).toFixed(1)}%;top:${(rng()*100).toFixed(1)}%;animation-delay:-${(rng()*12).toFixed(2)}s;animation-duration:${(8 + rng()*8).toFixed(1)}s;--sx:${Math.round(rng()*60-30)}px"></i>`;
+  }
+  art.innerHTML = html;
 }
 
 function renderLevelSelect(focusIndex){
@@ -7978,9 +8194,11 @@ function renderLevelSelect(focusIndex){
     section.style.setProperty('--tile', theme.tile);
     section.style.setProperty('--tile-line', theme.tileLine);
 
+    const plantInfo = gardenStageFor(world, p);
     section.innerHTML = `
+      <div class="world-deco" aria-hidden="true">${worldArtSVG(world) || worldArtSVG(2).replace(/#[0-9a-f]{6}/gi, '#0b1a12')}</div>
       <div class="world-header">
-        <div class="world-emoji-badge">${meta.emoji || '🗺️'}</div>
+        <div class="world-emoji-badge world-plant-badge" title="${GP_SPECIES[world] ? GP_SPECIES[world].name : ''} · ${GARDEN_STAGE_NAMES[plantInfo.stage]}">${worldLocked ? (meta.emoji || '🗺️') : gpPlantBadgeSVG(world, plantInfo.stage)}<span class="wpb-emoji">${meta.emoji || ''}</span></div>
         <div class="lbl-group">
           <div class="world-name">Monde ${world} — ${meta.name}</div>
           <div class="world-sub">${meta.sub}</div>
@@ -8002,7 +8220,7 @@ function renderLevelSelect(focusIndex){
       const stars = p[i] || 0;
       const isCurrent = i===nextLevelIndex;
       const card = document.createElement('div');
-      card.className = 'level-card' + (unlocked? '' : ' locked') + (isCurrent? ' current' : '');
+      card.className = 'level-card' + (unlocked? '' : ' locked') + (isCurrent? ' current' : '') + (stars===3 ? ' perfect' : '');
       card.dataset.level = String(i);
       card.innerHTML = `<div>${i+1}</div><div class="stars">${unlocked ? '★'.repeat(stars)+'☆'.repeat(3-stars) : '🔒'}</div>`;
       if(unlocked){
@@ -8571,7 +8789,39 @@ function playLandingFeedback(isWin, dx, before){
       el.classList.remove('squash-x', 'squash-y'); void el.offsetWidth; el.classList.add(cls);
       setTimeout(()=> el.classList.remove(cls), 220);
     });
+    if(els.length) spawnImpactDust(dx, before);
   }, SLIDE_TRANSITION_MS);
+}
+// Poussière au point d'arrêt de chaque pièce qui a bougé + le plateau qui
+// « encaisse » d'un ou deux pixels dans le sens du glissement. Décoratif.
+function spawnImpactDust(dx, before){
+  if(document.documentElement.classList.contains('reduce-motion') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  const overlay = document.getElementById('overlay');
+  const board = document.getElementById('board');
+  if(!overlay || !board) return;
+  const cs = cellSize();
+  const ddx = dx !== 0 ? Math.sign(dx) : 0;
+  const ddy = dx !== 0 ? 0 : (state.lastMoveDy || 0);
+  const spots = [];
+  if(before.seed.x!==state.seed.x || before.seed.y!==state.seed.y) spots.push({ x:state.seed.x, y:state.seed.y, k:.42 });
+  state.rocks.forEach((r, i)=>{ const b = before.rocks[i]; if(b && (b.x!==r.x || b.y!==r.y)) spots.push({ x:r.x, y:r.y, k:.5 }); });
+  spots.slice(0, 3).forEach(sp=>{
+    const cx = (sp.x + .5) * cs + ddx * cs * sp.k, cy = (sp.y + .5) * cs + ddy * cs * sp.k;
+    for(let i = 0; i < 5; i++){
+      const d = document.createElement('div');
+      d.className = 'dust';
+      d.style.left = cx + 'px'; d.style.top = cy + 'px';
+      const spread = (i - 2) * 6;
+      d.style.setProperty('--px', (ddx ? -ddx * (4 + Math.random()*6) : spread) + 'px');
+      d.style.setProperty('--py', (ddy ? -ddy * (4 + Math.random()*6) : spread) + 'px');
+      overlay.appendChild(d);
+      setTimeout(()=> d.remove(), 460);
+    }
+  });
+  board.style.setProperty('--nx', (ddx * 2) + 'px');
+  board.style.setProperty('--ny', (ddy * 2) + 'px');
+  board.classList.remove('nudge'); void board.offsetWidth; board.classList.add('nudge');
+  setTimeout(()=> board.classList.remove('nudge'), 220);
 }
 
 // Arrivée sur la cible (Blueprint §20 "animation d'arrivée", "glow de la
@@ -8610,6 +8860,7 @@ function performMove(dx,dy){
   }
 
   const snapshot = snapshotBoard();
+  state.lastMoveDy = dy; // direction verticale du dernier coup (poussière d'impact)
   const moved = trySlide(dx,dy);
   if(!moved){
     state.blockedMoveThisAttempt = true;
@@ -9328,6 +9579,7 @@ let onWin = function(expectedSessionId){
   // Récompenses de CETTE partie, dans l'ordre d'importance perçue ; rendues
   // en puces sur l'écran de victoire (voir renderVictoryRewards).
   const rewards = [];
+  victoryPlant = null;
   let coinsEarnedThisRun = 0;
   let levelInfo = null, hadPreviousBest = false, wasFirstCompletion = false, prevStars = 0;
   let nextIsNewWorld = false;
@@ -9351,9 +9603,10 @@ let onWin = function(expectedSessionId){
     // Le Jardin réagit immédiatement : la plante du monde a-t-elle grandi ?
     const gardenAfter = gardenStageFor(lvl.world, p).stage;
     if(gardenAfter > gardenBefore){
-      const wm = WORLD_META[lvl.world] || { name:'Monde '+lvl.world };
-      rewards.push({ icon: gardenAfter===4 ? '🌸' : '🌱', text:`Plante « ${wm.name.replace(/^(Le |La |Les )/,'')} » → ${GARDEN_STAGE_NAMES[gardenAfter]}`, kind:'unlock' });
+      // Montrée en grand par la carte « Ta plante a grandi » (renderVictoryPlant) :
+      // pas de puce en double.
       Analytics.track('garden_grow', { world:lvl.world, stage:gardenAfter });
+      victoryPlant = { world:lvl.world, from:gardenBefore, to:gardenAfter };
     }
     // "Record" = amélioration RÉELLE d'un score déjà existant. Une première
     // réussite n'est pas un record battu (c'était affiché à tort avant).
@@ -9504,6 +9757,7 @@ let onWin = function(expectedSessionId){
     }
   }
   renderVictoryRewards(rewards);
+  renderVictoryPlant();
   setupVictoryAd(roseeGain, baseCoins);
 
   // Bouton principal : prochaine étape claire (Blueprint §16).
@@ -9545,6 +9799,18 @@ function setupVictoryAd(roseeGain, baseCoins){
   AdService.offered('victory_double', btn);
 }
 
+// La plante du monde qui vient de grandir, en grand sur l'écran de victoire
+// (elle grandira aussi « pour de vrai » à la prochaine visite du jardin).
+let victoryPlant = null;
+function renderVictoryPlant(){
+  const el = document.getElementById('victoryPlant');
+  if(!el) return;
+  if(!victoryPlant){ el.hidden = true; el.innerHTML = ''; return; }
+  const v = victoryPlant, sp = GP_SPECIES[v.world];
+  el.hidden = false;
+  el.innerHTML = `<div class="vp-art">${gpPlantBadgeSVG(v.world, v.to, 'vp-svg')}</div><div class="vp-text"><span class="vp-kicker">Ta plante a grandi</span><b>${sp.name}</b><span>${GARDEN_STAGE_NAMES[v.from]} → ${GARDEN_STAGE_NAMES[v.to]}</span></div>`;
+  el.onclick = ()=>{ openGarden(false); };
+}
 function renderVictoryRewards(rewards){
   const wrap = document.getElementById('victoryRewards');
   if(!wrap) return;
