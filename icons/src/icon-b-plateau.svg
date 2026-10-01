@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Seedrift — icône, variante B « Le plateau ».
+  La mécanique en une image : un plateau 3×3 vu de dessus, la graine qui
+  file sur la rangée du milieu jusqu'à la case lumineuse, un bloc de pierre
+  qui arrête les glissades. Lecture « puzzle » immédiate, même à 40 px.
+  Tout existe dans le jeu (cases, mur, graine, case cible).
+  Structure lue par scripts/export-icons.js : le fond est entre les
+  marqueurs BG et /BG, le sujet entre FG et /FG (commentaires XML dans le
+  corps du fichier). Carré 1024×1024, opaque, SANS coins arrondis : le
+  système d'exploitation applique son propre masque.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14523f"/>
+      <stop offset="1" stop-color="#0a2a22"/>
+    </linearGradient>
+    <linearGradient id="bTile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f9a74"/>
+      <stop offset="1" stop-color="#2b7759"/>
+    </linearGradient>
+    <radialGradient id="bGoal" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.35" stop-color="#ffe08a"/>
+      <stop offset="0.75" stop-color="#ffc23d" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffc23d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bSeed" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#ffe6a6"/>
+      <stop offset="0.5" stop-color="#ffa733"/>
+      <stop offset="1" stop-color="#d45a17"/>
+    </radialGradient>
+    <linearGradient id="bStone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9c8670"/>
+      <stop offset="1" stop-color="#5f4b3a"/>
+    </linearGradient>
+    <linearGradient id="bTrail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffd27a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffd27a" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <!--BG-->
+  <g id="bg">
+    <rect width="1024" height="1024" fill="url(#bBg)"/>
+    <!-- 9 cases : 280 px, espacées de 36 px, marge 56 px -->
+    <g fill="url(#bTile)">
+      <rect x="56"  y="56"  width="280" height="280" rx="54"/>
+      <rect x="372" y="56"  width="280" height="280" rx="54"/>
+      <rect x="688" y="56"  width="280" height="280" rx="54"/>
+      <rect x="56"  y="372" width="280" height="280" rx="54"/>
+      <rect x="372" y="372" width="280" height="280" rx="54"/>
+      <rect x="688" y="372" width="280" height="280" rx="54"/>
+      <rect x="56"  y="688" width="280" height="280" rx="54"/>
+      <rect x="372" y="688" width="280" height="280" rx="54"/>
+      <rect x="688" y="688" width="280" height="280" rx="54"/>
+    </g>
+    <!-- Reflet haut des cases (relief) -->
+    <g fill="#ffffff" fill-opacity="0.08">
+      <rect x="56" y="56" width="280" height="40" rx="20"/><rect x="372" y="56" width="280" height="40" rx="20"/>
+      <rect x="56" y="372" width="280" height="40" rx="20"/><rect x="372" y="372" width="280" height="40" rx="20"/>
+      <rect x="56" y="688" width="280" height="40" rx="20"/><rect x="372" y="688" width="280" height="40" rx="20"/><rect x="688" y="688" width="280" height="40" rx="20"/>
+    </g>
+  </g>
+  <!--/BG-->
+  <!--FG-->
+  <g id="fg">
+    <!-- Case cible : la lumière -->
+    <circle cx="828" cy="512" r="250" fill="url(#bGoal)"/>
+    <circle cx="828" cy="512" r="96" fill="#fff6cf"/>
+    <!-- Bloc de pierre (mur) en haut à droite -->
+    <rect x="700" y="68" width="256" height="256" rx="46" fill="url(#bStone)"/>
+    <rect x="700" y="68" width="256" height="60" rx="30" fill="#b8a189" opacity="0.6"/>
+    <path d="M760 200 h136 M760 250 h136" stroke="#4a3a2c" stroke-width="10" stroke-linecap="round" opacity="0.5"/>
+    <!-- Traînée : la graine vient de partir vers la droite -->
+    <rect x="150" y="466" width="420" height="92" rx="46" fill="url(#bTrail)" opacity="0.8"/>
+    <!-- La graine, en plein glissement (légèrement étirée) -->
+    <ellipse cx="560" cy="512" rx="132" ry="118" fill="url(#bSeed)"/>
+    <ellipse cx="520" cy="462" rx="44" ry="26" fill="#ffffff" opacity="0.55" transform="rotate(-25 520 462)"/>
+    <path d="M560 398 C 556 360, 536 338, 506 326" stroke="#3aa65a" stroke-width="16" fill="none" stroke-linecap="round"/>
+    <path d="M508 328 C 470 300, 430 312, 414 340 C 452 352, 488 350, 508 328 Z" fill="#7ad86f"/>
+  </g>
+  <!--/FG-->
+</svg>

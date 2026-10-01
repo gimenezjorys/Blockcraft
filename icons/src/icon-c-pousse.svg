@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Seedrift — icône, variante C « La pousse de lune ».
+  L'univers du Jardin endormi : une graine dorée à moitié dans la terre,
+  d'où jaillit une pousse lumineuse, sous un croissant de lune. Ambiance
+  « jardin de nuit lumineux », fidèle au Jardin et à la Graine de lune.
+  Structure lue par scripts/export-icons.js : le fond est entre les
+  marqueurs BG et /BG, le sujet entre FG et /FG (commentaires XML dans le
+  corps du fichier). Carré 1024×1024, opaque, SANS coins arrondis : le
+  système d'exploitation applique son propre masque.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="cSky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a1f6e"/>
+      <stop offset="0.55" stop-color="#173a6a"/>
+      <stop offset="1" stop-color="#0d4a44"/>
+    </linearGradient>
+    <radialGradient id="cMoonGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff2c0" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#fff2c0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cHill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f6b45"/>
+      <stop offset="1" stop-color="#0b2e20"/>
+    </linearGradient>
+    <radialGradient id="cAura" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#d9ffb8" stop-opacity="0.75"/>
+      <stop offset="0.45" stop-color="#8fe08a" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#8fe08a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cLeaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d4ffb0"/>
+      <stop offset="0.5" stop-color="#6fd36a"/>
+      <stop offset="1" stop-color="#23894a"/>
+    </linearGradient>
+    <radialGradient id="cSeed" cx="0.35" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#ffe9b0"/>
+      <stop offset="0.5" stop-color="#ffaf3a"/>
+      <stop offset="1" stop-color="#c9541a"/>
+    </radialGradient>
+    <radialGradient id="cBud" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.5" stop-color="#fff2b0"/>
+      <stop offset="1" stop-color="#ffd166" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="cCrescent">
+      <rect width="1024" height="1024" fill="#000"/>
+      <circle cx="760" cy="250" r="150" fill="#fff"/>
+      <circle cx="820" cy="205" r="138" fill="#000"/>
+    </mask>
+  </defs>
+  <!--BG-->
+  <g id="bg">
+    <rect width="1024" height="1024" fill="url(#cSky)"/>
+    <circle cx="760" cy="250" r="300" fill="url(#cMoonGlow)"/>
+    <rect width="1024" height="1024" fill="#fff4cc" mask="url(#cCrescent)"/>
+    <g fill="#fff8e0">
+      <circle cx="160" cy="170" r="8"/><circle cx="300" cy="90" r="5" opacity="0.7"/>
+      <circle cx="520" cy="150" r="6" opacity="0.8"/><circle cx="110" cy="420" r="5" opacity="0.6"/>
+      <circle cx="930" cy="520" r="6" opacity="0.7"/>
+      <path d="M420 300 l10 26 l26 10 l-26 10 l-10 26 l-10 -26 l-26 -10 l26 -10 z" opacity="0.9"/>
+    </g>
+    <path d="M0 790 C 200 700, 420 730, 560 760 S 860 720, 1024 760 L1024 1024 L0 1024 Z" fill="url(#cHill)"/>
+  </g>
+  <!--/BG-->
+  <!--FG-->
+  <g id="fg">
+    <!-- Halo de la pousse -->
+    <circle cx="500" cy="520" r="360" fill="url(#cAura)"/>
+    <!-- Tige -->
+    <path d="M500 800 C 486 680, 528 600, 500 470" stroke="#3fb25e" stroke-width="30" fill="none" stroke-linecap="round"/>
+    <!-- Deux grandes feuilles -->
+    <path d="M498 600 C 400 520, 260 540, 216 620 C 320 676, 432 660, 498 600 Z" fill="url(#cLeaf)"/>
+    <path d="M506 560 C 590 450, 740 440, 800 510 C 720 600, 590 616, 506 560 Z" fill="url(#cLeaf)"/>
+    <path d="M498 600 C 410 590, 300 600, 236 620" stroke="#2c8a4a" stroke-width="7" fill="none" opacity="0.5"/>
+    <path d="M506 560 C 600 530, 700 515, 780 512" stroke="#2c8a4a" stroke-width="7" fill="none" opacity="0.5"/>
+    <!-- Bourgeon lumineux au sommet -->
+    <circle cx="500" cy="440" r="120" fill="url(#cBud)"/>
+    <ellipse cx="500" cy="440" rx="44" ry="56" fill="#fff8d8"/>
+    <!-- La graine, à moitié dans la terre -->
+    <ellipse cx="500" cy="830" rx="190" ry="130" fill="url(#cSeed)"/>
+    <ellipse cx="440" cy="776" rx="56" ry="30" fill="#ffffff" opacity="0.5" transform="rotate(-18 440 776)"/>
+    <!-- Monticule de terre qui recouvre le bas de la graine -->
+    <path d="M0 1024 L0 900 C 160 880, 330 866, 500 866 C 670 866, 860 880, 1024 900 L1024 1024 Z" fill="url(#cHill)"/>
+    <path d="M330 872 C 420 864, 580 864, 670 872" stroke="#2f8a57" stroke-width="10" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <!-- Lucioles -->
+    <g fill="#fff3a6">
+      <circle cx="290" cy="380" r="10"/><circle cx="720" cy="380" r="8"/><circle cx="820" cy="640" r="9"/><circle cx="190" cy="700" r="7"/>
+    </g>
+  </g>
+  <!--/FG-->
+</svg>

@@ -11,7 +11,7 @@ L'état du produit, les décisions prises, le plan de mesure et les prochaines p
 | Chemin | Rôle |
 |---|---|
 | `index.html` | Le jeu complet, servi tel quel par GitHub Pages. |
-| `manifest.webmanifest`, `sw.js`, `icons/` | PWA : installation sur l'écran d'accueil et jeu hors ligne. Le service worker est « réseau d'abord » et n'est jamais nécessaire pour jouer. Icônes générées depuis le logo SVG de l'accueil. |
+| `manifest.webmanifest`, `sw.js`, `icons/` | PWA : installation sur l'écran d'accueil et jeu hors ligne. Le service worker est « réseau d'abord » et n'est jamais nécessaire pour jouer. Icônes : sources SVG dans `icons/src/`, tous les formats (stores, Android adaptive, maskable, favicons) générés par `scripts/export-icons.js` ; planche `scripts/icon-contact-sheet.js` ; choix dans `ICON.md`. |
 | `scripts/check-game.js` | `node --check` sur le JS extrait, puis `Solver.validateLevels(LEVELS)`. |
 | `scripts/test-logic.js` | Tests sans navigateur : symétries des niveaux, générateur du Sentier, défi du jour généré. |
 | `scripts/e2e-smoke.js` | Parcours joueur complet dans Chromium (Playwright), plus la PWA hors ligne via un mini-serveur local. Échoue sur toute erreur ou avertissement console. |

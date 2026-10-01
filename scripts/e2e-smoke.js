@@ -237,7 +237,11 @@ function startStaticServer(root) {
   check(await page.evaluate(() => { const r = BCD_DEV.getRitual(); return r.ids[0] === 'daily' && r.prog[0] === 1; }), 'rituel : le défi réussi plus tôt est compté');
   for (let i = 0; i < 5; i++) { await page.click('#btnRestore'); await wait(750); }
   const gAfter = await page.evaluate(() => BCD_DEV.getGarden());
-  check(gAfter.done === 5 && gAfter.rosee === 40 - 36, `5 chantiers réveillés, 36 💧 dépensés (${gAfter.done}, ${gAfter.rosee})`);
+  // Le rituel du jour dépend de la date : s'il contient « Réveille un coin
+  // du jardin », le 1er chantier accomplit cette mission (+3 💧).
+  const restoreBonus = await page.evaluate(() => BCD_DEV.getRitual().ids.includes('restore1') ? 3 : 0);
+  const roseeLeft = 40 - 36 + restoreBonus;
+  check(gAfter.done === 5 && gAfter.rosee === roseeLeft, `5 chantiers réveillés, 36 💧 dépensés (${gAfter.done}, ${gAfter.rosee}, attendu ${roseeLeft})`);
   await wait(1400);
   check(!!(await page.$('.zone-fete')), 'zone réveillée : la fête s\'affiche');
   check((await page.evaluate(() => BCD_DEV.getCoins())) === coinsBeforeZone + 20 + 20, 'récompense de zone (+20) et succès « Jardinier » (+20) crédités');
@@ -253,7 +257,7 @@ function startStaticServer(root) {
   await page.click('#btnGardenBoost'); await wait(400);
   check(!!(await page.$('.ad-mock')), 'pub simulée affichée, étiquetée');
   await wait(3300);
-  check(await page.evaluate(() => BCD_DEV.getGarden().rosee === 4 + 6 && document.getElementById('btnGardenBoost').hidden), 'pub regardée : +6 💧, puis plus proposée (plafond)');
+  check(await page.evaluate(left => BCD_DEV.getGarden().rosee === left + 6 && document.getElementById('btnGardenBoost').hidden, roseeLeft), 'pub regardée : +6 💧, puis plus proposée (plafond)');
   await shot('10-jardin');
   await page.evaluate(() => { document.getElementById('btnBackHomeGarden').click(); }); await wait(200);
 
@@ -302,7 +306,7 @@ function startStaticServer(root) {
   await pw.reload(); await pw.waitForTimeout(800);
   check(await pw.evaluate(() => !!navigator.serviceWorker.controller), 'PWA : service worker actif');
   const man = await pw.evaluate(async () => (await (await fetch(document.querySelector('link[rel=manifest]').href)).json()));
-  check(man.icons && man.icons.length === 3 && man.start_url === './', 'PWA : manifest valide (3 icônes)');
+  check(man.icons && man.icons.length >= 3 && man.icons.some(i => i.purpose === 'maskable') && man.name === 'Seedrift' && man.start_url === './', 'PWA : manifest valide (icônes dont maskable, nom Seedrift)');
   await ctx.setOffline(true);
   await pw.reload(); await pw.waitForTimeout(800);
   await pw.click('#btnContinue'); await pw.waitForTimeout(300);
