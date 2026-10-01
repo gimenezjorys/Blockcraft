@@ -1568,6 +1568,204 @@
   .cosmetic-action.equipped-label{
     background:transparent; color:var(--gold); font-weight:800; padding:8px 6px; cursor:default;
   }
+  /* ================= LE JARDIN VIVANT (sections A6/E5) =================
+     Panorama en plans : ciel (parallaxe) → tableaux défilants → cadre,
+     météo, guirlande. Animations : transform/opacity uniquement ; un
+     tableau hors de l'écran est en pause (.gp-panel:not(.on)). */
+  .gp-stage{--bleed:20px; margin:0 calc(-1 * var(--bleed)); width:calc(100% + 2 * var(--bleed)); height:clamp(380px, 60vh, 620px);
+    border-radius:0 0 30px 30px; overflow:hidden; background:#07131c; isolation:isolate; box-shadow:0 18px 40px -16px rgba(0,0,0,.65);}
+  @media (max-height:700px){ .gp-stage{--bleed:16px; height:clamp(340px, 58vh, 520px);} }
+  .gp-sky{position:absolute; top:0; left:0; height:100%; width:auto; aspect-ratio:600/560; min-width:100%; z-index:0; will-change:transform;}
+  .gp-strip{position:absolute; inset:0; z-index:1; display:flex; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory;
+    scrollbar-width:none; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; outline:none; transform-origin:50% 70%;}
+  .gp-strip::-webkit-scrollbar{display:none;}
+  .gp-strip:focus-visible{box-shadow:inset 0 0 0 3px var(--gold);}
+  .gp-strip.gp-zoom{animation:gpZoom 1.2s cubic-bezier(.3,.7,.3,1);}
+  @keyframes gpZoom{0%{transform:scale(1);} 30%{transform:scale(1.04);} 100%{transform:scale(1);}}
+  .gp-panel{flex:0 0 100%; height:100%; position:relative; scroll-snap-align:center; scroll-snap-stop:always;}
+  .gp-panel > svg{position:absolute; inset:0; width:100%; height:100%; display:block; overflow:hidden;}
+  .gp-stage::after{content:""; position:absolute; left:0; right:0; bottom:0; height:84px; z-index:3; pointer-events:none;
+    background:linear-gradient(180deg, rgba(4,10,8,0), rgba(4,10,8,.62));}
+  .gp-panel:not(.on) *{animation-play-state:paused !important;}
+  .gp-frame{position:absolute; bottom:-6px; width:30%; max-width:150px; z-index:2; pointer-events:none;}
+  .gp-frame.l{left:-8px;} .gp-frame.r{right:-8px;}
+  .gp-frame-sway{animation:gpFrameSway 7s ease-in-out infinite alternate; transform-box:fill-box; transform-origin:50% 100%;}
+  .gp-frame.r .gp-frame-sway{animation-delay:-3s;}
+  @keyframes gpFrameSway{from{transform:rotate(-1.2deg);} to{transform:rotate(1.4deg);}}
+  .gp-stage .gz-caption{z-index:4; bottom:12px; left:16px; right:16px; gap:8px;}
+  .gp-stage .gz-zone{font-size:17px;}
+  .gp-zdots{display:flex; gap:5px; margin-left:auto; margin-right:6px;}
+  .gp-zdot{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.35); position:relative;}
+  .gp-zdot.on{background:#fff8e0; transform:scale(1.25);}
+  .gp-zdot.sleep{background:rgba(255,255,255,.15);}
+  .gp-zdot.dew::after{content:""; position:absolute; top:-6px; left:1px; width:5px; height:5px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); background:#8fd8ff; box-shadow:0 0 6px #8fd8ff;}
+  .gp-stage .gz-nav{z-index:4; background:rgba(6,16,24,.45); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);}
+  .gp-wchip{position:absolute; z-index:4; top:66px; right:12px; font-size:11px; font-weight:800; color:#fff8e0; padding:4px 9px; border-radius:99px;
+    background:rgba(6,16,24,.42); text-shadow:0 1px 3px rgba(0,0,0,.6); pointer-events:none;}
+  .gp-dewchip{position:absolute; z-index:4; top:62px; left:12px; display:flex; align-items:center; gap:4px; font-family:var(--font-body); font-size:12px; font-weight:800;
+    color:#0d2230; background:linear-gradient(180deg, #e8f8ff, #9fdcff); border:none; border-radius:99px; padding:6px 11px; cursor:pointer;
+    box-shadow:0 4px 14px rgba(111,195,232,.55); animation:badgeBob 1.6s ease-in-out infinite;}
+  .gp-dewchip b{font-size:13px;}
+  #btnDewBonus{align-self:center;}
+  /* Guirlande des 7 derniers défis (lanternes) */
+  .gp-garland-wrap{position:absolute; z-index:3; top:0; left:0; right:0; height:70px; pointer-events:none;}
+  .gp-garland{position:absolute; inset:0; width:100%; height:100%;}
+  .gp-lanterns{position:absolute; inset:0; pointer-events:auto; cursor:pointer; outline:none;}
+  .gp-lanterns:focus-visible{box-shadow:inset 0 0 0 3px var(--gold); border-radius:12px;}
+  .gp-lantern{position:absolute; width:14px; height:20px; margin-left:-7px; transform-origin:50% 0; animation:gpLanternSway 3.4s ease-in-out infinite alternate;}
+  .gp-lantern::before{content:""; position:absolute; left:6px; top:-6px; width:2px; height:7px; background:#2a2016;}
+  .gp-lantern i{position:absolute; inset:0; border-radius:6px 6px 8px 8px; background:linear-gradient(180deg, #5a4a3a, #3a3024); box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);}
+  .gp-lantern.lit i{background:radial-gradient(circle at 50% 55%, #fff6c2, #ffcf5a 55%, #e08a2a); box-shadow:0 0 12px 3px rgba(255,200,90,.65), 0 0 28px 6px rgba(255,180,60,.25);}
+  .gp-lantern.gold i{background:radial-gradient(circle at 50% 55%, #ffffff, #ffe9a0 50%, #ffc23a); box-shadow:0 0 14px 4px rgba(255,230,140,.85), 0 0 30px 8px rgba(255,210,90,.35);}
+  .gp-lantern.wait i{box-shadow:0 0 0 1.5px rgba(255,209,102,.7); animation:gpLanternWait 1.8s ease-in-out infinite;}
+  @keyframes gpLanternSway{from{transform:rotate(-5deg);} to{transform:rotate(5deg);}}
+  @keyframes gpLanternWait{0%,100%{opacity:.75;} 50%{opacity:1;}}
+  /* Météo du jour (HTML, au-dessus des tableaux) */
+  .gp-weather{position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden;}
+  .gp-weather i{position:absolute; display:block;}
+  .gp-rain{top:-12%; width:1.5px; height:16px; background:linear-gradient(180deg, rgba(220,240,255,0), rgba(220,240,255,.75)); animation:gpRain .9s linear infinite;}
+  @keyframes gpRain{from{transform:translate3d(0,0,0) rotate(12deg);} to{transform:translate3d(-60px,120vh,0) rotate(12deg);}}
+  .gp-petal{top:-6%; width:8px; height:6px; border-radius:60% 0 60% 0; opacity:.9; animation:gpPetal 9s linear infinite;}
+  @keyframes gpPetal{0%{transform:translate3d(0,0,0) rotate(0);} 50%{transform:translate3d(var(--sx),55vh,0) rotate(260deg);} 100%{transform:translate3d(calc(var(--sx) * -1),112vh,0) rotate(540deg);}}
+  .gp-leafwind{left:-10%; width:10px; height:6px; border-radius:60% 0 60% 0; background:#7fbf6a; opacity:.85; animation:gpLeafWind 6s linear infinite;}
+  @keyframes gpLeafWind{0%{transform:translate3d(0,0,0) rotate(0);} 50%{transform:translate3d(60vw,-30px,0) rotate(200deg);} 100%{transform:translate3d(125vw,10px,0) rotate(420deg);}}
+  .gp-fog{left:-40%; width:180%; height:30%; border-radius:50%; background:radial-gradient(closest-side, rgba(230,240,240,.38), rgba(230,240,240,0)); animation:gpFog 26s ease-in-out infinite alternate;}
+  .gp-fog.a{top:38%;} .gp-fog.b{top:56%; animation-duration:34s; animation-delay:-9s;} .gp-fog.c{top:24%; opacity:.6; animation-duration:41s; animation-delay:-20s;}
+  @keyframes gpFog{from{transform:translate3d(-8%,0,0);} to{transform:translate3d(8%,0,0);}}
+  .gp-mote{width:3px; height:3px; border-radius:50%; background:#fff6c8; box-shadow:0 0 6px 2px rgba(255,240,180,.5); opacity:0; animation:gpMote 7s ease-in-out infinite;}
+  @keyframes gpMote{0%{opacity:0; transform:translate3d(0,0,0);} 30%{opacity:.85;} 100%{opacity:0; transform:translate3d(18px,-60px,0);}}
+  /* Ciel */
+  .gp-cloud{animation:gpCloud 80s linear infinite alternate;}
+  @keyframes gpCloud{from{transform:translateX(-40px);} to{transform:translateX(60px);}}
+  .gp-star{animation:gzTwinkle 3.2s ease-in-out infinite alternate;}
+  .gp-rays{animation:gpRays 60s linear infinite;}
+  @keyframes gpRays{to{transform:rotate(360deg);}}
+  .gp-birds{animation:gpBirds 26s linear infinite;}
+  @keyframes gpBirds{0%{transform:translate(-60px,120px);} 55%{transform:translate(660px,60px);} 100%{transform:translate(660px,60px);}}
+  .gp-wing{animation:gpWing .5s ease-in-out infinite alternate; transform-box:fill-box; transform-origin:50% 100%;}
+  @keyframes gpWing{from{transform:scaleY(1);} to{transform:scaleY(-.6);}}
+  /* Vie des tableaux */
+  .gp-sway, .gp-grow-in, .gp-grow-out, .gp-bloomglow, .gp-orbit, .gp-hop, .gp-ears, .gp-breathe, .gp-blink, .gp-flap,
+  .gp-dew-bob, .gp-germain-bob, .gp-ff, .gp-grass, .gp-zzz, .gp-twinkle{transform-box:fill-box;}
+  .gp-sway{transform-origin:50% 100%; animation:gpSway 4.6s ease-in-out infinite alternate;}
+  @keyframes gpSway{from{transform:rotate(-2deg);} to{transform:rotate(2.4deg);}}
+  .gp-sway.gp-wiggle{animation:gpWiggle .6s ease;}
+  @keyframes gpWiggle{0%{transform:rotate(0);} 20%{transform:rotate(-7deg) scale(1.04);} 45%{transform:rotate(6deg);} 70%{transform:rotate(-3deg);} 100%{transform:rotate(0);}}
+  .gp-grass{transform-origin:50% 100%; animation:gpGrass 5.5s ease-in-out infinite alternate;}
+  @keyframes gpGrass{from{transform:skewX(-1.5deg);} to{transform:skewX(1.5deg);}}
+  .gp-grow-out{transform-origin:50% 100%; animation:gpGrowOut .6s ease-in .2s forwards;}
+  @keyframes gpGrowOut{to{opacity:0; transform:scale(.7);}}
+  .gp-grow-in{transform-origin:50% 100%; animation:gpGrowIn 1s cubic-bezier(.2,1.6,.45,1) .7s both;}
+  @keyframes gpGrowIn{0%{opacity:0; transform:scale(.25);} 60%{opacity:1; transform:scale(1.14);} 100%{opacity:1; transform:scale(1);}}
+  .gp-bloomglow{transform-origin:50% 50%; animation:gpBloomGlow 2.8s ease-in-out infinite alternate;}
+  @keyframes gpBloomGlow{from{opacity:.55; transform:scale(.9);} to{opacity:1; transform:scale(1.12);}}
+  .gp-orbit{transform-origin:50% 50%; animation:gpOrbit 6s linear infinite;}
+  @keyframes gpOrbit{to{transform:rotate(360deg);}}
+  .gp-twinkle{transform-origin:50% 50%; animation:gpTwinkle 1.8s ease-in-out infinite alternate;}
+  @keyframes gpTwinkle{from{opacity:.25; transform:scale(.6);} to{opacity:1; transform:scale(1.1);}}
+  .gp-ff{animation:gpFF 6s ease-in-out infinite;}
+  @keyframes gpFF{0%,100%{opacity:.25; transform:translate(0,0);} 30%{opacity:1; transform:translate(10px,-14px);} 60%{opacity:.6; transform:translate(-8px,-24px);} 80%{opacity:1; transform:translate(4px,-8px);}}
+  .gp-fly{animation:gpFlyPath 12s ease-in-out infinite;}
+  @keyframes gpFlyPath{0%,100%{transform:translate(0,0);} 25%{transform:translate(40px,-30px);} 50%{transform:translate(70px,6px);} 75%{transform:translate(20px,24px);}}
+  .gp-flap{transform-origin:50% 50%; animation:gpFlap .22s ease-in-out infinite alternate;}
+  @keyframes gpFlap{from{transform:scaleX(1);} to{transform:scaleX(.35);}}
+  .gp-hop{transform-origin:50% 100%; animation:gpHop 3.2s ease-in-out infinite;}
+  @keyframes gpHop{0%,70%,100%{transform:translateY(0);} 78%{transform:translateY(-4px);} 86%{transform:translateY(0);} 92%{transform:translateY(-2px);}}
+  .gp-blink{transform-origin:50% 50%; animation:gpBlink 4.4s ease-in-out infinite;}
+  @keyframes gpBlink{0%,92%,100%{transform:scaleY(1);} 95%{transform:scaleY(.1);}}
+  .gp-ears{transform-origin:50% 100%; animation:gpEars 3.6s ease-in-out infinite;}
+  @keyframes gpEars{0%,80%,100%{transform:rotate(0);} 85%{transform:rotate(-14deg);} 90%{transform:rotate(6deg);}}
+  .gp-breathe{transform-origin:50% 100%; animation:gpBreathe 3s ease-in-out infinite alternate;}
+  @keyframes gpBreathe{from{transform:scaleY(1);} to{transform:scaleY(1.07);}}
+  .gp-zzz{animation:gpZzz 3s ease-in-out infinite;}
+  @keyframes gpZzz{0%{opacity:0; transform:translate(0,0);} 40%{opacity:.9;} 100%{opacity:0; transform:translate(6px,-12px);}}
+  .gp-zzz-big text{animation:gpZzzBig 4s ease-in-out infinite alternate;}
+  @keyframes gpZzzBig{from{opacity:.5;} to{opacity:.95;}}
+  .gp-dew{cursor:pointer;}
+  .gp-dew-bob{transform-origin:50% 100%; animation:gpDewBob 2.2s ease-in-out infinite alternate;}
+  @keyframes gpDewBob{from{transform:translateY(0) scale(1);} to{transform:translateY(-3px) scale(1.06);}}
+  .gp-dew.picked .gp-dew-bob{animation:gpDewPick .38s ease-in forwards;}
+  .gp-dew.picked > :not(.gp-dew-bob){display:none;}
+  @keyframes gpDewPick{to{opacity:0; transform:translateY(-22px) scale(1.6);}}
+  .gp-bed{cursor:pointer;}
+  .gp-germain{cursor:pointer;}
+  .gp-germain-bob{transform-origin:50% 100%; animation:gpGermainBob 2.6s ease-in-out infinite alternate;}
+  @keyframes gpGermainBob{from{transform:translateY(0) rotate(-2deg);} to{transform:translateY(-3px) rotate(2deg);}}
+  .gp-germain-bob.gp-jump{animation:gpJump .6s cubic-bezier(.3,1.6,.5,1);}
+  @keyframes gpJump{0%{transform:translateY(0) scale(1);} 35%{transform:translateY(-16px) scale(1.06,.94);} 70%{transform:translateY(0) scale(1.08,.9);} 100%{transform:none;}}
+  /* Éclosion d'un chantier ou d'une plante */
+  .gp-burst{position:absolute; width:0; height:0; z-index:5; pointer-events:none;}
+  .gp-burst i{position:absolute; display:block;}
+  .gp-burst-flash{left:-70px; top:-70px; width:140px; height:140px; border-radius:50%;
+    background:radial-gradient(closest-side, rgba(255,250,220,.95), rgba(255,220,130,.45) 45%, rgba(255,220,130,0)); animation:gpFlash .9s ease-out forwards;}
+  @keyframes gpFlash{0%{opacity:0; transform:scale(.3);} 25%{opacity:1;} 100%{opacity:0; transform:scale(1.5);}}
+  .gp-burst-rays{left:-90px; top:-90px; width:180px; height:180px; border-radius:50%; opacity:0;
+    background:repeating-conic-gradient(from 0deg, rgba(255,236,170,.55) 0deg 7deg, rgba(255,236,170,0) 7deg 30deg);
+    -webkit-mask:radial-gradient(closest-side, #000 30%, transparent); mask:radial-gradient(closest-side, #000 30%, transparent);
+    animation:gpRaysBurst 1.3s ease-out forwards;}
+  @keyframes gpRaysBurst{0%{opacity:0; transform:scale(.4) rotate(0);} 25%{opacity:1;} 100%{opacity:0; transform:scale(1.3) rotate(70deg);}}
+  .gp-petal-burst{left:-4px; top:-5px; width:8px; height:10px; border-radius:50% 50% 50% 0; animation:zfPetal 1.3s cubic-bezier(.2,.7,.4,1) forwards;}
+  .gp-float{position:absolute; z-index:6; transform:translate(-50%,-50%); font-family:var(--font-display); font-weight:800; font-size:15px; color:#e8f8ff;
+    text-shadow:0 1px 6px rgba(0,40,80,.8); pointer-events:none; animation:gpFloat 1s ease-out forwards;}
+  @keyframes gpFloat{0%{opacity:0; transform:translate(-50%,-30%);} 20%{opacity:1;} 100%{opacity:0; transform:translate(-50%,-180%);}}
+  .gz-cheer.grow{background:linear-gradient(90deg,#d6ffd0,#ffe08a);}
+  .gp-tip{position:absolute; z-index:6; transform:translate(-50%,-100%); max-width:220px; display:flex; flex-direction:column; gap:1px; padding:9px 12px; border-radius:14px;
+    background:rgba(12,24,20,.92); border:1px solid rgba(255,209,102,.45); color:var(--cream); font-size:11.5px; font-weight:700; text-align:center; pointer-events:none;
+    box-shadow:0 8px 24px rgba(0,0,0,.45); animation:gpTipIn .25s ease-out;}
+  .gp-tip b{font-family:var(--font-display); font-size:14px; color:var(--gold);}
+  .gp-tip .gp-tip-stage{color:#bfe8ff;}
+  .gp-tip.out{opacity:0; transition:opacity .35s ease;}
+  @keyframes gpTipIn{from{opacity:0; transform:translate(-50%,-90%);} to{opacity:1; transform:translate(-50%,-100%);}}
+  #btnRestore.nope{animation:shake .32s ease;}
+  /* Rang du jardinier */
+  .garden-rank{width:100%; display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:18px;
+    background:linear-gradient(135deg, rgba(255,209,102,.10), rgba(255,255,255,.02)); border:1px solid rgba(255,209,102,.28);}
+  .gr-icon{font-size:30px; width:46px; height:46px; display:grid; place-items:center; border-radius:14px; background:rgba(0,0,0,.22); flex:none;}
+  .gr-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+  .gr-kicker{font-size:10.5px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; color:var(--cream-dim);}
+  .gr-name{font-family:var(--font-display); font-weight:800; font-size:17px; color:var(--gold); line-height:1.1;}
+  .gr-bar{height:6px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden;}
+  .gr-fill{height:100%; border-radius:99px; background:linear-gradient(90deg, #ffd166, #fff0b8); transition:width .8s ease;}
+  .gr-next{font-size:11.5px; font-weight:700; color:var(--cream-dim);}
+  .rank-up{position:fixed; left:50%; top:22%; z-index:160; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:20px 28px 16px; border-radius:24px; background:radial-gradient(120% 100% at 50% 0%, #2c4a38, #10201a); border:1.5px solid rgba(255,209,102,.6);
+    box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 40px rgba(255,209,102,.25); animation:rankIn .6s cubic-bezier(.2,1.5,.4,1); cursor:pointer;}
+  .rank-up.out{opacity:0; transform:translateX(-50%) translateY(-12px); transition:opacity .45s ease, transform .45s ease;}
+  .ru-glow{position:absolute; inset:-30px; border-radius:50%; background:radial-gradient(closest-side, rgba(255,209,102,.35), transparent); z-index:-1; animation:gpBloomGlow 1.4s ease-in-out infinite alternate;}
+  .ru-icon{font-size:44px; animation:ruIcon 1s cubic-bezier(.2,1.6,.4,1);}
+  .ru-kicker{font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--gold);}
+  .ru-name{font-family:var(--font-display); font-weight:800; font-size:24px; color:var(--cream);}
+  @keyframes rankIn{from{opacity:0; transform:translateX(-50%) scale(.6);} to{opacity:1; transform:translateX(-50%) scale(1);}}
+  @keyframes ruIcon{0%{transform:scale(.2) rotate(-30deg);} 100%{transform:none;}}
+  /* Accueil : la fenêtre sur le jardin */
+  #screen-home{padding-top:64px;}
+  .home-hero{position:relative; width:calc(100% + 40px); margin:-6px -20px 0; height:clamp(260px, 41vh, 350px); border-radius:0 0 30px 30px; overflow:hidden;
+    background:#07131c; box-shadow:0 16px 36px -14px rgba(0,0,0,.7); isolation:isolate;}
+  .hh-scene{position:absolute; inset:0;}
+  .hh-scene > svg{position:absolute; inset:0; width:100%; height:100%;}
+  .hh-scene .gp-sky{width:100%; height:100%; aspect-ratio:auto;}
+  .hh-shade{position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg, rgba(4,10,16,.55) 0%, rgba(4,10,16,0) 38%, rgba(4,10,16,0) 58%, rgba(4,10,16,.72) 100%); z-index:2;}
+  .home-garden.hg-v3{position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; justify-content:flex-end; align-items:stretch; max-width:none;
+    padding:0 16px 14px; background:none; border:none; border-radius:0; text-align:left;}
+  .home-garden.hg-v3:active{transform:none;}
+  .home-garden.hg-v3:active .hg-info{transform:scale(.98);}
+  .hg-v3 .hg-info{flex:none; padding:8px 12px 9px; gap:2px; border-radius:16px; background:rgba(8,20,16,.58); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.12); transition:transform .12s ease;}
+  .hg-v3 .hg-title{font-size:10px;}
+  .hg-v3 .hg-next{font-size:14px;}
+  .hg-v3 .hg-bar{height:5px;}
+  .hg-v3 .hg-caption{font-size:11.5px; color:#bfe8ff; font-weight:800;}
+  .hg-v3 .hg-badge{top:auto; bottom:56px; right:24px;}
+  .hh-logo{position:absolute; z-index:4; top:12px; left:0; right:0; pointer-events:none; gap:2px;}
+  .hh-title-row{display:flex; align-items:center; gap:8px;}
+  .hh-logo .logo-mark{width:38px; height:38px;}
+  .hh-logo .title{font-size:30px; line-height:1; text-shadow:0 2px 12px rgba(0,0,0,.6);}
+  .hh-logo .subtitle{font-size:12px; color:#f2ecd8; text-shadow:0 1px 6px rgba(0,0,0,.8); max-width:300px;}
+  .hh-chips{position:absolute; z-index:4; top:86px; left:0; right:0; display:flex; justify-content:center; gap:6px; pointer-events:none;}
+  .hh-chip{font-size:11px; font-weight:800; color:#fff8e0; padding:4px 10px; border-radius:99px; background:rgba(6,16,24,.5); border:1px solid rgba(255,255,255,.14);}
+  .hh-chip.dew{color:#0d2230; background:linear-gradient(180deg, #e8f8ff, #9fdcff); border-color:transparent; animation:badgeBob 1.6s ease-in-out infinite;}
+  @media (max-height:700px){ .home-hero{height:clamp(200px, 34vh, 260px); margin-top:-10px;} .hh-logo .subtitle{display:none;} .hh-chips{top:58px;} #screen-home{padding-top:58px;} }
+
 </style>
 </head>
 <body>
@@ -1588,10 +1786,22 @@
       <button class="icon-btn" id="btnAchievements" aria-label="Succès">🏆</button>
       <button class="icon-btn" id="btnSettings" aria-label="Paramètres">⚙</button>
     </div>
-    <div class="logo-wrap">
-      <!-- Logo : la mécanique en une image — une graine qui glisse vers la
-           lumière, appuyée sur un bloc. Les couleurs de la graine suivent le
-           skin équipé (variables --seed-skin-*). -->
+    <!-- Le Jardin vivant (sections A6/E5) : une fenêtre sur ton jardin, à
+         l'heure qu'il est, avec la météo du jour. Toucher = ouvrir le Jardin. -->
+    <div class="home-hero" id="homeHero">
+      <div class="hh-scene" id="homeGardenScene" aria-hidden="true"></div>
+      <div class="hh-shade" aria-hidden="true"></div>
+      <button class="home-garden hg-v3" id="homeGarden" aria-label="Ouvrir le Jardin">
+        <span class="hg-info">
+          <span class="hg-title" id="homeGardenTitle">Le Jardin</span>
+          <span class="hg-next" id="homeGardenNext">—</span>
+          <span class="hg-bar"><span class="hg-fill" id="homeGardenFill"></span></span>
+          <span class="hg-caption" id="homeGardenCaption">💧 0</span>
+        </span>
+        <span class="hg-badge" id="homeGardenBadge" hidden>Prêt ✨</span>
+      </button>
+      <div class="logo-wrap hh-logo">
+        <div class="hh-title-row">
       <svg class="logo-mark" viewBox="0 0 64 64" role="img" id="logoMark" aria-label="Logo : une graine qui glisse vers la lumière">
         <defs>
           <linearGradient id="lgTile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#31594a"/><stop offset="1" stop-color="#15271f"/></linearGradient>
@@ -1608,25 +1818,17 @@
         <circle cx="31" cy="32" r="9.5" fill="url(#lgSeed)"/>
         <ellipse cx="28" cy="28.5" rx="3.4" ry="2.2" fill="#ffffff" opacity=".45"/>
       </svg>
-      <div class="title" id="gameTitle">Seed<span>rift</span></div>
-      <div class="subtitle" id="gameTagline">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
+          <div class="title" id="gameTitle">Seed<span>rift</span></div>
+        </div>
+        <div class="subtitle" id="gameTagline">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
+      </div>
+      <div class="hh-chips" aria-hidden="true"><span class="hh-chip" id="homeRankChip">🌰 Graine</span><span class="hh-chip dew" id="homeDewChip" hidden>💧</span></div>
     </div>
     <div class="home-stats" id="homeStats">
       <span id="homeProgress" aria-label="Étoiles">⭐ 0 / 0</span>
       <span id="homeStreakPill" aria-label="Série quotidienne">🔥 0</span>
       <span id="homeCoinsPill" aria-label="Coins">🪙 0</span>
     </div>
-    <!-- Le Jardin endormi (sections A4/E4) : le prochain chantier, toujours visible. -->
-    <button class="home-garden hg-v2" id="homeGarden" aria-label="Ouvrir le Jardin">
-      <span class="hg-scene" id="homeGardenScene" aria-hidden="true"></span>
-      <span class="hg-info">
-        <span class="hg-title" id="homeGardenTitle">Le Jardin</span>
-        <span class="hg-next" id="homeGardenNext">—</span>
-        <span class="hg-bar"><span class="hg-fill" id="homeGardenFill"></span></span>
-        <span class="hg-caption" id="homeGardenCaption">💧 0</span>
-      </span>
-      <span class="hg-badge" id="homeGardenBadge" hidden>Prêt ✨</span>
-    </button>
     <button class="home-ritual" id="homeRitual" aria-label="Rituel du jour">
       <span>🌅 Rituel du jour</span>
       <span class="hr-dots" id="homeRitualDots"></span>
@@ -1910,12 +2112,18 @@
       <div class="topbar-title">Le Jardin</div>
       <div class="rosee-pill" id="gardenRoseePill" aria-label="Rosée">💧 0</div>
     </div>
-    <div class="gz-stage" id="gzStage">
-      <div class="gz-scene" id="gzScene"></div>
-      <button class="gz-nav prev" id="gzPrev" aria-label="Zone précédente">‹</button>
-      <button class="gz-nav next" id="gzNext" aria-label="Zone suivante">›</button>
-      <div class="gz-caption"><span class="gz-zone" id="gzZoneName">Le Portail</span><span class="gz-pips" id="gzPips"></span></div>
+    <!-- Le panorama vivant (section E5) : ciel, cinq tableaux qu'on fait
+         défiler, cadre de feuillage, météo et guirlande des 7 derniers défis. -->
+    <div class="gz-stage gp-stage" id="gzStage" data-phase="nuit">
+      <div class="gp-strip" id="gzScene" tabindex="0" role="region" aria-label="Le jardin. Fais glisser ou utilise les flèches pour changer de coin."></div>
+      <div class="gp-garland-wrap" id="gpGarland"></div>
+      <button class="gp-dewchip" id="gpDewChip" type="button" hidden>💧</button>
+      <span class="gp-wchip" id="gpWeatherChip" aria-hidden="true"></span>
+      <button class="gz-nav prev" id="gzPrev" aria-label="Coin précédent">‹</button>
+      <button class="gz-nav next" id="gzNext" aria-label="Coin suivant">›</button>
+      <div class="gz-caption"><span class="gz-zone" id="gzZoneName">Le Portail</span><span class="gp-zdots" id="gpZoneDots" aria-hidden="true"></span><span class="gz-pips" id="gzPips"></span></div>
     </div>
+    <button class="ad-offer" id="btnDewBonus" type="button" hidden>▶ Seconde rosée : +3 💧 <span class="ad-tag">PUB</span></button>
     <div class="gz-task" id="gzTask">
       <span class="gzt-kicker" id="gztKicker">Prochain chantier</span>
       <span class="gzt-name" id="gztName">—</span>
@@ -1924,6 +2132,7 @@
       <div class="gzt-help" id="gztHelp">La rosée vient des nouvelles étoiles, du défi du jour, du rituel et du Sentier.</div>
       <button class="ad-offer" id="btnGardenBoost" hidden>▶ Arrosage bonus : +6 💧 <span class="ad-tag">PUB</span></button>
     </div>
+    <div class="garden-rank" id="gardenRank" role="group"></div>
     <div class="ritual-card" id="gardenRitual"></div>
     <p id="gardenLive" class="sr-only" aria-live="polite" aria-atomic="true"></p>
     <div class="garden-sub">Les plantes des mondes</div>
@@ -2939,7 +3148,7 @@ function buildEchoBoard(rng, profile, ctx){
    monde (modèle Wordle, date locale comme la série quotidienne). Une
    "règle du jour" par jour de la semaine donne une identité à chaque jour.
 --------------------------------------------------------- */
-const DAILY_RULES = [ // index = Date#getDay() (0 = dimanche)
+const DAILY_RULES = [ // index = Date#getUTCDay() (0 = dimanche)
   { day:'Dimanche', featured:'portails-directionnels', extra:'rochers', label:'Grand défi des Failles', icon:'🔀', world:8 },
   { day:'Lundi',    featured:null,            extra:null, label:'Racines',  icon:'🌱', world:1 },
   { day:'Mardi',    featured:'rochers',       extra:null, label:'Cailloux', icon:'🪨', world:2 },
@@ -3023,15 +3232,24 @@ function safeInt(v, min, max, dflt){
   if(!Number.isFinite(n)) return dflt;
   return Math.max(min, Math.min(max, n));
 }
-// Sauvegarde du jardin : { rosee, earned, done, sentierDay, sentierCount, boostDay }.
+// Sauvegarde du jardin (schéma 2, voir SCHEMA_MIGRATIONS.garden) :
+// { rosee, earned, done, sentierDay, sentierCount,          ← schéma 1
+//   dewDay, dewTaken, plantSeen, rankSeen, welcomeDay, repairDay } ← jardin vivant (A6)
 function sanitizeGardenSave(raw){
   const r = (raw && typeof raw==='object' && !Array.isArray(raw)) ? raw : {};
+  const str = v=> (typeof v==='string' && /^\d{8}$/.test(v)) ? v : '';
   return {
     rosee: safeInt(r.rosee, 0, 1e7, 0),
     earned: safeInt(r.earned, 0, 1e8, 0),
     done: safeInt(r.done, 0, GARDEN_TOTAL_TASKS, 0),
     sentierDay: typeof r.sentierDay==='string' ? r.sentierDay : '',
-    sentierCount: safeInt(r.sentierCount, 0, 1e4, 0)
+    sentierCount: safeInt(r.sentierCount, 0, 1e4, 0),
+    dewDay: str(r.dewDay),
+    dewTaken: safeInt(r.dewTaken, 0, 50, 0),
+    plantSeen: Array.isArray(r.plantSeen) ? r.plantSeen.slice(0, 16).map(v=> safeInt(v, 0, 4, 0)) : null,
+    rankSeen: safeInt(r.rankSeen, -1, 99, -1),
+    welcomeDay: str(r.welcomeDay),
+    repairDay: str(r.repairDay)
   };
 }
 // Où en est le jardin après `done` chantiers terminés (dans l'ordre).
@@ -3074,7 +3292,9 @@ const ROSEE = {
   mission: 3,             // mission du rituel accomplie
   chest: 5, chestCoins: 10,   // coffre du rituel
   adBoost: 6,             // arrosage bonus (pub récompensée, 1×/jour)
-  adChest: 5              // coffre bonus (pub récompensée, 1×/jour)
+  adChest: 5,             // coffre bonus (pub récompensée, 1×/jour)
+  dew: 1,                 // une goutte de rosée du matin (3 à 6 par jour, voir DEW)
+  welcomeBack: 6          // cadeau « bon retour » après 3 jours d'absence
 };
 function roseeForLevelWin(prevStars, stars){
   return Math.max(0, safeInt(stars,0,3,0) - safeInt(prevStars,0,3,0)) * ROSEE.perNewStar;
@@ -3149,7 +3369,9 @@ const AD_PLACEMENTS = {
   hint_bonus:         { cap:3 },  // indice ciblé sans coins
   garden_boost:       { cap:1 },  // arrosage bonus du jardin
   ritual_chest_bonus: { cap:1 },  // second coffre du rituel
-  sentier_double:     { cap:2 }   // doubler les coins d'une partie du Sentier
+  sentier_double:     { cap:2 },  // doubler les coins d'une partie du Sentier
+  streak_repair:      { cap:1 },  // rattrapage de série hors délai gratuit (voir streakRepairStatus)
+  dew_bonus:          { cap:1 }   // une seconde rosée du matin (+3 gouttes)
 };
 const AD_DAILY_CAP = 8;
 const AD_MIN_INTERVAL_MS = 20000;
@@ -3269,6 +3491,17 @@ const COACH_LINES = {
     news_shop:       "L'Atelier a reçu des graines rares.",
     news_done:       "C'est tout ! Bon jeu.",
     skip_ack:        "Pas de souci ! Je suis dans les Paramètres.",
+    // Jardin vivant (A6/E5) : Germain y habite ; aides contextuelles (une fois chacune).
+    garden_tap_0:    "Coucou ! Ce jardin, c'est un peu le nôtre.",
+    garden_tap_1:    "Touche les plantes : elles adorent ça.",
+    garden_tap_2:    "Chaque étoile que tu gagnes fait grandir une plante.",
+    garden_tap_3:    "La nuit, les lucioles sortent. Magique, non ?",
+    garden_tap_4:    "Chaque défi réussi allume une lanterne là-haut.",
+    tip_dew:         "De la rosée du matin ! Touche les gouttes pour la cueillir.",
+    tip_plant_grow:  "Tes étoiles font grandir les plantes. Touche-les pour les voir !",
+    tip_rank:        "Ton rang de jardinier monte avec tout ce que tu accomplis.",
+    tip_repair:      "Ta série s'est arrêtée hier ? Rejoue ce défi pour la sauver.",
+    welcome_back:    "Te revoilà ! Le jardin t'a gardé un peu de rosée.",
     btn_go:    "C'est parti !",
     btn_next:  "Suivant",
     btn_skip:  "Passer",
@@ -3355,6 +3588,186 @@ function tutorialTourFailed(t, key){
   return out;
 }
 
+/* =========================================================
+   A6. LE JARDIN VIVANT — LOGIQUE PURE (testée par test-logic.js)
+   Le jardin reflète la RÉGULARITÉ du joueur, jamais son absence :
+   - la rosée du matin perle chaque jour (un peu plus avec la série) ;
+   - les 7 lanternes s'allument avec les 7 derniers défis ;
+   - chaque étoile gagnée s'allume dans le ciel de nuit ;
+   - les plantes des mondes grandissent avec les niveaux et les étoiles.
+   Rien ne fane, rien ne se perd : aucun reproche visuel (ONBOARDING §6).
+   Dates : clés de jour UTC (dateKeyFor). L'heure du ciel (aube, jour,
+   crépuscule, nuit) suit l'heure LOCALE : c'est de la lumière, pas une date.
+========================================================= */
+function gardenTimeOfDay(hour){
+  const h = Math.floor(Number(hour));
+  if(!Number.isFinite(h)) return 'nuit';
+  const x = ((h % 24) + 24) % 24;
+  if(x >= 6 && x < 9) return 'aube';
+  if(x >= 9 && x < 18) return 'jour';
+  if(x >= 18 && x < 21) return 'crepuscule';
+  return 'nuit';
+}
+// Météo du jour : la même pour tout le monde le même jour (UTC).
+const GARDEN_WEATHERS = [
+  { id:'clair',   label:'Ciel clair',       icon:'✨', w:48 },
+  { id:'brise',   label:'Brise légère',     icon:'🍃', w:16 },
+  { id:'pluie',   label:'Pluie fine',       icon:'🌧', w:14 },
+  { id:'brume',   label:'Brume du matin',   icon:'🌫', w:10 },
+  { id:'petales', label:'Pluie de pétales', icon:'🌸', w:12 }
+];
+function gardenWeatherFor(dayKey){
+  const rng = makeRng(hashSeed('meteo:' + String(dayKey||'')));
+  const total = GARDEN_WEATHERS.reduce((a, w)=> a + w.w, 0);
+  let r = rng() * total;
+  for(const w of GARDEN_WEATHERS){ r -= w.w; if(r < 0) return w; }
+  return GARDEN_WEATHERS[0];
+}
+
+// ---- Rosée du matin : des gouttes à cueillir d'un toucher, une fois par jour ----
+const DEW = { base:3, streak3:1, streak7:1, rain:1, max:6, spots:12 };
+function dewTotalFor(dayKey, streak){
+  const s = safeInt(streak, 0, 1e5, 0);
+  let n = DEW.base + (s >= 3 ? DEW.streak3 : 0) + (s >= 7 ? DEW.streak7 : 0);
+  if(gardenWeatherFor(dayKey).id==='pluie') n += DEW.rain;
+  return Math.min(DEW.max, n);
+}
+function dewTakenToday(save, dayKey){
+  const s = sanitizeGardenSave(save);
+  return s.dewDay===dayKey ? s.dewTaken : 0;
+}
+function dewLeft(save, dayKey, streak){ return Math.max(0, dewTotalFor(dayKey, streak) - dewTakenToday(save, dayKey)); }
+// Cueille UNE goutte. Renvoie { ok, save, left } sans rien muter.
+function dewCollect(save, dayKey, streak){
+  const s = sanitizeGardenSave(save);
+  const taken = dewTakenToday(s, dayKey);
+  const total = dewTotalFor(dayKey, streak);
+  if(taken >= total) return { ok:false, save:s, left:0 };
+  const out = Object.assign({}, s, { dewDay:dayKey, dewTaken:taken + 1, rosee:s.rosee + 1, earned:s.earned + 1 });
+  return { ok:true, save:out, left: total - taken - 1 };
+}
+// Emplacements des gouttes (indices parmi DEW.spots), déterministes par jour.
+function dewSpotsFor(dayKey, n){
+  const rng = makeRng(hashSeed('gouttes:' + String(dayKey||'')));
+  const pool = Array.from({ length:DEW.spots }, (_, i)=> i);
+  const out = [];
+  const k = Math.max(0, Math.min(DEW.spots, safeInt(n, 0, DEW.spots, 0)));
+  while(out.length < k) out.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+  return out;
+}
+
+// ---- Croissance des plantes : ce que le joueur a déjà VU ----
+// seen : stades affichés la dernière fois (null = jamais : on initialise
+// sans fête, pour ne pas célébrer d'un coup des mois de progression).
+function sanitizePlantSeen(raw, n){
+  if(!Array.isArray(raw)) return null;
+  return Array.from({ length:n }, (_, i)=> safeInt(raw[i], 0, 4, 0));
+}
+function plantGrowthEvents(seen, stages){
+  if(!Array.isArray(seen) || !Array.isArray(stages)) return [];
+  const out = [];
+  stages.forEach((to, i)=>{ const from = safeInt(seen[i], 0, 4, 0); if(safeInt(to, 0, 4, 0) > from) out.push({ world:i + 1, from, to:safeInt(to, 0, 4, 0) }); });
+  return out;
+}
+
+// ---- Rangs du jardinier (« Ligue Fantôme » de l'audit §7, barème ABSOLU) ----
+// Aucun autre joueur, aucun classement simulé : une échelle de maîtrise
+// personnelle, calculée à partir de ce que le joueur a vraiment accompli.
+const GARDENER_RANKS = [
+  { name:'Graine',             icon:'🌰', xp:0 },
+  { name:'Pousse',             icon:'🌱', xp:60 },
+  { name:'Bouture',            icon:'🌿', xp:160 },
+  { name:'Jardinier',          icon:'🪴', xp:320 },
+  { name:'Botaniste',          icon:'🌷', xp:560 },
+  { name:'Paysagiste',         icon:'🌳', xp:900 },
+  { name:'Maître jardinier',   icon:'🏵️', xp:1350 },
+  { name:'Gardien de la lune', icon:'🌙', xp:2000 }
+];
+const GARDENER_XP = { star:5, gardenTask:12, dailyWin:10, sentierPerfect:2, bestStreakDay:6, achievement:8 };
+function gardenerXP(s){
+  s = s || {};
+  const n = (v, max)=> safeInt(v, 0, max, 0);
+  return n(s.stars, 1e4) * GARDENER_XP.star + n(s.gardenDone, 1e3) * GARDENER_XP.gardenTask +
+    n(s.dailyWins, 1e5) * GARDENER_XP.dailyWin + n(s.sentierPerfect, 1e6) * GARDENER_XP.sentierPerfect +
+    n(s.bestStreak, 1e5) * GARDENER_XP.bestStreakDay + n(s.achievements, 1e3) * GARDENER_XP.achievement;
+}
+function gardenerRank(xp){
+  const x = safeInt(xp, 0, 1e9, 0);
+  let i = 0;
+  GARDENER_RANKS.forEach((r, k)=>{ if(x >= r.xp) i = k; });
+  const cur = GARDENER_RANKS[i], next = GARDENER_RANKS[i + 1] || null;
+  const span = next ? next.xp - cur.xp : 1;
+  return { index:i, name:cur.name, icon:cur.icon, xp:x, floor:cur.xp, next,
+    toNext: next ? next.xp - x : 0, pct: next ? Math.max(0, Math.min(100, Math.round((x - cur.xp) / span * 100))) : 100 };
+}
+
+// ---- Rattrapage de série (audit §3) : rejouer le défi d'HIER ----
+// Proposé seulement si UN seul jour a été manqué (hier), qu'aucun gel ne
+// le couvre déjà, et que la série vaut d'être sauvée. Gratuit une fois
+// tous les 7 jours ; sinon, une pub récompensée peut l'offrir (jamais
+// obligatoire). Le joueur doit RÉUSSIR le plateau d'hier : c'est un
+// effort, pas un achat.
+const STREAK_REPAIR_COOLDOWN = 7;
+function streakRepairStatus(streak, keys, ctx){
+  const s = streak || {}, k = keys || {}, c = ctx || {};
+  const no = reason=> ({ offer:false, free:false, reason });
+  if(safeInt(s.current, 0, 1e5, 0) < 2) return no('short');
+  if(s.lastSuccessDate !== k.dayBefore) return no('not_broken');
+  if(c.dailyDoneToday) return no('done_today');
+  if(safeInt(c.freezes, 0, 1e4, 0) > 0) return no('freeze');
+  const free = !c.lastRepairDay || !Number.isFinite(dayDiff(c.lastRepairDay, k.today)) || dayDiff(c.lastRepairDay, k.today) >= STREAK_REPAIR_COOLDOWN;
+  return { offer:true, free, reason: free ? 'free' : 'ad' };
+}
+// Applique un rattrapage réussi : hier compte comme joué.
+function streakApplyRepair(streak, yesterday){
+  const s = Object.assign({ current:0, best:0, totalWins:0, lastSuccessDate:null }, streak || {});
+  const current = safeInt(s.current, 0, 1e5, 0) + 1;
+  return Object.assign({}, s, { current, best: Math.max(safeInt(s.best, 0, 1e5, 0), current),
+    totalWins: safeInt(s.totalWins, 0, 1e6, 0) + 1, lastSuccessDate: yesterday });
+}
+// Série « vivante » : celle qu'on affiche. Une série dont le dernier défi
+// date d'avant-hier ou plus n'est plus en cours (sauf gel ou rattrapage).
+function streakAlive(streak, keys, freezes){
+  const s = streak || {}, k = keys || {};
+  const cur = safeInt(s.current, 0, 1e5, 0);
+  if(!s.lastSuccessDate) return 0;
+  if(s.lastSuccessDate >= k.yesterday) return cur;  // aujourd'hui, hier (ou clé « future » héritée de l'heure locale)
+  if(s.lastSuccessDate === k.dayBefore) return cur; // en pause : gel ou rattrapage possibles
+  return 0;
+}
+
+// ---- Bon retour : après 3 jours d'absence, un petit cadeau, sans reproche ----
+const WELCOME_BACK_DAYS = 3;
+function welcomeBackDue(lastActiveDay, today, lastWelcomeDay){
+  if(!lastActiveDay || lastWelcomeDay===today) return { due:false, days:0 };
+  const d = dayDiff(lastActiveDay, today);
+  return Number.isFinite(d) && d >= WELCOME_BACK_DAYS ? { due:true, days:d } : { due:false, days: Number.isFinite(d) ? d : 0 };
+}
+
+// ---- Interstitiel : point d'accroche prêt, DÉSACTIVÉ par défaut ----
+// Seulement aux pauses naturelles (entre deux niveaux, fin d'une partie
+// du Sentier), jamais pendant un coup, jamais au début du jeu, jamais
+// deux fois de suite (étude de marché §7 : « pas d'interstitiels agressifs »).
+const INTERSTITIAL_RULES = { minLevelsDone:12, everyBreaks:4, minIntervalMs:5 * 60 * 1000, dailyCap:3 };
+function interstitialAllowed(st, ctx){
+  const s = st || {}, c = ctx || {};
+  if(!c.enabled) return { ok:false, reason:'disabled' };
+  if(safeInt(c.levelsDone, 0, 1e5, 0) < INTERSTITIAL_RULES.minLevelsDone) return { ok:false, reason:'too_early' };
+  const today = s.day === c.dayKey;
+  if(today && safeInt(s.count, 0, 1e4, 0) >= INTERSTITIAL_RULES.dailyCap) return { ok:false, reason:'daily_cap' };
+  if(s.lastAt && Number(c.nowMs) - Number(s.lastAt) < INTERSTITIAL_RULES.minIntervalMs) return { ok:false, reason:'interval' };
+  if(safeInt(c.breaks, 0, 1e6, 0) % INTERSTITIAL_RULES.everyBreaks !== 0) return { ok:false, reason:'not_this_break' };
+  return { ok:true };
+}
+
+// ---- Aides contextuelles : chacune n'apparaît qu'une fois ----
+function sanitizeTips(raw){
+  const seen = {};
+  const src = raw && typeof raw==='object' && !Array.isArray(raw) && raw.seen && typeof raw.seen==='object' ? raw.seen : {};
+  Object.keys(src).forEach(k=>{ if(/^[a-z0-9_]{1,40}$/.test(k) && src[k]===true) seen[k] = true; });
+  return { seen };
+}
+
 // Point d'entrée console pour les développeurs uniquement.
 // Dans les outils de développement du navigateur, taper :
 //   BCD_DEV.validateLevels()               → valide tous les niveaux de LEVELS
@@ -3365,6 +3778,13 @@ window.BCD_DEV = {
   // Simulation de date : permet de tester le streak sur plusieurs "jours"
   // sans toucher l'horloge système. ex: BCD_DEV.setSimulatedDate('2026-08-11')
   setSimulatedDate(dateStr){ simulatedDate = dateStr; },
+  // Jardin vivant : forcer le ciel ('aube' | 'jour' | 'crepuscule' | 'nuit' | null = heure réelle).
+  setGardenPhase(p){ gpForcedPhase = ['aube','jour','crepuscule','nuit'].includes(p) ? p : null; homeHeroSig = ''; gpView.sig = ''; },
+  getGardenerRank(){ return gardenerRankNow(); },
+  getTips(){ return loadTips(); },
+  resetTips(){ safeStorage.remove(TIPS_KEY); },
+  getStreakRepair(){ return streakRepairNow(); },
+  getDew(){ const d = todayKey(), s = streakAliveNow(); return { total: dewTotalFor(d, s), left: dewLeft(loadGarden(), d, s), weather: gardenWeatherFor(d).id }; },
   clearSimulatedDate(){ simulatedDate = null; },
   // Rejoue exactement la logique de réussite du défi du jour (streak +
   // record perso) sans passer par l'écran de jeu, pour tester rapidement
@@ -3384,7 +3804,7 @@ window.BCD_DEV = {
     const log = loadAnalyticsLog();
     const count = t=> log.filter(e=> e.t===t).length;
     const first = t=> { const e = log.find(x=> x.t===t); return e ? e.at : null; };
-    const days = new Set(log.map(e=> new Date(e.at).toDateString())).size;
+    const days = new Set(log.map(e=> dateKeyFor(new Date(e.at)))).size;
     const t0 = first('first_open') || (log[0] && log[0].at) || null;
     const firstWin = log.find(e=> e.t==='level_complete');
     const sentierEnds = log.filter(e=> e.t==='sentier_end' && e.p && e.p.kind==='chrono');
@@ -3662,11 +4082,16 @@ const SCHEMA_MIGRATIONS = {
   weeklyChest:  { current:1, migrations:{} },
   ghosts:       { current:1, migrations:{} },
   // Boucle de rétention (sections A4/B5).
-  garden:       { current:1, migrations:{} },
+  // v2 : jardin vivant (rosée du matin, plantes vues, rang, bon retour,
+  // rattrapage). Les anciennes sauvegardes gardent tout ; les nouveaux
+  // champs démarrent « jamais vu » (aucune fête rétroactive).
+  garden:       { current:2, migrations:{ 1: old=> Object.assign({}, (old && typeof old==='object' && !Array.isArray(old)) ? old : {},
+                  { dewDay:'', dewTaken:0, plantSeen:null, rankSeen:-1, welcomeDay:'', repairDay:'' }) } },
   ritual:       { current:1, migrations:{} },
   ads:          { current:1, migrations:{} },
   retention:    { current:1, migrations:{} },
-  tutorial:     { current:1, migrations:{} }  // tutoriel de Germain (section A5/T)
+  tutorial:     { current:1, migrations:{} }, // tutoriel de Germain (section A5/T)
+  tips:         { current:1, migrations:{} }  // aides contextuelles vues une fois (A6, bcd_tips_v1)
 };
 
 // Lit une donnée versionnée depuis safeStorage et applique en cascade les
@@ -3779,9 +4204,17 @@ function saveProgress(p){ saveVersioned(PROGRESS_KEY, 'progress', p); }
 --------------------------------------------------------- */
 let simulatedDate = null;
 function bcdNow(){ return simulatedDate ? new Date(simulatedDate) : new Date(); }
+// TOUTES les dates du jeu sont en UTC : un seul « minuit » pour tout le
+// monde (défi du jour, série, rituel, rosée du matin, plafonds de pubs).
+// En France, le jour change donc à 1 h (hiver) ou 2 h (été). Les anciennes
+// sauvegardes (clés locales) restent valides : voir la migration v2 de la
+// série (SCHEMA_MIGRATIONS.streak) et la garde « date future » de
+// registerDailyStreak.
 function dateKeyFor(d){
-  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+  return `${d.getUTCFullYear()}${String(d.getUTCMonth()+1).padStart(2,'0')}${String(d.getUTCDate()).padStart(2,'0')}`;
 }
+// Le même instant décalé de n jours civils UTC (minuit UTC du jour visé).
+function utcDayOffset(d, n){ return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + n)); }
 
 /* ---------------------------------------------------------
    Paramètres utilisateur (son / vibration), persistés localement.
@@ -3879,7 +4312,11 @@ function registerDailyStreak(){
   const streak = loadStreak();
   const today = todayKey();
   let freezeConsumed = false;
-  if(streak.lastSuccessDate !== today){
+  // Clé « dans le futur » : héritée du passage des dates locales aux dates
+  // UTC (succès noté entre minuit local et minuit UTC). On la considère
+  // comme le jour même : la série n'est jamais remise à zéro pour ça.
+  const fromFuture = typeof streak.lastSuccessDate==='string' && streak.lastSuccessDate > today;
+  if(streak.lastSuccessDate !== today && !fromFuture){
     if(streak.lastSuccessDate === yesterdayKey()){
       streak.current = (streak.current||0) + 1;
     } else if(streak.lastSuccessDate === dayBeforeYesterdayKey() && loadStreakFreezes() > 0){
@@ -3967,8 +4404,8 @@ const WEEKLY_CHEST_KEY = 'bcd_weekly_chest_v1';
 const WEEKLY_CHEST_GOAL = 5;
 const WEEKLY_CHEST_REWARD = 25;
 function weekStartKey(d){
-  const back = (d.getDay() + 6) % 7; // lundi = 0
-  return dateKeyFor(new Date(d.getFullYear(), d.getMonth(), d.getDate() - back));
+  const back = (d.getUTCDay() + 6) % 7; // lundi = 0
+  return dateKeyFor(utcDayOffset(d, -back));
 }
 function calendarWeekDailyCount(){
   const start = weekStartKey(bcdNow()), today = todayKey();
@@ -4104,7 +4541,7 @@ function computeWeeklyDailySummary(){
   let starsTotal = 0;
   const now = bcdNow();
   for(let i=0;i<7;i++){
-    const day = new Date(now.getFullYear(), now.getMonth(), now.getDate()-i);
+    const day = utcDayOffset(now, -i);
     const entry = byDate[dateKeyFor(day)];
     if(entry){
       daysPlayed++;
@@ -5081,6 +5518,14 @@ function sfxRestore(){
 }
 function sfxZoneComplete(){ playSignature(NOTE_D4*2, 0.07, 0.12); sfxRarityUnlock(2); }
 function sfxChestOpen(){ wood(semi(NOTE_D4, -5), 0.08, 0, 0.2); wood(semi(NOTE_D4, 0), 0.07, 0.08, 0.2); [14, 19, 21, 26].forEach((n,i)=> glass(semi(NOTE_D4*2, n), 0.045, 0.18 + i*0.06, 0.8)); }
+// Jardin vivant : chaque goutte cueillie monte d'un degré (cueillette en
+// série = petite mélodie) ; une plante touchée répond d'une note de bois
+// selon son stade ; une plante qui grandit joue un arpège qui s'ouvre ;
+// un nouveau rang reprend le motif signature, plus grave et plus ample.
+function sfxDewPick(n){ const step = Math.min(Math.max(1, n||1) - 1, 7); glass(semi(NOTE_D4*2, pentaStep(step + 7)), 0.04, 0, 0.45); glass(semi(NOTE_D4*4, pentaStep(step + 2)), 0.014, 0.05, 0.3); }
+function sfxPlantTap(stage){ wood(semi(NOTE_D4*2, pentaStep(2 + (stage||0))), 0.05, 0, 0.08); if(stage >= 4) glass(semi(NOTE_D4*2, 19), 0.03, 0.06, 0.6); }
+function sfxGrow(stage){ [0, 4, 7, 11, 14].slice(0, 2 + (stage||1)).forEach((n,i)=> glass(semi(NOTE_D4*2, n + 2), 0.05, i*0.08, i===2 + (stage||1) - 1 ? 1.4 : 0.6)); wood(semi(NOTE_D4, 7), 0.05, 0, 0.12); duckMusic(); }
+function sfxRankUp(){ playSignature(NOTE_D4, 0.07, 0.11, [24]); voice({ freq:semi(NOTE_D4, 7), dur:1.8, type:'triangle', gain:0.03, attack:0.25, partials:[[1,1],[2,0.5],[3,0.25]], send:0.45 }); duckMusic(); }
 function vibrate(pattern){ if(!settings.vibration) return; if(navigator.vibrate){ try{ navigator.vibrate(pattern); }catch(e){} } }
 
 /* ---------------------------------------------------------
@@ -5394,9 +5839,12 @@ function refreshHome(){
   const setT = (id, v)=>{ const el = document.getElementById(id); if(el) el.textContent = v; };
   setT('homeProgress', `⭐ ${totalStars} / ${LEVELS.length*3}`);
   const streak = loadStreak();
-  setT('homeStreakPill', `🔥 ${streak.current||0}`);
+  // Série affichée : jamais une série déjà perdue (bug corrigé : l'accueil
+  // montrait encore « 🔥 7 » après une semaine d'absence).
+  const aliveStreak = streakAliveNow();
+  setT('homeStreakPill', `🔥 ${aliveStreak}`);
   const streakEl = document.getElementById('homeStreakPill');
-  if(streakEl) streakEl.setAttribute('aria-label', `Série quotidienne : ${streak.current||0} jour(s), record ${streak.best||0}`);
+  if(streakEl) streakEl.setAttribute('aria-label', `Série quotidienne : ${aliveStreak} jour(s), record ${streak.best||0}`);
   setT('homeCoinsPill', `🪙 ${loadCoins()}`);
 
   // Bouton principal : lance DIRECTEMENT le prochain niveau (Blueprint §27,
@@ -5422,11 +5870,14 @@ function refreshHome(){
   if(today){
     setT('homeDailyStatus', `${'★'.repeat(today.stars)}${'☆'.repeat(3-today.stars)} · ${today.moves} coups · série ${streak.current||0}`);
     setT('homeDailyBadge', 'Fait ✓');
-    if(dailyCard){ dailyCard.classList.remove('todo'); dailyCard.classList.add('done'); }
+    if(dailyCard){ dailyCard.classList.remove('todo', 'repair'); dailyCard.classList.add('done'); }
   } else {
     const lastWasYesterday = streak.lastSuccessDate === yesterdayKey();
-    setT('homeDailyStatus', `${rule.day} · ${rule.label}` + (lastWasYesterday && streak.current>0 ? ` · garde ta série de ${streak.current}` : ''));
-    setT('homeDailyBadge', 'À relever');
+    const repair = streakRepairNow();
+    setT('homeDailyStatus', repair.offer ? `🔥 Ta série de ${streak.current} jours t'attend : sauve-la`
+      : `${rule.day} · ${rule.label}` + (lastWasYesterday && streak.current>0 ? ` · garde ta série de ${streak.current}` : ''));
+    setT('homeDailyBadge', repair.offer ? 'Sauver 🔥' : 'À relever');
+    if(dailyCard) dailyCard.classList.toggle('repair', repair.offer);
     // Avant la fin du tutoriel (3 premiers niveaux), le défi ne rivalise pas
     // visuellement avec JOUER : une seule action évidente pour débuter.
     const tutorialDone = [0,1,2].every(i=> p[i]!==undefined);
@@ -5449,6 +5900,9 @@ function refreshHome(){
   }
 
   if(typeof renderHomeGarden==='function') renderHomeGarden();
+  // Nouveau rang du jardinier : célébré sur l'accueil (une seule fois).
+  const ru = checkRankUp();
+  if(ru) setTimeout(()=>{ if(state.screen==='home'){ celebrateRankUp(ru); setTimeout(()=> showTipOnce('rank', coachLine('tip_rank'), { position:'bottom' }), 3300); } }, 700);
 }
 
 document.getElementById('btnContinue').addEventListener('click', ()=>{
@@ -6138,6 +6592,729 @@ function gardenSceneSVG(zi, doneInZone, opts){
 }
 let gardenSvgSeq = 0;
 
+/* =========================================================
+   E5. LE JARDIN VIVANT — PANORAMA (le cœur visuel et émotionnel du jeu)
+   Cinq tableaux côte à côte, un par zone, qu'on fait défiler d'un geste.
+   Plans, du fond vers l'avant :
+     ciel (heure LOCALE, météo du jour UTC, une étoile par étoile gagnée)
+     → montagnes lointaines (parallaxe) → collines et arbres → terrasse
+     de la zone (scènes E4) → avant-plan : allée, plantes des mondes,
+     prairie du Sentier, rosée du matin, animaux, Germain → cadre de
+     feuillage et guirlande des 7 derniers défis.
+   Tout est SVG/CSS procédural (aucun asset), animé en transform/opacity
+   uniquement, en pause hors de l'écran et coupé par « Animations réduites ».
+   Logique pure associée : section A6 (testée par test-logic.js).
+========================================================= */
+const GP_W = 360, GP_H = 560;
+const GP_ART = { x:-15, y:190, k:1.22 }; // scènes de zone (E4, 320×200), agrandies, posées sur la terrasse
+const GP_FORE_Y = 446;              // haut de l'avant-plan
+const GP_PLANT_BASE = 514;          // pied des plantes des mondes
+const GP_PLANT_K = 1.25;            // échelle des plantes des mondes
+function gpArtPt(ax, ay){ return { x: GP_ART.x + ax * GP_ART.k, y: GP_ART.y + ay * GP_ART.k }; }
+// Plates-bandes : les 8 plantes des mondes, réparties le long de l'allée.
+const GP_PLANTS = [
+  [ { w:1, x:60 }, { w:2, x:302 } ],
+  [ { w:3, x:58 }, { w:4, x:304 } ],
+  [ { w:5, x:60 }, { w:6, x:302 } ],
+  [ { w:7, x:304 } ],
+  [ { w:8, x:60 } ]
+];
+// Les 12 emplacements possibles de la rosée du matin (DEW.spots), sur les feuilles.
+const GP_DEW_SPOTS = [
+  { z:0, x:100, y:452 }, { z:0, x:256, y:496 }, { z:0, x:128, y:506 },
+  { z:1, x:104, y:458 }, { z:1, x:238, y:500 }, { z:1, x:258, y:448 },
+  { z:2, x:112, y:500 }, { z:2, x:248, y:456 },
+  { z:3, x:92,  y:462 }, { z:3, x:228, y:504 },
+  { z:4, x:136, y:454 }, { z:4, x:290, y:500 }
+];
+const GP_SKY = {
+  nuit:       { s0:'#050d16', s1:'#0d2233', s2:'#1d4447', far:'#10283a', far2:'#15343a', haze:'#1e4a4e', hill:'#173d30', hill2:'#1d4836', tree:'#0e271e', ter0:'#2a5a3e', ter1:'#132e20', fo0:'#1e4430', fo1:'#071510', path0:'#5a5340', path1:'#3a3528', tint:'#081430', tintOp:.26, light:'#f5e6a8' },
+  aube:       { s0:'#26315f', s1:'#b06a8c', s2:'#ffc890', far:'#6e6a93', far2:'#5c6b8c', haze:'#f0b8a0', hill:'#507c62', hill2:'#416e54', tree:'#2e4d44', ter0:'#62a05e', ter1:'#2f5c3a', fo0:'#41744a', fo1:'#16321e', path0:'#a8957a', path1:'#7a6a52', tint:'#ff9a7a', tintOp:.07, light:'#ffd9a6' },
+  jour:       { s0:'#3b8fd2', s1:'#89cbe9', s2:'#e4f3d6', far:'#8bbccb', far2:'#6fac9f', haze:'#d8eee8', hill:'#5ea672', hill2:'#4d965e', tree:'#2f704a', ter0:'#74c06a', ter1:'#3d8b49', fo0:'#509e53', fo1:'#1f4b2a', path0:'#c9b58c', path1:'#9d8a66', tint:'#ffffff', tintOp:0, light:'#fff4c8' },
+  crepuscule: { s0:'#1d1a48', s1:'#7b3f75', s2:'#ff9c5e', far:'#503b64', far2:'#463858', haze:'#b06a8a', hill:'#3c4c49', hill2:'#334439', tree:'#1f2a20', ter0:'#4d7049', ter1:'#253d2b', fo0:'#305236', fo1:'#0e1f14', path0:'#86705a', path1:'#5a4a3c', tint:'#5a1f60', tintOp:.12, light:'#ffb47a' }
+};
+const GP_PHASE_LABEL = { aube:'Aube', jour:'Jour', crepuscule:'Crépuscule', nuit:'Nuit' };
+let gpSeq = 0;
+const gpf = n=> Math.round(n * 10) / 10;
+
+// Relief continu d'un tableau à l'autre : fonction de l'abscisse GLOBALE.
+function gpWave(gx, seed, amp){
+  return amp * (Math.sin(gx / 97 + seed) * .6 + Math.sin(gx / 41 + seed * 2.3) * .25 + Math.sin(gx / 233 + seed * .7) * .8);
+}
+function gpRidge(x0, baseY, seed, amp, bottom, step){
+  step = step || 10;
+  let d = `M-2 ${bottom} L-2 ${gpf(baseY + gpWave(x0 - 2, seed, amp))}`;
+  for(let x = 0; x <= GP_W + 2; x += step) d += ` L${x} ${gpf(baseY + gpWave(x0 + x, seed, amp))}`;
+  return d + ` L${GP_W + 2} ${bottom} Z`;
+}
+// Arbres en silhouette sur une crête (seau de 34 unités = un arbre, global).
+function gpTrees(x0, baseY, seed, amp, color, scale){
+  let s = '';
+  const first = Math.floor((x0 - 40) / 34), last = Math.floor((x0 + GP_W + 40) / 34);
+  for(let b = first; b <= last; b++){
+    const rng = makeRng(hashSeed('arbre:' + seed + ':' + b));
+    if(rng() < .32) continue;
+    const gx = b * 34 + rng() * 22, x = gx - x0, y = baseY + gpWave(gx, seed, amp) + 2;
+    const h = (18 + rng() * 26) * scale;
+    if(rng() < .45){ // conifère
+      s += `<path d="M${gpf(x)} ${gpf(y - h)} L${gpf(x + h * .32)} ${gpf(y)} L${gpf(x - h * .32)} ${gpf(y)} Z" fill="${color}"/>`;
+    } else {         // feuillu
+      s += `<rect x="${gpf(x - 1.4 * scale)}" y="${gpf(y - h * .45)}" width="${gpf(2.8 * scale)}" height="${gpf(h * .45)}" fill="${color}"/>` +
+           `<circle cx="${gpf(x)}" cy="${gpf(y - h * .62)}" r="${gpf(h * .36)}" fill="${color}"/><circle cx="${gpf(x - h * .22)}" cy="${gpf(y - h * .45)}" r="${gpf(h * .24)}" fill="${color}"/><circle cx="${gpf(x + h * .24)}" cy="${gpf(y - h * .48)}" r="${gpf(h * .26)}" fill="${color}"/>`;
+    }
+  }
+  return s;
+}
+function gpTuft(x, y, c, h){
+  h = h || 1;
+  return `<path d="M${gpf(x - 5 * h)} ${y} Q${gpf(x - 4 * h)} ${gpf(y - 8 * h)} ${gpf(x - 1 * h)} ${gpf(y - 11 * h)} M${gpf(x)} ${y} Q${gpf(x + .5)} ${gpf(y - 11 * h)} ${gpf(x + 2 * h)} ${gpf(y - 14 * h)} M${gpf(x + 5 * h)} ${y} Q${gpf(x + 4 * h)} ${gpf(y - 7 * h)} ${gpf(x + 7 * h)} ${gpf(y - 10 * h)}" stroke="${c}" stroke-width="${gpf(1.6 * h)}" fill="none" stroke-linecap="round"/>`;
+}
+function gpLeaf(x, y, len, ang, col, w){
+  w = w || .3;
+  return `<path d="M0 0 C ${gpf(len * .3)} ${gpf(-len * w)}, ${gpf(len * .75)} ${gpf(-len * w * .8)}, ${gpf(len)} 0 C ${gpf(len * .75)} ${gpf(len * w * .8)}, ${gpf(len * .3)} ${gpf(len * w)}, 0 0 Z" fill="${col}" transform="translate(${gpf(x)} ${gpf(y)}) rotate(${gpf(ang)})"/>`;
+}
+function gpPetals(n, r, rx, ry, col, rot, cx, cy){
+  let s = '';
+  for(let i = 0; i < n; i++) s += `<ellipse cx="${gpf(cx)}" cy="${gpf(cy - r)}" rx="${gpf(rx)}" ry="${gpf(ry)}" fill="${col}" transform="rotate(${gpf((rot||0) + 360 / n * i)} ${gpf(cx)} ${gpf(cy)})"/>`;
+  return s;
+}
+function gpSparkle(x, y, s, cls){
+  return `<path class="${cls||'gp-twinkle'}" d="M${gpf(x)} ${gpf(y - s)} L${gpf(x + s * .25)} ${gpf(y - s * .25)} L${gpf(x + s)} ${gpf(y)} L${gpf(x + s * .25)} ${gpf(y + s * .25)} L${gpf(x)} ${gpf(y + s)} L${gpf(x - s * .25)} ${gpf(y + s * .25)} L${gpf(x - s)} ${gpf(y)} L${gpf(x - s * .25)} ${gpf(y - s * .25)} Z" fill="#fff8dc"/>`;
+}
+
+/* ---------- Les 8 espèces (une par monde), 5 stades chacune ----------
+   Dessin local : pied en (0,0), la plante pousse vers le haut (y < 0).
+   Stades : 0 graine · 1 pousse · 2 tige · 3 bouton · 4 en fleur. */
+const GP_SPECIES = {
+  1:{ name:'Tournesol doré',       leaf:'#4f9d58', leaf2:'#3d8a48', stem:'#5aa64c', glow:'#ffd166' },
+  2:{ name:'Pensée des rocailles', leaf:'#4f9a62', leaf2:'#3c8452', stem:'#5a9a5a', glow:'#c49bff' },
+  3:{ name:'Digitale des impasses',leaf:'#5a9a50', leaf2:'#467f40', stem:'#5f9a4e', glow:'#ff9fc0' },
+  4:{ name:'Lys de givre',         leaf:'#6bb3a6', leaf2:'#4f988c', stem:'#6aa898', glow:'#bfe6ff' },
+  5:{ name:'Orchidée de cristal',  leaf:'#3f8a5e', leaf2:'#2f744c', stem:'#5a9068', glow:'#d29bff' },
+  6:{ name:'Iris des courants',    leaf:'#4fa088', leaf2:'#3d8a74', stem:'#5aa58a', glow:'#8fc4ff' },
+  7:{ name:'Rose des ruines',      leaf:'#3f7a45', leaf2:'#356a3a', stem:'#557a3a', glow:'#ffbe7a' },
+  8:{ name:'Fleur d\'étoile',      leaf:'#4f8f7a', leaf2:'#3f7a68', stem:'#5a8f80', glow:'#a8a8ff' }
+};
+const GP_PLANT_H = { 1:118, 2:48, 3:120, 4:96, 5:90, 6:104, 7:96, 8:102 };
+function gpSoil(world){
+  let s = `<ellipse cx="0" cy="4" rx="26" ry="6.5" fill="#000" opacity=".22"/><ellipse cx="0" cy="2" rx="23" ry="5.6" fill="#3b2a1c"/><ellipse cx="0" cy=".8" rx="17" ry="3.4" fill="#5a4129"/>`;
+  [[-20,3],[-12,6],[-3,7.2],[7,6.8],[15,5],[21,2.4]].forEach(([x, y], i)=>{ s += `<ellipse cx="${x}" cy="${y}" rx="${4 + (i%2)}" ry="2.4" fill="${i%2 ? '#8d8676' : '#a59e8c'}"/>`; });
+  if(world===7) s += `<path d="M-9 1 L-9 -46 L-4 -50 L1 -45 L6 -49 L9 -44 L9 1 Z" fill="url(#§stone)"/><path d="M-9 -30 H9 M-9 -14 H9" stroke="#6f6958" stroke-width=".8" opacity=".6"/>`;
+  if(world===2) s += `<ellipse cx="-14" cy="-1" rx="6" ry="4" fill="#9b947f"/><ellipse cx="13" cy="0" rx="5" ry="3.4" fill="#857e6c"/>`;
+  return s;
+}
+function gpSeed(){
+  return `<ellipse cx="0" cy="-1.5" rx="5" ry="3.6" fill="#e8a03c"/><ellipse cx="-1.4" cy="-2.8" rx="1.6" ry="1" fill="#fff3c4" opacity=".8"/>${gpSparkle(6, -9, 3)}`;
+}
+function gpSprout(sp, h){
+  h = h || 16;
+  return `<path d="M0 0 Q1 ${-h/2} 0 ${-h}" stroke="${sp.stem}" stroke-width="2.4" fill="none" stroke-linecap="round"/>` + gpLeaf(0, -h, 11, -150, sp.leaf, .42) + gpLeaf(0, -h, 11, -30, sp.leaf2, .42);
+}
+// Dessin d'une espèce à un stade donné (sans le sol).
+function gpSpeciesArt(w, stage){
+  const sp = GP_SPECIES[w] || GP_SPECIES[1];
+  const H = GP_PLANT_H[w] || 100;
+  if(stage <= 0) return gpSeed();
+  if(stage === 1) return gpSprout(sp, w===2 ? 10 : 16);
+  const h = stage === 2 ? H * .55 : H;
+  const stem = (x2, y2, curve)=> `<path d="M0 0 C ${gpf(curve||2)} ${gpf(y2*.4)}, ${gpf(x2-(curve||2))} ${gpf(y2*.7)}, ${gpf(x2)} ${gpf(y2)}" stroke="${sp.stem}" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  let s = '';
+  switch(w){
+    case 1: { // Tournesol
+      s += stem(0, -h, 3);
+      [[-.22,-1],[-.45,1],[-.66,-1]].forEach(([t, side], i)=>{ if(stage===2 && i===2) return; s += gpLeaf(0, h*t, 22 - i*3, side>0 ? -20 : -160, i%2 ? sp.leaf2 : sp.leaf, .42); });
+      if(stage===3){
+        s += `<g transform="translate(0 ${gpf(-h)})">${gpPetals(8, 4, 3, 6, '#5aa64c', 0, 0, 0)}<circle r="7" fill="#e8c23a"/><circle r="4" fill="#9a6a20"/></g>`;
+      } else if(stage===4){
+        s += `<g transform="translate(0 ${gpf(-h)}) rotate(-8)"><circle class="gp-bloomglow" r="30" fill="url(#§bloom1)"/>${gpPetals(16, 15, 4, 10, '#ffb020', 11, 0, 0)}${gpPetals(16, 13, 3.6, 9, '#ffd23a', 0, 0, 0)}<circle r="11" fill="#6b3f1a"/><circle r="8" fill="#82522a"/>`;
+        for(let i = 0; i < 14; i++){ const a = i * 2.4, r = 1.8 + i * .5; s += `<circle cx="${gpf(Math.cos(a)*r)}" cy="${gpf(Math.sin(a)*r)}" r=".9" fill="#3a200c"/>`; }
+        s += `</g>`;
+      }
+      break;
+    }
+    case 2: { // Pensée des rocailles : rosette basse, fleurs violettes et jaunes
+      for(let i = 0; i < 6; i++) s += gpLeaf(0, -2, 13, -180 + i * 36, i%2 ? sp.leaf : sp.leaf2, .55);
+      const flowers = stage === 2 ? [] : [[-13,-30],[2,-44],[15,-28]];
+      flowers.forEach(([x, y], i)=>{
+        s += `<path d="M0 -3 Q${gpf(x*.4)} ${gpf(y*.6)} ${x} ${y}" stroke="${sp.stem}" stroke-width="1.8" fill="none"/>`;
+        if(stage===3) s += `<ellipse cx="${x}" cy="${y}" rx="3" ry="5" fill="#7a4bd0" transform="rotate(${i*20-20} ${x} ${y})"/>`;
+        else s += `<g transform="translate(${x} ${y}) rotate(${i*14-14})"><circle cx="-4" cy="-5" r="6.5" fill="#6a3fc0"/><circle cx="4" cy="-5" r="6.5" fill="#7a4bd0"/><circle cx="-6.5" cy="1" r="5.5" fill="#a77be8"/><circle cx="6.5" cy="1" r="5.5" fill="#a77be8"/><circle cx="0" cy="4.5" r="6.5" fill="#ffd84a"/><path d="M0 0 L0 6 M0 0 L-3 5 M0 0 L3 5" stroke="#4a2a7a" stroke-width=".8"/><circle r="1.8" fill="#ffe9a0"/></g>`;
+      });
+      if(stage===2) s += `<path d="M0 -3 Q2 -14 1 -24" stroke="${sp.stem}" stroke-width="1.8" fill="none"/><ellipse cx="1" cy="-26" rx="2.4" ry="4" fill="#5a9a5a"/>`;
+      if(stage===4) s = `<circle class="gp-bloomglow" cx="0" cy="-32" r="30" fill="url(#§bloom2)"/>` + s;
+      break;
+    }
+    case 3: { // Digitale : rosette, épi de clochettes roses
+      for(let i = 0; i < 5; i++) s += gpLeaf(0, -2, 26, -165 + i * 37, i%2 ? sp.leaf : sp.leaf2, .25);
+      s += stem(0, -h, 1.5);
+      if(stage>=3){
+        const n = stage===4 ? 8 : 6;
+        for(let i = 0; i < n; i++){
+          const t = .45 + i / n * .5, y = -h * t, side = i%2 ? 1 : -1;
+          if(stage===3) s += `<ellipse cx="${side*4}" cy="${gpf(y)}" rx="2.6" ry="4" fill="${i < 3 ? '#e8a0b8' : '#9ac27a'}"/>`;
+          else s += `<g transform="translate(${side*5} ${gpf(y)}) rotate(${side*25})"><path d="M-4 -5 Q-5.5 5 -6 7 L6 7 Q5.5 5 4 -5 Z" fill="#e88fa8"/><ellipse cx="0" cy="7" rx="6" ry="2.4" fill="#f7c6d6"/><circle cx="-1.5" cy="6.6" r=".8" fill="#9a3a5a"/><circle cx="1.6" cy="6.2" r=".7" fill="#9a3a5a"/></g>`;
+        }
+        if(stage===4) s = `<circle class="gp-bloomglow" cx="0" cy="${gpf(-h*.72)}" r="34" fill="url(#§bloom3)"/>` + s;
+      }
+      break;
+    }
+    case 4: { // Lys de givre : fleur étoilée blanche et bleue, cristaux
+      s += stem(0, -h, 2);
+      [[-.2,-1],[-.38,1],[-.55,-1]].forEach(([t, side], i)=>{ if(stage===2 && i===2) return; s += gpLeaf(0, h*t, 26 - i*4, side>0 ? -48 : -132, i%2 ? sp.leaf2 : sp.leaf, .18); });
+      if(stage===3) s += `<ellipse cx="0" cy="${gpf(-h-7)}" rx="5" ry="10" fill="#cfe9ff"/><path d="M0 ${gpf(-h-16)} V${gpf(-h+2)}" stroke="#9fd0f0" stroke-width="1"/>`;
+      if(stage===4){
+        s += `<g transform="translate(0 ${gpf(-h-4)})"><circle class="gp-bloomglow" r="30" fill="url(#§bloom4)"/>`;
+        for(let i = 0; i < 6; i++) s += `<path d="M0 0 C -5 -6, -4 -14, 0 -19 C 4 -14, 5 -6, 0 0 Z" fill="${i%2 ? '#d6edff' : '#f4fbff'}" stroke="#9fd0f0" stroke-width=".6" transform="rotate(${i*60})"/>`;
+        s += `<circle r="3.4" fill="#fff3b0"/><path d="M0 0 L-3 -6 M0 0 L3 -6 M0 0 L0 -7" stroke="#e8c84a" stroke-width=".8"/></g>`;
+        [[-20,-h+6],[18,-h-12],[14,-h+22]].forEach(([x, y], i)=>{ s += `<g class="gp-twinkle" style="animation-delay:${i*.5}s"><path d="M${x} ${gpf(y-4)} V${gpf(y+4)} M${x-3.5} ${gpf(y-2)} L${x+3.5} ${gpf(y+2)} M${x-3.5} ${gpf(y+2)} L${x+3.5} ${gpf(y-2)}" stroke="#e8f6ff" stroke-width="1" stroke-linecap="round"/></g>`; });
+      }
+      break;
+    }
+    case 5: { // Orchidée de cristal : tige arquée, trois fleurs violettes
+      s += gpLeaf(0, -1, 24, -160, sp.leaf, .4) + gpLeaf(0, -1, 22, -22, sp.leaf2, .4);
+      const pts = [[4,-h*.5],[14,-h*.82],[30,-h*.92],[42,-h*.8]];
+      const arc = stage===2 ? `M0 0 C 2 ${gpf(-h*.3)}, 6 ${gpf(-h*.45)}, 10 ${gpf(-h*.55)}` : `M0 0 C 2 ${gpf(-h*.5)}, 12 ${gpf(-h*1.02)}, 42 ${gpf(-h*.8)}`;
+      s += `<path d="${arc}" stroke="${sp.stem}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+      if(stage>=3) pts.slice(1).forEach(([x, y], i)=>{
+        if(stage===3) s += `<ellipse cx="${x}" cy="${gpf(y+5)}" rx="3.6" ry="4.6" fill="#b48ae8"/>`;
+        else s += `<g transform="translate(${x} ${gpf(y+7)}) scale(${1 - i*.12})">${gpPetals(3, 7, 3.4, 8, '#c79bf0', 0, 0, 0)}<ellipse cx="-6" cy="0" rx="6" ry="3.6" fill="#e3c7ff" transform="rotate(-20)"/><ellipse cx="6" cy="0" rx="6" ry="3.6" fill="#e3c7ff" transform="rotate(20)"/><path d="M-3 2 Q0 9 3 2 Z" fill="#8a4bd0"/><circle cy="-1" r="1.6" fill="#fff3c4"/></g>`;
+      });
+      if(stage===4) s = `<circle class="gp-bloomglow" cx="26" cy="${gpf(-h*.82)}" r="34" fill="url(#§bloom5)"/>` + s;
+      break;
+    }
+    case 6: { // Iris des courants : feuilles en épée, fleur bleue à barbe jaune
+      [[-6,-.8,-8],[-2,-.95,-2],[4,-.9,5],[8,-.7,10]].forEach(([x, t, ang], i)=>{ s += `<path d="M${x} 0 Q${gpf(x+ang*.4)} ${gpf(h*t*.5)} ${gpf(x+ang)} ${gpf(h*t*(stage===2 ? .7 : .78))} Q${gpf(x+ang*.2+2)} ${gpf(h*t*.45)} ${x+3} 0 Z" fill="${i%2 ? sp.leaf : sp.leaf2}"/>`; });
+      if(stage>=3) s += stem(0, -h, 1);
+      if(stage===3) s += `<path d="M0 ${gpf(-h+4)} C -4 ${gpf(-h-6)}, -2 ${gpf(-h-14)}, 0 ${gpf(-h-18)} C 2 ${gpf(-h-14)}, 4 ${gpf(-h-6)}, 0 ${gpf(-h+4)} Z" fill="#6a96e8"/>`;
+      if(stage===4){
+        s += `<g transform="translate(0 ${gpf(-h)})"><circle class="gp-bloomglow" cy="-4" r="30" fill="url(#§bloom6)"/>`;
+        [-1, 0, 1].forEach(k=>{ s += `<path d="M0 0 C ${-6+k*14} 2, ${-8+k*20} 12, ${k*14} 15 C ${k*8} 9, ${k*4} 5, 0 0 Z" fill="#4a7fd8"/>`; });
+        [-1, 0, 1].forEach(k=>{ s += `<path d="M0 0 C ${k*10-5} -8, ${k*8-3} -18, ${k*5} -20 C ${k*5+4} -14, ${k*3+3} -7, 0 0 Z" fill="#8fbaff"/>`; });
+        s += `<path d="M-1 3 Q-5 8 -9 11 M1 3 Q5 8 9 11" stroke="#ffd84a" stroke-width="2" stroke-linecap="round" fill="none"/></g>`;
+      }
+      break;
+    }
+    case 7: { // Rose des ruines : tiges grimpantes autour de la colonne
+      const canes = stage===2 ? 1 : 2;
+      for(let c = 0; c < canes; c++){
+        const side = c ? 1 : -1;
+        s += `<path d="M${side*6} 0 C ${side*16} ${gpf(-h*.3)}, ${-side*14} ${gpf(-h*.55)}, ${side*8} ${gpf(-h*(stage===2 ? .5 : .86))}" stroke="${sp.stem}" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        for(let i = 1; i <= 4; i++) s += gpLeaf(side*(8 - i*2), -h*.18*i*(stage===2 ? .6 : 1), 9, side>0 ? -20 - i*10 : -160 + i*10, i%2 ? sp.leaf : sp.leaf2, .5);
+      }
+      if(stage===3) [[8,-h*.86],[-10,-h*.6],[12,-h*.45]].forEach(([x, y])=>{ s += `<ellipse cx="${x}" cy="${gpf(y)}" rx="3.2" ry="4.6" fill="#e07a5a"/><path d="M${x-3} ${gpf(y+3)} L${x} ${gpf(y+6)} L${x+3} ${gpf(y+3)}" fill="#3f7a45"/>`; });
+      if(stage===4){
+        s = `<circle class="gp-bloomglow" cx="0" cy="${gpf(-h*.7)}" r="36" fill="url(#§bloom7)"/>` + s;
+        [[8,-h*.88,1],[-11,-h*.62,.85],[13,-h*.44,.75]].forEach(([x, y, k], i)=>{
+          const c1 = i===1 ? '#f08a6a' : '#e0a85c', c2 = i===1 ? '#ffb39a' : '#ffd08a';
+          s += `<g transform="translate(${x} ${gpf(y)}) scale(${k})"><circle r="9" fill="${c1}"/>${gpPetals(5, 5, 4.4, 5, c2, 18, 0, 0)}<circle r="4.6" fill="${c1}"/><path d="M-2.4 -1 Q0 -4 2.4 -1 Q0 2 -2.4 -1" fill="${c2}"/></g>`;
+        });
+      }
+      break;
+    }
+    case 8: { // Fleur d'étoile : étoile indigo, étincelles en orbite
+      s += stem(0, -h, -2);
+      [[-.3,1],[-.5,-1]].forEach(([t, side], i)=>{ s += gpLeaf(0, h*t, 18, side>0 ? -30 : -150, i%2 ? sp.leaf2 : sp.leaf, .28); });
+      if(stage===3) s += `<circle class="gp-bloomglow" cx="0" cy="${gpf(-h-5)}" r="12" fill="url(#§bloom8)"/><circle cx="0" cy="${gpf(-h-5)}" r="5.5" fill="#9a9aff"/>` + gpSparkle(0, -h-5, 4);
+      if(stage===4){
+        let star = ''; for(let i = 0; i < 10; i++){ const r = i%2 ? 7 : 18, a = -Math.PI/2 + i * Math.PI / 5; star += (i ? 'L' : 'M') + gpf(Math.cos(a)*r) + ' ' + gpf(Math.sin(a)*r); }
+        let inner = ''; for(let i = 0; i < 10; i++){ const r = i%2 ? 3.6 : 9, a = -Math.PI/2 + i * Math.PI / 5; inner += (i ? 'L' : 'M') + gpf(Math.cos(a)*r) + ' ' + gpf(Math.sin(a)*r); }
+        s += `<g transform="translate(0 ${gpf(-h-8)})"><circle class="gp-bloomglow" r="34" fill="url(#§bloom8)"/><path d="${star}Z" fill="#7c7cf0"/><path d="${inner}Z" fill="#d6d6ff"/><circle r="3" fill="#fff"/>` +
+             `<g class="gp-orbit"><circle cx="23" cy="0" r="2" fill="#e6e6ff"/><circle cx="-23" cy="0" r="1.5" fill="#c8c8ff"/><circle cx="0" cy="-23" r="1.4" fill="#fff"/><circle cx="0" cy="23" r="1.2" fill="#d6d6ff"/></g></g>`;
+      }
+      break;
+    }
+  }
+  return s;
+}
+// Une plate-bande complète : sol, plante (qui ondule), plaque du monde.
+function gpPlantBed(w, x, stage, opts){
+  opts = opts || {};
+  const unlocked = opts.unlocked !== false;
+  let s = `<g class="gp-bed" data-plant="${w}" transform="translate(${x} ${GP_PLANT_BASE}) scale(${GP_PLANT_K})" role="button" tabindex="-1">`;
+  s += `<rect x="-30" y="${-(GP_PLANT_H[w]||100) - 40}" width="60" height="${(GP_PLANT_H[w]||100) + 52}" fill="transparent"/>`;
+  s += gpSoil(w);
+  if(!unlocked){
+    s += `<g opacity=".7"><path d="M0 2 V-14" stroke="#7a5a3a" stroke-width="2"/><rect x="-7" y="-26" width="14" height="13" rx="3" fill="#7a5a3a"/><text x="0" y="-16" text-anchor="middle" font-size="10" font-weight="800" fill="#f2e6c8" font-family="Baloo 2, system-ui">?</text></g>`;
+  } else {
+    const delay = ((w * 0.73) % 3).toFixed(2);
+    if(opts.from !== undefined && opts.from !== stage){
+      s += `<g class="gp-grow-out">${gpSpeciesArt(w, opts.from)}</g><g class="gp-grow-in"><g class="gp-sway" style="animation-delay:-${delay}s">${gpSpeciesArt(w, stage)}</g></g>`;
+    } else {
+      s += `<g class="gp-sway" style="animation-delay:-${delay}s">${gpSpeciesArt(w, stage)}</g>`;
+    }
+    if(stage >= 4) s += gpSparkle(-16, -(GP_PLANT_H[w]||100) * .7, 3.2) + gpSparkle(18, -(GP_PLANT_H[w]||100) * .9, 2.6);
+  }
+  s += `<g transform="translate(${w===7 ? 20 : 17} 8)"><rect x="-6.5" y="-6.5" width="13" height="11" rx="3" fill="#6b4a2c" stroke="#3a2614" stroke-width=".8"/><text x="0" y="1.6" text-anchor="middle" font-size="8.5" font-weight="800" fill="#ffe8b0" font-family="Baloo 2, system-ui">${w}</text></g>`;
+  return s + '</g>';
+}
+
+/* ---------- Animaux des zones réveillées (un par zone terminée) ---------- */
+function gpCritter(zi){
+  switch(zi){
+    case 0: return `<g class="gp-critter" transform="translate(178 37)"><g class="gp-hop"><ellipse cx="0" cy="0" rx="7" ry="5.6" fill="#7a5a3a"/><circle cx="5" cy="-4" r="4" fill="#7a5a3a"/><ellipse cx="2" cy="1" rx="4.4" ry="3.6" fill="#e86a3a"/><circle cx="6.4" cy="-4.6" r="1" fill="#111"/><path d="M8.8 -3.8 L11.4 -3 L8.8 -2.4 Z" fill="#e8b04a"/><path d="M-6 -1 L-12 -4 L-11 1 Z" fill="#5a3f28"/><path d="M-1 5 V8 M2 5 V8" stroke="#3a2a1a" stroke-width=".9"/></g></g>`;
+    case 1: return `<g class="gp-critter" transform="translate(119 147)"><ellipse cx="0" cy="2" rx="7.6" ry="5" fill="#5fb85a"/><circle cx="-3.6" cy="-2.6" r="2.8" fill="#6fc86a"/><circle cx="3.6" cy="-2.6" r="2.8" fill="#6fc86a"/><circle class="gp-blink" cx="-3.6" cy="-2.8" r="1.3" fill="#1a2a12"/><circle class="gp-blink" cx="3.6" cy="-2.8" r="1.3" fill="#1a2a12"/><path d="M-3 3.4 Q0 5 3 3.4" stroke="#2f6a2a" stroke-width=".8" fill="none"/></g>`;
+    case 2: return `<g class="gp-critter" transform="translate(262 166)"><ellipse cx="0" cy="0" rx="9" ry="6.6" fill="#c9b8a2"/><circle cx="7" cy="-5" r="4.6" fill="#d8c8b2"/><g class="gp-ears"><ellipse cx="6" cy="-13" rx="1.7" ry="5.6" fill="#d8c8b2"/><ellipse cx="9" cy="-12" rx="1.7" ry="5.2" fill="#d8c8b2" transform="rotate(16 9 -12)"/></g><circle cx="9" cy="-5.6" r=".9" fill="#2a1a10"/><circle cx="-9" cy="-1" r="2.6" fill="#fff"/></g>`;
+    case 3: return `<g class="gp-critter" transform="translate(244 121)"><g class="gp-breathe"><ellipse cx="0" cy="0" rx="11" ry="5.6" fill="#e0a060"/><circle cx="9" cy="-2" r="4.6" fill="#e0a060"/><path d="M6.6 -5.6 L7.6 -9.6 L9.6 -6.2 M10.2 -6.4 L12.4 -9.4 L12.8 -5" fill="#e0a060"/><path d="M7.4 -2.2 Q8.6 -1.2 9.8 -2.2 M10.6 -2.2 Q11.6 -1.2 12.6 -2.2" stroke="#5a3010" stroke-width=".7" fill="none"/><path d="M-11 1 Q-16 -2 -13 -6" stroke="#e0a060" stroke-width="2.6" fill="none" stroke-linecap="round"/></g><text class="gp-zzz" x="14" y="-12" font-size="7" font-weight="800" fill="#f2efe2" font-family="Baloo 2, system-ui">z</text></g>`;
+    case 4: return `<g class="gp-critter" transform="translate(186 53)"><ellipse cx="0" cy="0" rx="8" ry="10" fill="#8a6a4a"/><ellipse cx="0" cy="3" rx="5" ry="6" fill="#c8b08a"/><path d="M-6 -8 L-7 -13 L-3 -9 M6 -8 L7 -13 L3 -9" fill="#8a6a4a"/><circle cx="-3.2" cy="-4" r="3" fill="#ffe7a3"/><circle cx="3.2" cy="-4" r="3" fill="#ffe7a3"/><circle class="gp-blink" cx="-3.2" cy="-4" r="1.4" fill="#1a1208"/><circle class="gp-blink" cx="3.2" cy="-4" r="1.4" fill="#1a1208"/><path d="M-1 -1 L0 1 L1 -1 Z" fill="#e8b04a"/></g>`;
+  }
+  return '';
+}
+
+/* ---------- Contexte de rendu (lu une fois par rendu) ---------- */
+function gpContext(){
+  const g = loadGarden(), st = gardenStatus(g.done), p = loadProgress();
+  const day = todayKey();
+  const streak = streakAliveNow();
+  const stages = ALL_WORLDS.map(w=> gardenStageFor(w, p).stage);
+  const unlocked = ALL_WORLDS.map(w=>{ const idxs = worldLevelIndices(w); return idxs.length>0 && (idxs[0]===0 || p[idxs[0]-1]!==undefined); });
+  let stars = 0; LEVELS.forEach((_, i)=>{ stars += (p[i]||0); });
+  const dewTotal = dewTotalFor(day, streak);
+  const dewTaken = dewTakenToday(g, day);
+  const spots = dewSpotsFor(day, dewTotal);
+  const reduced = document.documentElement.classList.contains('reduce-motion') || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let hour = 22; try{ hour = new Date().getHours(); }catch(e){}
+  return {
+    g, st, p, day, streak, stages, unlocked, stars,
+    phase: gpForcedPhase || gardenTimeOfDay(hour),
+    weather: gardenWeatherFor(day),
+    dewLeftSpots: spots.slice(dewTaken),
+    meadow: meadowProgress(loadSentierStats().totalPerfect).flowers,
+    week: gpWeekLights(),
+    reduced
+  };
+}
+let gpForcedPhase = null; // BCD_DEV.setGardenPhase('jour') : voir les 4 ciels sans attendre
+// Les 7 derniers défis (UTC), du plus ancien au plus récent (aujourd'hui à droite).
+function gpWeekLights(){
+  const byDate = {};
+  loadDailyHistory().forEach(e=>{ byDate[e.date] = e; });
+  const now = bcdNow(), out = [];
+  for(let i = 6; i >= 0; i--){ const k = dateKeyFor(utcDayOffset(now, -i)); out.push({ key:k, done: !!byDate[k], perfect: !!(byDate[k] && byDate[k].stars===3), today: i===0 }); }
+  return out;
+}
+// Série affichée : jamais une série déjà perdue (voir streakAlive, A6).
+function streakAliveNow(){
+  return streakAlive(loadStreak(), { today:todayKey(), yesterday:yesterdayKey(), dayBefore:dayBeforeYesterdayKey() }, loadStreakFreezes());
+}
+
+/* ---------- Le ciel (plan de fond, en parallaxe) ---------- */
+function gpSkySVG(ctx, idp){
+  const P = GP_SKY[ctx.phase] || GP_SKY.nuit;
+  const W = 600;
+  let s = `<svg class="gp-sky" viewBox="0 0 ${W} ${GP_H}" preserveAspectRatio="xMinYMax slice" aria-hidden="true"><defs>
+    <linearGradient id="${idp}sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.s0}"/><stop offset=".45" stop-color="${P.s1}"/><stop offset=".72" stop-color="${P.s2}"/></linearGradient>
+    <radialGradient id="${idp}glow"><stop offset="0" stop-color="${P.light}" stop-opacity=".75"/><stop offset=".35" stop-color="${P.light}" stop-opacity=".22"/><stop offset="1" stop-color="${P.light}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="${idp}haze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.haze}" stop-opacity="0"/><stop offset="1" stop-color="${P.haze}" stop-opacity=".55"/></linearGradient>
+    <linearGradient id="${idp}ray" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.light}" stop-opacity=".22"/><stop offset="1" stop-color="${P.light}" stop-opacity="0"/></linearGradient>
+  </defs><rect width="${W}" height="${GP_H}" fill="url(#${idp}sky)"/>`;
+  const night = ctx.phase==='nuit', dusk = ctx.phase==='crepuscule', dawn = ctx.phase==='aube';
+  // Étoiles : une par étoile gagnée (au plus 180), plus visibles la nuit.
+  if(night || dusk || dawn){
+    const rng = makeRng(424242);
+    const n = Math.min(180, ctx.stars) + 14; // 14 étoiles « du décor » pour ne jamais avoir un ciel vide
+    for(let i = 0; i < n; i++){
+      const x = rng()*W, y = rng()*250, r = i < 14 ? .5 + rng()*.5 : .7 + rng()*1.1;
+      const op = (night ? .5 : .25) + rng()*.45;
+      s += `<circle class="${i%4===0 ? 'gp-star' : ''}" style="animation-delay:${(rng()*4).toFixed(2)}s" cx="${gpf(x)}" cy="${gpf(y)}" r="${gpf(r)}" fill="#fff8e0" opacity="${op.toFixed(2)}"/>`;
+    }
+  }
+  // Astre.
+  if(night){
+    s += `<circle cx="440" cy="92" r="90" fill="url(#${idp}glow)"/><circle cx="440" cy="92" r="22" fill="#f7ebbd"/><circle cx="432" cy="86" r="4.4" fill="#e6d79e"/><circle cx="448" cy="100" r="3" fill="#e6d79e"/><circle cx="446" cy="82" r="2" fill="#e6d79e"/>`;
+  } else {
+    const [sx, sy, sr] = ctx.phase==='jour' ? [450, 92, 26] : dawn ? [130, 232, 30] : [470, 236, 32];
+    s += `<circle cx="${sx}" cy="${sy}" r="130" fill="url(#${idp}glow)"/>`;
+    if(ctx.phase==='jour') s += `<g class="gp-rays" style="transform-origin:${sx}px ${sy}px">${[0,1,2,3,4,5,6,7].map(i=> `<path d="M${sx} ${sy} L${gpf(sx + Math.cos(i*Math.PI/4)*200 - 14)} ${gpf(sy + Math.sin(i*Math.PI/4)*200)} L${gpf(sx + Math.cos(i*Math.PI/4)*200 + 14)} ${gpf(sy + Math.sin(i*Math.PI/4)*200)} Z" fill="url(#${idp}ray)" opacity=".5"/>`).join('')}</g>`;
+    s += `<circle cx="${sx}" cy="${sy}" r="${sr}" fill="${ctx.phase==='jour' ? '#fff6d0' : '#ffd29a'}"/>`;
+  }
+  // Nuages qui dérivent.
+  const cloudCol = night ? '#1d3346' : dusk ? '#c77a8a' : dawn ? '#f0b8b0' : '#ffffff';
+  const cloudOp = night ? .55 : ctx.weather.id==='pluie' ? .95 : .8;
+  [[70,70,1],[300,40,.8],[470,150,1.2],[180,170,.7]].forEach(([x, y, k], i)=>{
+    s += `<g class="gp-cloud" style="animation-duration:${70 + i*17}s;animation-delay:-${i*13}s" opacity="${cloudOp}"><g transform="translate(${x} ${y}) scale(${k})"><ellipse cx="0" cy="0" rx="34" ry="11" fill="${cloudCol}"/><circle cx="-12" cy="-6" r="12" fill="${cloudCol}"/><circle cx="8" cy="-10" r="15" fill="${cloudCol}"/><circle cx="24" cy="-3" r="10" fill="${cloudCol}"/></g></g>`;
+  });
+  if(ctx.weather.id==='pluie') s += `<rect width="${W}" height="${GP_H}" fill="#2a3a4a" opacity=".28"/>`;
+  // Oiseaux (de jour) : un vol en V qui traverse de temps en temps.
+  if(!night) s += `<g class="gp-birds">${[[0,0],[-14,-7],[-14,7],[-28,-13]].map(([x, y])=> `<path class="gp-wing" d="M${x-5} ${y} Q${x-2} ${y-4} ${x} ${y} Q${x+2} ${y-4} ${x+5} ${y}" stroke="${dusk || dawn ? '#3a2a3a' : '#2a3a4a'}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`).join('')}</g>`;
+  // Montagnes lointaines (perspective atmosphérique).
+  const ridge = (base, amp, seed, col)=>{ let d = `M0 ${GP_H} L0 ${base}`; for(let x = 0; x <= W; x += 14) d += ` L${x} ${gpf(base + amp * (Math.sin(x/53 + seed) * .7 + Math.sin(x/19 + seed*2) * .18 + Math.sin(x/131 + seed) * .9))}`; return `<path d="${d} L${W} ${GP_H} Z" fill="${col}"/>`; };
+  s += ridge(212, 22, 1.3, P.far) + `<rect y="180" width="${W}" height="120" fill="url(#${idp}haze)"/>` + ridge(242, 14, 4.1, P.far2);
+  return s + '</svg>';
+}
+
+/* ---------- Un tableau (une zone) ---------- */
+function gpPanelSVG(zi, ctx, opts){
+  opts = opts || {};
+  const P = GP_SKY[ctx.phase] || GP_SKY.nuit;
+  const idp = 'gp' + (++gpSeq) + '_';
+  const x0 = zi * GP_W;
+  const st = ctx.st;
+  const locked = zi > st.zoneIndex;
+  const doneHere = locked ? 0 : gardenZoneDone(ctx.g.done, zi);
+  const zoneComplete = doneHere >= GARDEN_ZONES[zi].tasks.length;
+  const life = doneHere / GARDEN_ZONES[zi].tasks.length;
+  const night = ctx.phase==='nuit';
+  const vb = opts.viewBox || `0 0 ${GP_W} ${GP_H}`;
+  let s = `<svg class="gz-svg gp-svg" viewBox="${vb}" preserveAspectRatio="${opts.par || 'xMidYMax slice'}" role="img" aria-label="${GARDEN_ZONES[zi].name} : ${locked ? 'endormi' : doneHere + ' sur 5 chantiers'}">`;
+  s += GZ_DEFS.replace('</defs>', `
+    <linearGradient id="§ter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.ter0}"/><stop offset="1" stop-color="${P.ter1}"/></linearGradient>
+    <linearGradient id="§fore" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.fo0}"/><stop offset="1" stop-color="${P.fo1}"/></linearGradient>
+    <linearGradient id="§path" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.path0}"/><stop offset="1" stop-color="${P.path1}"/></linearGradient>
+    <linearGradient id="§stone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8d0b8"/><stop offset="1" stop-color="#8a836f"/></linearGradient>
+    <radialGradient id="§veil" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="#06101a" stop-opacity="1"/><stop offset=".7" stop-color="#06101a" stop-opacity=".8"/><stop offset="1" stop-color="#06101a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="§fog" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="${P.haze}" stop-opacity=".92"/><stop offset=".75" stop-color="${P.haze}" stop-opacity=".6"/><stop offset="1" stop-color="${P.haze}" stop-opacity="0"/></radialGradient>
+    <radialGradient id="§ff"><stop offset="0" stop-color="#fff6c2" stop-opacity=".95"/><stop offset=".4" stop-color="#ffd166" stop-opacity=".4"/><stop offset="1" stop-color="#ffd166" stop-opacity="0"/></radialGradient>
+    <radialGradient id="§dew" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#bfeaff"/><stop offset="1" stop-color="#4aa8e0"/></radialGradient>
+    ${[1,2,3,4,5,6,7,8].map(w=> `<radialGradient id="§bloom${w}"><stop offset="0" stop-color="${GP_SPECIES[w].glow}" stop-opacity=".55"/><stop offset="1" stop-color="${GP_SPECIES[w].glow}" stop-opacity="0"/></radialGradient>`).join('')}
+  </defs>`);
+  // Collines et arbres (continus d'un tableau à l'autre).
+  s += `<path d="${gpRidge(x0, 232, 2.1, 12, GP_H, 12)}" fill="${P.hill}"/>` + gpTrees(x0, 232, 2.1, 12, P.tree, .9);
+  s += `<path d="${gpRidge(x0, 268, 5.7, 9, GP_H, 12)}" fill="${P.hill2}"/>` + gpTrees(x0, 268, 5.7, 9, P.tree, 1.15);
+  // Terrasse de la zone (sol sur lequel reposent les scènes E4).
+  s += `<path d="${gpRidge(x0, 316, 8.3, 5, GP_H, 12)}" fill="url(#§ter)"/>`;
+  { const rng = makeRng(7000 + zi); for(let i = 0; i < 10; i++) s += gpTuft(gpf(10 + rng()*340), gpf(336 + rng()*90), i%2 ? '#3f8a4a' : '#4f9d58', .9); }
+  // Ombre douce sous la scène de zone (ancre les objets au sol).
+  s += `<ellipse cx="180" cy="${GP_ART.y + 200}" rx="168" ry="22" fill="#000" opacity=".16"/>`;
+  // Scène de la zone (avant/après de chaque chantier).
+  const art = gardenZoneArt(zi);
+  s += `<g transform="translate(${GP_ART.x} ${GP_ART.y}) scale(${GP_ART.k})">${art.base}`;
+  art.tasks.forEach((t, k)=>{
+    const done = k < doneHere;
+    if(!done && t.before) s += `<g class="gz-before">${t.before}</g>`;
+    if(done) s += `<g class="gz-after${opts.justK===k ? ' gz-new' : ''}">${t.after}</g>`;
+  });
+  if(opts.justK !== undefined && opts.justK !== null){ const t = art.tasks[opts.justK]; if(t && t.before) s += `<g class="gz-leaving">${t.before}</g>`; }
+  if(zoneComplete) s += gpCritter(zi);
+  s += `</g>`;
+  // Le sommeil de la zone : voile qui s'éclaircit à chaque chantier, ou brume si endormie.
+  if(locked){
+    s += `<rect x="-20" y="196" width="400" height="262" fill="url(#§fog)"/>` +
+         `<g class="gp-zzz-big"><text x="180" y="330" text-anchor="middle" font-size="22" font-weight="800" fill="#ffffff" opacity=".85" font-family="Baloo 2, system-ui">Endormi</text>` +
+         `<text x="220" y="300" font-size="14" font-weight="800" fill="#ffffff" opacity=".7" font-family="Baloo 2, system-ui">z z</text></g>`;
+  } else if(life < 1){
+    s += `<rect class="gz-veil" x="0" y="196" width="${GP_W}" height="262" fill="url(#§veil)" style="opacity:${(0.5 * (1 - life)).toFixed(3)}"/>`;
+  }
+  if(opts.marker && !locked && zi===st.zoneIndex && !st.complete){
+    const mp = gpArtPt(art.tasks[doneHere].at[0], art.tasks[doneHere].at[1]);
+    s += `<g transform="translate(${gpf(mp.x)} ${gpf(mp.y)})"><g class="gz-marker"><circle r="13" fill="none" stroke="#ffd166" stroke-width="1.8" stroke-dasharray="3 3"/><circle r="3" fill="#ffd166"/></g></g>`;
+  }
+  // Avant-plan : talus, allée, touffes, prairie du Sentier.
+  s += `<path d="${gpRidge(x0, GP_FORE_Y, 11.9, 5, GP_H, 10)}" fill="url(#§fore)"/>`;
+  { let top = '', bot = '';
+    for(let x = -4; x <= GP_W + 4; x += 10){ const gx = x0 + x, cy = 474 + 7 * Math.sin(gx / 140) + 3 * Math.sin(gx / 37); top += (x === -4 ? 'M' : ' L') + x + ' ' + gpf(cy - 11); bot = ' L' + x + ' ' + gpf(cy + 13) + bot; }
+    s += `<path d="${top}${bot.replace(/^ L/, ' L')} Z" fill="url(#§path)" opacity=".92"/>`;
+    for(let x = 6 - (x0 % 26); x < GP_W; x += 26){ const gx = x0 + x, cy = 474 + 7 * Math.sin(gx / 140) + 3 * Math.sin(gx / 37); s += `<ellipse cx="${gpf(x)}" cy="${gpf(cy + 1)}" rx="8" ry="3.4" fill="#e8dcc0" opacity=".28"/>`; }
+  }
+  { const rng = makeRng(9100 + zi); let tufts = '';
+    for(let i = 0; i < 18; i++){ const x = rng()*GP_W, y = 452 + rng()*104; if(Math.abs(y - 474) < 14) continue; tufts += gpTuft(gpf(x), gpf(y), i%3 ? '#3f8a4a' : '#5fae62', 1 + rng()*.5); }
+    s += `<g class="gp-grass">${tufts}</g>`;
+    const nMeadow = Math.min(8, Math.max(0, ctx.meadow - zi * 8));
+    for(let i = 0; i < nMeadow; i++){ const x = 18 + rng()*324, y = 494 + rng()*24, c = ['#ffd166','#e88fa8','#8fcfe8','#f2efe2','#c79bf0'][i%5];
+      s += `<path d="M${gpf(x)} ${gpf(y+7)} V${gpf(y)}" stroke="#5fae62" stroke-width="1.2"/>` + gpPetals(5, 2.4, 1.6, 2.6, c, 0, x, y) + `<circle cx="${gpf(x)}" cy="${gpf(y)}" r="1.3" fill="#ffcf7a"/>`; }
+  }
+  // Plates-bandes des plantes des mondes.
+  (GP_PLANTS[zi] || []).forEach(b=>{
+    const growth = opts.growth && opts.growth.world===b.w ? opts.growth : null;
+    s += gpPlantBed(b.w, b.x, ctx.stages[b.w-1], { unlocked: ctx.unlocked[b.w-1], from: growth ? growth.from : undefined });
+  });
+  // Vie : lucioles la nuit, papillons le jour (plus il y a de chantiers, plus il y en a).
+  if(!opts.still){
+    const rng = makeRng(31 + zi * 17);
+    if(night || ctx.phase==='crepuscule'){
+      const n = locked ? 2 : 3 + doneHere * 2;
+      for(let i = 0; i < n; i++){ const x = 20 + rng()*320, y = 250 + rng()*240;
+        s += `<g class="gp-ff" style="animation-delay:-${(rng()*6).toFixed(2)}s;animation-duration:${(5 + rng()*4).toFixed(2)}s"><circle cx="${gpf(x)}" cy="${gpf(y)}" r="7" fill="url(#§ff)"/><circle cx="${gpf(x)}" cy="${gpf(y)}" r="1.4" fill="#fff6c2"/></g>`; }
+    } else if(!locked){
+      const n = (doneHere >= 1 ? 1 : 0) + (doneHere >= 3 ? 1 : 0) + (zoneComplete ? 1 : 0);
+      const cols = [['#ffd166','#f0a83c'],['#8fcfe8','#4a90c8'],['#f6b7cf','#e07aa0']];
+      for(let i = 0; i < n; i++){ const x = 60 + rng()*240, y = 270 + rng()*150, c = cols[(zi + i) % 3];
+        s += `<g class="gp-fly" style="animation-delay:-${(rng()*8).toFixed(2)}s"><g transform="translate(${gpf(x)} ${gpf(y)})"><g class="gp-flap"><path d="M0 0 C -6 -8, -11 -4, -8 1 C -6 3, -2 2, 0 0 Z" fill="${c[0]}"/><path d="M0 0 C 6 -8, 11 -4, 8 1 C 6 3, 2 2, 0 0 Z" fill="${c[0]}"/><path d="M0 0 C -4 3, -6 6, -3 7 Z M0 0 C 4 3, 6 6, 3 7 Z" fill="${c[1]}"/></g><path d="M0 -3 V4" stroke="#2a1a10" stroke-width="1.2" stroke-linecap="round"/></g></g>`; }
+    }
+  }
+  // Teinte de l'heure (nuit bleutée, crépuscule rosé).
+  if(P.tintOp > 0) s += `<rect width="${GP_W}" height="${GP_H}" fill="${P.tint}" opacity="${P.tintOp}" pointer-events="none"/>`;
+  // Rosée du matin : gouttes à cueillir (au-dessus de la teinte : elles brillent).
+  if(opts.dew !== false){
+    ctx.dewLeftSpots.forEach(idx=>{
+      const sp = GP_DEW_SPOTS[idx];
+      if(!sp || sp.z !== zi) return;
+      s += `<g class="gp-dew" data-dew="${idx}" transform="translate(${sp.x} ${sp.y})" role="button" aria-label="Goutte de rosée"><circle r="22" fill="transparent"/><g class="gp-dew-bob"><circle r="11" fill="#bfeaff" opacity=".22"/><path d="M0 -9 C 4 -3, 6.4 1, 6.4 3.6 C 6.4 7.4, 3.4 9.6, 0 9.6 C -3.4 9.6, -6.4 7.4, -6.4 3.6 C -6.4 1, -4 -3, 0 -9 Z" fill="url(#§dew)" stroke="#e8f8ff" stroke-width=".8"/><ellipse cx="-2.2" cy="2" rx="1.6" ry="2.4" fill="#fff" opacity=".85"/></g>${gpSparkle(8, -8, 3.4)}</g>`;
+    });
+  }
+  // Germain vit dans la zone en cours de réveil.
+  if(opts.germain){
+    const gm = germainSVG().replace(/gm(Seed|Leaf)/g, idp + 'gm$1').replace('<svg class="germain mood-idle"', '<svg class="germain mood-idle" x="-22" y="-52" width="44" height="54"');
+    s += `<g class="gp-germain" data-germain="1" transform="translate(182 520) scale(1.2)" role="button" aria-label="Germain"><ellipse cx="0" cy="1" rx="18" ry="4" fill="#000" opacity=".22"/><circle r="30" cy="-24" fill="transparent"/><g class="gp-germain-bob">${gm}</g></g>`;
+  }
+  s += '</svg>';
+  return s.replace(/§/g, idp).replace(/gz(?=(Sky|MoonGlow|Ground|Stone|Wood|Water|Lamp|Leaf|Glass|MoonFlower)\b)/g, idp + 'z');
+}
+
+/* ---------- Superpositions : guirlande, cadre, météo ---------- */
+function gpGarlandHTML(ctx){
+  const lit = ctx.week.filter(d=> d.done).length;
+  let s = `<svg class="gp-garland" viewBox="0 0 360 70" preserveAspectRatio="none" aria-hidden="true"><path d="M-4 8 Q 90 40 180 30 T 364 8" stroke="#2a2016" stroke-width="1.4" fill="none" opacity=".8"/></svg>`;
+  s += `<div class="gp-lanterns" role="button" tabindex="0" aria-label="Lanternes : ${lit} défi${lit>1?'s':''} réussi${lit>1?'s':''} sur les 7 derniers jours. Série : ${ctx.streak} jour${ctx.streak>1?'s':''}.">`;
+  ctx.week.forEach((d, i)=>{
+    const t = (i + .5) / 7, x = t * 100, y = 10 + 22 * Math.sin(Math.PI * t) * .9 + (t > .5 ? -4 * (t - .5) : 0);
+    s += `<span class="gp-lantern${d.done ? ' lit' : ''}${d.perfect ? ' gold' : ''}${d.today && !d.done ? ' wait' : ''}" style="left:${x.toFixed(2)}%;top:${y.toFixed(1)}px;animation-delay:-${(i*.37).toFixed(2)}s"><i></i></span>`;
+  });
+  return s + `</div>`;
+}
+function gpFrameHTML(){
+  const leaf = (flip)=> `<svg class="gp-frame ${flip ? 'r' : 'l'}" viewBox="0 0 120 160" aria-hidden="true"><g class="gp-frame-sway">
+    <path d="M${flip ? 120 : 0} 160 C ${flip ? 100 : 20} 120, ${flip ? 60 : 60} 110, ${flip ? 30 : 90} 70 C ${flip ? 70 : 50} 100, ${flip ? 95 : 25} 120, ${flip ? 120 : 0} 130 Z" fill="#0a1a12"/>
+    <path d="M${flip ? 120 : 0} 160 C ${flip ? 96 : 24} 140, ${flip ? 80 : 40} 150, ${flip ? 40 : 80} 160 Z" fill="#0d2218"/>
+    <path d="M${flip ? 120 : 0} 120 C ${flip ? 105 : 15} 90, ${flip ? 100 : 20} 60, ${flip ? 112 : 8} 30 C ${flip ? 92 : 28} 60, ${flip ? 96 : 24} 95, ${flip ? 120 : 0} 105 Z" fill="#0c1f16"/></g></svg>`;
+  return leaf(false) + leaf(true);
+}
+function gpWeatherHTML(ctx, n){
+  const w = ctx.weather.id;
+  const rng = makeRng(hashSeed('pluie:' + ctx.day));
+  let s = `<div class="gp-weather w-${w}" aria-hidden="true">`;
+  if(w==='pluie'){ for(let i = 0; i < (n||34); i++) s += `<i class="gp-rain" style="left:${(rng()*100).toFixed(1)}%;animation-delay:-${(rng()*1.2).toFixed(2)}s;animation-duration:${(.7 + rng()*.4).toFixed(2)}s"></i>`; }
+  else if(w==='petales'){ for(let i = 0; i < Math.round((n||34)/2.4); i++) s += `<i class="gp-petal" style="left:${(rng()*100).toFixed(1)}%;animation-delay:-${(rng()*9).toFixed(2)}s;animation-duration:${(7 + rng()*5).toFixed(2)}s;--sx:${Math.round(rng()*60-30)}px;background:${['#ffc8dc','#ffe0ea','#f7b0c8'][i%3]}"></i>`; }
+  else if(w==='brise'){ for(let i = 0; i < Math.round((n||34)/3.4); i++) s += `<i class="gp-leafwind" style="top:${(20 + rng()*70).toFixed(1)}%;animation-delay:-${(rng()*8).toFixed(2)}s;animation-duration:${(5 + rng()*4).toFixed(2)}s"></i>`; }
+  else if(w==='brume'){ s += `<i class="gp-fog a"></i><i class="gp-fog b"></i><i class="gp-fog c"></i>`; }
+  else if(ctx.phase==='jour' || ctx.phase==='aube'){ for(let i = 0; i < 10; i++) s += `<i class="gp-mote" style="left:${(rng()*100).toFixed(1)}%;top:${(30 + rng()*60).toFixed(1)}%;animation-delay:-${(rng()*6).toFixed(2)}s"></i>`; }
+  return s + `</div>`;
+}
+
+/* ---------- L'écran du Jardin : construction et défilement ---------- */
+const gpView = { built:false, sig:'', W:0, raf:0, io:null, lastZone:-1 };
+function gpStageSignature(ctx){ return ctx.phase + '|' + ctx.weather.id + '|' + ctx.day; }
+function renderGardenPanorama(opts){
+  opts = opts || {};
+  const ctx = gpContext();
+  const stage = document.getElementById('gzStage');
+  const strip = document.getElementById('gzScene');
+  if(!stage || !strip) return ctx;
+  stage.dataset.phase = ctx.phase;
+  stage.dataset.weather = ctx.weather.id;
+  const sig = gpStageSignature(ctx);
+  // Ciel, cadre, météo : seulement si l'heure ou le jour ont changé.
+  if(!gpView.built || gpView.sig !== sig){
+    stage.querySelectorAll('.gp-sky, .gp-frame, .gp-weather').forEach(e=> e.remove());
+    stage.insertAdjacentHTML('afterbegin', gpSkySVG(ctx, 'gps' + (++gpSeq) + '_'));
+    strip.insertAdjacentHTML('afterend', gpFrameHTML() + gpWeatherHTML(ctx));
+    gpView.sig = sig;
+  }
+  // Les cinq tableaux.
+  strip.innerHTML = GARDEN_ZONES.map((z, zi)=> `<div class="gp-panel" data-zone="${zi}">${gpPanelSVG(zi, ctx, {
+    marker:true, germain: zi===ctx.st.zoneIndex, justK: opts.justZone===zi ? opts.justK : undefined,
+    growth: opts.growth && gpPanelOfWorld(opts.growth.world)===zi ? opts.growth : null })}</div>`).join('');
+  // Guirlande des 7 derniers défis.
+  const gl = document.getElementById('gpGarland');
+  if(gl) gl.innerHTML = gpGarlandHTML(ctx);
+  gpObservePanels();
+  if(!gpView.built){
+    gpView.built = true;
+    strip.addEventListener('scroll', gpOnScroll, { passive:true });
+    strip.addEventListener('click', gpOnSceneTap);
+    window.addEventListener('resize', ()=>{ if(state.screen==='garden') gpScrollToZone(gardenView.zone||0, false); });
+  }
+  gpRenderDewChip(ctx);
+  const wc = document.getElementById('gpWeatherChip');
+  if(wc) wc.textContent = `${ctx.weather.icon} ${ctx.weather.label} · ${GP_PHASE_LABEL[ctx.phase]}`;
+  return ctx;
+}
+function gpPanelOfWorld(w){ return GP_PLANTS.findIndex(list=> list.some(b=> b.w===w)); }
+// Ne refait qu'un seul tableau (après un chantier ou une croissance).
+function gpRenderPanel(zi, opts){
+  const strip = document.getElementById('gzScene');
+  const panel = strip && strip.querySelector(`.gp-panel[data-zone="${zi}"]`);
+  if(!panel) return;
+  const ctx = gpContext();
+  panel.innerHTML = gpPanelSVG(zi, ctx, Object.assign({ marker:true, germain: zi===ctx.st.zoneIndex }, opts||{}));
+  gpRenderDewChip(ctx);
+}
+function gpObservePanels(){
+  const strip = document.getElementById('gzScene');
+  if(!strip) return;
+  if(typeof IntersectionObserver !== 'function'){ strip.querySelectorAll('.gp-panel').forEach(p=> p.classList.add('on')); return; }
+  if(gpView.io) gpView.io.disconnect();
+  gpView.io = new IntersectionObserver(entries=>{
+    entries.forEach(e=> e.target.classList.toggle('on', e.isIntersecting));
+  }, { root:strip, threshold:0.02 });
+  strip.querySelectorAll('.gp-panel').forEach(p=> gpView.io.observe(p));
+}
+function gpScrollToZone(zi, smooth){
+  const strip = document.getElementById('gzScene');
+  if(!strip) return;
+  zi = Math.max(0, Math.min(GARDEN_ZONES.length - 1, zi|0));
+  gardenView.zone = zi;
+  const left = zi * strip.clientWidth;
+  try{ strip.scrollTo({ left, behavior: smooth && !gpReduced() ? 'smooth' : 'auto' }); }catch(e){ strip.scrollLeft = left; }
+  gpUpdateCaption(zi);
+  gpParallax();
+}
+function gpReduced(){ return document.documentElement.classList.contains('reduce-motion') || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+function gpOnScroll(){
+  if(gpView.raf) return;
+  gpView.raf = requestAnimationFrame(()=>{
+    gpView.raf = 0;
+    const strip = document.getElementById('gzScene');
+    if(!strip || !strip.clientWidth) return;
+    const zi = Math.max(0, Math.min(GARDEN_ZONES.length - 1, Math.round(strip.scrollLeft / strip.clientWidth)));
+    if(zi !== gardenView.zone){ gardenView.zone = zi; gpUpdateCaption(zi); }
+    gpParallax();
+  });
+}
+function gpParallax(){
+  const strip = document.getElementById('gzScene');
+  const stage = document.getElementById('gzStage');
+  const sky = stage && stage.querySelector('.gp-sky');
+  if(!strip || !sky) return;
+  const max = Math.max(1, strip.scrollWidth - strip.clientWidth);
+  const range = Math.max(0, sky.getBoundingClientRect().width - stage.clientWidth);
+  sky.style.transform = `translate3d(${(-strip.scrollLeft / max * range).toFixed(1)}px,0,0)`;
+}
+function gpUpdateCaption(zi){
+  const g = loadGarden(), st = gardenStatus(g.done);
+  const locked = zi > st.zoneIndex;
+  const doneHere = locked ? 0 : gardenZoneDone(g.done, zi);
+  const nameEl = document.getElementById('gzZoneName');
+  if(nameEl) nameEl.textContent = GARDEN_ZONES[zi].name;
+  const pips = document.getElementById('gzPips');
+  if(pips){
+    pips.innerHTML = GARDEN_ZONES[zi].tasks.map((t, k)=> `<span class="gz-pip${k < doneHere ? ' on' : ''}"></span>`).join('');
+    pips.setAttribute('aria-label', locked ? 'Zone endormie' : `${doneHere} chantiers sur ${GARDEN_ZONES[zi].tasks.length}`);
+  }
+  const prev = document.getElementById('gzPrev'), next = document.getElementById('gzNext');
+  if(prev) prev.hidden = zi <= 0;
+  if(next) next.hidden = zi >= GARDEN_ZONES.length - 1;
+  const dots = document.getElementById('gpZoneDots');
+  if(dots){
+    const ctx = gpContextLight();
+    dots.innerHTML = GARDEN_ZONES.map((z, k)=> `<span class="gp-zdot${k===zi ? ' on' : ''}${k > st.zoneIndex ? ' sleep' : ''}${ctx.dewZones.has(k) ? ' dew' : ''}"></span>`).join('');
+  }
+}
+// Version légère (sans rendu) : quelles zones portent encore de la rosée.
+function gpContextLight(){
+  const g = loadGarden(), day = todayKey();
+  const spots = dewSpotsFor(day, dewTotalFor(day, streakAliveNow())).slice(dewTakenToday(g, day));
+  return { dewZones: new Set(spots.map(i=> GP_DEW_SPOTS[i] && GP_DEW_SPOTS[i].z)) };
+}
+function gpRenderDewChip(ctx){
+  const chip = document.getElementById('gpDewChip');
+  if(!chip) return;
+  const left = ctx.dewLeftSpots.length;
+  chip.hidden = left <= 0;
+  chip.innerHTML = `💧 <b>${left}</b> goutte${left>1?'s':''} de rosée`;
+  chip.setAttribute('aria-label', `Rosée du matin : ${left} goutte${left>1?'s':''} à cueillir. Touche pour aller à la prochaine.`);
+}
+// Position écran → coordonnées relatives à la scène (pour les effets HTML).
+function gpPointPx(zi, x, y){
+  const stage = document.getElementById('gzStage');
+  const svg = stage && stage.querySelector(`.gp-panel[data-zone="${zi}"] svg`);
+  const sr = stage ? stage.getBoundingClientRect() : { left:0, top:0, width:0, height:0 };
+  if(svg && typeof svg.getScreenCTM === 'function' && typeof svg.createSVGPoint === 'function'){
+    try{
+      const m = svg.getScreenCTM();
+      if(m){ const pt = svg.createSVGPoint(); pt.x = x; pt.y = y; const q = pt.matrixTransform(m); return { x:q.x - sr.left, y:q.y - sr.top }; }
+    }catch(e){}
+  }
+  return { x: sr.width / 2, y: sr.height / 2 };
+}
+
+/* ---------- Interactions : rosée, plantes, Germain, lanternes ---------- */
+function gpOnSceneTap(e){
+  const dew = e.target.closest && e.target.closest('[data-dew]');
+  if(dew){ gpCollectDew(dew); return; }
+  const bed = e.target.closest && e.target.closest('[data-plant]');
+  if(bed){ gpPlantInfo(+bed.getAttribute('data-plant'), bed); return; }
+  const gm = e.target.closest && e.target.closest('[data-germain]');
+  if(gm){ gpGermainTalk(gm); return; }
+}
+let gpDewCombo = 0, gpDewTimer = 0;
+function gpCollectDew(el){
+  const day = todayKey(), streak = streakAliveNow();
+  const r = dewCollect(loadGarden(), day, streak);
+  if(!r.ok){ el.remove(); return; }
+  saveGarden(r.save);
+  Analytics.track('rosee_gain', { source:'dew', amount:ROSEE.dew });
+  if(r.left === 0) Analytics.track('dew_all', { day });
+  const stage = document.getElementById('gzStage');
+  const pill = document.getElementById('gardenRoseePill');
+  const er = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+  const from = { x: er.left + er.width/2 - sr.left, y: er.top + er.height/2 - sr.top };
+  el.classList.add('picked');
+  setTimeout(()=> el.remove(), 380);
+  gpDewCombo++; clearTimeout(gpDewTimer); gpDewTimer = setTimeout(()=>{ gpDewCombo = 0; }, 2500);
+  sfxDewPick(gpDewCombo);
+  vibrate(8);
+  if(!gpReduced()){
+    gardenSparks(stage, from.x, from.y, 8);
+    if(pill){ const pr = pill.getBoundingClientRect(); gpFlyTo(stage, from, { x: pr.left + pr.width/2 - sr.left, y: pr.top + pr.height/2 - sr.top }); }
+  }
+  setTimeout(()=>{ renderRoseePill(); bumpPill(pill); renderGardenTask(); }, gpReduced() ? 0 : 520);
+  gpRenderDewChip(Object.assign(gpContextLight(), { dewLeftSpots: new Array(r.left) }));
+  gpUpdateCaption(gardenView.zone||0);
+  const float = document.createElement('div');
+  float.className = 'gp-float'; float.textContent = '+1 💧';
+  float.style.left = from.x + 'px'; float.style.top = from.y + 'px';
+  stage.appendChild(float); setTimeout(()=> float.remove(), 1000);
+  if(r.left === 0){
+    setTimeout(()=>{
+      showSimpleToast('💧', 'Rosée du matin', `Tout est cueilli ! Une nouvelle rosée perlera demain.`, 'info-toast');
+      gpOfferDewBonus();
+    }, 700);
+  }
+  announceGardenStatus(`Goutte cueillie. ${r.left} restante${r.left>1?'s':''}.`);
+}
+// Une goutte qui vole vers la réserve (en haut à droite).
+function gpFlyTo(stage, from, to){
+  const d = document.createElement('div');
+  d.className = 'gz-drop';
+  d.style.left = from.x + 'px'; d.style.top = from.y + 'px';
+  d.style.setProperty('--dx', (to.x - from.x) + 'px');
+  d.style.setProperty('--dy', (to.y - from.y) + 'px');
+  stage.appendChild(d);
+  setTimeout(()=> d.remove(), 900);
+}
+// Seconde rosée (pub récompensée, une fois par jour, jamais obligatoire).
+function gpOfferDewBonus(){
+  if(!AdService.canOffer('dew_bonus')) return;
+  const chip = document.getElementById('gpDewChip');
+  const b = document.getElementById('btnDewBonus');
+  if(!b) return;
+  b.hidden = false;
+  AdService.offered('dew_bonus', b);
+}
+function gpPlantInfo(w, bed){
+  const p = loadProgress();
+  const info = gardenStageFor(w, p);
+  const idxs = worldLevelIndices(w);
+  const unlocked = idxs.length>0 && (idxs[0]===0 || p[idxs[0]-1]!==undefined);
+  const meta = WORLD_META[w] || { name:'Monde ' + w };
+  const sp = GP_SPECIES[w];
+  const stage = document.getElementById('gzStage');
+  stage.querySelectorAll('.gp-tip').forEach(t=> t.remove());
+  const tip = document.createElement('div');
+  tip.className = 'gp-tip';
+  tip.setAttribute('role', 'status');
+  tip.innerHTML = unlocked
+    ? `<b>${sp.name}</b><span>Monde ${w} · ${meta.name}</span><span class="gp-tip-stage">${GARDEN_STAGE_NAMES[info.stage]} · ${info.stars}/${info.total*3} ★</span><span>${gardenNextGoal(info, true)}</span>`
+    : `<b>Plante mystère</b><span>Monde ${w} · ${meta.name}</span><span>Elle se plante en jouant ce monde.</span>`;
+  const r = bed.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+  tip.style.left = Math.max(70, Math.min(sr.width - 70, r.left + r.width/2 - sr.left)) + 'px';
+  tip.style.top = Math.max(60, r.top - sr.top + 10) + 'px';
+  stage.appendChild(tip);
+  setTimeout(()=> tip.classList.add('out'), 2600);
+  setTimeout(()=> tip.remove(), 3000);
+  const g = bed.querySelector('.gp-sway');
+  if(g && !gpReduced()){ g.classList.remove('gp-wiggle'); void g.getBoundingClientRect(); g.classList.add('gp-wiggle'); setTimeout(()=> g.classList.remove('gp-wiggle'), 700); }
+  sfxPlantTap(info.stage);
+}
+function gpGermainTalk(el){
+  const lines = ['garden_tap_0', 'garden_tap_1', 'garden_tap_2', 'garden_tap_3', 'garden_tap_4'];
+  const key = lines[Math.floor(Math.random() * lines.length)];
+  const b = el.querySelector('.gp-germain-bob');
+  if(b && !gpReduced()){ b.classList.remove('gp-jump'); void b.getBoundingClientRect(); b.classList.add('gp-jump'); setTimeout(()=> b.classList.remove('gp-jump'), 700); }
+  sfxCoachBlip();
+  if(Coach && !Coach.isOpen()) Coach.say({ text: coachLine(key, { n: streakAliveNow() }), mood:'happy', position:'top', tapToClose:true, autoHide:2600, buttons:[] });
+}
+
 /* ---------------------------------------------------------
    E4 (suite). ÉCRAN DU JARDIN ENDORMI : scène, prochain chantier, fête.
 --------------------------------------------------------- */
@@ -6147,29 +7324,12 @@ function renderRoseePill(){
   const el = document.getElementById('gardenRoseePill');
   if(el) el.textContent = `💧 ${loadRosee()}`;
 }
-// Zone visible : la zone en cours par défaut ; on peut revoir les zones
-// réveillées et apercevoir la suivante (verrouillée, en silhouette).
+// L'écran du Jardin : le panorama vivant (E5), positionné sur la zone visible.
 function renderGardenScene(opts){
   opts = opts || {};
-  const g = loadGarden(), st = gardenStatus(g.done);
-  const maxZone = Math.min(GARDEN_ZONES.length - 1, st.zoneIndex + (st.complete ? 0 : 1));
-  if(gardenView.zone===null || gardenView.zone > maxZone) gardenView.zone = st.zoneIndex;
-  const zi = gardenView.zone;
-  const locked = zi > st.zoneIndex;
-  const doneHere = locked ? 0 : gardenZoneDone(g.done, zi);
-  const scene = document.getElementById('gzScene');
-  scene.innerHTML = gardenSceneSVG(zi, doneHere, { justK:opts.justK, marker: !locked && zi===st.zoneIndex && !st.complete });
-  if(locked){
-    const lk = document.createElement('div');
-    lk.className = 'gz-locked';
-    lk.textContent = `🔒 Réveille « ${GARDEN_ZONES[st.zoneIndex].name} » pour ouvrir ce coin du jardin.`;
-    scene.appendChild(lk);
-  }
-  document.getElementById('gzZoneName').textContent = GARDEN_ZONES[zi].name;
-  document.getElementById('gzPips').innerHTML = GARDEN_ZONES[zi].tasks.map((t, k)=> `<span class="gz-pip${k < doneHere ? ' on' : ''}"></span>`).join('');
-  document.getElementById('gzPips').setAttribute('aria-label', `${doneHere} chantiers sur ${GARDEN_ZONES[zi].tasks.length}`);
-  document.getElementById('gzPrev').hidden = zi <= 0;
-  document.getElementById('gzNext').hidden = zi >= maxZone;
+  const ctx = renderGardenPanorama(opts);
+  if(gardenView.zone===null || gardenView.zone===undefined) gardenView.zone = ctx.st.zoneIndex;
+  gpScrollToZone(gardenView.zone, false);
 }
 function renderGardenTask(){
   const g = loadGarden(), st = gardenStatus(g.done);
@@ -6208,11 +7368,11 @@ function renderGardenMain(){
   renderRitualCard();
 }
 
-// Position (en px, relative à la scène) d'un point de la scène (coordonnées SVG).
+// Position (en px, relative à la scène) du chantier k de la zone zi.
 function gardenPointPx(zi, k){
-  const scene = document.getElementById('gzScene');
   const [x, y] = gardenZoneArt(zi).tasks[k].at;
-  return { x: x / 320 * scene.clientWidth, y: y / 200 * scene.clientHeight };
+  const pt = gpArtPt(x, y);
+  return gpPointPx(zi, pt.x, pt.y);
 }
 function gardenSparks(stage, x, y, n){
   const ring = document.createElement('div');
@@ -6247,41 +7407,78 @@ let restoreBusy = false;
 function restoreNextTask(){
   if(restoreBusy) return;
   const r = gardenRestoreNext(loadGarden());
-  if(!r.ok){ if(r.reason==='rosee'){ sfxInsufficientFunds(); vibrate(20); } return; }
+  if(!r.ok){
+    if(r.reason==='rosee'){
+      sfxInsufficientFunds(); vibrate(20);
+      const b = document.getElementById('btnRestore');
+      if(b){ b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope'); }
+    }
+    return;
+  }
   restoreBusy = true;
   saveGarden(r.save);
   const zi = r.task.zi, k = r.task.ti;
   Analytics.track('garden_task', { zone:r.task.zone.id, task:r.task.task.id, done:r.save.done });
-  gardenView.zone = zi;
-  renderGardenScene(); // revient sur la zone du chantier si on regardait ailleurs
   renderGardenTask();
   const stage = document.getElementById('gzStage');
-  const to = gardenPointPx(zi, k);
-  const reduced = document.documentElement.classList.contains('reduce-motion') || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  if(!reduced) gardenDrops(stage, document.getElementById('btnRestore'), to, 6);
-  const delay = reduced ? 0 : 560;
+  const reduced = gpReduced();
+  const travel = gardenView.zone !== zi && !reduced ? 480 : 0;
+  gpScrollToZone(zi, true); // revient sur la zone du chantier si on regardait ailleurs
   setTimeout(()=>{
-    renderGardenScene({ justK:k });
-    if(!reduced) gardenSparks(stage, to.x, to.y, 12);
-    sfxRestore();
-    vibrate([10, 30, 20]);
-    const cheer = document.createElement('div');
-    cheer.className = 'gz-cheer';
-    cheer.textContent = '✨ ' + r.task.task.cheer;
-    stage.appendChild(cheer);
-    setTimeout(()=> cheer.remove(), 2700);
-    announceGardenStatus(`${r.task.task.name} : fait. ${r.task.task.cheer}`);
-    restoreBusy = false;
-  }, delay);
+    if(!reduced) gardenDrops(stage, document.getElementById('btnRestore'), gardenPointPx(zi, k), 7);
+    const delay = reduced ? 0 : 560;
+    setTimeout(()=>{
+      gpRenderPanel(zi, { justK:k });
+      const to = gardenPointPx(zi, k);
+      if(!reduced){ gpBloomBurst(stage, to.x, to.y); gardenSparks(stage, to.x, to.y, 14); gpCameraNudge(); }
+      sfxRestore();
+      vibrate([10, 30, 20]);
+      const cheer = document.createElement('div');
+      cheer.className = 'gz-cheer';
+      cheer.textContent = '✨ ' + r.task.task.cheer;
+      stage.appendChild(cheer);
+      setTimeout(()=> cheer.remove(), 2700);
+      announceGardenStatus(`${r.task.task.name} : fait. ${r.task.task.cheer}`);
+      gpUpdateCaption(zi);
+      restoreBusy = false;
+    }, delay);
+  }, travel);
   // Le rituel compte ce geste (mission « Réveille un coin du jardin »).
   const missions = ritualEvent({ type:'garden_restore' });
-  if(missions.length) setTimeout(()=>{ renderRitualCard(); renderGardenTask(); showSimpleToast('✅', 'Rituel', missions[0].text + ' · +' + ROSEE.mission + ' 💧', 'info-toast'); }, delay + 900);
+  if(missions.length) setTimeout(()=>{ renderRitualCard(); renderGardenTask(); showSimpleToast('✅', 'Rituel', missions[0].text + ' · +' + ROSEE.mission + ' 💧', 'info-toast'); }, travel + 1500);
   else renderRitualCard();
   if(r.zoneCompleted){
     const rewards = grantZoneRewards(r.zone);
-    setTimeout(()=> showZoneFete(zi, rewards), delay + 1500);
+    setTimeout(()=>{ if(zi + 1 < GARDEN_ZONES.length) gpRenderPanel(zi + 1); showZoneFete(zi, rewards); }, travel + 1700);
   }
   checkAchievements({ inline:false });
+  renderGardenRank();
+}
+// Éclosion : éclair doux et rayons qui tournent au point réveillé.
+function gpBloomBurst(stage, x, y){
+  const b = document.createElement('div');
+  b.className = 'gp-burst';
+  b.style.left = x + 'px'; b.style.top = y + 'px';
+  b.innerHTML = '<i class="gp-burst-rays"></i><i class="gp-burst-flash"></i>';
+  stage.appendChild(b);
+  const colors = ['#ffd166', '#e88fa8', '#f2efe2', '#8fcfe8', '#c79bf0'];
+  for(let i = 0; i < 12; i++){
+    const p = document.createElement('i');
+    p.className = 'gp-petal-burst';
+    const a = Math.random() * Math.PI * 2, d = 50 + Math.random() * 70;
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty('--dx', Math.round(Math.cos(a) * d) + 'px'); p.style.setProperty('--dy', Math.round(Math.sin(a) * d + 30) + 'px');
+    p.style.setProperty('--rot', Math.round(Math.random() * 540) + 'deg');
+    b.appendChild(p);
+  }
+  setTimeout(()=> b.remove(), 1500);
+}
+// La « caméra » s'approche une seconde du chantier réveillé.
+function gpCameraNudge(){
+  const strip = document.getElementById('gzScene');
+  if(!strip) return;
+  strip.classList.remove('gp-zoom'); void strip.offsetWidth; strip.classList.add('gp-zoom');
+  setTimeout(()=> strip.classList.remove('gp-zoom'), 1300);
 }
 function grantZoneRewards(zone){
   const out = [];
@@ -6325,7 +7522,7 @@ function showZoneFete(zi, rewards){
   const close = ()=>{
     if(!wrap.isConnected) return;
     wrap.remove();
-    if(next){ gardenView.zone = zi + 1; renderGardenScene(); }
+    if(next){ gpScrollToZone(zi + 1, true); }
   };
   wrap.addEventListener('click', close);
   wrap.addEventListener('keydown', e=>{ if(e.key==='Escape'){ e.preventDefault(); close(); } });
@@ -6405,13 +7602,23 @@ function renderHomeRitual(){
   btn.setAttribute('aria-label', `Rituel du jour : ${n} missions sur 3${allDone && !rit.chest ? ', coffre prêt' : ''}`);
 }
 
-// ---- Accueil : le prochain chantier, toujours visible ----
+// ---- Accueil : une fenêtre vivante sur le jardin (héros de l'écran) ----
+let homeHeroSig = '';
 function renderHomeGarden(){
   const g = loadGarden(), st = gardenStatus(g.done);
   const sceneEl = document.getElementById('homeGardenScene');
   if(!sceneEl) return;
   const zi = st.zoneIndex;
-  sceneEl.innerHTML = gardenSceneSVG(zi, gardenZoneDone(g.done, zi), {});
+  const ctx = gpContext();
+  // Le décor ne se reconstruit que si quelque chose de visible a changé.
+  const sig = [ctx.phase, ctx.weather.id, ctx.day, g.done, ctx.stages.join(''), ctx.dewLeftSpots.length, ctx.meadow, ctx.stars].join('|');
+  if(sig !== homeHeroSig){
+    homeHeroSig = sig;
+    sceneEl.innerHTML = gpSkySVG(ctx, 'hhs' + (++gpSeq) + '_') +
+      gpPanelSVG(zi, ctx, { viewBox:'0 120 360 380', par:'xMidYMid slice', dew:false, germain:false }) +
+      gpWeatherHTML(ctx, 14);
+    sceneEl.dataset.phase = ctx.phase;
+  }
   const badge = document.getElementById('homeGardenBadge');
   if(st.complete){
     document.getElementById('homeGardenTitle').textContent = 'Le Jardin · réveillé';
@@ -6427,22 +7634,142 @@ function renderHomeGarden(){
     document.getElementById('homeGardenCaption').textContent = can ? `💧 ${g.rosee} · de quoi le réveiller !` : `💧 ${g.rosee} / ${cost}`;
     badge.hidden = !can;
   }
+  // Puces : rosée du matin à cueillir, rang du jardinier.
+  const dewChip = document.getElementById('homeDewChip');
+  const left = ctx.dewLeftSpots.length;
+  if(dewChip){ dewChip.hidden = left <= 0; dewChip.textContent = `💧 ${left} goutte${left>1?'s':''} à cueillir`; }
+  const rk = gardenerRankNow();
+  const rankChip = document.getElementById('homeRankChip');
+  if(rankChip) rankChip.textContent = `${rk.icon} ${rk.name}`;
   const btn = document.getElementById('homeGarden');
-  if(btn) btn.setAttribute('aria-label', st.complete ? 'Ouvrir le Jardin : entièrement réveillé' :
-    `Ouvrir le Jardin. Prochain chantier : ${st.next.task.name}, ${g.rosee} sur ${st.next.task.cost} rosée`);
+  if(btn) btn.setAttribute('aria-label', (st.complete ? 'Ouvrir le Jardin : entièrement réveillé' :
+    `Ouvrir le Jardin. Prochain chantier : ${st.next.task.name}, ${g.rosee} sur ${st.next.task.cost} rosée`) + (left ? `. ${left} gouttes de rosée à cueillir` : ''));
   renderHomeRitual();
 }
 
-function renderGarden(){ renderGardenMain(); renderGardenPlants(); }
+// ---- Rang du jardinier (barème absolu, section A6) ----
+function gardenerStatsNow(){
+  const p = loadProgress();
+  let stars = 0; LEVELS.forEach((_, i)=>{ stars += (p[i]||0); });
+  const streak = loadStreak();
+  return { stars, gardenDone: loadGarden().done, dailyWins: streak.totalWins||0,
+    sentierPerfect: loadSentierStats().totalPerfect||0, bestStreak: streak.best||0,
+    achievements: Object.keys(loadUnlockedAchievements()).length };
+}
+function gardenerRankNow(){ return gardenerRank(gardenerXP(gardenerStatsNow())); }
+function renderGardenRank(){
+  const el = document.getElementById('gardenRank');
+  if(!el) return;
+  const rk = gardenerRankNow();
+  el.innerHTML = `<div class="gr-icon" aria-hidden="true">${rk.icon}</div><div class="gr-text"><div class="gr-kicker">Ton rang de jardinier</div><div class="gr-name">${rk.name}</div>` +
+    `<div class="gr-bar"><div class="gr-fill" style="width:${rk.pct}%"></div></div>` +
+    `<div class="gr-next">${rk.next ? `${rk.toNext} XP avant « ${rk.next.name} »` : 'Le plus haut rang. Le jardin te salue.'}</div></div>`;
+  el.setAttribute('aria-label', `Rang : ${rk.name}. ${rk.next ? rk.toNext + ' points avant ' + rk.next.name : 'rang maximal'}.`);
+}
+// Nouveau rang : célébré une fois (jamais rétroactivement au premier lancement).
+function checkRankUp(){
+  const g = loadGarden();
+  const rk = gardenerRankNow();
+  if(g.rankSeen < 0){ g.rankSeen = rk.index; saveGarden(g); return null; }
+  if(rk.index > g.rankSeen){
+    g.rankSeen = rk.index; saveGarden(g);
+    Analytics.track('rank_up', { rank:rk.index });
+    return rk;
+  }
+  return null;
+}
+function celebrateRankUp(rk){
+  if(!rk) return;
+  sfxRankUp();
+  vibrate([12, 40, 12, 40, 30]);
+  const wrap = document.createElement('div');
+  wrap.className = 'rank-up';
+  wrap.setAttribute('role', 'status');
+  wrap.innerHTML = `<div class="ru-glow" aria-hidden="true"></div><div class="ru-icon" aria-hidden="true">${rk.icon}</div><div class="ru-kicker">Nouveau rang</div><div class="ru-name">${rk.name}</div>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener('click', ()=> wrap.remove());
+  setTimeout(()=>{ wrap.classList.add('out'); }, 2600);
+  setTimeout(()=> wrap.remove(), 3100);
+}
+
+// ---- Croissance des plantes, mise en scène à l'ouverture du jardin ----
+function gpPendingGrowth(){
+  const g = loadGarden();
+  const p = loadProgress();
+  const stages = ALL_WORLDS.map(w=> gardenStageFor(w, p).stage);
+  if(!Array.isArray(g.plantSeen) || g.plantSeen.length !== stages.length){ g.plantSeen = stages; saveGarden(g); return []; }
+  const ev = plantGrowthEvents(g.plantSeen, stages);
+  if(ev.length){ g.plantSeen = stages; saveGarden(g); }
+  return ev;
+}
+function gpPlayGrowth(events, i){
+  i = i || 0;
+  if(state.screen!=='garden' || i >= events.length || i >= 3) return;
+  const ev = events[i];
+  const zi = gpPanelOfWorld(ev.world);
+  if(zi < 0) return;
+  gpScrollToZone(zi, true);
+  setTimeout(()=>{
+    if(state.screen!=='garden') return;
+    gpRenderPanel(zi, { growth:ev });
+    const stage = document.getElementById('gzStage');
+    const bed = GP_PLANTS[zi].find(b=> b.w===ev.world);
+    const to = gpPointPx(zi, bed.x, GP_PLANT_BASE - (GP_PLANT_H[ev.world]||100) * .6 * GP_PLANT_K);
+    if(!gpReduced()){ setTimeout(()=>{ gpBloomBurst(stage, to.x, to.y); gardenSparks(stage, to.x, to.y, 12); }, 650); }
+    setTimeout(()=> sfxGrow(ev.to), 600);
+    const cheer = document.createElement('div');
+    cheer.className = 'gz-cheer grow';
+    cheer.textContent = `${ev.to===4 ? '🌸' : '🌱'} ${GP_SPECIES[ev.world].name} : ${GARDEN_STAGE_NAMES[ev.to]} !`;
+    stage.appendChild(cheer);
+    setTimeout(()=> cheer.remove(), 2800);
+    announceGardenStatus(`${GP_SPECIES[ev.world].name} a grandi : ${GARDEN_STAGE_NAMES[ev.to]}.`);
+    if(i === 0) setTimeout(()=> showTipOnce('plant_grow', coachLine('tip_plant_grow'), { position:'top' }), 3000);
+    setTimeout(()=> gpPlayGrowth(events, i + 1), 3000);
+  }, gpReduced() ? 0 : 520);
+}
+
+function renderGarden(){ renderGardenMain(); renderGardenPlants(); renderGardenRank(); }
 function openGarden(scrollToRitual){
   gardenView.zone = null;
+  const growth = gpPendingGrowth();
   renderGarden(); goto('garden');
-  Analytics.track('garden_open', { score:gardenTotals().score, done:loadGarden().done });
-  if(scrollToRitual===true){ const r = document.getElementById('gardenRitual'); if(r) setTimeout(()=> r.scrollIntoView({ block:'center', behavior:'smooth' }), 80); }
+  gpScrollToZone(gardenView.zone, false); // l'écran est visible : la largeur est connue
+  Analytics.track('garden_open', { score:gardenTotals().score, done:loadGarden().done, dew: gpContextLight().dewZones.size });
+  if(scrollToRitual===true){ const r = document.getElementById('gardenRitual'); if(r) setTimeout(()=> r.scrollIntoView({ block:'center', behavior:'smooth' }), 80); return; }
+  if(growth.length) setTimeout(()=> gpPlayGrowth(growth), 450);
+  else if(gpContextLight().dewZones.size){
+    // Première rosée : Germain montre le geste (une seule fois, passable).
+    setTimeout(()=>{ if(state.screen==='garden') showTipOnce('dew', coachLine('tip_dew'), { position:'top' }); }, 700);
+  }
 }
 document.getElementById('btnRestore').addEventListener('click', restoreNextTask);
-document.getElementById('gzPrev').addEventListener('click', ()=>{ gardenView.zone = Math.max(0, (gardenView.zone||0) - 1); renderGardenScene(); });
-document.getElementById('gzNext').addEventListener('click', ()=>{ gardenView.zone = (gardenView.zone||0) + 1; renderGardenScene(); });
+document.getElementById('gzPrev').addEventListener('click', ()=> gpScrollToZone((gardenView.zone||0) - 1, true));
+document.getElementById('gzNext').addEventListener('click', ()=> gpScrollToZone((gardenView.zone||0) + 1, true));
+document.getElementById('gpDewChip').addEventListener('click', ()=>{
+  // Va au prochain tableau qui porte encore de la rosée.
+  const zones = [...gpContextLight().dewZones].filter(z=> z!==undefined).sort((a, b)=> a - b);
+  if(!zones.length) return;
+  const cur = gardenView.zone||0;
+  const next = zones.find(z=> z > cur) ?? zones[0];
+  gpScrollToZone(next === cur && zones.length > 1 ? zones[(zones.indexOf(cur) + 1) % zones.length] : next, true);
+});
+document.getElementById('btnDewBonus').addEventListener('click', e=> watchAdFor('dew_bonus', e.currentTarget, ()=>{
+  addRosee(3, 'ad'); renderGardenTask(); renderRoseePill(); bumpPill(document.getElementById('gardenRoseePill')); sfxRoseeDrop(2);
+  showSimpleToast('💧', 'Rosée bonus', '+3 💧', 'info-toast');
+  e.currentTarget.hidden = true;
+}));
+document.getElementById('gpGarland').addEventListener('click', e=>{
+  const l = e.target.closest('.gp-lanterns');
+  if(!l) return;
+  const ctx = { week: gpWeekLights(), streak: streakAliveNow() };
+  const lit = ctx.week.filter(d=> d.done).length;
+  showSimpleToast('🏮', 'Les lanternes', `${lit}/7 défis cette semaine · série : ${ctx.streak} jour${ctx.streak>1?'s':''}. Chaque défi réussi en allume une.`, 'info-toast');
+});
+document.getElementById('gpGarland').addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); e.target.click(); } });
+document.getElementById('gzScene').addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'){ e.preventDefault(); gpScrollToZone((gardenView.zone||0) + 1, true); }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); gpScrollToZone((gardenView.zone||0) - 1, true); }
+});
 document.getElementById('homeRitual').addEventListener('click', ()=> openGarden(true));
 document.getElementById('btnGardenBoost').addEventListener('click', e=> watchAdFor('garden_boost', e.currentTarget, ()=>{
   addRosee(ROSEE.adBoost, 'ad'); renderGardenTask(); bumpPill(document.getElementById('gardenRoseePill')); sfxRoseeDrop(2);
@@ -6527,6 +7854,8 @@ document.getElementById('btnResetProgress').addEventListener('click', ()=>{
   // Choix documenté : une réinitialisation complète refait un joueur neuf,
   // donc le tutoriel recommence (les cadeaux, effacés avec le reste, aussi).
   safeStorage.remove(TUTO_KEY);
+  safeStorage.remove(TIPS_KEY);
+  homeHeroSig = '';
   if(Coach) Coach.cancelAll();
   applySeedCosmetic(); // revient immédiatement au skin par défaut, sans attendre un rechargement
   refreshHome();
@@ -6819,6 +8148,7 @@ function startBoard(lvl, opts){
   // Un callback différé d'une session précédente ne peut pas toucher celle-ci.
   state.sessionId++;
   state.mode = opts.mode || 'campaign';
+  state.repair = !!opts.repair; // rattrapage de série : le défi d'HIER (voir startStreakRepair)
   state.level = lvl;
   state.boardOpts = opts;
   state.history = [];
@@ -8059,6 +9389,14 @@ let onWin = function(expectedSessionId){
     if(levelInfo.isNewRecord && hadPreviousBest){
       rewards.push({ icon:'🏆', text:'Record personnel battu', kind:'record' });
     }
+  } else if(state.repair){
+    // Rattrapage : le défi d'hier, réussi aujourd'hui. Hier compte comme
+    // joué ; ni coins ni rosée (ce n'est pas un défi de plus).
+    const fixed = recordStreakRepair(state.moves, state.elapsed, stars);
+    if(fixed){
+      rewards.push({ icon:'🔥', text:`Série sauvée : ${fixed.current} jours`, kind:'streak' });
+      if(stillInGame) setTimeout(sfxStreakMilestone, 600);
+    }
   } else {
     const previousToday = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
     dailyFirstToday = !previousToday;
@@ -8116,7 +9454,7 @@ let onWin = function(expectedSessionId){
     addRosee(roseeGain, state.isDaily ? 'daily' : 'level');
     rewards.splice(coinsEarnedThisRun > 0 ? 1 : 0, 0, { icon:'💧', text:`+${roseeGain} rosée`, kind:'rosee' });
   }
-  const ritualDone = ritualEvent({ type: state.isDaily ? 'daily_win' : 'level_win', stars, perfect: state.moves <= state.par, hint: state.hintUsedThisAttempt });
+  const ritualDone = ritualEvent({ type: state.repair ? 'repair_win' : (state.isDaily ? 'daily_win' : 'level_win'), stars, perfect: state.moves <= state.par, hint: state.hintUsedThisAttempt });
   ritualDone.forEach(m=> rewards.push({ icon:'✅', text:'Rituel : ' + m.text, kind:'ritual' }));
   if(ritualDone.some(m=> m.allDone)) rewards.push({ icon:'🎁', text:'Coffre du rituel prêt !', kind:'unlock' });
   const gardenNow = gardenStatus(loadGarden().done);
@@ -8124,7 +9462,7 @@ let onWin = function(expectedSessionId){
     rewards.push({ icon:'✨', text:`Prêt à réveiller : ${gardenNow.next.task.name}`, kind:'unlock' });
   }
   retentionTrack('l');
-  const baseCoins = state.isDaily ? COIN_REWARDS.dailyComplete : (wasFirstCompletion ? COIN_REWARDS.levelFirstComplete : 0);
+  const baseCoins = state.repair ? 0 : state.isDaily ? COIN_REWARDS.dailyComplete : (wasFirstCompletion ? COIN_REWARDS.levelFirstComplete : 0);
 
   if(stillInGame) spawnVictoryEffect();
   document.getElementById('vMoves').textContent = state.moves;
@@ -8133,7 +9471,7 @@ let onWin = function(expectedSessionId){
   const titles = state.isDaily
     ? ['Défi du jour réussi !', 'Défi du jour réussi !', 'Beau défi !', 'Défi parfait !']
     : ['Niveau réussi !', 'Réussi !', 'Bien joué !', 'Parfait !'];
-  document.getElementById('victoryTitle').textContent = titles[stars];
+  document.getElementById('victoryTitle').textContent = state.repair ? 'Série sauvée !' : titles[stars];
 
   // Le "truc" du jeu (audit §9) : le jeu SAIT si tu as trouvé la
   // solution la plus courte, parce que le solveur l'a prouvé.
@@ -8170,7 +9508,9 @@ let onWin = function(expectedSessionId){
 
   // Bouton principal : prochaine étape claire (Blueprint §16).
   const nextBtn = document.getElementById('btnNextLevel');
-  if(state.isDaily){
+  if(state.repair){
+    nextBtn.textContent = loadTodayDailyResult() ? 'VOIR MON RÉSUMÉ DU JOUR →' : 'DÉFI DU JOUR →';
+  } else if(state.isDaily){
     nextBtn.textContent = 'VOIR MON RÉSUMÉ DU JOUR →';
   } else if(state.levelIndex + 1 >= LEVELS.length){
     nextBtn.textContent = 'RETOUR À L\'ACCUEIL';
@@ -8287,14 +9627,19 @@ function spawnVictoryEffect(fxOverride, container){
 const BLOOM_COLORS = ['#ff9ec7', '#ffd166', '#c79bf0', '#7ee0d6', '#ffffff'];
 
 document.getElementById('btnNextLevel').addEventListener('click', ()=>{
+  if(state.repair && !loadTodayDailyResult()){ startDailyChallenge(); return; }
   if(state.isDaily){
     const today = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
     if(today) showDailyResult(today); else { refreshHome(); goto('home'); }
     return;
   }
   const next = state.levelIndex+1;
-  if(next < LEVELS.length) startLevel(next, false);
-  else { refreshHome(); goto('home'); }
+  // Pause naturelle entre deux niveaux : seul endroit (avec la fin d'une
+  // partie du Sentier) où un interstitiel pourrait un jour s'afficher.
+  showInterstitial('level_break').then(()=>{
+    if(next < LEVELS.length) startLevel(next, false);
+    else { refreshHome(); goto('home'); }
+  });
 });
 // Rejouer / recommencer : relance EXACTEMENT le même plateau (campagne,
 // défi généré ou plateau du Sentier) avec les mêmes options.
@@ -8330,20 +9675,12 @@ document.getElementById('btnExitGame').addEventListener('click', ()=>{
    résultat est comparé au PAR prouvé par le solveur et à ton historique.
 ========================================================= */
 function todayKey(){ return dateKeyFor(bcdNow()); }
-function yesterdayKey(){
-  const d = bcdNow();
-  d.setDate(d.getDate()-1);
-  return dateKeyFor(d);
-}
+function yesterdayKey(){ return dateKeyFor(utcDayOffset(bcdNow(), -1)); }
 // Utilisée uniquement par le gel de série : un gel n'absorbe qu'UN SEUL jour
 // manqué (Blueprint §9.3 "indulgente", pas illimitée) — donc seulement
 // lorsque le dernier succès remonte à exactement avant-hier (un unique jour
 // sauté), jamais pour une absence de plusieurs jours d'affilée.
-function dayBeforeYesterdayKey(){
-  const d = bcdNow();
-  d.setDate(d.getDate()-2);
-  return dateKeyFor(d);
-}
+function dayBeforeYesterdayKey(){ return dateKeyFor(utcDayOffset(bcdNow(), -2)); }
 // Repli historique (niveau de campagne) si la génération échouait : jamais
 // observé sur 400 jours testés, conservé comme filet de sécurité.
 function dailyLevelIndex(){
@@ -8353,13 +9690,13 @@ function dailyLevelIndex(){
   const civilDayOfYear = Math.floor((todayUtc - yearStartUtc) / 86400000);
   return civilDayOfYear % LEVELS.length;
 }
-function todayDailyRule(){ return DAILY_RULES[bcdNow().getDay()]; }
+function todayDailyRule(){ return DAILY_RULES[bcdNow().getUTCDay()]; }
 let dailyBoardCache = { key:null, board:null };
 function getTodayDailyBoard(){
   const key = todayKey();
   if(dailyBoardCache.key === key && dailyBoardCache.board) return dailyBoardCache.board;
   let board = null;
-  try{ board = buildDailyBoard(key, bcdNow().getDay()); }catch(e){ board = null; }
+  try{ board = buildDailyBoard(key, bcdNow().getUTCDay()); }catch(e){ board = null; }
   if(board){ try{ board = normalizeLevelData(board, 0); }catch(e){ board = null; } }
   dailyBoardCache = { key, board };
   return board;
@@ -8379,9 +9716,78 @@ function startDailyChallenge(){
 }
 document.getElementById('btnDaily').addEventListener('click', ()=>{
   const already = loadTodayDailyResult();
-  if(already) showDailyResult(already);
-  else startDailyChallenge();
+  if(already){ showDailyResult(already); return; }
+  if(streakRepairNow().offer){ openStreakRepairSheet(); return; }
+  startDailyChallenge();
 });
+
+/* ---------------------------------------------------------
+   RATTRAPAGE DE SÉRIE (audit §3, logique pure en A6) : un seul jour
+   manqué, pas de gel → on peut rejouer le défi d'HIER pour sauver la
+   série. Gratuit une fois tous les 7 jours ; sinon via une pub
+   récompensée (bouton « PUB », jamais obligatoire).
+--------------------------------------------------------- */
+function streakRepairNow(){
+  return streakRepairStatus(loadStreak(), { today:todayKey(), yesterday:yesterdayKey(), dayBefore:dayBeforeYesterdayKey() },
+    { freezes: loadStreakFreezes(), lastRepairDay: loadGarden().repairDay, dailyDoneToday: !!loadTodayDailyResult() });
+}
+function startStreakRepair(){
+  const yKey = yesterdayKey();
+  let board = null;
+  try{ board = buildDailyBoard(yKey, utcDayOffset(bcdNow(), -1).getUTCDay()); board = board ? normalizeLevelData(board, 0) : null; }catch(e){ board = null; }
+  if(!board){ startDailyChallenge(); return; }
+  Analytics.track('streak_repair_start', null);
+  const rule = DAILY_RULES[utcDayOffset(bcdNow(), -1).getUTCDay()];
+  startBoard(board, { mode:'daily', levelIndex:-1, repair:true, title:`🔥 Rattrapage · ${rule.icon} ${rule.label}` });
+}
+function recordStreakRepair(moves, elapsed, stars){
+  const st = streakRepairNow();
+  if(!st.offer) return null; // déjà sauvée (rejouer ce plateau ne compte plus)
+  const yKey = yesterdayKey();
+  const fixed = streakApplyRepair(loadStreak(), yKey);
+  saveStreak(fixed);
+  recordDailyHistoryEntry(yKey, moves, elapsed, stars);
+  saveVersioned('bcd_daily_'+yKey, 'dailyResult', { moves, time:elapsed, stars, isRecord:false, generated:true,
+    par: Number.isFinite(state.par) ? state.par : null, levelIndex:null, repaired:true });
+  const g = loadGarden(); g.repairDay = todayKey(); saveGarden(g);
+  Analytics.track('streak_repair', { streak:fixed.current, free:st.free });
+  return fixed;
+}
+function openStreakRepairSheet(){
+  document.querySelectorAll('.repair-sheet').forEach(e=> e.remove());
+  const st = streakRepairNow();
+  const streak = loadStreak();
+  const canAd = !st.free && AdService.canOffer('streak_repair');
+  const wrap = document.createElement('div');
+  wrap.className = 'zone-fete repair-sheet';
+  wrap.setAttribute('role', 'dialog');
+  wrap.setAttribute('aria-label', 'Sauver ta série');
+  const goLabel = st.free ? '🔥 Sauver ma série' : `▶ Sauver ma série <span class="ad-tag">PUB</span>`;
+  wrap.innerHTML = `<div class="zf-card rs-card"><div class="rs-flame" aria-hidden="true">🔥</div>
+    <div class="zf-kicker">Série en pause</div><div class="zf-title">${streak.current} jours, à sauver</div>
+    <p class="rs-text">Tu as manqué hier. Réussis <b>le défi d'hier</b> : ta série continue, puis joue celui d'aujourd'hui.</p>
+    ${st.free || canAd ? `<button class="btn btn-primary shimmer" type="button" id="btnRepairGo">${goLabel}</button>` :
+      `<p class="rs-note">Le rattrapage gratuit revient bientôt (une fois tous les ${STREAK_REPAIR_COOLDOWN} jours).</p>`}
+    ${!st.free && canAd ? `<p class="rs-note">Rattrapage gratuit déjà utilisé cette semaine.</p>` : ''}
+    <button class="btn btn-ghost" type="button" id="btnRepairSkip">Jouer le défi du jour (série à 1)</button></div>`;
+  const close = ()=> wrap.remove();
+  wrap.addEventListener('click', e=>{ if(e.target===wrap) close(); });
+  wrap.addEventListener('keydown', e=>{ if(e.key==='Escape'){ e.preventDefault(); close(); } });
+  document.body.appendChild(wrap);
+  const go = wrap.querySelector('#btnRepairGo');
+  if(go){
+    if(!st.free) AdService.offered('streak_repair', go);
+    go.addEventListener('click', ()=>{
+      if(st.free){ close(); startStreakRepair(); return; }
+      showRewardedAd('streak_repair', { onReward: ()=>{ close(); startStreakRepair(); },
+        onUnavailable: ()=>{ go.disabled = true; go.textContent = 'Pub indisponible pour le moment'; } });
+    });
+  }
+  wrap.querySelector('#btnRepairSkip').addEventListener('click', ()=>{ close(); Analytics.track('streak_repair_declined', null); startDailyChallenge(); });
+  (go || wrap.querySelector('#btnRepairSkip')).focus();
+  sfxCoachBlip();
+  showTipOnce('repair', coachLine('tip_repair'), { position:'top' });
+}
 document.getElementById('btnReplayDaily').addEventListener('click', ()=>{
   const already = loadTodayDailyResult();
   // Ancien format (avant le défi généré) : niveau de campagne mémorisé.
@@ -8394,8 +9800,7 @@ document.getElementById('btnReplayDaily').addEventListener('click', ()=>{
 
 function msUntilNextDay(){
   const now = bcdNow();
-  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);
-  return Math.max(0, next - now);
+  return Math.max(0, utcDayOffset(now, 1) - now);
 }
 function formatDuration(ms){
   const totalMin = Math.ceil(ms/60000);
@@ -8432,14 +9837,14 @@ function showDailyResult(data){
     strip.innerHTML = '';
     const now = bcdNow();
     for(let i=6;i>=0;i--){
-      const day = new Date(now.getFullYear(), now.getMonth(), now.getDate()-i);
+      const day = utcDayOffset(now, -i);
       const e = byDate[dateKeyFor(day)];
       const cell = document.createElement('div');
       cell.className = 'week-cell' + (e ? ' done' : '') + (i===0 ? ' today' : '') + (e && e.stars===3 ? ' perfect' : '');
-      const l = document.createElement('span'); l.className = 'wc-day'; l.textContent = WEEKDAY_LETTERS[day.getDay()];
+      const l = document.createElement('span'); l.className = 'wc-day'; l.textContent = WEEKDAY_LETTERS[day.getUTCDay()];
       const v = document.createElement('span'); v.className = 'wc-val'; v.textContent = e ? '★'.repeat(e.stars) : '·';
       cell.append(l, v);
-      cell.setAttribute('aria-label', `${DAILY_RULES[day.getDay()].day} : ${e ? e.stars+' étoile'+(e.stars>1?'s':'') : 'non joué'}`);
+      cell.setAttribute('aria-label', `${DAILY_RULES[day.getUTCDay()].day} : ${e ? e.stars+' étoile'+(e.stars>1?'s':'') : 'non joué'}`);
       strip.appendChild(cell);
     }
   }
@@ -8448,7 +9853,7 @@ function showDailyResult(data){
     ? `🎁 Coffre ouvert · le prochain lundi`
     : `🎁 Coffre : ${Math.min(weekCount, WEEKLY_CHEST_GOAL)}/${WEEKLY_CHEST_GOAL} défis cette semaine · +${WEEKLY_CHEST_REWARD} 🪙`);
 
-  const tomorrow = DAILY_RULES[(bcdNow().getDay()+1)%7];
+  const tomorrow = DAILY_RULES[(bcdNow().getUTCDay()+1)%7];
   setT('dailyNextLine', `Prochain défi dans ${formatDuration(msUntilNextDay())} · ${tomorrow.day} : ${tomorrow.icon} ${tomorrow.label}`);
   const shareText = document.getElementById('shareTextOut');
   if(shareText) shareText.hidden = true;
@@ -9206,6 +10611,45 @@ function watchAdFor(placement, btn, grant){
     else if(btn){ btn.disabled = !AdService.canOffer(placement); if(btn.disabled) btn.hidden = true; }
   });
 }
+/* ---------------------------------------------------------
+   POINTS D'ACCROCHE PUBLICITAIRES (contrat pour une vraie régie)
+   showRewardedAd(placement, { onReward, onSkip, onUnavailable }) → Promise<bool>
+     Pub récompensée, toujours derrière un bouton « PUB ». Repli propre :
+     onUnavailable est appelé (et rien ne bloque) si aucune pub n'est prête.
+   showInterstitial(placement) → Promise<{ shown, reason }>
+     Pub entre deux pauses naturelles. DÉSACTIVÉE (INTERSTITIAL_ENABLED) :
+     la promesse se résout tout de suite et le jeu continue. Pour l'activer,
+     le fournisseur doit exposer showInterstitial() ; les plafonds sont dans
+     interstitialAllowed (A6, testée).
+--------------------------------------------------------- */
+function showRewardedAd(placement, cb){
+  cb = cb || {};
+  const call = (fn, arg)=>{ try{ if(typeof fn==='function') fn(arg); }catch(e){} };
+  if(!AdService.canOffer(placement)){ call(cb.onUnavailable, 'not_available'); return Promise.resolve(false); }
+  return AdService.show(placement).then(res=>{
+    if(res.rewarded){ call(cb.onReward); return true; }
+    if(res.error) call(cb.onUnavailable, res.error); else call(cb.onSkip);
+    return false;
+  });
+}
+const INTERSTITIAL_ENABLED = false;
+const interstitialState = { day:'', count:0, lastAt:0, breaks:0 };
+function showInterstitial(placement){
+  interstitialState.breaks++;
+  const prov = AdService.provider();
+  const verdict = interstitialAllowed(interstitialState, { enabled: INTERSTITIAL_ENABLED && typeof prov.showInterstitial==='function' && !adOverlayOpen,
+    levelsDone: Object.keys(loadProgress()).length, nowMs: Date.now(), dayKey: todayKey(), breaks: interstitialState.breaks });
+  if(!verdict.ok) return Promise.resolve({ shown:false, reason:verdict.reason });
+  if(interstitialState.day !== todayKey()){ interstitialState.day = todayKey(); interstitialState.count = 0; }
+  interstitialState.count++; interstitialState.lastAt = Date.now();
+  Analytics.track('interstitial_start', { placement });
+  adOverlayOpen = true;
+  return Promise.resolve().then(()=> prov.showInterstitial(placement)).catch(()=> null).then(()=>{
+    adOverlayOpen = false;
+    Analytics.track('interstitial_end', { placement });
+    return { shown:true, reason:'ok' };
+  });
+}
 // Le chrono d'un niveau ne tourne pas pendant une pub (ni son sablier au Sentier).
 let adTimerPaused = false;
 function pauseGameTimerForAd(){
@@ -9734,6 +11178,57 @@ document.getElementById('btnTutoReplay').addEventListener('click', ()=> Tutorial
 document.getElementById('btnTutoReplayHelp').addEventListener('click', ()=> Tutorial.replay());
 
 /* =========================================================
+   T2. AIDES CONTEXTUELLES — chaque nouveauté s'explique UNE fois, par
+   Germain, au moment où le joueur la rencontre (quel que soit l'ordre de
+   découverte). Toujours passable (« Merci ! », toucher, Échap) ; jamais
+   pendant l'intro du tutoriel ni par-dessus une autre bulle. Clé
+   bcd_tips_v1 (SCHEMA_MIGRATIONS.tips), effacée par la réinitialisation.
+========================================================= */
+const TIPS_KEY = 'bcd_tips_v1';
+function loadTips(){ return sanitizeTips(loadVersioned(TIPS_KEY, 'tips', null)); }
+function tipSeen(id){ return !!loadTips().seen[id]; }
+function markTipSeen(id){ const t = loadTips(); t.seen[id] = true; saveVersioned(TIPS_KEY, 'tips', t); }
+function showTipOnce(id, text, opts){
+  opts = opts || {};
+  if(!Coach || !text || tipSeen(id)) return false;
+  if(Coach.isOpen()) return false;                          // ne coupe jamais Germain
+  if(Tutorial && Tutorial._busy && Tutorial._busy()) return false;
+  const t = loadTutorial();
+  if(t && !t.skipped && t.intro !== 'done') return false;  // pas pendant l'intro
+  markTipSeen(id);
+  Analytics.track('tip_shown', { id });
+  Coach.say({ text, mood: opts.mood || 'happy', position: opts.position || 'bottom', tapToClose:true, screen: state.screen,
+    buttons:[{ label: coachLine('btn_ok'), value:'ok', primary:true }], focus:false });
+  return true;
+}
+// Bon retour : après 3 jours d'absence, un petit cadeau, sans reproche.
+// Le dernier jour actif est lu AVANT de compter la session du jour.
+let welcomeBackPending = null;
+function lastActiveDayBefore(today){
+  const days = Object.keys(loadRetention().days).filter(k=> k < today).sort();
+  return days.length ? days[days.length - 1] : '';
+}
+function grantWelcomeBack(){
+  const w = welcomeBackPending;
+  welcomeBackPending = null;
+  if(!w) return;
+  const g = loadGarden();
+  if(g.welcomeDay === w.today) return;
+  g.welcomeDay = w.today; saveGarden(g);
+  addRosee(ROSEE.welcomeBack, 'welcome');
+  Analytics.track('welcome_back', { days:w.days });
+  renderHomeGarden();
+  const shown = Coach && !Coach.isOpen() && !(Tutorial && Tutorial._busy && Tutorial._busy()) && state.screen==='home';
+  if(shown){
+    Coach.say({ text: coachLine('welcome_back') + ` +${ROSEE.welcomeBack} 💧`, mood:'happy', position:'bottom', tapToClose:true, screen:'home',
+      buttons:[{ label: coachLine('btn_ok'), value:'ok', primary:true }], focus:false });
+    sfxChestOpen();
+  } else {
+    showSimpleToast('🌱', 'Bon retour !', `Le jardin t'a gardé +${ROSEE.welcomeBack} 💧`, 'info-toast');
+  }
+}
+
+/* =========================================================
    N. INITIALISATION
 ========================================================= */
 // first_open (Blueprint §26, "mesurer acquisition réelle") : un journal
@@ -9749,6 +11244,9 @@ if(loadAnalyticsLog().length === 0){
   const prev = log.filter(e=> e.t!=='first_open');
   const last = prev.length ? prev[prev.length-1].at : null;
   Analytics.track('session_start', { returning: last!==null, daysSince: last!==null ? Math.floor((Date.now()-last)/86400000) : null });
+  const today = todayKey();
+  const wb = welcomeBackDue(lastActiveDayBefore(today), today, loadGarden().welcomeDay);
+  if(wb.due) welcomeBackPending = { today, days:wb.days };
   retentionTrack('s');
 })();
 // Sur mobile, l'app reste souvent ouverte en arrière-plan : un retour après
@@ -9776,6 +11274,8 @@ goto('home');
 // tout de suite ceux qu'il a déjà mérités (ils ne se vérifiaient qu'à une
 // victoire). Léger délai pour ne pas masquer l'accueil dès l'ouverture.
 setTimeout(()=>{ if(state.screen==='home'){ const n = checkAchievements(); if(n.length) refreshHome(); } }, 1200);
+// Bon retour (après 3 jours d'absence) : après l'accueil de Germain s'il y en a un.
+if(welcomeBackPending) setTimeout(grantWelcomeBack, 1600);
 
 // Service worker : seulement servi en http(s) (GitHub Pages), jamais en
 // file:// où il n'existe pas. Un échec d'enregistrement ne gêne jamais le jeu.

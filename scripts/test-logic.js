@@ -27,7 +27,10 @@ const exportsList = 'LEVELS, Solver, makeRng, hashSeed, generateBoard, transform
   'ROSEE, roseeForLevelWin, roseeForDaily, roseeForSentier, RITUAL_POOL, ritualMissionsFor, ritualFresh, ' +
   'sanitizeRitual, ritualApply, ritualAllDone, AD_PLACEMENTS, AD_DAILY_CAP, AD_MIN_INTERVAL_MS, sanitizeAdState, ' +
   'adCanOffer, adRecordShown, sanitizeRetention, retentionBump, retentionSummary, dayDiff, ' +
-  'COACH_LINES, coachLine, TUTO_TOURS, sanitizeTutorial, tutorialActive, tutorialNextTour, tutorialAllSeen, tutorialNudgeDue, tutorialTourFailed';
+  'COACH_LINES, coachLine, TUTO_TOURS, sanitizeTutorial, tutorialActive, tutorialNextTour, tutorialAllSeen, tutorialNudgeDue, tutorialTourFailed, ' +
+  'gardenTimeOfDay, GARDEN_WEATHERS, gardenWeatherFor, DEW, dewTotalFor, dewLeft, dewCollect, dewSpotsFor, ' +
+  'sanitizePlantSeen, plantGrowthEvents, GARDENER_RANKS, gardenerXP, gardenerRank, STREAK_REPAIR_COOLDOWN, ' +
+  'streakRepairStatus, streakApplyRepair, streakAlive, welcomeBackDue, sanitizeTips, INTERSTITIAL_RULES, interstitialAllowed';
 const ctx = vm.createContext({ console: { log() {} } });
 vm.runInContext('"use strict";\n' + js.slice(start, end) + `\n;globalThis.__t = { ${exportsList} };`, ctx, { filename: 'logic.js' });
 const T = ctx.__t;
@@ -268,6 +271,99 @@ const n = Object.assign({}, t, { firstDay: '20261001' });
 check(!T.tutorialNudgeDue(n, '20261001', {}) && T.tutorialNudgeDue(n, '20261002', {}) && !T.tutorialNudgeDue(n, '20261002', { dailyDoneToday: true }), 'rappel du défi : dès le lendemain, jamais si déjà fait');
 check(!T.tutorialNudgeDue(Object.assign({}, n, { lastNudge: '20261002' }), '20261002', {}) && !T.tutorialNudgeDue(n, '20261015', {}), 'rappel : une fois par jour, première semaine seulement');
 console.log(`✔ tutoriel : ${Object.keys(lines).length} répliques, états, visites, rappel`);
+}
+
+{ // 7. Le Jardin vivant (logique pure, section A6)
+  section('Le Jardin vivant');
+  // Heures → moments du ciel (heure locale : lumière, pas date).
+  const tod = h => T.gardenTimeOfDay(h);
+  check(tod(7) === 'aube' && tod(12) === 'jour' && tod(19) === 'crepuscule' && tod(23) === 'nuit' && tod(3) === 'nuit', 'moments de la journée');
+  check(tod(NaN) === 'nuit' && tod('x') === 'nuit' && tod(-1) === 'nuit' && tod(33) === 'jour', 'heures invalides ou hors bornes : jamais d\'exception');
+  // Météo : déterministe, toutes les météos apparaissent, proportions proches des poids.
+  const wc = {};
+  const day0 = Date.UTC(2026, 0, 1);
+  const key = i => { const d = new Date(day0 + i * 86400000); return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}${String(d.getUTCDate()).padStart(2, '0')}`; };
+  for (let i = 0; i < 1000; i++) { const w = T.gardenWeatherFor(key(i)); wc[w.id] = (wc[w.id] || 0) + 1; check(T.gardenWeatherFor(key(i)).id === w.id, 'météo déterministe ' + key(i)); }
+  const totalW = T.GARDEN_WEATHERS.reduce((a, w) => a + w.w, 0);
+  T.GARDEN_WEATHERS.forEach(w => { const share = (wc[w.id] || 0) / 1000, want = w.w / totalW; check(Math.abs(share - want) < 0.06, `météo ${w.id} : ${(share * 100).toFixed(1)} % (visé ${(want * 100).toFixed(1)} %)`); });
+  check(T.gardenWeatherFor(undefined) && T.gardenWeatherFor('') && T.gardenWeatherFor('xx'), 'météo : clé invalide → valeur saine');
+  // Rosée du matin : 3 à 6 gouttes, plus avec la série, +1 les jours de pluie.
+  for (let i = 0; i < 400; i++) {
+    const k = key(i), rain = T.gardenWeatherFor(k).id === 'pluie' ? 1 : 0;
+    check(T.dewTotalFor(k, 0) === 3 + rain, 'rosée sans série ' + k);
+    check(T.dewTotalFor(k, 3) === 4 + rain && T.dewTotalFor(k, 7) === 5 + rain && T.dewTotalFor(k, 999) === 5 + rain, 'rosée selon la série ' + k);
+    const spots = T.dewSpotsFor(k, T.dewTotalFor(k, 7));
+    check(spots.length === T.dewTotalFor(k, 7) && new Set(spots).size === spots.length && spots.every(x => x >= 0 && x < T.DEW.spots), 'emplacements de gouttes distincts ' + k);
+    check(JSON.stringify(spots) === JSON.stringify(T.dewSpotsFor(k, T.dewTotalFor(k, 7))), 'emplacements déterministes ' + k);
+  }
+  check(T.dewTotalFor('20260101', -5) >= 3 && T.dewTotalFor('20260101', 'abc') >= 3, 'série corrompue → base');
+  // Cueillette : une goutte à la fois, plafonnée, remise à zéro le lendemain.
+  let g = T.sanitizeGardenSave({ rosee: 2 });
+  const dk = '20261001', tot = T.dewTotalFor(dk, 3);
+  let picked = 0;
+  for (let i = 0; i < 20; i++) { const r = T.dewCollect(g, dk, 3); if (r.ok) { picked++; g = r.save; check(r.left === tot - picked, 'gouttes restantes'); } }
+  check(picked === tot && g.rosee === 2 + tot && g.earned === tot, `cueillette plafonnée : ${picked}/${tot}`);
+  check(T.dewLeft(g, dk, 3) === 0 && T.dewLeft(g, '20261002', 3) === T.dewTotalFor('20261002', 3), 'nouvelle rosée le lendemain (UTC)');
+  check(T.dewCollect(g, dk, 7).ok === (T.dewTotalFor(dk, 7) > tot), 'la série qui grandit fait perler une goutte de plus');
+  // Sauvegarde : nouveaux champs, corruption, anciennes sauvegardes.
+  const s0 = T.sanitizeGardenSave({ rosee: 9, done: 3 });
+  check(s0.dewDay === '' && s0.dewTaken === 0 && s0.plantSeen === null && s0.rankSeen === -1 && s0.welcomeDay === '' && s0.repairDay === '', 'sauvegarde v1 : champs du jardin vivant par défaut');
+  const bad = T.sanitizeGardenSave({ dewDay: 42, dewTaken: 'x', plantSeen: 'abc', rankSeen: 1e9, welcomeDay: '2026-10-01', repairDay: null });
+  check(bad.dewDay === '' && bad.dewTaken === 0 && bad.plantSeen === null && bad.rankSeen === 99 && bad.welcomeDay === '' && bad.repairDay === '', 'champs corrompus → valeurs saines');
+  // Plantes vues → événements de croissance.
+  check(T.sanitizePlantSeen(null, 8) === null && T.sanitizePlantSeen([1, 9, -2, 'a'], 4).join() === '1,4,0,0', 'stades vus bornés');
+  const ev = T.plantGrowthEvents([0, 1, 4, 2, 0, 0, 0, 0], [1, 1, 4, 4, 0, 0, 0, 2]);
+  check(ev.length === 3 && ev[0].world === 1 && ev[1].world === 4 && ev[1].from === 2 && ev[1].to === 4 && ev[2].world === 8, 'croissance détectée (et jamais à rebours)');
+  check(T.plantGrowthEvents(null, [1, 2]).length === 0 && T.plantGrowthEvents([4, 4], [1, 2]).length === 0, 'pas de fête rétroactive ni de décroissance');
+  // Rangs du jardinier : barème absolu, croissant, bornes.
+  check(T.GARDENER_RANKS.every((r, i) => i === 0 || r.xp > T.GARDENER_RANKS[i - 1].xp), 'paliers croissants');
+  check(T.gardenerRank(0).name === 'Graine' && T.gardenerRank(59).index === 0 && T.gardenerRank(60).index === 1, 'premier palier');
+  const top = T.gardenerRank(1e9);
+  check(top.index === T.GARDENER_RANKS.length - 1 && top.next === null && top.pct === 100 && top.toNext === 0, 'dernier palier');
+  check(T.gardenerRank(-5).index === 0 && T.gardenerRank('x').index === 0, 'XP corrompue → Graine');
+  const maxCampaign = T.gardenerXP({ stars: T.LEVELS.length * 3, gardenDone: T.GARDEN_TOTAL_TASKS });
+  check(maxCampaign < T.GARDENER_RANKS[T.GARDENER_RANKS.length - 1].xp, 'le dernier rang demande aussi de la régularité (pas seulement la campagne)');
+  const month = T.gardenerXP({ stars: 120, gardenDone: 14, dailyWins: 25, sentierPerfect: 60, bestStreak: 12, achievements: 15 });
+  check(T.gardenerRank(month).index >= 4 && T.gardenerRank(month).index <= 6, `un mois régulier ≈ rang 4 à 6 (obtenu : ${T.gardenerRank(month).index})`);
+  check(T.gardenerXP({ stars: 'a', dailyWins: -3 }) === 0, 'XP : entrées corrompues ignorées');
+  // Rattrapage de série.
+  const keys = { today: '20261010', yesterday: '20261009', dayBefore: '20261008' };
+  const st = { current: 6, best: 8, totalWins: 30, lastSuccessDate: '20261008' };
+  let r = T.streakRepairStatus(st, keys, { freezes: 0, lastRepairDay: '' });
+  check(r.offer && r.free, 'série de 6 interrompue hier : rattrapage gratuit proposé');
+  check(T.streakRepairStatus(st, keys, { freezes: 0, lastRepairDay: '20261005' }).reason === 'ad', 'moins de 7 jours après le dernier : via pub seulement');
+  check(T.streakRepairStatus(st, keys, { freezes: 0, lastRepairDay: '20261003' }).free, 'au bout de 7 jours : de nouveau gratuit');
+  check(!T.streakRepairStatus(st, keys, { freezes: 1 }).offer, 'un gel couvre déjà le jour manqué');
+  check(!T.streakRepairStatus(Object.assign({}, st, { current: 1 }), keys, {}).offer, 'série trop courte : rien à sauver');
+  check(!T.streakRepairStatus(Object.assign({}, st, { lastSuccessDate: '20261009' }), keys, {}).offer, 'série intacte : rien à rattraper');
+  check(!T.streakRepairStatus(Object.assign({}, st, { lastSuccessDate: '20261005' }), keys, {}).offer, 'plusieurs jours manqués : pas de rattrapage');
+  check(!T.streakRepairStatus(st, keys, { dailyDoneToday: true }).offer && !T.streakRepairStatus(null, keys, null).offer, 'défi déjà fait / données absentes');
+  const fixed = T.streakApplyRepair(st, keys.yesterday);
+  check(fixed.current === 7 && fixed.best === 8 && fixed.totalWins === 31 && fixed.lastSuccessDate === keys.yesterday, 'rattrapage appliqué : hier compte');
+  check(T.streakApplyRepair({ current: 9, best: 9, lastSuccessDate: 'x' }, keys.yesterday).best === 10, 'le record suit');
+  // Série vivante (affichage) : jamais de série morte affichée.
+  check(T.streakAlive(st, keys) === 6 && T.streakAlive(Object.assign({}, st, { lastSuccessDate: '20261009' }), keys) === 6, 'série en cours ou en pause');
+  check(T.streakAlive(Object.assign({}, st, { lastSuccessDate: '20261011' }), keys) === 6, 'clé future (ancienne heure locale) : série conservée');
+  check(T.streakAlive(Object.assign({}, st, { lastSuccessDate: '20261001' }), keys) === 0 && T.streakAlive({}, keys) === 0, 'série perdue : 0 affiché');
+  // Bon retour.
+  check(T.welcomeBackDue('20261001', '20261004', '').due && T.welcomeBackDue('20261001', '20261004', '').days === 3, 'retour après 3 jours');
+  check(!T.welcomeBackDue('20261002', '20261004', '').due && !T.welcomeBackDue('20261001', '20261004', '20261004').due && !T.welcomeBackDue('', '20261004', '').due, 'pas de cadeau en double ni sans historique');
+  // Aides contextuelles.
+  const tp = T.sanitizeTips({ seen: { dew: true, rank: 'oui', 'X Y': true, plant_grow: true } });
+  check(tp.seen.dew === true && tp.seen.plant_grow === true && !tp.seen.rank && !tp.seen['X Y'], 'aides vues : seules les clés sûres restent');
+  check(Object.keys(T.sanitizeTips('n\'importe quoi').seen).length === 0 && Object.keys(T.sanitizeTips(null).seen).length === 0, 'aides corrompues → aucune vue');
+  // Interstitiel : désactivé par défaut, jamais trop tôt ni trop souvent.
+  const R = T.INTERSTITIAL_RULES, now = 1e12;
+  const base = { enabled: true, levelsDone: 20, nowMs: now, dayKey: '20261010', breaks: R.everyBreaks };
+  check(!T.interstitialAllowed({}, Object.assign({}, base, { enabled: false })).ok, 'interstitiel désactivé → jamais');
+  check(T.interstitialAllowed({}, base).ok, 'interstitiel activé, conditions réunies');
+  check(T.interstitialAllowed({}, Object.assign({}, base, { levelsDone: R.minLevelsDone - 1 })).reason === 'too_early', 'jamais avant le niveau ' + R.minLevelsDone);
+  check(T.interstitialAllowed({ lastAt: now - 60000 }, base).reason === 'interval', 'jamais deux fois en 5 minutes');
+  check(T.interstitialAllowed({ day: '20261010', count: R.dailyCap }, base).reason === 'daily_cap', 'plafond quotidien');
+  check(T.interstitialAllowed({ day: '20261009', count: R.dailyCap }, base).ok, 'plafond remis à zéro le lendemain');
+  check(T.interstitialAllowed({}, Object.assign({}, base, { breaks: R.everyBreaks + 1 })).reason === 'not_this_break', 'une pause sur ' + R.everyBreaks + ' seulement');
+  check(!T.interstitialAllowed(null, null).ok, 'données absentes → jamais');
+  console.log('✔ jardin vivant : ciel, météo (1000 jours), rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel');
 }
 
 console.log(`\n${checks} vérifications, ${failures} échec(s).`);
