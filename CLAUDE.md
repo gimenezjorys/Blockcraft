@@ -1,18 +1,22 @@
-# BlockCraft Daily — contexte projet
+# Seedrift (ex-BlockCraft Daily) — contexte projet
 
 Jeu de puzzle mobile-first par glissement de blocs : une graine doit atteindre une case cible. Tout tient en **un seul fichier HTML** (`index.html`, avec HTML, CSS et JS inline), sans backend ni dépendance. Le jeu est publié via GitHub Pages.
 
 L'état du produit, les décisions prises, le plan de mesure et les prochaines priorités sont dans **`PRODUCTION_PROGRESS.md`**. Lis-le avant tout chantier important.
+
+**Nom visible** : `GAME_NAME` (section 0 du script, une ligne) + `manifest.webmanifest` + `<title>` statique. Les identifiants internes gardent le préfixe `bcd` (clés de sauvegarde) : ne jamais les renommer. Choix du nom : `NAMING.md`.
 
 ## Structure du dépôt
 
 | Chemin | Rôle |
 |---|---|
 | `index.html` | Le jeu complet, servi tel quel par GitHub Pages. |
-| `manifest.webmanifest`, `sw.js`, `icons/` | PWA : installation sur l'écran d'accueil et jeu hors ligne. Le service worker est « réseau d'abord » et n'est jamais nécessaire pour jouer. Icônes générées depuis le logo SVG de l'accueil. |
+| `manifest.webmanifest`, `sw.js`, `icons/` | PWA : installation sur l'écran d'accueil et jeu hors ligne. Le service worker est « réseau d'abord » et n'est jamais nécessaire pour jouer. Icônes : sources SVG dans `icons/src/`, tous les formats (stores, Android adaptive, maskable, favicons) générés par `scripts/export-icons.js` ; planche `scripts/icon-contact-sheet.js` ; choix dans `ICON.md`. |
 | `scripts/check-game.js` | `node --check` sur le JS extrait, puis `Solver.validateLevels(LEVELS)`. |
 | `scripts/test-logic.js` | Tests sans navigateur : symétries des niveaux, générateur du Sentier, défi du jour généré. |
 | `scripts/e2e-smoke.js` | Parcours joueur complet dans Chromium (Playwright), plus la PWA hors ligne via un mini-serveur local. Échoue sur toute erreur ou avertissement console. |
+| `scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement, visites des onglets, reprise après fermeture, joueur existant, « Passer », retour arrière, cible absente, animations réduites, stockage corrompu. |
+| `NAMING.md`, `ICON.md`, `ONBOARDING.md` | Choix du nom (preuves de recherche), de l'icône (variantes, exports) et principes du tutoriel. |
 | `.github/workflows/ci.yml` | CI : les trois scripts, sur toutes les branches et PR. |
 | `PRODUCTION_PROGRESS.md` | Vision, recommandations appliquées, hypothèses, tests, limites, priorités. |
 | `ROADMAP-RETENTION.md` | Audit de rétention, recherche (jeux de référence), décision (Jardin endormi + rituel + pubs récompensées) et feuille de route. |
@@ -24,6 +28,7 @@ L'état du produit, les décisions prises, le plan de mesure et les prochaines p
 node scripts/check-game.js index.html        # attendu : 60 niveaux, 0 cassé, 4 avertissements
 node scripts/test-logic.js                   # attendu : 0 échec
 NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attendu : 0 échec
+NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js [dossier-captures] # attendu : 0 échec
 ```
 
 - Les 4 avertissements ⚠️ de référence sont voulus : ce sont les niveaux INTRO, résolus en 1 coup.
@@ -44,6 +49,7 @@ NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attend
   - Pubs : `AD_PLACEMENTS`, `adCanOffer`.
   - Rétention : `retentionBump`, `retentionSummary`.
   - Chaque lecture passe par un `sanitize*` (données corrompues = valeurs saines).
+- **A5. Tutoriel de Germain, logique PURE** : `COACH_LINES` (toutes les répliques, structure prête à traduire, 12 mots max), `coachLine`, `sanitizeTutorial`, `tutorialNextTour` (quel onglet présenter, et quand), `tutorialNudgeDue` (rappel du défi), `tutorialTourFailed` (abandon propre après 2 échecs).
 - **A15–A18** : utilitaires des mécaniques (portails, sens unique, interrupteurs/portes, portails directionnels).
 - **B / B0** : état global (`state.mode` vaut `'campaign'`, `'daily'` ou `'sentier'` ; `state.level` est le plateau courant). Sauvegarde versionnée par `SCHEMA_MIGRATIONS` : toute modification de format passe par une migration.
 - **B5** : stockage du jardin, du rituel, des pubs et de la rétention (`bcd_garden_v1`, `bcd_ritual_v1`, `bcd_ads_v1`, `bcd_retention_v1`), `addRosee`, `ritualEvent`.
@@ -55,7 +61,8 @@ NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attend
 - **G** : `startLevel` → `startBoard(level, opts)`, point d'entrée unique de tout plateau.
 - **H** : moteur de glissement, Annuler, détection d'impasse. **H2** : indice. **H3** : fantôme du record (trajets dans `bcd_ghosts_v1`). **I** : entrées (swipe, flèches, Z annuler, R recommencer). Tutoriel visuel : `showSwipeHint` (démo du geste au niveau 1), `spotlightMechanic` (cases de la mécanique présentée qui pulsent).
 - **K** : victoire (emblème, puces de récompenses). **L** : défi du jour. **S** : le Sentier (mode infini). **M** : partage (texte type Wordle + carte image). **M3** : vie de l'interface (lucioles, son des boutons). **M4** : `AdService` (pubs récompensées, fournisseur `AD_PROVIDER`, `'mock'` par défaut ; brancher une vraie régie dans `AD_PROVIDERS`).
-- `window.BCD_DEV` : outils console (`validateLevels()`, `playLevel(i)`, `solutionFromHere()`, `setRosee(n)`, `setGardenDone(n)`, `getRitual()`, `resetAdCaps()`, `generateSentierBoard()`, `getRetentionReport()`, `setSimulatedDate()`…).
+- **T** : Germain et le tutoriel (exécution). `Coach` : personnage SVG, bulle (texte rapide, toucher pour accélérer), projecteur (4 bandes sombres autour de la vraie cible). `Tutorial` : intro → niveau 1 guidé → mini-scènes des mécaniques (remplacent l'aide texte, sauf si le tutoriel est passé) → visite des onglets un par un avec cadeau → succès « Apprenti » → rappel du défi le lendemain ; nouveautés pour les joueurs existants. Branché dans `goto` (`Tutorial.onScreen`), `startBoard`, `performMove`, l'impasse et `onWin`. Clé `bcd_tutorial_v1`.
+- `window.BCD_DEV` : outils console (`validateLevels()`, `playLevel(i)`, `solutionFromHere()`, `setRosee(n)`, `setGardenDone(n)`, `getRitual()`, `resetAdCaps()`, `getTutorial()`, `setTutorial(patch)`, `tutorialKick()`, `coachText()`, `generateSentierBoard()`, `getRetentionReport()`, `setSimulatedDate()`…).
 
 ## Règles de travail
 
@@ -70,4 +77,5 @@ NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attend
 - Pubs : uniquement **récompensées**, proposées par un bouton marqué « PUB », jamais au milieu d'un coup, jamais obligatoires. Tout nouvel emplacement s'ajoute à `AD_PLACEMENTS` (avec un plafond) et passe par `AdService`.
 - Le fichier reste autonome. Seule exception existante : les polices Google, qui retombent sur system-ui. Aucun autre fichier externe (audio, image, CDN).
 - Langue du code, des commentaires et de l'interface : français.
+- **Tutoriel** : toute nouvelle réplique de Germain va dans `COACH_LINES` (12 mots max, tutoiement, jamais culpabilisant). « Passer » reste visible tant que le tutoriel est actif ; une étape ne doit jamais bloquer (cible absente, changement d'écran = annulation propre).
 - **Livraison** : à la fin de chaque amélioration demandée, envoyer à l'utilisateur la dernière version du jeu (`index.html`, et le zip avec la PWA si les fichiers PWA ont changé). Il ne passe pas par GitHub pour jouer.

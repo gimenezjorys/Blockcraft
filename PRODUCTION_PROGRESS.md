@@ -1,4 +1,4 @@
-# BlockCraft Daily — suivi de production
+# Seedrift (ex-BlockCraft Daily) — suivi de production
 
 *Dernière mise à jour : 30/09/2026. Sources : `index.html` (vérité technique), `docs/audit-blockcraft-retention.md` et `docs/BlockCraft_Daily_Master_Blueprint.docx` (vérité produit).*
 
@@ -168,13 +168,34 @@ Un fichier HTML seul ne peut pas afficher de vraies pubs. Deux voies :
 
 **Jour de référence** : tout se remet à zéro au même minuit **local** que le défi du jour et la série (`todayKey()`), pour que le joueur n'ait qu'un seul « nouveau jour ». Les écarts de jours sont calculés en UTC (`dayDiff`) pour éviter les pièges du changement d'heure.
 
+## 4d. Nom, icône et tutoriel (croissance)
+
+- **Nom : Seedrift** (ex-BlockCraft Daily). « BlockCraft » était noyé sous Minecraft, Roblox et Block Blast. Recherche, preuves et ce qui reste à vérifier (marques, domaines) : `NAMING.md`. Le nom visible se change en une ligne (`GAME_NAME`). Les clés de sauvegarde `bcd_*` sont inchangées.
+- **Icône : la mascotte qui glisse** : Germain, la graine du jeu, avec un visage, file vers la lumière. Trois variantes comparées sur une planche (1024 / 120 / 60 / 40 px, fonds clair et sombre, faux écran d'accueil). Exports reproductibles pour l'App Store (RGB sans alpha), Google Play, Android adaptive, maskable, PWA et favicons. Voir `ICON.md`.
+- **Tutoriel avec Germain** (principes : `ONBOARDING.md`) :
+  - accueil de 10 à 15 s, puis niveau 1 guidé (doigt fantôme + réactions) ;
+  - niveaux 2 et 3 en autonomie ;
+  - chaque nouvelle mécanique devient une mini-scène au lieu du texte en bas ;
+  - visite des onglets un par un, quand ils deviennent utiles (Jardin dès qu'un chantier est payable, Atelier dès 30 pièces, défi, succès, profil), avec un projecteur et un cadeau (+3 💧, une graine offerte) ;
+  - succès « Apprenti » (+25 🪙) à la fin ;
+  - rappel du défi le lendemain (première semaine seulement, jamais si déjà fait) ;
+  - joueurs existants : aucune intro, une visite des nouveautés facultative.
+- **Garde-fous** :
+  - « Passer » toujours visible, « Plus tard » sur chaque visite (au 2e refus, l'étape est abandonnée) ;
+  - rejouable depuis les Paramètres et l'Aide ;
+  - une cible absente ou un changement d'écran annule l'étape ;
+  - réouverture en plein tutoriel = reprise (« On reprend ? ») ;
+  - **Réinitialisation de la progression = le tutoriel recommence** : choix assumé, c'est un joueur neuf.
+- **Mesure** : `tutorial_started`, `step_completed` (étape), `tutorial_skipped` (étape où l'on décroche), `tutorial_completed`, dans `BCD_DEV.getRetentionReport().tutorial`.
+
 ## 5. Tests exécutés (résultats observés)
 
 | Commande | Ce qu'elle vérifie | Résultat |
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
-| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) | 3 961 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 67 vérifications, 0 échec, 0 erreur ou avertissement console (stable sur 3 exécutions) |
+| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) | 3 983 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel) |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 70 vérifications, 0 échec, 0 erreur ou avertissement console (stable sur 2 exécutions) |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN | 59 vérifications, 0 échec, 0 erreur console (stable sur 2 exécutions) |
 | CI GitHub Actions | Les trois suites, sur toutes les branches | Vert |
 
 Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin, l'Atelier, l'aide et les succès. Aucun débordement horizontal.

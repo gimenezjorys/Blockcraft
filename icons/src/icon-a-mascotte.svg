@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Seedrift — icône, variante A « La mascotte qui glisse ».
+  Élément focal UNIQUE : Germain, la graine du jeu (la pièce que l'on fait
+  glisser), avec un visage, en plein élan vers la lumière (la case cible).
+  Tout ce qui est dessiné existe dans le jeu : graine dorée, traînée de
+  glissement, lumière de la cible, cases du plateau en fond.
+  Structure lue par scripts/export-icons.js : le fond est entre les
+  marqueurs BG et /BG, le sujet entre FG et /FG (commentaires XML dans le
+  corps du fichier). Carré 1024×1024, opaque, SANS coins arrondis : le
+  système d'exploitation applique son propre masque.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Fond plus lumineux au centre : l'icône doit « sortir » à côté
+         d'icônes très saturées sur un écran d'accueil (voir la planche). -->
+    <radialGradient id="aBg" cx="0.62" cy="0.42" r="0.95">
+      <stop offset="0" stop-color="#46c99a"/>
+      <stop offset="0.5" stop-color="#1c7f5e"/>
+      <stop offset="1" stop-color="#0b3a2e"/>
+    </radialGradient>
+    <radialGradient id="aGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fffbe6"/>
+      <stop offset="0.22" stop-color="#ffe391" stop-opacity="0.95"/>
+      <stop offset="0.55" stop-color="#ffc94a" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffc94a" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Mêmes teintes que la « Graine dorée » du jeu (#ffcf7a / #f0a83c / #c97e1f), plus saturées -->
+    <radialGradient id="aSeed" cx="0.34" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#fff0c2"/>
+      <stop offset="0.35" stop-color="#ffd166"/>
+      <stop offset="0.75" stop-color="#f0a02e"/>
+      <stop offset="1" stop-color="#b8661a"/>
+    </radialGradient>
+    <linearGradient id="aLeaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b6f59a"/>
+      <stop offset="1" stop-color="#2f9e4f"/>
+    </linearGradient>
+    <radialGradient id="aShadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#000" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="aTrail" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffcf6a" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffcf6a" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+  <!--BG-->
+  <g id="bg">
+    <rect width="1024" height="1024" fill="url(#aBg)"/>
+    <!-- Cases du plateau, très discrètes : on devine le jeu sans le lire. -->
+    <g fill="#ffffff" fill-opacity="0.07">
+      <rect x="-40" y="690" width="300" height="300" rx="56"/>
+      <rect x="290" y="690" width="300" height="300" rx="56"/>
+      <rect x="620" y="690" width="300" height="300" rx="56"/>
+      <rect x="-40" y="360" width="300" height="300" rx="56"/>
+      <rect x="950" y="360" width="300" height="300" rx="56"/>
+    </g>
+    <!-- Poussières de lumière -->
+    <g fill="#fff3c4">
+      <circle cx="880" cy="190" r="9" opacity="0.8"/>
+      <circle cx="610" cy="150" r="6" opacity="0.6"/>
+      <circle cx="930" cy="690" r="7" opacity="0.55"/>
+      <circle cx="170" cy="240" r="5" opacity="0.45"/>
+    </g>
+  </g>
+  <!--/BG-->
+  <!--FG-->
+  <g id="fg">
+    <!-- La lumière (case cible) vers laquelle la graine glisse -->
+    <circle cx="790" cy="500" r="300" fill="url(#aGlow)"/>
+    <circle cx="790" cy="500" r="92" fill="#fff4c8"/>
+    <circle cx="790" cy="500" r="60" fill="#ffffff" opacity="0.7"/>
+    <!-- Traînée du glissement (comme l'effet de déplacement du jeu) -->
+    <rect x="96" y="505" width="250" height="60" rx="30" fill="url(#aTrail)" opacity="0.55"/>
+    <rect x="150" y="585" width="200" height="44" rx="22" fill="url(#aTrail)" opacity="0.4"/>
+    <!-- Ombre au sol -->
+    <ellipse cx="470" cy="808" rx="210" ry="38" fill="url(#aShadow)"/>
+    <!-- Germain : la graine, légèrement penchée dans l'élan -->
+    <g transform="rotate(-8 470 560)">
+      <!-- Corps : une graine (amande), pointe en haut, d'où sort la pousse -->
+      <path id="aBody" d="M470 312 C 566 330, 704 456, 704 600 C 704 734, 600 812, 470 812 C 340 812, 236 734, 236 600 C 236 456, 374 330, 470 312 Z" fill="url(#aSeed)"/>
+      <path d="M470 312 C 566 330, 704 456, 704 600 C 704 734, 600 812, 470 812 C 340 812, 236 734, 236 600 C 236 456, 374 330, 470 312 Z" fill="none" stroke="#8a4a10" stroke-opacity="0.3" stroke-width="8"/>
+      <ellipse cx="372" cy="452" rx="72" ry="42" fill="#ffffff" opacity="0.6" transform="rotate(-32 372 452)"/>
+      <!-- Pousse : deux petites feuilles qui sortent de la pointe, rabattues par l'élan -->
+      <path d="M470 318 C 462 276, 440 250, 404 236" stroke="#3aa65a" stroke-width="20" fill="none" stroke-linecap="round"/>
+      <path d="M406 238 C 356 190, 286 200, 256 244 C 312 268, 372 266, 406 238 Z" fill="url(#aLeaf)"/>
+      <path d="M446 268 C 440 206, 482 168, 536 164 C 538 220, 500 258, 446 268 Z" fill="url(#aLeaf)"/>
+      <!-- Visage : regarde vers la lumière -->
+      <ellipse cx="420" cy="560" rx="50" ry="60" fill="#ffffff"/>
+      <ellipse cx="552" cy="560" rx="50" ry="60" fill="#ffffff"/>
+      <circle cx="440" cy="566" r="30" fill="#2a1609"/>
+      <circle cx="572" cy="566" r="30" fill="#2a1609"/>
+      <circle cx="452" cy="552" r="10" fill="#ffffff"/>
+      <circle cx="584" cy="552" r="10" fill="#ffffff"/>
+      <ellipse cx="366" cy="640" rx="34" ry="20" fill="#ff7a6a" opacity="0.45"/>
+      <ellipse cx="610" cy="640" rx="34" ry="20" fill="#ff7a6a" opacity="0.45"/>
+      <path d="M450 650 Q 492 700 540 650" stroke="#6b2a0c" stroke-width="15" fill="none" stroke-linecap="round"/>
+    </g>
+  </g>
+  <!--/FG-->
+</svg>

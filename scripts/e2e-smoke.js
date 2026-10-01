@@ -72,10 +72,13 @@ function startStaticServer(root) {
   await shot('01-accueil');
   check(await screen() === 'screen-home', 'accueil affiché au lancement');
 
-  // 1. Tutoriel : JOUER lance directement le niveau 1
+  // 1. Tutoriel : Germain accueille, JOUER lance directement le niveau 1
+  await wait(700);
+  check((await page.evaluate(() => BCD_DEV.coachText())).length > 0, 'premier lancement : Germain accueille le joueur');
   await page.click('#btnContinue'); await wait(300);
   check((await page.textContent('#gameLevelTitle')).startsWith('1.'), 'JOUER lance le niveau 1');
-  check((await page.textContent('#gameTip')).length > 0, 'aide du tutoriel affichée sous la grille');
+  await wait(600);
+  check((await page.evaluate(() => BCD_DEV.coachText())).includes('Glisse'), 'niveau 1 : Germain montre le geste (au lieu de l\'aide texte)');
   // Mesure chronométrée DANS la page : 150 ms après le coup, donc toujours
   // avant onWin() (différé de 260 ms), qui masque l'écran de jeu.
   const tf = await page.evaluate(() => new Promise(res => {
@@ -91,8 +94,12 @@ function startStaticServer(root) {
   check(await page.evaluate(() => BCD_DEV.getGarden().rosee === 3), 'rosée créditée et sauvegardée');
   check(!(await page.textContent('#victoryRewards')).includes('Record'), 'pas de « record » à la première réussite');
   await shot('02-victoire');
+  // Le reste du parcours joue sans tutoriel (le tutoriel complet est testé
+  // par scripts/e2e-tutorial.js) : on le passe, comme un joueur pressé.
+  await page.click('#coach .coach-skip'); await wait(200);
+  check(await page.evaluate(() => BCD_DEV.getTutorial().skipped), 'tutoriel passé d\'un toucher (« Passer » visible)');
 
-  // 2. Niveaux 2 et 3 → fin du tutoriel
+  // 2. Niveaux 2 et 3
   for (let i = 0; i < 2; i++) { await page.click('#btnNextLevel'); await wait(300); await solve(); await wait(2000); }
   check(await screen() === 'screen-victory', 'niveaux 2 et 3 terminés');
 
@@ -163,7 +170,8 @@ function startStaticServer(root) {
   await shot('04-defi-resultat');
   await page.click('#btnShareDaily'); await wait(300);
   const shareOut = await page.evaluate(() => { const t = document.getElementById('shareTextOut'); return t.hidden ? '' : t.value; });
-  check(shareOut.includes('BlockCraft Daily') && shareOut.includes('par'), 'texte de partage généré (repli sélectionnable)');
+  check(shareOut.includes('Seedrift') && shareOut.includes('par'), 'texte de partage généré avec le nom du jeu (repli sélectionnable)');
+  check((await page.title()) === 'Seedrift' && (await page.textContent('#gameTitle')) === 'Seedrift', 'nom du jeu appliqué (titre de page et logo)');
   await page.click('#btnBackHomeDaily'); await wait(300);
   check((await page.textContent('#homeDailyBadge')).includes('Fait'), 'accueil : défi marqué « Fait »');
 
@@ -236,7 +244,11 @@ function startStaticServer(root) {
   check(await page.evaluate(() => { const r = BCD_DEV.getRitual(); return r.ids[0] === 'daily' && r.prog[0] === 1; }), 'rituel : le défi réussi plus tôt est compté');
   for (let i = 0; i < 5; i++) { await page.click('#btnRestore'); await wait(750); }
   const gAfter = await page.evaluate(() => BCD_DEV.getGarden());
-  check(gAfter.done === 5 && gAfter.rosee === 40 - 36, `5 chantiers réveillés, 36 💧 dépensés (${gAfter.done}, ${gAfter.rosee})`);
+  // Le rituel du jour dépend de la date : s'il contient « Réveille un coin
+  // du jardin », le 1er chantier accomplit cette mission (+3 💧).
+  const restoreBonus = await page.evaluate(() => BCD_DEV.getRitual().ids.includes('restore1') ? 3 : 0);
+  const roseeLeft = 40 - 36 + restoreBonus;
+  check(gAfter.done === 5 && gAfter.rosee === roseeLeft, `5 chantiers réveillés, 36 💧 dépensés (${gAfter.done}, ${gAfter.rosee}, attendu ${roseeLeft})`);
   await wait(1400);
   check(!!(await page.$('.zone-fete')), 'zone réveillée : la fête s\'affiche');
   check((await page.evaluate(() => BCD_DEV.getCoins())) === coinsBeforeZone + 20 + 20, 'récompense de zone (+20) et succès « Jardinier » (+20) crédités');
@@ -252,7 +264,7 @@ function startStaticServer(root) {
   await page.click('#btnGardenBoost'); await wait(400);
   check(!!(await page.$('.ad-mock')), 'pub simulée affichée, étiquetée');
   await wait(3300);
-  check(await page.evaluate(() => BCD_DEV.getGarden().rosee === 4 + 6 && document.getElementById('btnGardenBoost').hidden), 'pub regardée : +6 💧, puis plus proposée (plafond)');
+  check(await page.evaluate(left => BCD_DEV.getGarden().rosee === left + 6 && document.getElementById('btnGardenBoost').hidden, roseeLeft), 'pub regardée : +6 💧, puis plus proposée (plafond)');
   await shot('10-jardin');
   await page.evaluate(() => { document.getElementById('btnBackHomeGarden').click(); }); await wait(200);
 
@@ -301,7 +313,7 @@ function startStaticServer(root) {
   await pw.reload(); await pw.waitForTimeout(800);
   check(await pw.evaluate(() => !!navigator.serviceWorker.controller), 'PWA : service worker actif');
   const man = await pw.evaluate(async () => (await (await fetch(document.querySelector('link[rel=manifest]').href)).json()));
-  check(man.icons && man.icons.length === 3 && man.start_url === './', 'PWA : manifest valide (3 icônes)');
+  check(man.icons && man.icons.length >= 3 && man.icons.some(i => i.purpose === 'maskable') && man.name === 'Seedrift' && man.start_url === './', 'PWA : manifest valide (icônes dont maskable, nom Seedrift)');
   await ctx.setOffline(true);
   await pw.reload(); await pw.waitForTimeout(800);
   await pw.click('#btnContinue'); await pw.waitForTimeout(300);
