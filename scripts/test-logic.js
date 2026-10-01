@@ -30,7 +30,11 @@ const exportsList = 'LEVELS, Solver, makeRng, hashSeed, generateBoard, transform
   'COACH_LINES, coachLine, TUTO_TOURS, sanitizeTutorial, tutorialActive, tutorialNextTour, tutorialAllSeen, tutorialNudgeDue, tutorialTourFailed, ' +
   'gardenTimeOfDay, GARDEN_WEATHERS, gardenWeatherFor, DEW, dewTotalFor, dewLeft, dewCollect, dewSpotsFor, ' +
   'sanitizePlantSeen, plantGrowthEvents, GARDENER_RANKS, gardenerXP, gardenerRank, STREAK_REPAIR_COOLDOWN, ' +
-  'streakRepairStatus, streakApplyRepair, streakAlive, welcomeBackDue, sanitizeTips, INTERSTITIAL_RULES, interstitialAllowed';
+  'streakRepairStatus, streakApplyRepair, streakAlive, welcomeBackDue, sanitizeTips, INTERSTITIAL_RULES, interstitialAllowed, ' +
+  'weekKeyFor, seasonKeyFor, DAILY_GIFTS, sanitizeGift, giftStatus, giftClaim, WEEKLY_POOL, WEEKLY_COUNT, weeklyMission, weeklyMissionsFor, ' +
+  'sanitizeWeekly, weeklyApply, weeklyClaimable, weeklyClaim, weeklyChestReady, SEASON_TIERS, SEASON_XP_PER_TIER, seasonReward, sanitizeSeason, ' +
+  'seasonTier, seasonClaimable, seasonRoll, seasonAddXP, seasonClaim, seasonDaysLeft, marketDailyOffer, marketWeeklyPack, sanitizeMarket, ' +
+  'COLLECTION_MILESTONES, collectionMilestones, sanitizeNav, navBadgeCounts, dailyPersonalRank';
 const ctx = vm.createContext({ console: { log() {} } });
 vm.runInContext('"use strict";\n' + js.slice(start, end) + `\n;globalThis.__t = { ${exportsList} };`, ctx, { filename: 'logic.js' });
 const T = ctx.__t;
@@ -364,6 +368,96 @@ console.log(`✔ tutoriel : ${Object.keys(lines).length} répliques, états, vis
   check(T.interstitialAllowed({}, Object.assign({}, base, { breaks: R.everyBreaks + 1 })).reason === 'not_this_break', 'une pause sur ' + R.everyBreaks + ' seulement');
   check(!T.interstitialAllowed(null, null).ok, 'données absentes → jamais');
   console.log('✔ jardin vivant : ciel, météo (1000 jours), rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel');
+}
+
+{ // 8. Le hub : cadeau du jour, missions de la semaine, saison, marché, collection, pastilles (A7)
+  section('Le hub (A7)');
+  // Semaines et saisons UTC.
+  check(T.weekKeyFor('20261001') === '20260928' && T.weekKeyFor('20260928') === '20260928' && T.weekKeyFor('20261004') === '20260928' && T.weekKeyFor('20261005') === '20261005', 'semaine = son lundi (UTC)');
+  check(T.weekKeyFor('20270101') === '20261228' && T.weekKeyFor('x') === '', 'semaine à cheval sur deux années ; clé invalide');
+  check(T.seasonKeyFor('20261031') === '202610' && T.seasonKeyFor('nope') === '', 'saison = mois UTC');
+  // Cadeau du jour : une fois par jour, le cycle avance, jamais de remise à zéro.
+  let gs = T.sanitizeGift(null);
+  check(T.giftStatus(gs, '20261001').available && T.giftStatus(gs, '20261001').step === 0, 'premier cadeau disponible');
+  let r = T.giftClaim(gs, '20261001');
+  check(r.ok && r.index === 0 && r.gift.coins === 15 && r.save.step === 1, 'cadeau du jour 1 récupéré');
+  check(!T.giftClaim(r.save, '20261001').ok, 'une seule fois par jour');
+  check(T.giftClaim(r.save, '20261009').ok && T.giftClaim(r.save, '20261009').index === 1, 'jours manqués : le calendrier attend (pas de remise à zéro)');
+  check(!T.giftStatus(r.save, '20260930').available, 'horloge reculée : rien ne se rouvre');
+  gs = T.sanitizeGift(null); let day = Date.UTC(2026, 9, 1); const got = [];
+  for (let i = 0; i < 15; i++) { const k = new Date(day + i * 864e5).toISOString().slice(0, 10).replace(/-/g, ''); const c = T.giftClaim(gs, k); got.push(c.index); gs = c.save; }
+  check(got.join(',') === '0,1,2,3,4,5,6,0,1,2,3,4,5,6,0' && gs.cycles === 2 && gs.total === 15, 'cycle de 7 cadeaux, compteur de cycles');
+  check(T.DAILY_GIFTS[6].chest && T.DAILY_GIFTS.every(g => (g.coins || 0) + (g.rosee || 0) + (g.freeze || 0) > 0), 'chaque cadeau donne quelque chose ; le 7e est un coffre');
+  check(T.sanitizeGift({ step: 99, lastDay: 'abc', total: -3 }).step === 6 && T.sanitizeGift({ lastDay: 'abc' }).lastDay === '', 'cadeau : données corrompues → valeurs saines');
+  // Missions de la semaine.
+  const wk = '20260928';
+  const ids = T.weeklyMissionsFor(wk, { sentier: true, gardenNext: true });
+  check(ids.length === T.WEEKLY_COUNT && new Set(ids).size === ids.length && JSON.stringify(ids) === JSON.stringify(T.weeklyMissionsFor(wk, { sentier: true, gardenNext: true })), '4 missions distinctes, déterministes');
+  check(!T.weeklyMissionsFor(wk, {}).some(id => T.weeklyMission(id).needs), 'pas de mission impossible (Sentier fermé, jardin fini)');
+  let weekOk = 0;
+  for (let i = 0; i < 60; i++) { const k = T.weekKeyFor(new Date(Date.UTC(2026, 0, 5) + i * 7 * 864e5).toISOString().slice(0, 10).replace(/-/g, '')); const m = T.weeklyMissionsFor(k, { sentier: true, gardenNext: true }); if (m.length === 4 && new Set(m).size === 4) weekOk++; }
+  check(weekOk === 60, '60 semaines : toujours 4 missions');
+  let w = T.sanitizeWeekly(null, wk, { sentier: true, gardenNext: true });
+  const forcedIds = ['w_daily5', 'w_stars15', 'w_dew12', 'w_levels8'];
+  w = T.sanitizeWeekly({ week: wk, ids: forcedIds, prog: [0, 0, 0, 0], claimed: [false, false, false, false] }, wk, {});
+  let a1 = T.weeklyApply(w, { type: 'level_win', newStars: 3 });
+  check(a1.w.prog[1] === 3 && a1.w.prog[3] === 1 && a1.w.prog[0] === 0, 'une victoire compte ses étoiles nouvelles et le niveau');
+  a1 = T.weeklyApply(a1.w, { type: 'level_win', newStars: 0 });
+  check(a1.w.prog[1] === 3 && a1.w.prog[3] === 2, 'aucune étoile nouvelle : pas de progrès « étoiles »');
+  let ww = a1.w; for (let i = 0; i < 20; i++) ww = T.weeklyApply(ww, { type: 'dew' }).w;
+  check(ww.prog[2] === 12, 'progrès plafonné à l\'objectif');
+  check(T.weeklyClaimable(ww).join() === '2' && T.weeklyClaim(ww, 2).ok && !T.weeklyClaim(ww, 0).ok, 'seule une mission finie se récupère');
+  ww = T.weeklyClaim(ww, 2).w;
+  check(!T.weeklyClaim(ww, 2).ok && !T.weeklyChestReady(ww), 'pas deux fois ; coffre fermé tant que tout n\'est pas récupéré');
+  let full = Object.assign({}, ww, { prog: [5, 15, 12, 8] });
+  [0, 1, 3].forEach(i => { full = T.weeklyClaim(full, i).w; });
+  check(T.weeklyChestReady(full) && !T.weeklyChestReady(Object.assign({}, full, { chest: true })), 'coffre de la semaine prêt quand tout est récupéré');
+  check(T.sanitizeWeekly(full, '20261005', {}).week === '20261005' && T.sanitizeWeekly(full, '20261005', {}).prog.every(v => v === 0), 'nouvelle semaine : nouvelles missions');
+  check(T.sanitizeWeekly({ week: wk, ids: ['inconnu'], prog: [3] }, wk, {}).ids.every(id => T.weeklyMission(id)), 'missions corrompues → semaine neuve');
+  // Saison.
+  let ss = T.sanitizeSeason(null, '202610');
+  check(ss.season === '202610' && ss.xp === 0 && T.seasonTier(0) === 0, 'saison neuve');
+  let add = T.seasonAddXP(ss, T.SEASON_XP_PER_TIER * 3 + 5);
+  check(add.tierUp && add.tier === 3 && T.seasonClaimable(add.save).join() === '1,2,3', 'XP → paliers à récupérer');
+  let cl = T.seasonClaim(add.save, 2);
+  check(cl.ok && cl.reward.rosee === 3 && T.seasonClaimable(cl.save).join() === '1,3' && !T.seasonClaim(cl.save, 2).ok && !T.seasonClaim(cl.save, 4).ok, 'palier récupéré une fois ; jamais un palier non atteint');
+  check(T.seasonTier(1e7) === T.SEASON_TIERS && T.seasonReward(T.SEASON_TIERS).final && T.seasonReward(10).freeze === 1, 'dernier palier = grande récompense ; palier 10 = gel');
+  let tot = 0; for (let k = 1; k <= T.SEASON_TIERS; k++) { const rw = T.seasonReward(k); tot += (rw.coins || 0); check((rw.coins || 0) + (rw.rosee || 0) + (rw.freeze || 0) > 0, 'palier ' + k + ' utile'); }
+  check(tot > 200 && tot < 800, `récompenses en pièces de la saison raisonnables (${tot} 🪙)`);
+  const roll = T.seasonRoll(cl.save, '202611');
+  check(roll.save.season === '202611' && roll.save.xp === 0 && roll.carried.length === 2, 'nouveau mois : paliers non récupérés rendus (rien ne se perd)');
+  const roll2 = T.seasonRoll(T.seasonAddXP(ss, 1e6).save, '202611');
+  check(roll2.save.done === 1 && roll2.carried.length === T.SEASON_TIERS, 'saison terminée comptée');
+  check(T.seasonRoll(cl.save, '202610').carried.length === 0, 'même mois : rien ne change');
+  check(T.seasonDaysLeft('20261001') === 31 && T.seasonDaysLeft('20261031') === 1, 'jours restants dans la saison');
+  check(T.sanitizeSeason({ season: 'zz', xp: 'a', claimed: [3, 3, 99, -1] }, '202610').claimed.join() === '3,20', 'saison corrompue → valeurs saines');
+  // Marché.
+  const cat = [{ cat: 'seed', id: 'a', price: 30 }, { cat: 'seed', id: 'b', price: 40 }, { cat: 'move', id: 'c', price: 25 }, { cat: 'frame', id: 'd', price: 45 }, { cat: 'seed', id: 'z', price: 0 }];
+  const off = T.marketDailyOffer('20261001', cat, new Set());
+  check(off && off.price < off.base && off.price === Math.round(off.base * 0.7) && off.id !== 'z', 'offre du jour : −30 %, jamais un objet gratuit');
+  check(JSON.stringify(off) === JSON.stringify(T.marketDailyOffer('20261001', cat, new Set())), 'offre déterministe (la même pour le jour)');
+  let dist = new Set(); for (let i = 1; i <= 28; i++) dist.add(T.marketDailyOffer('202610' + String(i).padStart(2, '0'), cat, new Set()).id);
+  check(dist.size >= 3, 'l\'offre change selon les jours');
+  check(T.marketDailyOffer('20261001', cat, new Set(['seed:a', 'seed:b', 'move:c', 'frame:d'])) === null, 'tout possédé : pas d\'offre');
+  const pack = T.marketWeeklyPack('20260928', cat, new Set());
+  check(pack.items.length === 3 && new Set(pack.items.map(i => i.cat)).size === 3 && pack.price === Math.round(pack.base * 0.75), 'lot de la semaine : 3 objets de catégories variées, −25 %');
+  check(T.marketWeeklyPack('20260928', cat, new Set(['seed:a', 'seed:b', 'move:c'])) === null, 'moins de 2 objets libres : pas de lot');
+  check(T.sanitizeMarket({ dailyBought: 7, seenDay: '20261001' }).dailyBought === '' && T.sanitizeMarket(null).seenDay === '', 'marché : données corrompues → valeurs saines');
+  // Collection.
+  const ms = T.collectionMilestones(11, [5]);
+  check(ms[0].state === 'claimed' && ms[1].state === 'ready' && ms[2].state === 'locked' && T.COLLECTION_MILESTONES.length === 5, 'paliers de collection');
+  check(T.sanitizeNav({ seenItems: ['seed:a', 'seed:a', 3], colClaimed: [5, 'x', -2], dewDays: 'y' }).seenItems.length === 1 && T.sanitizeNav({ colClaimed: [5, 'x', -2] }).colClaimed.join() === '5', 'navigation : données saines');
+  // Pastilles.
+  const b0 = T.navBadgeCounts({});
+  check(Object.values(b0).every(v => v === 0), 'rien à signaler : aucune pastille');
+  const b1 = T.navBadgeCounts({ giftAvailable: true, dailyOfferNew: true, newItems: 2, collectionReady: 1, dailyTodo: true, dewLeft: 3, restoreReady: true, ritualChestReady: true, weeklyClaimable: 2, weeklyChestReady: true, seasonClaimable: 1, newAchievements: 1 });
+  check(b1.market === 2 && b1.cosmetics === 3 && b1.home === 1 && b1.garden === 4 && b1.profile === 6, 'pastilles comptées par page');
+  check(T.navBadgeCounts({ newItems: 'x', dewLeft: -4 }).cosmetics === 0 && T.navBadgeCounts(null).garden === 0, 'pastilles : entrées corrompues ignorées');
+  // Classement personnel du défi.
+  const hist = [{ date: '20260925', stars: 3, time: 40 }, { date: '20260926', stars: 2, time: 30 }, { date: '20260927', stars: 3, time: 20 }, { date: '20260928', stars: 3, time: 25 }];
+  check(T.dailyPersonalRank(hist, '20260928').rank === 2 && T.dailyPersonalRank(hist, '20260928').of === 4, 'défi : 2e meilleur sur 4 (étoiles puis temps)');
+  check(T.dailyPersonalRank(hist.slice(0, 2), '20260926') === null && T.dailyPersonalRank(hist, '20261001') === null, 'pas de classement sans assez d\'historique ni sans résultat');
+  console.log('✔ hub : cadeau du jour, missions de la semaine, saison, marché, collection, pastilles, classement personnel');
 }
 
 console.log(`\n${checks} vérifications, ${failures} échec(s).`);

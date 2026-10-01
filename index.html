@@ -234,9 +234,12 @@
   .btn-primary.shimmer::after{
     content:""; position:absolute; top:0; bottom:0; left:-40%; width:30%;
     background:linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.45), rgba(255,255,255,0));
-    transform:skewX(-18deg); animation:ctaSweep 5.5s ease-in-out infinite; pointer-events:none;
+    transform:skewX(-18deg); animation:ctaSweep 5.5s ease-in-out infinite; pointer-events:none; will-change:transform;
   }
-  @keyframes ctaSweep{0%,78%{left:-40%;} 100%{left:130%;}}
+  /* Reflet en transform (composité, sans mise en page à chaque image) :
+     de -40 % à 130 % de la largeur du bouton = 567 % de sa propre largeur (30 %). */
+  @keyframes ctaSweep{0%,78%{transform:translateX(0) skewX(-18deg);} 100%{transform:translateX(567%) skewX(-18deg);}}
+  @keyframes ctaSweepWide{0%,78%{transform:translateX(0) skewX(-18deg);} 100%{transform:translateX(425%) skewX(-18deg);}}
   .btn:hover{filter:brightness(1.06);}
   .btn-primary{
     background:linear-gradient(155deg, var(--seed-light), var(--seed));
@@ -1096,6 +1099,8 @@
   #coach[hidden]{display:none;}
   #coach.at-top{top:calc(env(safe-area-inset-top, 0px) + 64px);}
   #coach.at-bottom{bottom:calc(env(safe-area-inset-bottom, 0px) + 18px);}
+  /* Dans le hub, la bulle du bas se pose au-dessus de la barre d'onglets : jamais dessus. */
+  body.in-hub #coach.at-bottom{bottom:calc(env(safe-area-inset-bottom, 0px) + 94px);}
   .coach-row{display:flex; align-items:flex-end; gap:6px; width:100%; max-width:400px; pointer-events:none; animation:coachIn .35s cubic-bezier(.2,1.4,.4,1) both;}
   @keyframes coachIn{from{opacity:0; transform:translateY(14px) scale(.96);} to{opacity:1; transform:none;}}
   .coach-germain{flex:none; width:62px; height:72px; pointer-events:auto; cursor:pointer; filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));}
@@ -1216,9 +1221,9 @@
   .item-card:active{transform:scale(.96);}
   .item-card[aria-pressed="true"]{border-color:var(--rc); box-shadow:0 0 0 2px color-mix(in srgb, var(--rc) 45%, transparent);}
   .item-card.legendary::after{
-    content:""; position:absolute; top:0; bottom:0; left:-60%; width:40%; pointer-events:none;
+    content:""; position:absolute; top:0; bottom:0; left:-40%; width:40%; pointer-events:none;
     background:linear-gradient(100deg, transparent, rgba(255,240,190,.18), transparent); transform:skewX(-18deg);
-    animation:ctaSweep 6s ease-in-out infinite;
+    animation:ctaSweepWide 6s ease-in-out infinite;
   }
   .item-swatch{
     position:relative; width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px;
@@ -1868,6 +1873,250 @@
   @keyframes riseIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
   #screen-game.enter-fwd > *, #screen-game.enter-back > *{animation:none;}
 
+  /* ================= NAVIGATION : HUB À 5 PAGES + BARRE D'ONGLETS (section D3) ================= */
+  body.in-hub{overflow:hidden;}
+  body.in-hub #app{padding-bottom:0;}
+  .hub{display:none; position:relative; flex-direction:column; height:calc(100vh - env(safe-area-inset-top, 0px)); height:calc(100dvh - env(safe-area-inset-top, 0px)); overflow:hidden;}
+  .hub.on{display:flex;}
+  .hub-viewport{position:relative; flex:1; min-height:0; overflow:hidden; touch-action:pan-y;}
+  .hub-track{display:flex; height:100%; transform:translate3d(-200%,0,0); transition:transform .4s cubic-bezier(.2,.9,.22,1); will-change:transform;}
+  .hub.dragging .hub-track{transition:none;}
+  .hub .hub-page{display:flex !important; flex:0 0 100%; width:100%; min-width:0; height:100%; overflow-y:auto; overflow-x:hidden; overscroll-behavior-y:contain;
+    -webkit-overflow-scrolling:touch; animation:none; padding-bottom:22px; scrollbar-width:none;}
+  .hub .hub-page::-webkit-scrollbar{display:none;}
+  /* Pages hors écran : leurs animations dorment (le temps de calcul va à la page visible).
+     Les voisines restent dessinées : on les voit, figées, pendant un glissement. */
+  .hub .hub-page[aria-hidden="true"] *, .hub .hub-page[aria-hidden="true"] *::before, .hub .hub-page[aria-hidden="true"] *::after{animation-play-state:paused !important;}
+  /* Dans une page à hauteur fixe, rien ne doit se tasser : on défile. */
+  .hub .hub-page > *{flex-shrink:0;}
+  .hub.hub-enter .hub-viewport{animation:hubIn .42s cubic-bezier(.2,.8,.2,1);}
+  .hub.hub-enter .tabbar{animation:tabbarIn .5s cubic-bezier(.2,.9,.25,1.1);}
+  @keyframes hubIn{from{opacity:0; transform:scale(.975);} to{opacity:1; transform:none;}}
+  @keyframes tabbarIn{from{transform:translateY(100%);} to{transform:none;}}
+  /* Barre d'onglets : zone du pouce, page active mise en avant, JOUER au centre. */
+  .tabbar{position:relative; flex:none; display:grid; grid-template-columns:repeat(5, 1fr); align-items:stretch; --i:2;
+    height:calc(66px + env(safe-area-inset-bottom, 0px)); padding:0 6px env(safe-area-inset-bottom, 0px); z-index:20;
+    background:linear-gradient(180deg, rgba(20,38,31,.94), rgba(8,18,14,.99)); border-top:1px solid rgba(255,255,255,.08);
+    box-shadow:0 -12px 30px rgba(0,0,0,.4); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);}
+  .tab-glider{position:absolute; top:7px; left:6px; width:calc((100% - 12px) / 5); height:52px; pointer-events:none;
+    transform:translateX(calc(var(--i) * 100%)); transition:transform .4s cubic-bezier(.2,.9,.22,1);}
+  .tabbar.at-center .tab-glider{opacity:0;}
+  .tab-glider{transition:transform .4s cubic-bezier(.2,.9,.22,1), opacity .25s ease;}
+  .tab-glider::before{content:""; position:absolute; inset:0 8px; border-radius:18px;
+    background:radial-gradient(90% 80% at 50% 30%, rgba(255,209,102,.20), rgba(255,209,102,.04)); box-shadow:inset 0 0 0 1px rgba(255,209,102,.22);}
+  .tab{position:relative; z-index:1; height:66px; border:none; background:none; padding:0; color:#9fb3a6; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-family:var(--font-body); font-size:10.5px; font-weight:800; letter-spacing:.2px;}
+  .tab:focus-visible{outline:3px solid var(--gold); outline-offset:-4px; border-radius:16px;}
+  .tab-ic{width:30px; height:30px; display:grid; place-items:center; transition:transform .32s cubic-bezier(.3,1.6,.5,1), color .2s ease;}
+  .tab-ic svg{width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;}
+  .tab-ic svg .fill{fill:currentColor; stroke:none;}
+  .tab-lbl{transition:color .2s ease;}
+  .tab.on{color:var(--gold);}
+  .tab.on .tab-ic{transform:translateY(-3px) scale(1.14);}
+  .tab.pop .tab-ic{animation:tabPop .38s cubic-bezier(.3,1.7,.5,1);}
+  @keyframes tabPop{0%{transform:scale(1);} 40%{transform:scale(.82);} 100%{transform:translateY(-3px) scale(1.14);}}
+  .tab-center .tab-ic{width:56px; height:56px; margin-top:-26px; border-radius:50%; color:#2a1a06; border:3px solid #0e1c17;
+    background:radial-gradient(circle at 35% 30%, #ffe2a0, var(--seed-light) 40%, var(--seed) 100%);
+    box-shadow:0 10px 20px -6px rgba(240,168,60,.75), inset 0 2px 0 rgba(255,255,255,.5), 0 0 0 1px rgba(255,209,102,.35);}
+  .tab-center .tab-ic svg{width:30px; height:30px; margin-left:3px;}
+  .tab-center.on .tab-ic{transform:translateY(-3px) scale(1.06); box-shadow:0 12px 26px -6px rgba(240,168,60,.9), inset 0 2px 0 rgba(255,255,255,.5), 0 0 22px rgba(255,209,102,.45);}
+  .tab-center .tab-lbl{margin-top:1px;}
+  .tab-badge{position:absolute; top:7px; left:calc(50% + 5px); min-width:18px; height:18px; padding:0 5px; border-radius:99px; z-index:2;
+    background:linear-gradient(180deg, #ff6b5e, #d93a3c); color:#fff; font-size:10.5px; font-weight:900; line-height:18px; text-align:center;
+    box-shadow:0 0 0 2px #0e1c17, 0 3px 8px rgba(217,58,60,.5);}
+  .tab-badge.dot{min-width:11px; width:11px; height:11px; padding:0; top:9px; left:calc(50% + 8px);}
+  .tab-center .tab-badge{top:-20px; left:calc(50% + 16px);}
+  .tab-badge.pop{animation:badgePop .55s cubic-bezier(.3,1.9,.5,1);}
+  @keyframes badgePop{0%{transform:scale(0);} 60%{transform:scale(1.35);} 100%{transform:scale(1);}}
+  /* En-têtes des pages du hub */
+  .page-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; min-height:40px;}
+  .ph-title{font-family:var(--font-display); font-weight:800; font-size:24px; color:var(--cream); margin:0; text-shadow:0 2px 10px rgba(0,0,0,.35);}
+  .ph-pills{display:flex; gap:6px;}
+  .ph-pill{font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--gold); background:rgba(0,0,0,.25); border:1px solid rgba(255,209,102,.3);
+    border-radius:999px; padding:6px 12px; transition:transform .2s ease;}
+  .ph-pill.bump, .ph-pill.rosee-pill.bump{animation:pillBump .45s ease;}
+  .ph-pill.rosee-pill{color:#bfe8ff; border-color:rgba(111,195,232,.35);}
+  .play-head{justify-content:space-between;}
+  .play-head .home-stats{padding:6px 14px; gap:12px; font-size:14px;}
+  .ph-icon{width:38px; height:38px; font-size:17px; font-weight:800; border-radius:12px; flex:none;}
+  #screen-home{align-items:stretch; text-align:left; gap:12px; padding-top:18px; justify-content:flex-start;}
+  /* Le monde en cours (page JOUER) */
+  .world-hero{position:relative; overflow:hidden; isolation:isolate; border-radius:24px; padding:16px 16px 16px; display:flex; flex-direction:column; gap:14px;
+    background:radial-gradient(110% 90% at 85% 0%, var(--wh-halo, rgba(255,214,140,.12)), transparent 60%), linear-gradient(160deg, var(--wh-bg, #254036), var(--wh-deep, #0e1c17));
+    border:1px solid rgba(255,255,255,.09); box-shadow:0 16px 34px -16px rgba(0,0,0,.8);}
+  .wh-art{position:absolute; inset:0; z-index:-1; opacity:.6; pointer-events:none;}
+  .wh-art svg{position:absolute; left:0; right:0; width:100%;}
+  .wh-art .wa-bottom{bottom:0; height:120px;}
+  .wh-art .wa-top{top:0; height:80px; opacity:.6;}
+  .wh-top{display:flex; align-items:center; gap:12px; min-height:84px;}
+  .wh-plant{width:68px; height:84px; flex:none; display:grid; place-items:end center; border-radius:18px; background:radial-gradient(circle at 50% 78%, rgba(255,240,190,.2), rgba(0,0,0,.2));}
+  .wh-plant .plant-badge{width:64px; height:82px; overflow:visible;}
+  .wh-info{flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;}
+  .wh-kicker{font-size:11px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--gold);}
+  .wh-name{font-family:var(--font-display); font-weight:800; font-size:22px; line-height:1.05; color:var(--cream);}
+  .wh-bar{display:block; height:7px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden;}
+  .wh-fill{display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg, var(--seed-light), var(--seed)); transition:width .6s ease;}
+  .wh-sub{font-size:12px; font-weight:700; color:var(--cream-dim);}
+  .wh-rank{position:absolute; top:12px; right:12px; font-size:10.5px;}
+  .world-hero .btn-play{max-width:none; width:100%; padding:14px 20px;}
+  .world-hero .bp-main{font-size:22px;}
+  #screen-home .home-cards{max-width:none;}
+  .home-duo{display:grid; grid-template-columns:.85fr 1.35fr; gap:10px;}
+  .home-ritual.hr-tile{flex-direction:column; align-items:flex-start; gap:6px; max-width:none; padding:10px 12px; border-radius:18px; position:relative; min-height:86px;}
+  .hr-tile .hr-title{font-size:12.5px;}
+  .hr-tile .hr-dots{margin-left:0;}
+  .hr-tile .hr-chest{position:absolute; right:10px; bottom:8px; font-size:22px;}
+  .home-garden.hg-mini{display:flex; flex-direction:row; align-items:center; gap:8px; max-width:none; padding:8px; text-align:left; position:relative; border-radius:18px; min-height:86px;}
+  .hg-mini .hg-scene{width:64px; height:68px; flex:none; border-radius:12px; overflow:hidden; position:relative; background:#0b1a14;}
+  .hg-mini .hg-scene svg{position:absolute; inset:0; width:100%; height:100%;}
+  .hg-mini .hg-scene svg *{animation:none !important;}
+  .hg-mini .hg-info{gap:3px;}
+  .hg-mini .hg-next{font-size:13px; white-space:normal; line-height:1.15; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
+  .hg-mini .hg-title{font-size:9.5px;}
+  .hg-mini .hg-caption{font-size:11px; color:#bfe8ff; font-weight:800;}
+  .hg-mini .hg-badge{top:-8px; right:8px;}
+  .hg-mini .hh-chip.dew{position:absolute; left:6px; top:-9px; font-size:10px; padding:2px 7px;}
+  .hg-mini .hg-badge{top:auto; bottom:-8px; right:8px;}
+  .map-btn{max-width:none; display:flex; justify-content:center; gap:8px;}
+  .map-sub{font-family:var(--font-body); font-size:12px; font-weight:800; color:var(--gold); background:rgba(0,0,0,.25); border-radius:99px; padding:2px 8px;}
+  .map-sub:empty{display:none;}
+  /* Profil : onglets internes */
+  .seg{display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; padding:4px; border-radius:16px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.07); margin:12px 0;}
+  .seg-btn{position:relative; border:none; border-radius:12px; padding:10px 4px; background:none; color:var(--cream-dim); font-family:var(--font-display); font-weight:800; font-size:14px; cursor:pointer; transition:background .2s ease, color .2s ease;}
+  .seg-btn.on{background:linear-gradient(155deg, var(--surface-2), var(--surface)); color:var(--gold); box-shadow:0 4px 12px rgba(0,0,0,.3);}
+  .seg-badge{position:absolute; top:3px; right:8px; min-width:16px; height:16px; padding:0 4px; border-radius:99px; background:#e0484a; color:#fff; font-size:10px; line-height:16px; font-family:var(--font-body);}
+  .seg-panel{display:flex; flex-direction:column; gap:12px;}
+  .seg-panel[hidden]{display:none;}
+  #screen-profile .profile-rank{margin:12px 0 0;}
+  .achievement-card.secret{opacity:.75; border-style:dashed;}
+  .achievement-card.is-new, .item-card.is-new{box-shadow:0 0 0 2px rgba(255,209,102,.7), 0 0 18px rgba(255,209,102,.35);}
+  .item-card.is-new::after{content:"Nouveau"; position:absolute; top:-7px; left:50%; transform:translateX(-50%); font-size:9.5px; font-weight:900; color:#2a1a06; background:var(--gold); border-radius:99px; padding:1px 7px;}
+  .item-card{position:relative;}
+  /* Missions de la semaine et saison */
+  .mission-card, .season-card{width:100%; display:flex; flex-direction:column; gap:10px; padding:12px 14px; border-radius:18px;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18)); border:1px solid var(--tile-line);}
+  .wm-row{display:flex; align-items:center; gap:10px;}
+  .wm-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px; font-size:13px; font-weight:700;}
+  .wm-bar{height:6px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden;}
+  .wm-fill{height:100%; border-radius:99px; background:linear-gradient(90deg, #8fd694, #d6ffb0); transition:width .5s ease;}
+  .wm-row.claimed .wm-text{color:var(--cream-dim); text-decoration:line-through; text-decoration-color:rgba(255,255,255,.3);}
+  .wm-prog{font-size:12px; font-weight:800; color:var(--cream-dim); min-width:44px; text-align:right;}
+  .wm-ok{color:#8fd694; font-weight:900; font-size:18px; min-width:44px; text-align:center;}
+  .wm-claim, .ms-claim{padding:7px 12px; font-size:13px; width:auto; max-width:none; flex:none;}
+  .ss-meta{display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; color:var(--cream-dim);}
+  .ss-meta b{color:var(--gold); font-size:15px;}
+  .ss-bar{height:8px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden;}
+  .ss-fill{height:100%; border-radius:99px; background:linear-gradient(90deg, #c79bf0, #ffd166); transition:width .6s ease;}
+  .ss-track{display:flex; gap:8px; overflow-x:auto; padding:10px 2px 6px; scrollbar-width:none; scroll-snap-type:x proximity; touch-action:pan-x;}
+  .ss-track::-webkit-scrollbar{display:none;}
+  .ss-node{flex:none; scroll-snap-align:center; width:56px; height:72px; border-radius:16px; border:1.5px solid var(--tile-line); background:rgba(0,0,0,.25);
+    color:var(--cream-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; font-family:var(--font-body); cursor:default; padding:0;}
+  .ss-node .ss-t{font-size:10px; font-weight:800; opacity:.8;}
+  .ss-node .ss-ic{font-size:20px; line-height:1.1;}
+  .ss-node .ss-a{font-size:11px; font-weight:900; color:var(--cream);}
+  .ss-node.reached{border-color:rgba(255,209,102,.6); background:linear-gradient(180deg, rgba(255,209,102,.16), rgba(0,0,0,.2));}
+  .ss-node.ready{cursor:pointer; animation:ssReady 1.4s ease-in-out infinite; box-shadow:0 0 14px rgba(255,209,102,.45);}
+  .ss-node.claimed{opacity:.6;}
+  .ss-node.final{width:70px; border-color:rgba(199,155,240,.7); background:linear-gradient(180deg, rgba(199,155,240,.25), rgba(0,0,0,.2));}
+  @keyframes ssReady{0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);}}
+  .ss-claimall{max-width:none;}
+  /* Le Marché */
+  .mk-card{width:100%; display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:20px; margin-bottom:12px;
+    background:linear-gradient(170deg, rgba(255,255,255,.05), rgba(0,0,0,.2)); border:1px solid var(--tile-line); box-shadow:0 10px 24px -14px rgba(0,0,0,.7);}
+  .mk-gift{background:radial-gradient(120% 90% at 0% 0%, rgba(255,209,102,.16), transparent 55%), linear-gradient(170deg, rgba(255,255,255,.05), rgba(0,0,0,.2)); border-color:rgba(255,209,102,.35);}
+  .mk-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+  .mk-head b{font-family:var(--font-display); font-size:17px; color:var(--cream);}
+  .mk-timer{font-size:11.5px; font-weight:800; color:var(--cream-dim); white-space:nowrap;}
+  .mk-sub{font-size:11.5px; font-weight:700; color:var(--cream-dim); margin:0;}
+  .mk-done{font-size:13px; font-weight:800; color:#8fd694; text-align:center; padding:6px 0;}
+  .mk-note{margin-top:0;}
+  .gift-row{display:grid; grid-template-columns:repeat(7, 1fr); gap:5px;}
+  .gift-slot{display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 0 6px; border-radius:12px; background:rgba(0,0,0,.28); border:1.5px solid rgba(255,255,255,.08); min-width:0;}
+  .gs-day{font-size:9.5px; font-weight:800; color:var(--cream-dim);}
+  .gs-icon{font-size:19px; line-height:1.15;}
+  .gs-amt{font-size:11px; font-weight:900; color:var(--cream); min-height:13px;}
+  .gift-slot.done{opacity:.55; border-color:rgba(143,214,148,.45);}
+  .gift-slot.done .gs-icon{color:#8fd694; font-weight:900;}
+  .gift-slot.ready{border-color:var(--gold); background:linear-gradient(180deg, rgba(255,209,102,.26), rgba(0,0,0,.25)); animation:giftReady 1.3s ease-in-out infinite; box-shadow:0 0 16px rgba(255,209,102,.4);}
+  .gift-slot.chest{background:linear-gradient(180deg, rgba(199,155,240,.22), rgba(0,0,0,.25));}
+  @keyframes giftReady{0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-3px) scale(1.05);}}
+  .mk-claim, .mk-buy{max-width:none;}
+  .offer-body{display:flex; align-items:center; gap:12px;}
+  .offer-swatch{width:58px; height:58px; flex:none; display:grid; place-items:center; border-radius:16px; background:radial-gradient(circle, rgba(255,255,255,.08), rgba(0,0,0,.25)); box-shadow:inset 0 0 0 1.5px var(--rc, rgba(255,255,255,.15));}
+  .offer-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; align-items:flex-start;}
+  .offer-text b{font-family:var(--font-display); font-size:16px; color:var(--cream);}
+  .mk-card .rarity-tag{font-size:10px; padding:2px 8px; border-radius:99px; color:#1a1a12; background:var(--rc, #cfcfc5);}
+  .offer-cat{font-size:11.5px; font-weight:700; color:var(--cream-dim);}
+  .offer-price{display:flex; flex-direction:column; align-items:flex-end; gap:1px; font-family:var(--font-display);}
+  .offer-price s{font-size:12px; color:var(--cream-dim); opacity:.8;}
+  .offer-price b{font-size:18px; color:var(--gold);}
+  .offer-off{font-size:10.5px; font-weight:900; color:#1a2a1f; background:#8fd694; border-radius:99px; padding:1px 7px; font-family:var(--font-body);}
+  .pack-items{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;}
+  .pack-item{display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 4px; border-radius:14px; background:rgba(0,0,0,.25); font-size:11px; font-weight:700; text-align:center; color:var(--cream);}
+  .pack-price{flex-direction:row; align-items:center; justify-content:flex-end; gap:8px;}
+  .free-row{display:flex; align-items:center; gap:10px;}
+  .free-ic{font-size:24px; width:34px; text-align:center;}
+  .free-text{flex:1; min-width:0; display:flex; flex-direction:column; font-size:11.5px; font-weight:700; color:var(--cream-dim);}
+  .free-text b{font-size:14px; color:var(--cream); font-family:var(--font-display);}
+  .free-btn{flex:none; align-self:center;}
+  /* Collection */
+  .col-progress, .col-milestones{width:100%; display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:18px; margin-bottom:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18)); border:1px solid var(--tile-line);}
+  .col-milestones{margin-top:12px; margin-bottom:0;}
+  .col-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+  .col-head b{font-family:var(--font-display); font-size:16px;}
+  .col-head span{font-size:12px; font-weight:800; color:var(--gold);}
+  .col-bar{height:8px; border-radius:99px; background:rgba(0,0,0,.35); overflow:hidden;}
+  .col-fill{height:100%; border-radius:99px; background:linear-gradient(90deg, #8fcfe8, #c79bf0, #ffd166); transition:width .6s ease;}
+  .col-cats{display:flex; justify-content:space-between; font-size:12px; font-weight:800; color:var(--cream-dim);}
+  .ms-row{display:flex; align-items:center; gap:10px; font-size:13px; font-weight:800; padding:4px 0;}
+  .ms-n{flex:1;}
+  .ms-r{color:var(--gold);}
+  .ms-ok{color:#8fd694; font-size:18px; min-width:40px; text-align:center;}
+  .ms-left{font-size:12px; color:var(--cream-dim); min-width:40px; text-align:right;}
+  .ms-row.locked{opacity:.6;}
+  /* Des pièces qui volent jusqu'au compteur */
+  .daily-rank{display:inline-block; margin-top:6px; font-size:12.5px; font-weight:800; color:var(--gold);}
+  .fly-icon{position:fixed; z-index:400; font-size:20px; pointer-events:none; margin:-10px 0 0 -10px; animation:flyIcon .85s cubic-bezier(.5,0,.6,1) both;}
+  @keyframes flyIcon{0%{transform:translate(0,0) scale(.6); opacity:0;} 15%{opacity:1; transform:translate(0,-14px) scale(1.15);} 100%{transform:translate(var(--dx),var(--dy)) scale(.7); opacity:.2;}}
+  /* ================= ÉCRAN DE LANCEMENT ================= */
+  #screen-splash{position:relative; padding:0; overflow:hidden; min-height:calc(100vh - env(safe-area-inset-top, 0px)); min-height:calc(100dvh - env(safe-area-inset-top, 0px));}
+  .sp-bg{position:absolute; inset:0;}
+  .sp-bg > svg{position:absolute; inset:0; width:100%; height:100%;}
+  .sp-bg .gp-sky{width:100%; height:100%; aspect-ratio:auto;}
+  .sp-shade{position:absolute; inset:0; background:linear-gradient(180deg, rgba(4,10,16,.45) 0%, rgba(4,10,16,.05) 30%, rgba(4,10,16,.2) 55%, rgba(4,10,16,.88) 100%);}
+  .sp-content{position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:space-between; gap:12px;
+    padding:max(7vh, 34px) 22px calc(26px + env(safe-area-inset-bottom, 0px)); min-height:inherit; text-align:center;}
+  .sp-logo{display:flex; flex-direction:column; align-items:center; gap:6px; animation:spLogo .9s cubic-bezier(.2,1.4,.4,1) both;}
+  .sp-logo .logo-mark{width:72px; height:72px; animation:spMark 1.1s cubic-bezier(.2,1.5,.4,1) .1s both;}
+  .sp-title{font-size:52px; line-height:1; letter-spacing:.5px; text-shadow:0 4px 22px rgba(0,0,0,.7), 0 0 32px rgba(255,209,102,.25);}
+  .sp-tagline{font-size:14px; color:#f2ecd8; text-shadow:0 1px 8px rgba(0,0,0,.85); max-width:300px; animation:spFade .8s ease .5s both;}
+  @keyframes spLogo{from{opacity:0; transform:translateY(-24px) scale(.9);} to{opacity:1; transform:none;}}
+  @keyframes spMark{from{transform:rotate(-20deg) scale(.4);} to{transform:none;}}
+  @keyframes spFade{from{opacity:0;} to{opacity:1;}}
+  .sp-germain{position:relative; width:180px; height:96px; animation:spFade .6s ease .6s both;}
+  .sp-germain svg{position:absolute; left:0; bottom:0; width:72px; height:86px; overflow:visible; animation:spSlide 3.6s cubic-bezier(.5,0,.2,1) .8s infinite;}
+  .sp-light{position:absolute; right:6px; bottom:18px; width:46px; height:46px; border-radius:50%;
+    background:radial-gradient(circle, #fffbe6 0%, #f5e6a8 35%, rgba(245,230,168,0) 72%); animation:breathe 2.2s ease-in-out infinite;}
+  @keyframes spSlide{0%,12%{transform:translateX(0);} 40%,62%{transform:translateX(96px);} 72%{transform:translateX(96px) translateY(-8px) scale(1.06);} 86%,100%{transform:translateX(0);}}
+  .sp-chips{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:360px;}
+  .sp-chip{font-size:12.5px; font-weight:800; color:#fff8e0; padding:6px 12px; border-radius:99px; background:rgba(8,20,16,.62); border:1px solid rgba(255,255,255,.16);
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); animation:spChip .5s cubic-bezier(.2,1.4,.4,1) both;}
+  .sp-chip:nth-child(2){animation-delay:.08s;} .sp-chip:nth-child(3){animation-delay:.16s;} .sp-chip:nth-child(4){animation-delay:.24s;}
+  .sp-chip.fire{border-color:rgba(255,150,80,.55);} .sp-chip.gift{border-color:rgba(255,209,102,.6);} .sp-chip.dew{border-color:rgba(143,216,255,.6);} .sp-chip.ok{color:#a8f0a0;}
+  @keyframes spChip{from{opacity:0; transform:translateY(10px) scale(.9);} to{opacity:1; transform:none;}}
+  .sp-play{max-width:330px; font-size:26px; padding:20px 30px; letter-spacing:1px; animation:spPlay 2s ease-in-out infinite;}
+  .sp-play.pressed{animation:none; transform:scale(.94);}
+  @keyframes spPlay{0%,100%{box-shadow:0 8px 18px -6px rgba(240,168,60,.55), inset 0 1px 0 rgba(255,255,255,.4);} 50%{box-shadow:0 10px 34px -4px rgba(255,190,80,.9), inset 0 1px 0 rgba(255,255,255,.4);}}
+  .sp-hint{font-size:12px; font-weight:700; color:#d8d2bd; text-shadow:0 1px 6px rgba(0,0,0,.8);}
+  body.in-hub .firefly{display:none;}
+  @media (max-height:700px){
+    .sp-title{font-size:42px;} .sp-logo .logo-mark{width:56px; height:56px;} .sp-germain{height:80px;} .sp-play{padding:16px 26px; font-size:22px;}
+    .world-hero{padding:12px; gap:10px;} .wh-top{min-height:70px;} .wh-plant{width:56px; height:70px;} .wh-name{font-size:19px;}
+    .tabbar{height:calc(60px + env(safe-area-inset-bottom, 0px));} .tab{height:60px;} .tab-center .tab-ic{width:50px; height:50px; margin-top:-22px;}
+  }
+  @media (min-width:481px){ .hub{border-left:1px solid rgba(255,255,255,.05); border-right:1px solid rgba(255,255,255,.05);} }
+
 </style>
 </head>
 <body>
@@ -1880,32 +2129,15 @@
 </div>
 <div id="app">
 
-  <!-- ============ HOME ============ -->
-  <section id="screen-home" class="screen active">
-    <div class="home-topbar">
-      <button class="icon-btn" id="btnHelp" aria-label="Comment jouer">📖</button>
-      <button class="icon-btn" id="btnProfile" aria-label="Profil">👤</button>
-      <button class="icon-btn" id="btnCosmetics" aria-label="L'Atelier">🎨</button>
-      <button class="icon-btn" id="btnAchievements" aria-label="Succès">🏆</button>
-      <button class="icon-btn" id="btnSettings" aria-label="Paramètres">⚙</button>
-    </div>
-    <!-- Le Jardin vivant (sections A6/E5) : une fenêtre sur ton jardin, à
-         l'heure qu'il est, avec la météo du jour. Toucher = ouvrir le Jardin. -->
-    <div class="home-hero" id="homeHero">
-      <div class="hh-scene" id="homeGardenScene" aria-hidden="true"></div>
-      <div class="hh-shade" aria-hidden="true"></div>
-      <button class="home-garden hg-v3" id="homeGarden" aria-label="Ouvrir le Jardin">
-        <span class="hg-info">
-          <span class="hg-title" id="homeGardenTitle">Le Jardin</span>
-          <span class="hg-next" id="homeGardenNext">—</span>
-          <span class="hg-bar"><span class="hg-fill" id="homeGardenFill"></span></span>
-          <span class="hg-caption" id="homeGardenCaption">💧 0</span>
-        </span>
-        <span class="hg-badge" id="homeGardenBadge" hidden>Prêt ✨</span>
-      </button>
-      <div class="logo-wrap hh-logo">
-        <div class="hh-title-row">
-      <svg class="logo-mark" viewBox="0 0 64 64" role="img" id="logoMark" aria-label="Logo : une graine qui glisse vers la lumière">
+  <!-- ============ ÉCRAN DE LANCEMENT (navigation, section D3) ============
+       Instantané (aucune attente) : le jardin à l'heure qu'il est en fond,
+       le logo qui s'anime, ce qui attend le joueur, et un gros bouton. -->
+  <section id="screen-splash" class="screen active" aria-label="Écran d'accueil">
+    <div class="sp-bg" id="splashScene" aria-hidden="true"></div>
+    <div class="sp-shade" aria-hidden="true"></div>
+    <div class="sp-content">
+      <div class="sp-logo logo-wrap">
+        <svg class="logo-mark" viewBox="0 0 64 64" role="img" id="logoMark" aria-label="Logo : une graine qui glisse vers la lumière">
         <defs>
           <linearGradient id="lgTile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#31594a"/><stop offset="1" stop-color="#15271f"/></linearGradient>
           <radialGradient id="lgSeed" cx=".35" cy=".3" r=".75"><stop offset="0" style="stop-color:var(--seed-skin-light,#ffcf7a)"/><stop offset=".55" style="stop-color:var(--seed-skin-mid,#f0a83c)"/><stop offset="1" style="stop-color:var(--seed-skin-deep,#c97e1f)"/></radialGradient>
@@ -1921,27 +2153,83 @@
         <circle cx="31" cy="32" r="9.5" fill="url(#lgSeed)"/>
         <ellipse cx="28" cy="28.5" rx="3.4" ry="2.2" fill="#ffffff" opacity=".45"/>
       </svg>
-          <div class="title" id="gameTitle">Seed<span>rift</span></div>
-        </div>
-        <div class="subtitle" id="gameTagline">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
+        <h1 class="title sp-title" id="gameTitle">Seed<span>rift</span></h1>
+        <div class="subtitle sp-tagline" id="gameTagline">Glisse. Réfléchis. Fais fleurir chaque niveau.</div>
       </div>
-      <div class="hh-chips" aria-hidden="true"><span class="hh-chip" id="homeRankChip">🌰 Graine</span><span class="hh-chip dew" id="homeDewChip" hidden>💧</span></div>
+      <div class="sp-germain" id="splashGermain" aria-hidden="true"></div>
+      <div class="sp-chips" id="splashChips"></div>
+      <button class="btn btn-primary sp-play shimmer" id="btnSplashPlay" type="button">▶ JOUER</button>
+      <div class="sp-hint" id="splashHint">Glisse entre les pages, ou touche les onglets en bas.</div>
     </div>
-    <div class="home-stats" id="homeStats">
-      <span id="homeProgress" aria-label="Étoiles">⭐ 0 / 0</span>
-      <span id="homeStreakPill" aria-label="Série quotidienne">🔥 0</span>
-      <span id="homeCoinsPill" aria-label="Coins">🪙 0</span>
+  </section>
+
+  <!-- ============ LE HUB : 5 pages qui glissent + barre d'onglets (section D3) ============
+       Marché ← Collection ← JOUER → Jardin → Profil. On glisse le doigt ou on
+       touche un onglet (zone du pouce). Le hub est masqué pendant une partie :
+       aucun glissement de navigation ne peut gêner le puzzle. -->
+  <div class="hub" id="hub">
+    <div class="hub-viewport" id="hubViewport">
+      <div class="hub-track" id="hubTrack">
+      <!-- ============ LE MARCHÉ (page 1 du hub) ============ -->
+      <section id="screen-market" class="screen hub-page" data-page="market" role="tabpanel" aria-labelledby="tabMarket">
+        <div class="page-head"><h2 class="ph-title">Marché</h2><div class="ph-pills"><span class="ph-pill" id="marketCoinsPill" aria-label="Coins">🪙 0</span></div></div>
+        <div class="mk-card mk-gift" id="mkGift"></div>
+        <div class="mk-card mk-offer" id="mkDaily"></div>
+        <div class="mk-card mk-offer mk-pack" id="mkWeekly"></div>
+        <div class="mk-card mk-free" id="mkFree"></div>
+        <p class="note mk-note">Les pièces se gagnent en jouant ; rien ici ne change ton score, tes étoiles ou tes records.</p>
+      </section>
+
+      <!-- ============ LA COLLECTION / L'ATELIER (page 2 du hub) ============ -->
+      <section id="screen-cosmetics" class="screen hub-page" data-page="cosmetics" role="tabpanel" aria-labelledby="tabCollection">
+        <div class="page-head"><h2 class="ph-title">Collection</h2><div class="ph-pills"><span class="ph-pill atelier-coins" id="cosmeticsCoinsPill" aria-label="Coins">🪙 0</span></div></div>
+        <div class="col-progress" id="colProgress"></div>
+        <!-- Scène d'aperçu : l'objet sélectionné en action (graine qui glisse,
+         traînée, victoire, ou médaillon pour les cadres). Essai avant achat. -->
+    <div class="atelier-stage" id="atelierStage">
+      <div class="stage-scene" id="stageScene" aria-hidden="true"></div>
+      <div class="stage-caption">
+        <span class="rarity-tag" id="stageRarity">Commun</span>
+        <span class="stage-name" id="stageName">—</span>
+      </div>
+      <div class="stage-compare" id="stageCompare"></div>
+      <button class="btn btn-primary atelier-action" id="atelierAction">—</button>
     </div>
-    <button class="home-ritual" id="homeRitual" aria-label="Rituel du jour">
-      <span>🌅 Rituel du jour</span>
-      <span class="hr-dots" id="homeRitualDots"></span>
-      <span class="hr-chest" id="homeRitualChest">🎁</span>
-    </button>
-    <button class="btn btn-primary btn-play shimmer" id="btnContinue" aria-label="Jouer au prochain niveau">
-      <span class="bp-main">▶ JOUER</span>
-      <span class="bp-sub" id="continueLevelName">Niveau 1 · Le Jardin</span>
-    </button>
-    <div class="home-cards">
+    <div class="atelier-tabs" role="tablist" id="atelierTabs"></div>
+    <div class="atelier-grid" id="atelierGrid" role="list"></div>
+        <div class="col-milestones" id="colMilestones"></div>
+      </section>
+
+      <!-- ============ JOUER (page centrale du hub) ============ -->
+      <section id="screen-home" class="screen hub-page" data-page="home" role="tabpanel" aria-labelledby="tabPlay">
+        <div class="page-head play-head">
+          <button class="icon-btn ph-icon" id="btnHelp" type="button" aria-label="Comment jouer">?</button>
+          <div class="home-stats" id="homeStats">
+            <span id="homeProgress" aria-label="Étoiles">⭐ 0 / 0</span>
+            <span id="homeStreakPill" aria-label="Série quotidienne">🔥 0</span>
+            <span id="homeCoinsPill" aria-label="Coins">🪙 0</span>
+          </div>
+          <button class="icon-btn ph-icon" id="btnSettings" type="button" aria-label="Paramètres">⚙</button>
+        </div>
+        <!-- Ton aventure : le monde en cours, sa plante, sa progression, et JOUER. -->
+        <div class="world-hero" id="worldHero">
+          <div class="wh-art" id="worldHeroArt" aria-hidden="true"></div>
+          <div class="wh-top">
+            <div class="wh-plant" id="worldHeroPlant" aria-hidden="true"></div>
+            <div class="wh-info">
+              <span class="wh-kicker" id="worldHeroKicker">Monde 1</span>
+              <span class="wh-name" id="worldHeroName">Le Jardin</span>
+              <span class="wh-bar"><span class="wh-fill" id="worldHeroFill"></span></span>
+              <span class="wh-sub" id="worldHeroSub">—</span>
+            </div>
+            <span class="hh-chip wh-rank" id="homeRankChip">🌰 Graine</span>
+          </div>
+          <button class="btn btn-primary btn-play shimmer" id="btnContinue" aria-label="Jouer au prochain niveau">
+            <span class="bp-main">▶ JOUER</span>
+            <span class="bp-sub" id="continueLevelName">Niveau 1 · Le Jardin</span>
+          </button>
+        </div>
+        <div class="home-cards">
       <button class="home-card" id="btnDaily">
         <span class="hc-icon" id="homeDailyIcon">🌤</span>
         <span class="hc-text"><span class="hc-name">Défi du jour</span><span class="hc-sub" id="homeDailyStatus">—</span></span>
@@ -1953,8 +2241,130 @@
         <span class="hc-badge" id="homeSentierBadge"></span>
       </button>
     </div>
-    <button class="btn btn-ghost" id="btnPlay">🗺 Carte des mondes</button>
+        <div class="home-duo">
+          <button class="home-ritual hr-tile" id="homeRitual" type="button" aria-label="Rituel du jour">
+            <span class="hr-title">🌅 Rituel du jour</span>
+            <span class="hr-dots" id="homeRitualDots"></span>
+            <span class="hr-chest" id="homeRitualChest">🎁</span>
+          </button>
+          <button class="home-garden hg-mini" id="homeGarden" type="button" aria-label="Ouvrir le Jardin">
+            <span class="hg-scene" id="homeGardenScene" aria-hidden="true"></span>
+            <span class="hg-info">
+              <span class="hg-title" id="homeGardenTitle">Le Jardin</span>
+              <span class="hg-next" id="homeGardenNext">—</span>
+              <span class="hg-bar"><span class="hg-fill" id="homeGardenFill"></span></span>
+              <span class="hg-caption" id="homeGardenCaption">💧 0</span>
+            </span>
+            <span class="hg-badge" id="homeGardenBadge" hidden>Prêt ✨</span>
+            <span class="hh-chip dew" id="homeDewChip" hidden>💧</span>
+          </button>
+        </div>
+        <button class="btn btn-secondary map-btn" id="btnPlay" type="button">🗺 Tous les mondes <span class="map-sub" id="mapBtnSub"></span></button>
+      </section>
+
+      <!-- ============ LE JARDIN (page 4 du hub) ============ -->
+  <section id="screen-garden" class="screen hub-page" data-page="garden" role="tabpanel" aria-labelledby="tabGarden">
+    <div class="page-head garden-head-bar"><h2 class="ph-title">Le Jardin</h2><div class="ph-pills"><span class="ph-pill rosee-pill" id="gardenRoseePill" aria-label="Rosée">💧 0</span></div></div>
+    <!-- Le panorama vivant (section E5) : ciel, cinq tableaux qu'on fait
+         défiler, cadre de feuillage, météo et guirlande des 7 derniers défis. -->
+    <div class="gz-stage gp-stage" id="gzStage" data-phase="nuit">
+      <div class="gp-strip" id="gzScene" data-hub-noswipe tabindex="0" role="region" aria-label="Le jardin. Fais glisser ou utilise les flèches pour changer de coin."></div>
+      <div class="gp-garland-wrap" id="gpGarland"></div>
+      <button class="gp-dewchip" id="gpDewChip" type="button" hidden>💧</button>
+      <span class="gp-wchip" id="gpWeatherChip" aria-hidden="true"></span>
+      <button class="gz-nav prev" id="gzPrev" aria-label="Coin précédent">‹</button>
+      <button class="gz-nav next" id="gzNext" aria-label="Coin suivant">›</button>
+      <div class="gz-caption"><span class="gz-zone" id="gzZoneName">Le Portail</span><span class="gp-zdots" id="gpZoneDots" aria-hidden="true"></span><span class="gz-pips" id="gzPips"></span></div>
+    </div>
+    <button class="ad-offer" id="btnDewBonus" type="button" hidden>▶ Seconde rosée : +3 💧 <span class="ad-tag">PUB</span></button>
+    <div class="gz-task" id="gzTask">
+      <span class="gzt-kicker" id="gztKicker">Prochain chantier</span>
+      <span class="gzt-name" id="gztName">—</span>
+      <div class="gzt-row"><div class="gzt-bar"><div class="gzt-fill" id="gztFill"></div></div><span class="gzt-count" id="gztCount">💧 0 / 0</span></div>
+      <button class="btn btn-primary" id="btnRestore">Réveiller</button>
+      <div class="gzt-help" id="gztHelp">La rosée vient des nouvelles étoiles, du défi du jour, du rituel et du Sentier.</div>
+      <button class="ad-offer" id="btnGardenBoost" hidden>▶ Arrosage bonus : +6 💧 <span class="ad-tag">PUB</span></button>
+    </div>
+    <div class="garden-rank" id="gardenRank" role="group"></div>
+    <p id="gardenLive" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+    <div class="garden-sub">Les plantes des mondes</div>
+    <div class="garden-head">
+      <div class="gh-score" id="gardenScore">0 / 32</div>
+      <div class="gh-lbl">floraison</div>
+      <div class="world-bar" style="width:100%;"><div class="world-bar-fill" id="gardenScoreBar" style="width:0%"></div></div>
+      <p class="gh-hint">Un monde, une plante : elle pousse avec tes niveaux et fleurit avec tes étoiles.</p>
+    </div>
+    <div class="garden-plots" id="gardenPlots"></div>
+    <div class="meadow" id="gardenMeadow">
+      <div class="meadow-head"><b>🌼 La prairie du Sentier</b><span id="meadowCount">0 fleur</span></div>
+      <div class="meadow-art" id="meadowArt" aria-hidden="true"></div>
+      <div class="meadow-next" id="meadowNext"></div>
+    </div>
   </section>
+      <!-- ============ PROFIL : missions, succès, statistiques (page 5 du hub) ============ -->
+      <section id="screen-profile" class="screen hub-page" data-page="profile" role="tabpanel" aria-labelledby="tabProfile">
+        <div class="page-head"><h2 class="ph-title">Profil</h2><div class="ph-pills"><span class="ph-pill" id="profileCoinsPill" aria-label="Coins">🪙 0</span></div></div>
+        <div class="profile-seed-preview">
+      <div class="profile-seed-swatch" id="profileSeedSwatch"></div>
+      <div class="profile-seed-text">
+        <div class="profile-seed-name" id="profileSeedName">Graine dorée</div>
+        <div class="profile-seed-sub" id="profileVictoryFxName">🌸 Pétales dorés</div>
+        <div class="profile-seed-sub" id="profileMoveFxName">➖ Aucun effet</div>
+      </div>
+    </div>
+        <div class="garden-rank profile-rank" id="profileRank" role="group"></div>
+        <div class="seg" role="tablist" id="profileSeg" aria-label="Sections du profil">
+          <button class="seg-btn" type="button" role="tab" data-seg="missions" id="segMissions">Missions<span class="seg-badge" hidden></span></button>
+          <button class="seg-btn" type="button" role="tab" data-seg="succes" id="segSucces">Succès<span class="seg-badge" hidden></span></button>
+          <button class="seg-btn" type="button" role="tab" data-seg="stats" id="segStats">Stats</button>
+        </div>
+        <div class="seg-panel" id="panelMissions" role="tabpanel" aria-labelledby="segMissions">
+          <div class="ritual-card" id="gardenRitual"></div>
+          <div class="mission-card" id="weeklyCard"></div>
+          <div class="season-card" id="seasonCard"></div>
+        </div>
+        <div class="seg-panel" id="panelSucces" role="tabpanel" aria-labelledby="segSucces" hidden>
+          <div class="stat-pill" id="achievementsCount" style="align-self:center; margin-bottom:4px;">0 / 6</div>
+          <div class="achievements-list" id="achievementsList"></div>
+        </div>
+        <div class="seg-panel" id="panelStats" role="tabpanel" aria-labelledby="segStats" hidden>
+          <div class="profile-stats-grid">
+      <div class="profile-stat-card"><div class="val" id="profileLevelsCompleted">0/0</div><div class="lbl">Niveaux</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileStreak">0</div><div class="lbl">Série / record</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileWeekly">0/7</div><div class="lbl">Jours cette semaine</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileGarden">0/32</div><div class="lbl">Floraison du Jardin</div></div>
+      <div class="profile-stat-card"><div class="val" id="profileSentier">—</div><div class="lbl">Record du Sentier</div></div>
+    </div>
+          <div class="profile-stats-grid" id="profileStatsGrid">
+      <div class="profile-stat-card"><div class="val" id="statLevelsCompleted">0/0</div><div class="lbl">Niveaux</div></div>
+      <div class="profile-stat-card"><div class="val" id="statStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
+      <div class="profile-stat-card"><div class="val" id="statBestWorld">—</div><div class="lbl">Monde atteint</div></div>
+      <div class="profile-stat-card"><div class="val" id="statStreak">0</div><div class="lbl">Série / record</div></div>
+      <div class="profile-stat-card"><div class="val" id="statBestMoves">—</div><div class="lbl">Record coups</div></div>
+      <div class="profile-stat-card"><div class="val" id="statBestTime">—</div><div class="lbl">Record temps</div></div>
+    </div>
+          <div class="btn-row" style="margin-top:4px; flex-direction:row; gap:10px;">
+      <div class="stat-pill" id="profileAchCountPill">🏆 0 / 0</div>
+      <div class="stat-pill" id="profileCollectionPill">🎨 0 / 0</div>
+    </div>
+        </div>
+      </section>
+
+      </div>
+    </div>
+    <nav class="tabbar" id="tabbar" role="tablist" aria-label="Pages du jeu">
+      <span class="tab-glider" id="tabGlider" aria-hidden="true"></span>
+      <button class="tab" id="tabMarket" type="button" role="tab" data-page="market" aria-controls="screen-market" aria-selected="false" tabindex="-1"><span class="tab-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.5 5 4h14l1.5 5.5"/><path d="M3.5 9.5a2.8 2.8 0 0 0 5.7 0 2.8 2.8 0 0 0 5.6 0 2.8 2.8 0 0 0 5.7 0"/><path d="M5 12.5V20h14v-7.5"/><path d="M10 20v-4.5h4V20"/></svg></span><span class="tab-lbl">Marché</span><span class="tab-badge" hidden></span></button>
+      <button class="tab" id="tabCollection" type="button" role="tab" data-page="cosmetics" aria-controls="screen-cosmetics" aria-selected="false" tabindex="-1"><span class="tab-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10l4 5.5-9 11.5L3 9z"/><path d="M3 9h18"/><path d="m9.5 3.5 2.5 5.5 2.5-5.5"/><path d="m12 9 0 11"/></svg></span><span class="tab-lbl">Collection</span><span class="tab-badge" hidden></span></button>
+      <button class="tab tab-center" id="tabPlay" type="button" role="tab" data-page="home" aria-controls="screen-home" aria-selected="false" tabindex="-1"><span class="tab-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fill" d="M9 6.5c0-.9 1-1.4 1.7-.9l7.1 4.9c.7.5.7 1.5 0 2l-7.1 4.9c-.7.5-1.7 0-1.7-.9z"/></svg></span><span class="tab-lbl">Jouer</span><span class="tab-badge" hidden></span></button>
+      <button class="tab" id="tabGarden" type="button" role="tab" data-page="garden" aria-controls="screen-garden" aria-selected="false" tabindex="-1"><span class="tab-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5V11"/><path d="M12 11c0-4 2.9-6.8 7.6-6.8 0 4.8-2.8 6.8-7.6 6.8Z"/><path d="M12 13.4c0-3.1-2.4-5.4-6.6-5.4 0 3.7 2.3 5.4 6.6 5.4Z"/><path d="M7 20.5h10"/></svg></span><span class="tab-lbl">Jardin</span><span class="tab-badge" hidden></span></button>
+      <button class="tab" id="tabProfile" type="button" role="tab" data-page="profile" aria-controls="screen-profile" aria-selected="false" tabindex="-1"><span class="tab-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c.6-4 3.7-6.5 7.5-6.5s6.9 2.5 7.5 6.5"/><path class="fill" d="m18.3 3.2.7 1.5 1.6.2-1.2 1.1.3 1.6-1.4-.8-1.4.8.3-1.6-1.2-1.1 1.6-.2z"/></svg></span><span class="tab-lbl">Profil</span><span class="tab-badge" hidden></span></button>
+    </nav>
+  </div>
+
+
+  
 
   <!-- ============ LEVEL SELECT ============ -->
   <section id="screen-select" class="screen">
@@ -2124,81 +2534,11 @@
     <p class="note">🔒 Tout reste sur cet appareil : progression, réglages et petit journal de jeu. Rien n'est envoyé, il n'y a aucun serveur.</p>
   </section>
 
-  <!-- ============ SUCCÈS ============ -->
-  <section id="screen-achievements" class="screen">
-    <div class="topbar">
-      <div class="icon-btn" id="btnBackHomeAchievements" aria-label="Retour" role="button" tabindex="0">←</div>
-      <div class="topbar-title">Succès</div>
-      <div style="width:40px;"></div>
-    </div>
-    <div class="profile-stats-grid" id="profileStatsGrid">
-      <div class="profile-stat-card"><div class="val" id="statLevelsCompleted">0/0</div><div class="lbl">Niveaux</div></div>
-      <div class="profile-stat-card"><div class="val" id="statStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
-      <div class="profile-stat-card"><div class="val" id="statBestWorld">—</div><div class="lbl">Monde atteint</div></div>
-      <div class="profile-stat-card"><div class="val" id="statStreak">0</div><div class="lbl">Série / record</div></div>
-      <div class="profile-stat-card"><div class="val" id="statBestMoves">—</div><div class="lbl">Record coups</div></div>
-      <div class="profile-stat-card"><div class="val" id="statBestTime">—</div><div class="lbl">Record temps</div></div>
-    </div>
-    <div class="stat-pill" id="achievementsCount" style="align-self:center; margin-bottom:4px;">0 / 6</div>
-    <div class="achievements-list" id="achievementsList"></div>
-  </section>
+  
 
-  <!-- ============ L'ATELIER (cosmétiques) ============ -->
-  <section id="screen-cosmetics" class="screen">
-    <div class="topbar">
-      <div class="icon-btn" id="btnBackHomeCosmetics" aria-label="Retour" role="button" tabindex="0">←</div>
-      <div class="topbar-title">L'Atelier</div>
-      <div class="atelier-coins" id="cosmeticsCoinsPill" aria-label="Coins">🪙 0</div>
-    </div>
-    <!-- Scène d'aperçu : l'objet sélectionné en action (graine qui glisse,
-         traînée, victoire, ou médaillon pour les cadres). Essai avant achat. -->
-    <div class="atelier-stage" id="atelierStage">
-      <div class="stage-scene" id="stageScene" aria-hidden="true"></div>
-      <div class="stage-caption">
-        <span class="rarity-tag" id="stageRarity">Commun</span>
-        <span class="stage-name" id="stageName">—</span>
-      </div>
-      <div class="stage-compare" id="stageCompare"></div>
-      <button class="btn btn-primary atelier-action" id="atelierAction">—</button>
-    </div>
-    <div class="atelier-tabs" role="tablist" id="atelierTabs"></div>
-    <div class="atelier-grid" id="atelierGrid" role="list"></div>
-  </section>
+  
 
-  <!-- ============ PROFIL ============ -->
-  <section id="screen-profile" class="screen">
-    <div class="topbar">
-      <div class="icon-btn" id="btnBackHomeProfile" aria-label="Retour" role="button" tabindex="0">←</div>
-      <div class="topbar-title">Profil</div>
-      <div style="width:40px;"></div>
-    </div>
-    <div class="profile-seed-preview">
-      <div class="profile-seed-swatch" id="profileSeedSwatch"></div>
-      <div class="profile-seed-text">
-        <div class="profile-seed-name" id="profileSeedName">Graine dorée</div>
-        <div class="profile-seed-sub" id="profileVictoryFxName">🌸 Pétales dorés</div>
-        <div class="profile-seed-sub" id="profileMoveFxName">➖ Aucun effet</div>
-      </div>
-    </div>
-    <div class="garden-rank profile-rank" id="profileRank" role="group"></div>
-    <div class="profile-stats-grid">
-      <div class="profile-stat-card"><div class="val" id="profileLevelsCompleted">0/0</div><div class="lbl">Niveaux</div></div>
-      <div class="profile-stat-card"><div class="val" id="profileStarsTotal">0/0</div><div class="lbl">Étoiles</div></div>
-      <div class="profile-stat-card"><div class="val" id="profileStreak">0</div><div class="lbl">Série / record</div></div>
-      <div class="profile-stat-card"><div class="val" id="profileWeekly">0/7</div><div class="lbl">Jours cette semaine</div></div>
-      <div class="profile-stat-card"><div class="val" id="profileGarden">0/32</div><div class="lbl">Floraison du Jardin</div></div>
-      <div class="profile-stat-card"><div class="val" id="profileSentier">—</div><div class="lbl">Record du Sentier</div></div>
-    </div>
-    <div class="btn-row" style="margin-top:4px; flex-direction:row; gap:10px;">
-      <div class="stat-pill" id="profileCoinsPill">🪙 0</div>
-      <div class="stat-pill" id="profileAchCountPill">🏆 0 / 0</div>
-      <div class="stat-pill" id="profileCollectionPill">🎨 0 / 0</div>
-    </div>
-    <div class="btn-row" style="margin-top:16px;">
-      <button class="btn btn-secondary" id="btnProfileToAchievements">🏆 Succès</button>
-      <button class="btn btn-secondary" id="btnProfileToCosmetics">🎨 L'Atelier</button>
-    </div>
-  </section>
+  
 
   <!-- ============ AIDE / COMMENT JOUER ============ -->
   <section id="screen-help" class="screen">
@@ -2211,50 +2551,7 @@
     <button class="btn btn-secondary tuto-replay" id="btnTutoReplayHelp">🌱 Revoir le tutoriel avec Germain</button>
   </section>
 
-  <!-- ============ LE JARDIN (méta-progression visuelle) ============ -->
-  <section id="screen-garden" class="screen">
-    <div class="topbar">
-      <div class="icon-btn" id="btnBackHomeGarden" aria-label="Retour" role="button" tabindex="0">←</div>
-      <div class="topbar-title">Le Jardin</div>
-      <div class="rosee-pill" id="gardenRoseePill" aria-label="Rosée">💧 0</div>
-    </div>
-    <!-- Le panorama vivant (section E5) : ciel, cinq tableaux qu'on fait
-         défiler, cadre de feuillage, météo et guirlande des 7 derniers défis. -->
-    <div class="gz-stage gp-stage" id="gzStage" data-phase="nuit">
-      <div class="gp-strip" id="gzScene" tabindex="0" role="region" aria-label="Le jardin. Fais glisser ou utilise les flèches pour changer de coin."></div>
-      <div class="gp-garland-wrap" id="gpGarland"></div>
-      <button class="gp-dewchip" id="gpDewChip" type="button" hidden>💧</button>
-      <span class="gp-wchip" id="gpWeatherChip" aria-hidden="true"></span>
-      <button class="gz-nav prev" id="gzPrev" aria-label="Coin précédent">‹</button>
-      <button class="gz-nav next" id="gzNext" aria-label="Coin suivant">›</button>
-      <div class="gz-caption"><span class="gz-zone" id="gzZoneName">Le Portail</span><span class="gp-zdots" id="gpZoneDots" aria-hidden="true"></span><span class="gz-pips" id="gzPips"></span></div>
-    </div>
-    <button class="ad-offer" id="btnDewBonus" type="button" hidden>▶ Seconde rosée : +3 💧 <span class="ad-tag">PUB</span></button>
-    <div class="gz-task" id="gzTask">
-      <span class="gzt-kicker" id="gztKicker">Prochain chantier</span>
-      <span class="gzt-name" id="gztName">—</span>
-      <div class="gzt-row"><div class="gzt-bar"><div class="gzt-fill" id="gztFill"></div></div><span class="gzt-count" id="gztCount">💧 0 / 0</span></div>
-      <button class="btn btn-primary" id="btnRestore">Réveiller</button>
-      <div class="gzt-help" id="gztHelp">La rosée vient des nouvelles étoiles, du défi du jour, du rituel et du Sentier.</div>
-      <button class="ad-offer" id="btnGardenBoost" hidden>▶ Arrosage bonus : +6 💧 <span class="ad-tag">PUB</span></button>
-    </div>
-    <div class="garden-rank" id="gardenRank" role="group"></div>
-    <div class="ritual-card" id="gardenRitual"></div>
-    <p id="gardenLive" class="sr-only" aria-live="polite" aria-atomic="true"></p>
-    <div class="garden-sub">Les plantes des mondes</div>
-    <div class="garden-head">
-      <div class="gh-score" id="gardenScore">0 / 32</div>
-      <div class="gh-lbl">floraison</div>
-      <div class="world-bar" style="width:100%;"><div class="world-bar-fill" id="gardenScoreBar" style="width:0%"></div></div>
-      <p class="gh-hint">Un monde, une plante : elle pousse avec tes niveaux et fleurit avec tes étoiles.</p>
-    </div>
-    <div class="garden-plots" id="gardenPlots"></div>
-    <div class="meadow" id="gardenMeadow">
-      <div class="meadow-head"><b>🌼 La prairie du Sentier</b><span id="meadowCount">0 fleur</span></div>
-      <div class="meadow-art" id="meadowArt" aria-hidden="true"></div>
-      <div class="meadow-next" id="meadowNext"></div>
-    </div>
-  </section>
+  
 
   <!-- ============ LE SENTIER (mode infini de maîtrise) ============ -->
   <section id="screen-sentier" class="screen">
@@ -3477,7 +3774,9 @@ const AD_PLACEMENTS = {
   ritual_chest_bonus: { cap:1 },  // second coffre du rituel
   sentier_double:     { cap:2 },  // doubler les coins d'une partie du Sentier
   streak_repair:      { cap:1 },  // rattrapage de série hors délai gratuit (voir streakRepairStatus)
-  dew_bonus:          { cap:1 }   // une seconde rosée du matin (+3 gouttes)
+  dew_bonus:          { cap:1 },  // une seconde rosée du matin (+3 gouttes)
+  gift_double:        { cap:1 },  // doubler le cadeau du jour (Marché)
+  market_coins:       { cap:2 }   // pièces gratuites (Marché)
 };
 const AD_DAILY_CAP = 8;
 const AD_MIN_INTERVAL_MS = 20000;
@@ -3609,6 +3908,13 @@ const COACH_LINES = {
     tip_repair:      "Ta série s'est arrêtée hier ? Rejoue ce défi pour la sauver.",
     tip_garland:     "Chaque défi du jour réussi allume une lanterne de la guirlande.",
     welcome_back:    "Te revoilà ! Le jardin t'a gardé un peu de rosée.",
+    // Navigation par pages (D3) et pages du hub : une aide chacune, une fois.
+    tip_nav:              "Glisse pour changer de page, ou touche les onglets en bas.",
+    tip_page_market:      "Le Marché : un cadeau chaque jour et des offres en pièces.",
+    tip_page_collection:  "Ta collection : essaie chaque objet ici avant de l'acheter.",
+    tip_page_garden:      "Ton jardin ! La rosée gagnée en jouant le réveille.",
+    tip_page_profile:     "Tes missions, ta saison et tes succès sont rangés ici.",
+    news_market:          "Nouveau : le Marché, avec un cadeau chaque jour.",
     btn_go:    "C'est parti !",
     btn_next:  "Suivant",
     btn_skip:  "Passer",
@@ -3875,6 +4181,223 @@ function sanitizeTips(raw){
   return { seen };
 }
 
+/* =========================================================
+   A7. LE HUB : CADEAU DU JOUR, MISSIONS DE LA SEMAINE, SAISON, MARCHÉ,
+   COLLECTION, PASTILLES — LOGIQUE PURE (testée par test-logic.js)
+   Toutes les clés de temps sont UTC : jour 'AAAAMMJJ', semaine = son
+   lundi 'AAAAMMJJ', saison = mois 'AAAAMM'. Rien n'est punitif : un jour
+   manqué ne fait rien perdre (le calendrier attend le joueur).
+========================================================= */
+// Lundi (UTC) de la semaine d'un jour 'AAAAMMJJ'.
+function weekKeyFor(dayKey){
+  const ms = dayKeyToUtcMs(dayKey);
+  if(!Number.isFinite(ms)) return '';
+  const d = new Date(ms);
+  const back = (d.getUTCDay() + 6) % 7;
+  const m = new Date(ms - back * 86400000);
+  return `${m.getUTCFullYear()}${String(m.getUTCMonth()+1).padStart(2,'0')}${String(m.getUTCDate()).padStart(2,'0')}`;
+}
+function seasonKeyFor(dayKey){ return /^\d{8}$/.test(String(dayKey||'')) ? String(dayKey).slice(0, 6) : ''; }
+const okDay = v=> (typeof v==='string' && /^\d{8}$/.test(v)) ? v : '';
+
+// ---- Cadeau du jour : un calendrier de 7 cadeaux, qui attend le joueur ----
+// Un jour manqué ne remet rien à zéro : on avance d'une case à chaque visite.
+const DAILY_GIFTS = [
+  { coins:15 }, { rosee:3 }, { coins:25 }, { rosee:5 }, { coins:35 }, { freeze:1 }, { coins:50, rosee:8, chest:true }
+];
+function sanitizeGift(raw){
+  const r = (raw && typeof raw==='object' && !Array.isArray(raw)) ? raw : {};
+  return { step: safeInt(r.step, 0, DAILY_GIFTS.length - 1, 0), lastDay: okDay(r.lastDay),
+    total: safeInt(r.total, 0, 1e6, 0), cycles: safeInt(r.cycles, 0, 1e5, 0), doubled: okDay(r.doubled) };
+}
+function giftStatus(save, dayKey){
+  const s = sanitizeGift(save);
+  // Disponible une fois par jour UTC ; une date « future » (horloge reculée) ne rouvre rien.
+  const available = !s.lastDay || s.lastDay < dayKey;
+  return { available, step: s.step, gift: DAILY_GIFTS[s.step], claimedToday: s.lastDay === dayKey, total: s.total };
+}
+function giftClaim(save, dayKey){
+  const s = sanitizeGift(save);
+  const st = giftStatus(s, dayKey);
+  if(!st.available) return { ok:false, save:s };
+  const gift = DAILY_GIFTS[s.step];
+  const out = Object.assign({}, s, { step: (s.step + 1) % DAILY_GIFTS.length, lastDay: dayKey, total: s.total + 1,
+    cycles: s.cycles + (s.step === DAILY_GIFTS.length - 1 ? 1 : 0) });
+  return { ok:true, gift, index: s.step, save: out };
+}
+
+// ---- Missions de la semaine : 4 objectifs, une récompense chacun, un coffre ----
+const WEEKLY_POOL = [
+  { id:'w_daily5',    text:'Réussis 5 défis du jour',        target:5,  on:e=> e.type==='daily_win' },
+  { id:'w_stars15',   text:'Gagne 15 nouvelles étoiles',     target:15, on:e=> e.type==='level_win' && (e.newStars||0) > 0, inc:e=> e.newStars },
+  { id:'w_perfect10', text:'Trouve 10 solutions parfaites',  target:10, on:e=> (e.type==='level_win' || e.type==='daily_win' || e.type==='sentier_board') && !!e.perfect },
+  { id:'w_garden3',   text:'Réveille 3 coins du jardin',     target:3,  on:e=> e.type==='garden_restore', needs:'gardenNext' },
+  { id:'w_dew12',     text:'Cueille 12 gouttes de rosée',    target:12, on:e=> e.type==='dew' },
+  { id:'w_sentier12', text:'Résous 12 plateaux du Sentier',  target:12, on:e=> e.type==='sentier_board', needs:'sentier' },
+  { id:'w_levels8',   text:'Termine 8 niveaux',              target:8,  on:e=> e.type==='level_win' },
+  { id:'w_chest4',    text:'Ouvre 4 coffres du rituel',      target:4,  on:e=> e.type==='ritual_chest' }
+];
+const WEEKLY_COUNT = 4;
+const WEEKLY_REWARD = { coins:20, chestCoins:60, chestRosee:10 };
+function weeklyMission(id){ return WEEKLY_POOL.find(m=> m.id===id) || null; }
+function weeklyMissionsFor(weekKey, ctx){
+  ctx = ctx || {};
+  const rng = makeRng(hashSeed('semaine:' + weekKey));
+  const pool = WEEKLY_POOL.filter(m=> !m.needs || ctx[m.needs]);
+  const picks = [];
+  while(picks.length < WEEKLY_COUNT && pool.length) picks.push(pool.splice(Math.floor(rng() * pool.length), 1)[0].id);
+  return picks;
+}
+function sanitizeWeekly(raw, weekKey, ctx){
+  const r = raw && typeof raw==='object' && !Array.isArray(raw) ? raw : null;
+  const fresh = ()=>{ const ids = weeklyMissionsFor(weekKey, ctx); return { week:weekKey, ids, prog: ids.map(()=> 0), claimed: ids.map(()=> false), chest:false }; };
+  if(!r || r.week !== weekKey || !Array.isArray(r.ids) || !r.ids.length || !r.ids.every(id=> weeklyMission(id)) ||
+     !Array.isArray(r.prog) || r.prog.length !== r.ids.length) return fresh();
+  return { week:weekKey, ids:r.ids.slice(),
+    prog: r.prog.map((v, i)=> safeInt(v, 0, weeklyMission(r.ids[i]).target, 0)),
+    claimed: r.ids.map((_, i)=> !!(Array.isArray(r.claimed) && r.claimed[i])), chest: !!r.chest };
+}
+function weeklyApply(w, event){
+  const out = { week:w.week, ids:w.ids.slice(), prog:w.prog.slice(), claimed:w.claimed.slice(), chest:w.chest };
+  const completed = [];
+  out.ids.forEach((id, i)=>{
+    const m = weeklyMission(id);
+    if(!m || out.prog[i] >= m.target || !m.on(event||{})) return;
+    const inc = m.inc ? safeInt(m.inc(event), 0, 1e4, 0) : 1;
+    if(inc <= 0) return;
+    out.prog[i] = Math.min(m.target, out.prog[i] + inc);
+    if(out.prog[i] >= m.target) completed.push(i);
+  });
+  return { w:out, completed };
+}
+function weeklyClaimable(w){ return w.ids.map((id, i)=> i).filter(i=> !w.claimed[i] && w.prog[i] >= weeklyMission(w.ids[i]).target); }
+function weeklyClaim(w, i){
+  if(!weeklyClaimable(w).includes(i)) return { ok:false, w };
+  const out = Object.assign({}, w, { claimed: w.claimed.map((c, k)=> c || k===i) });
+  return { ok:true, w:out };
+}
+function weeklyChestReady(w){ return !w.chest && w.claimed.length > 0 && w.claimed.every(Boolean); }
+
+// ---- La saison : un pass de progression GRATUIT, un par mois (UTC) ----
+// L'XP vient de ce que le joueur fait déjà ; aucune récompense ne s'achète.
+const SEASON_TIERS = 20;
+const SEASON_XP_PER_TIER = 60;
+const SEASON_XP = { level_win:4, new_star:2, daily_win:15, ritual_mission:10, ritual_chest:15, weekly_mission:30, weekly_chest:40, garden_restore:8, sentier_perfect:2, dew:1, gift:5 };
+function seasonReward(tier){
+  const t = safeInt(tier, 1, SEASON_TIERS, 1);
+  if(t === SEASON_TIERS) return { coins:120, rosee:15, final:true };
+  if(t === 10) return { freeze:1, coins:20 };
+  return t % 2 ? { coins: 10 + t * 2 } : { rosee: 2 + Math.floor(t / 2) };
+}
+function sanitizeSeason(raw, seasonKey){
+  const r = raw && typeof raw==='object' && !Array.isArray(raw) ? raw : {};
+  const claimed = Array.isArray(r.claimed) ? Array.from(new Set(r.claimed.map(v=> safeInt(v, 0, SEASON_TIERS, 0)).filter(v=> v > 0))).sort((a, b)=> a - b) : [];
+  return { season: /^\d{6}$/.test(String(r.season||'')) ? String(r.season) : seasonKey,
+    xp: safeInt(r.xp, 0, 1e7, 0), claimed, done: safeInt(r.done, 0, 1e4, 0) };
+}
+function seasonTier(xp){ return Math.min(SEASON_TIERS, Math.floor(safeInt(xp, 0, 1e7, 0) / SEASON_XP_PER_TIER)); }
+function seasonClaimable(save){
+  const s = sanitizeSeason(save, save && save.season);
+  const out = [];
+  for(let t = 1; t <= seasonTier(s.xp); t++) if(!s.claimed.includes(t)) out.push(t);
+  return out;
+}
+// Nouveau mois : ce qui était atteint mais pas récupéré est rendu
+// (« carried ») ; on ne perd jamais une récompense méritée.
+function seasonRoll(save, seasonKey){
+  const s = sanitizeSeason(save, seasonKey);
+  if(s.season === seasonKey) return { save:s, carried:[] };
+  const carried = seasonClaimable(s).map(seasonReward);
+  const completed = seasonTier(s.xp) >= SEASON_TIERS ? 1 : 0;
+  return { save:{ season:seasonKey, xp:0, claimed:[], done: s.done + completed }, carried };
+}
+function seasonAddXP(save, amount){
+  const s = sanitizeSeason(save, save && save.season);
+  const before = seasonTier(s.xp);
+  const out = Object.assign({}, s, { xp: s.xp + safeInt(amount, 0, 1e5, 0) });
+  return { save:out, tierUp: seasonTier(out.xp) > before, tier: seasonTier(out.xp) };
+}
+function seasonClaim(save, tier){
+  const s = sanitizeSeason(save, save && save.season);
+  if(!seasonClaimable(s).includes(tier)) return { ok:false, save:s };
+  return { ok:true, reward: seasonReward(tier), save: Object.assign({}, s, { claimed: s.claimed.concat([tier]).sort((a, b)=> a - b) }) };
+}
+function seasonDaysLeft(dayKey){
+  const ms = dayKeyToUtcMs(dayKey);
+  if(!Number.isFinite(ms)) return 0;
+  const d = new Date(ms);
+  const next = Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+  return Math.round((next - ms) / 86400000);
+}
+
+// ---- Le Marché : une offre du jour, un lot de la semaine (en pièces) ----
+// catalog : [{ cat, id, price }] (objets achetables) ; owned : Set('cat:id').
+const MARKET_DISCOUNT = { daily:0.30, weekly:0.25 };
+function marketDailyOffer(dayKey, catalog, owned){
+  const free = (catalog||[]).filter(it=> it.price > 0 && !owned.has(it.cat + ':' + it.id));
+  if(!free.length) return null;
+  const rng = makeRng(hashSeed('offre:' + dayKey));
+  const it = free[Math.floor(rng() * free.length)];
+  return { cat:it.cat, id:it.id, base:it.price, price: Math.max(1, Math.round(it.price * (1 - MARKET_DISCOUNT.daily))) };
+}
+function marketWeeklyPack(weekKey, catalog, owned){
+  const free = (catalog||[]).filter(it=> it.price > 0 && !owned.has(it.cat + ':' + it.id));
+  if(free.length < 2) return null;
+  const rng = makeRng(hashSeed('lot:' + weekKey));
+  const pool = free.slice(), items = [];
+  // Des catégories variées d'abord : un lot qui fait découvrir.
+  while(items.length < 3 && pool.length){
+    const fresh = pool.filter(it=> !items.some(x=> x.cat===it.cat));
+    const from = fresh.length ? fresh : pool;
+    const it = from[Math.floor(rng() * from.length)];
+    items.push(it); pool.splice(pool.indexOf(it), 1);
+  }
+  const base = items.reduce((a, it)=> a + it.price, 0);
+  return { items: items.map(it=> ({ cat:it.cat, id:it.id, price:it.price })), base, price: Math.max(1, Math.round(base * (1 - MARKET_DISCOUNT.weekly))) };
+}
+function sanitizeMarket(raw){
+  const r = raw && typeof raw==='object' && !Array.isArray(raw) ? raw : {};
+  return { dailyBought: okDay(r.dailyBought), packBought: okDay(r.packBought), seenDay: okDay(r.seenDay) };
+}
+
+// ---- Collection : paliers (un cadeau tous les 5 objets) ----
+const COLLECTION_MILESTONES = [ { n:5, coins:20 }, { n:10, coins:40 }, { n:15, coins:60 }, { n:20, coins:80 }, { n:25, coins:120 } ];
+function collectionMilestones(owned, claimed){
+  const c = Array.isArray(claimed) ? claimed : [];
+  return COLLECTION_MILESTONES.map(m=> ({ n:m.n, coins:m.coins, state: c.includes(m.n) ? 'claimed' : owned >= m.n ? 'ready' : 'locked' }));
+}
+// Navigation : ce qui a déjà été vu (nouveaux objets, succès, offre du jour).
+function sanitizeNav(raw){
+  const r = raw && typeof raw==='object' && !Array.isArray(raw) ? raw : {};
+  const ids = v=> Array.isArray(v) ? Array.from(new Set(v.filter(x=> typeof x==='string' && x.length < 60))).slice(0, 400) : [];
+  return { seenItems: ids(r.seenItems), seenAch: ids(r.seenAch), colClaimed: Array.isArray(r.colClaimed) ? r.colClaimed.map(v=> safeInt(v, 0, 999, 0)).filter(v=> v > 0) : [],
+    dewDays: safeInt(r.dewDays, 0, 1e5, 0), init: !!r.init };
+}
+
+// ---- Pastilles de la barre d'onglets ----
+// Un chiffre = des choses à récupérer ; un point (home) = le défi du jour à faire.
+function navBadgeCounts(c){
+  c = c || {};
+  const n = v=> safeInt(v, 0, 999, 0);
+  return {
+    market: (c.giftAvailable ? 1 : 0) + (c.dailyOfferNew ? 1 : 0),
+    cosmetics: n(c.newItems) + n(c.collectionReady),
+    home: c.dailyTodo ? 1 : 0,
+    garden: n(c.dewLeft) + (c.restoreReady ? 1 : 0),
+    profile: (c.ritualChestReady ? 1 : 0) + n(c.weeklyClaimable) + (c.weeklyChestReady ? 1 : 0) + n(c.seasonClaimable) + n(c.newAchievements)
+  };
+}
+
+// ---- Défi du jour : où se place ce résultat parmi tes défis récents ? ----
+// Comparaison avec soi-même uniquement (audit §9, sans serveur, sans faux joueurs).
+function dailyPersonalRank(history, dayKey){
+  const h = (Array.isArray(history) ? history : []).filter(e=> e && typeof e.date==='string' && Number.isFinite(e.stars) && Number.isFinite(e.time));
+  const me = h.find(e=> e.date===dayKey);
+  if(!me || h.length < 3) return null;
+  const better = h.filter(e=> e.date!==dayKey && (e.stars > me.stars || (e.stars===me.stars && e.time < me.time))).length;
+  return { rank: better + 1, of: h.length };
+}
+
 // Point d'entrée console pour les développeurs uniquement.
 // Dans les outils de développement du navigateur, taper :
 //   BCD_DEV.validateLevels()               → valide tous les niveaux de LEVELS
@@ -3997,6 +4520,16 @@ window.BCD_DEV = {
   setRosee(n){ const g = loadGarden(); g.rosee = safeInt(n, 0, 1e7, 0); saveGarden(g); refreshHome(); return g.rosee; },
   setGardenDone(n){ const g = loadGarden(); g.done = safeInt(n, 0, GARDEN_TOTAL_TASKS, 0); saveGarden(g); refreshHome(); return g.done; },
   getRitual(){ return loadRitual(); },
+  // Hub (A7/B6) : cadeau du jour, missions de la semaine, saison, marché, pastilles.
+  getGift(){ return loadGift(); },
+  getWeekly(){ return loadWeekly(); },
+  getSeason(){ return loadSeason(); },
+  getMarket(){ return loadMarket(); },
+  getNav(){ return loadNav(); },
+  navBadges(){ return updateNavBadges(); },
+  hubPage(){ return document.getElementById('hub').classList.contains('on') ? Hub.current() : null; },
+  addSeasonXP(n){ const r = seasonAddXP(loadSeason(), safeInt(n, 0, 1e5, 0)); saveSeason(r.save); updateNavBadges(); return r.save; },
+  grantCosmetic(cat, id){ const ok = grantCosmetic(cat, id); updateNavBadges(); return ok; },
   getAdState(){ return loadAdState(); },
   resetAdCaps(){ safeStorage.remove(ADS_KEY); },
   // QA : solution optimale depuis la position COURANTE (tableau de
@@ -4063,7 +4596,7 @@ window.BCD_DEV = {
    B. ÉTAT GLOBAL
 ========================================================= */
 let state = {
-  screen:'home',
+  screen:'splash',
   levelIndex:0,
   isDaily:false,
   cols:5, rows:5,
@@ -4202,7 +4735,13 @@ const SCHEMA_MIGRATIONS = {
   ads:          { current:1, migrations:{} },
   retention:    { current:1, migrations:{} },
   tutorial:     { current:1, migrations:{} }, // tutoriel de Germain (section A5/T)
-  tips:         { current:1, migrations:{} }  // aides contextuelles vues une fois (A6, bcd_tips_v1)
+  tips:         { current:1, migrations:{} }, // aides contextuelles vues une fois (A6, bcd_tips_v1)
+  // Hub (A7/B6) : cadeau du jour, missions de la semaine, saison, marché, navigation.
+  gift:         { current:1, migrations:{} },
+  weekly:       { current:1, migrations:{} },
+  season:       { current:1, migrations:{} },
+  market:       { current:1, migrations:{} },
+  nav:          { current:1, migrations:{} }
 };
 
 // Lit une donnée versionnée depuis safeStorage et applique en cascade les
@@ -4576,11 +5115,14 @@ function saveRitual(rit){ saveVersioned(RITUAL_KEY, 'ritual', rit); }
 // Un événement de jeu fait avancer le rituel. Chaque mission accomplie
 // crédite sa rosée tout de suite. Renvoie les missions accomplies.
 function ritualEvent(event){
+  // Le même événement fait aussi avancer les missions de la semaine et la saison (B6).
+  hubGameEvent(event);
   try{
     const { rit, completed } = ritualApply(loadRitual(), event);
     saveRitual(rit);
     completed.forEach(i=>{
       addRosee(ROSEE.mission, 'mission');
+      seasonGain('ritual_mission');
       Analytics.track('ritual_mission', { id:rit.ids[i] });
     });
     return completed.map(i=> ({ id:rit.ids[i], text:ritualMission(rit.ids[i]).text, allDone: ritualAllDone(rit) && !rit.chest }));
@@ -4595,6 +5137,8 @@ function claimRitualChest(){
   addRosee(ROSEE.chest, 'chest');
   addCoins(ROSEE.chestCoins);
   Analytics.track('ritual_chest', null);
+  weeklyEvent({ type:'ritual_chest' });
+  seasonGain('ritual_chest');
   return { rosee:ROSEE.chest, coins:ROSEE.chestCoins };
 }
 function loadAdState(){ return sanitizeAdState(loadVersioned(ADS_KEY, 'ads', null), todayKey()); }
@@ -4603,6 +5147,129 @@ function retentionTrack(field, n){
   try{ saveVersioned(RETENTION_KEY, 'retention', retentionBump(loadVersioned(RETENTION_KEY, 'retention', null), todayKey(), field, n)); }catch(e){}
 }
 function loadRetention(){ return sanitizeRetention(loadVersioned(RETENTION_KEY, 'retention', null)); }
+
+/* ---------------------------------------------------------
+   B6. HUB — STOCKAGE (logique pure en A7)
+   bcd_gift_v1 (cadeau du jour), bcd_weekly_v1 (missions de la semaine),
+   bcd_season_v1 (saison), bcd_market_v1 (achats du marché),
+   bcd_nav_v1 (objets/succès déjà vus, paliers de collection).
+   Toutes enregistrées dans SCHEMA_MIGRATIONS, lues via sanitize*.
+--------------------------------------------------------- */
+const GIFT_KEY = 'bcd_gift_v1', WEEKLY_KEY = 'bcd_weekly_v1', SEASON_KEY = 'bcd_season_v1', MARKET_KEY = 'bcd_market_v1', NAV_KEY = 'bcd_nav_v1';
+function loadGift(){ return sanitizeGift(loadVersioned(GIFT_KEY, 'gift', null)); }
+function saveGift(g){ saveVersioned(GIFT_KEY, 'gift', sanitizeGift(g)); }
+// Crédite un lot (pièces, rosée, gel) ; renvoie les puces à afficher.
+function grantBundle(b, source){
+  const out = [];
+  if(!b) return out;
+  if(b.coins){ addCoins(b.coins); out.push({ icon:'🪙', text:'+' + b.coins, kind:'coins' }); }
+  if(b.rosee){ addRosee(b.rosee, source || 'cadeau'); out.push({ icon:'💧', text:'+' + b.rosee + ' rosée', kind:'rosee' }); }
+  if(b.freeze){ saveStreakFreezes(loadStreakFreezes() + b.freeze); out.push({ icon:'🧊', text:'+' + b.freeze + ' gel de série', kind:'streak' }); }
+  return out;
+}
+function claimDailyGift(){
+  const r = giftClaim(loadGift(), todayKey());
+  if(!r.ok) return null;
+  saveGift(r.save);
+  const chips = grantBundle(r.gift, 'cadeau');
+  seasonGain('gift');
+  Analytics.track('gift_claim', { day:r.index + 1 });
+  return { gift:r.gift, index:r.index, chips };
+}
+function loadWeekly(){
+  const wk = weekKeyFor(todayKey());
+  const raw = loadVersioned(WEEKLY_KEY, 'weekly', null);
+  const w = sanitizeWeekly(raw, wk, ritualCtx());
+  if(!raw || raw.week !== wk) saveVersioned(WEEKLY_KEY, 'weekly', w); // fige les missions de la semaine
+  return w;
+}
+function saveWeekly(w){ saveVersioned(WEEKLY_KEY, 'weekly', w); }
+function weeklyEvent(event){
+  try{
+    const { w, completed } = weeklyApply(loadWeekly(), event);
+    saveWeekly(w);
+    completed.forEach(i=> Analytics.track('weekly_mission_done', { id:w.ids[i] }));
+    if(completed.length) updateNavBadges();
+    return completed.map(i=> ({ id:w.ids[i], text:weeklyMission(w.ids[i]).text }));
+  }catch(e){ return []; }
+}
+function claimWeeklyMission(i){
+  const r = weeklyClaim(loadWeekly(), i);
+  if(!r.ok) return false;
+  saveWeekly(r.w);
+  addCoins(WEEKLY_REWARD.coins);
+  seasonGain('weekly_mission');
+  Analytics.track('weekly_mission_claim', { id:r.w.ids[i] });
+  return true;
+}
+function claimWeeklyChest(){
+  const w = loadWeekly();
+  if(!weeklyChestReady(w)) return null;
+  w.chest = true; saveWeekly(w);
+  addCoins(WEEKLY_REWARD.chestCoins);
+  addRosee(WEEKLY_REWARD.chestRosee, 'weekly');
+  seasonGain('weekly_chest');
+  const nav = loadNav(); nav.weeklyChests = (nav.weeklyChests||0) + 1; saveNav(nav);
+  Analytics.track('weekly_chest_open', { week:w.week });
+  checkAchievements({ inline:false });
+  return { coins:WEEKLY_REWARD.chestCoins, rosee:WEEKLY_REWARD.chestRosee };
+}
+// Saison : un nouveau mois remet l'XP à zéro, après avoir rendu les paliers
+// atteints mais pas récupérés (rien de mérité ne se perd).
+let seasonCarriedToast = null;
+function loadSeason(){
+  const key = seasonKeyFor(todayKey());
+  const raw = loadVersioned(SEASON_KEY, 'season', null);
+  const r = seasonRoll(raw ? sanitizeSeason(raw, key) : sanitizeSeason(null, key), key);
+  if(!raw || r.carried.length || (raw && raw.season !== key)) saveVersioned(SEASON_KEY, 'season', r.save);
+  if(r.carried.length){
+    let coins = 0, rosee = 0, freeze = 0;
+    r.carried.forEach(b=>{ coins += b.coins||0; rosee += b.rosee||0; freeze += b.freeze||0; });
+    grantBundle({ coins, rosee, freeze }, 'saison');
+    seasonCarriedToast = { coins, rosee };
+    Analytics.track('season_carry', { tiers:r.carried.length });
+  }
+  return r.save;
+}
+function saveSeason(sv){ saveVersioned(SEASON_KEY, 'season', sv); }
+function seasonGain(source, n){
+  try{
+    const amount = (SEASON_XP[source] || 0) * (n === undefined ? 1 : safeInt(n, 0, 1e4, 0));
+    if(amount <= 0) return;
+    const r = seasonAddXP(loadSeason(), amount);
+    saveSeason(r.save);
+    if(r.tierUp){ Analytics.track('season_tier', { tier:r.tier }); updateNavBadges(); }
+  }catch(e){}
+}
+function claimSeasonTier(tier){
+  const r = seasonClaim(loadSeason(), tier);
+  if(!r.ok) return null;
+  saveSeason(r.save);
+  const chips = grantBundle(r.reward, 'saison');
+  Analytics.track('season_claim', { tier });
+  if(r.reward.final){ const nav = loadNav(); nav.seasonFinals = (nav.seasonFinals||0) + 1; saveNav(nav); checkAchievements({ inline:false }); }
+  return { reward:r.reward, chips };
+}
+function loadMarket(){ return sanitizeMarket(loadVersioned(MARKET_KEY, 'market', null)); }
+function saveMarket(m){ saveVersioned(MARKET_KEY, 'market', sanitizeMarket(m)); }
+function loadNav(){
+  const raw = loadVersioned(NAV_KEY, 'nav', null);
+  const n = sanitizeNav(raw);
+  n.weeklyChests = safeInt(raw && raw.weeklyChests, 0, 1e5, 0);
+  n.seasonFinals = safeInt(raw && raw.seasonFinals, 0, 1e5, 0);
+  return n;
+}
+function saveNav(n){ saveVersioned(NAV_KEY, 'nav', Object.assign(sanitizeNav(n), { weeklyChests: safeInt(n.weeklyChests, 0, 1e5, 0), seasonFinals: safeInt(n.seasonFinals, 0, 1e5, 0) })); }
+// Événement de jeu (même forme que le rituel) → missions de la semaine + saison.
+function hubGameEvent(event){
+  const e = event || {};
+  weeklyEvent(e);
+  if(e.type==='level_win'){ seasonGain('level_win'); if(e.newStars) seasonGain('new_star', e.newStars); }
+  else if(e.type==='daily_win') seasonGain('daily_win');
+  else if(e.type==='garden_restore') seasonGain('garden_restore');
+  else if(e.type==='sentier_board' && e.perfect) seasonGain('sentier_perfect');
+}
+
 
 /* ---------------------------------------------------------
    HISTORIQUE DU DÉFI QUOTIDIEN (Blueprint §14 : "Hebdomadaire : total de
@@ -4820,7 +5487,8 @@ const COIN_REWARDS = {
     sentier_perfect_25: 40,
     garden_5: 20,
     garden_all: 60,
-    apprentice: 25
+    apprentice: 25,
+    secret_dew7: 30, secret_repair: 25, secret_week: 40, secret_gift7: 40, secret_season: 80
   }
 };
 function loadCoins(){
@@ -5154,7 +5822,14 @@ const ACHIEVEMENTS = [
   { id:'sentier_perfect_25', name:'Œil du solveur', desc:'Trouve 25 solutions parfaites dans le Sentier.', icon:'👁️', metric:'sentierPerfect', goal:25 },
   { id:'garden_5',   name:'Jardinier',           desc:'Réveille 5 coins du Jardin.',     icon:'🪴', metric:'gardenDone', goal:5 },
   { id:'garden_all', name:'Le jardin s’éveille', desc:'Réveille tout le Jardin endormi.', icon:'🌙', metric:'gardenDone', goal:GARDEN_TOTAL_TASKS },
-  { id:'apprentice', name:'Apprenti',           desc:'Termine le tutoriel avec Germain.', icon:'🎓', metric:'tutorialGrad', goal:1 }
+  { id:'apprentice', name:'Apprenti',           desc:'Termine le tutoriel avec Germain.', icon:'🎓', metric:'tutorialGrad', goal:1 },
+  // Objectifs SECRETS (audit §9 « objectifs secrets ») : affichés « ??? » tant
+  // qu'ils ne sont pas atteints ; ils récompensent la régularité et la curiosité.
+  { id:'secret_dew7',   name:'Cueilleur de l’aube', desc:'Cueille la rosée du matin 7 jours différents.', icon:'🌅', metric:'dewDays', goal:7, secret:true },
+  { id:'secret_repair', name:'Seconde chance',     desc:'Sauve ta série en rejouant le défi d’hier.',      icon:'🔥', metric:'repaired', goal:1, secret:true },
+  { id:'secret_week',   name:'Semaine bien remplie', desc:'Ouvre le coffre des missions de la semaine.',   icon:'🧰', metric:'weeklyChests', goal:1, secret:true },
+  { id:'secret_gift7',  name:'Fidèle au jardin',   desc:'Ouvre le coffre du 7e jour du calendrier.',        icon:'🎁', metric:'giftCycles', goal:1, secret:true },
+  { id:'secret_season', name:'Saison accomplie',   desc:'Atteins le dernier palier d’une saison.',          icon:'🏆', metric:'seasonFinals', goal:1, secret:true }
 ];
 // Succès ÉVOLUTIFS (audit §3 : "aucun succès n'est récurrent ou
 // évolutif") : un seul succès à paliers qui ne s'épuise jamais vraiment.
@@ -5200,6 +5875,7 @@ function achievementMetrics(){
   const clean = loadCleanStreaks();
   const st = loadSentierStats();
   const threeStars = vals.filter(v=> v===3).length;
+  const nav = loadNav();
   return {
     p, threeStars,
     totalWins: streak.totalWins||0,
@@ -5209,7 +5885,9 @@ function achievementMetrics(){
     sentierBestChain: st.bestChain, sentierBestScore: st.bestScore,
     perfectTotal: threeStars + st.totalPerfect,
     gardenDone: loadGarden().done,
-    tutorialGrad: loadTutorial().graduated ? 1 : 0
+    tutorialGrad: loadTutorial().graduated ? 1 : 0,
+    dewDays: nav.dewDays || 0, repaired: loadGarden().repairDay ? 1 : 0,
+    weeklyChests: nav.weeklyChests || 0, seasonFinals: nav.seasonFinals || 0, giftCycles: loadGift().cycles
   };
 }
 const ACHIEVEMENTS_KEY = 'bcd_achievements_v1';
@@ -5402,13 +6080,15 @@ function renderAchievements(){
       <div class="ach-tier-dots" aria-label="Palier ${reached} sur ${t.tiers.length}">${t.tiers.map((_,i)=> `<i class="${i<reached?'on':''}"></i>`).join('')}</div>`;
     list.appendChild(card);
   });
+  const seen = loadNav().seenAch;
   ACHIEVEMENTS.forEach(a=>{
     const done = !!unlocked[a.id];
+    const hidden = a.secret && !done;
     const card = document.createElement('div');
-    card.className = 'achievement-card' + (done ? ' unlocked' : ' locked');
-    const prog = (!done && a.metric) ? progressBar(metrics[a.metric]||0, a.goal) : '';
-    card.innerHTML = `<div class="ach-card-icon">${done ? a.icon : '🔒'}</div>
-      <div class="ach-card-text"><div class="ach-card-name">${a.name}</div><div class="ach-card-desc">${a.desc}</div>${prog}</div>
+    card.className = 'achievement-card' + (done ? ' unlocked' : ' locked') + (hidden ? ' secret' : '') + (done && !seen.includes(a.id) ? ' is-new' : '');
+    const prog = (!done && a.metric && !hidden) ? progressBar(metrics[a.metric]||0, a.goal) : '';
+    card.innerHTML = `<div class="ach-card-icon">${done ? a.icon : hidden ? '❓' : '🔒'}</div>
+      <div class="ach-card-text"><div class="ach-card-name">${hidden ? '???' : a.name}</div><div class="ach-card-desc">${hidden ? 'Objectif secret : continue à jouer, il se révélera.' : a.desc}</div>${prog}</div>
       ${done ? '<div class="ach-card-check">✓</div>' : ''}`;
     list.appendChild(card);
   });
@@ -5856,28 +6536,53 @@ document.addEventListener('visibilitychange', ()=>{
 
 /* =========================================================
    D. NAVIGATION ENTRE ÉCRANS
+   Deux familles :
+   - le HUB : 5 pages côte à côte (Marché, Collection, JOUER, Jardin,
+     Profil), qu'on fait glisser ou qu'on choisit dans la barre d'onglets
+     en bas (zone du pouce) — voir D3 ;
+   - les écrans « par-dessus » : écran de lancement, partie, victoire,
+     carte des mondes, défi, Sentier, paramètres, aide.
+   state.screen vaut toujours le nom logique ('home', 'garden'…), y
+   compris pour une page du hub : tout le code existant reste valable.
 ========================================================= */
 // Écrans qui gardent la palette du monde en cours (jeu et sa victoire) ;
 // tous les autres reviennent à la palette de référence du Jardin, pour que
 // les menus ne "déteignent" pas selon le dernier monde joué.
 const THEMED_SCREENS = ['game', 'victory'];
+// Ordre des pages du hub (de gauche à droite). 'home' = la page JOUER.
+const HUB_PAGES = ['market', 'cosmetics', 'home', 'garden', 'profile'];
+const HUB_LABELS = { market:'Marché', cosmetics:'Collection', home:'Jouer', garden:'Jardin', profile:'Profil' };
 let gotoEnterTimer = 0;
 function goto(name){
+  // Les succès vivent dans le Profil (onglet « Succès »).
+  if(name==='achievements'){ profileSeg = 'succes'; name = 'profile'; }
+  const isHub = HUB_PAGES.includes(name);
   if(!THEMED_SCREENS.includes(name) && typeof applyWorldTheme==='function') applyWorldTheme(1);
   // La fête d'une zone du jardin ne survit pas à un changement d'écran (bouton Retour).
   document.querySelectorAll('.zone-fete').forEach(e=> e.remove());
   // Chaque écran s'ouvre en haut (la carte des mondes gère son propre défilement).
-  if(name!=='select'){ try{ window.scrollTo(0, 0); }catch(e){} }
+  if(name!=='select' && !isHub){ try{ window.scrollTo(0, 0); }catch(e){} }
   // Un toast en attente venu d'un autre écran n'a plus de sens en jeu :
   // il masquerait les boutons du haut pendant la réflexion.
   if(name==='game' && typeof toastQueue!=='undefined') toastQueue.length = 0;
   const prev = state.screen;
+  const prevWasHub = HUB_PAGES.includes(prev);
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active', 'enter-fwd', 'enter-back', 'enter-pop'));
   const target = document.getElementById('screen-'+name);
   target.classList.add('active');
-  if(prev !== name){
+  const hub = document.getElementById('hub');
+  if(hub) hub.classList.toggle('on', isHub);
+  document.body.classList.toggle('in-hub', isHub);
+  if(isHub){
+    hubLastPage = name;
+    // Entrée dans le hub (depuis le lancement ou une partie) : léger fondu ;
+    // entre deux pages du hub : la piste glisse.
+    Hub.show(name, prevWasHub && prev!==name);
+    if(!prevWasHub && hub){ hub.classList.remove('hub-enter'); void hub.offsetWidth; hub.classList.add('hub-enter'); }
+    hubRenderPage(name, !prevWasHub);
+  } else if(prev !== name){
     const dir = (name==='victory' || name==='sentierend') ? 'enter-pop'
-      : (name==='home' || (name==='select' && prev==='game')) ? 'enter-back' : 'enter-fwd';
+      : (name==='splash' || (name==='select' && prev==='game')) ? 'enter-back' : 'enter-fwd';
     void target.offsetWidth;
     target.classList.add(dir);
     // La classe d'entrée ne sert qu'à l'animation : retirée ensuite, pour ne
@@ -5890,13 +6595,10 @@ function goto(name){
     : name==='cosmetics' ? 'atelier'
     : (name==='victory' || name==='sentierend') ? music.mood : 'menu');
   state.screen = name;
-  // Un seul son par transition (ouverture), pas de sfxScreenClose() associé
-  // ici : goto() ne modélise pas explicitement "quel écran se ferme", et
-  // dupliquer ouverture+fermeture à chaque appel aurait risqué de
-  // superposer deux sons pour une seule action perçue par le joueur comme
-  // un seul mouvement d'écran. sfxScreenClose() reste définie et prête si
-  // un vrai besoin de fermeture distincte apparaît plus tard.
+  historyAnchor();
+  // Un seul son par transition (ouverture) : voir sfxScreenOpen().
   sfxScreenOpen();
+  if(isHub){ updateNavBadges(); hubPageArrived(name); }
   // Germain réagit aux changements d'écran (annule une étape devenue
   // hors sujet, intervient à l'arrivée sur l'accueil). Voir section T.
   if(Tutorial) Tutorial.onScreen(name);
@@ -5904,33 +6606,207 @@ function goto(name){
 
 /* =========================================================
    D2. BOUTON RETOUR SYSTÈME (Android / navigateur)
-   Sans gestion dédiée, le retour matériel/navigateur quitterait
-   l'application depuis n'importe quel écran, ce qui est une sortie
-   de QA connue (section 25/29 du blueprint). On intercepte le
-   popstate : on ré-ancre immédiatement une entrée d'historique pour
-   ne jamais réellement quitter la page, puis on rejoue l'action du
-   bouton retour visible de l'écran courant (même comportement,
-   une seule source de vérité pour la navigation).
+   On garde une entrée d'historique « ancre » : le retour ne quitte pas
+   l'app, il rejoue la logique de navigation :
+   - écran par-dessus → son bouton retour visible (même comportement) ;
+   - page du hub autre que JOUER → page JOUER ;
+   - page JOUER → écran de lancement ;
+   - écran de lancement → on laisse le navigateur faire (quitter l'app).
 ========================================================= */
-history.pushState({bcd:true}, '');
+let historyAnchored = false;
+function historyAnchor(){
+  if(historyAnchored || state.screen==='splash') return;
+  try{ history.pushState({bcd:true}, ''); historyAnchored = true; }catch(e){}
+}
 window.addEventListener('popstate', ()=>{
-  history.pushState({bcd:true}, ''); // ré-ancrage : on reste dans l'app
+  historyAnchored = false;
+  if(state.screen==='splash') return; // retour depuis le lancement : on sort, normalement
+  // Une fenêtre ouverte (fête, rattrapage, pub simulée) se ferme d'abord.
+  const sheet = document.querySelector('.zone-fete, .repair-sheet');
+  if(sheet){ sheet.remove(); historyAnchor(); return; }
+  if(Coach && Coach.isOpen() && !(Tutorial && Tutorial._busy && Tutorial._busy())) Coach.hide();
   switch(state.screen){
     case 'select': document.getElementById('btnBackHome').click(); break;
     case 'game': document.getElementById('btnExitGame').click(); break;
     case 'dailyresult': document.getElementById('btnBackHomeDaily').click(); break;
     case 'settings': document.getElementById('btnBackHomeSettings').click(); break;
-    case 'achievements': document.getElementById('btnBackHomeAchievements').click(); break;
     case 'help': document.getElementById('btnBackHomeHelp').click(); break;
-    case 'cosmetics': document.getElementById('btnBackHomeCosmetics').click(); break;
-    case 'profile': document.getElementById('btnBackHomeProfile').click(); break;
     case 'sentier': document.getElementById('btnBackHomeSentier').click(); break;
-    case 'garden': document.getElementById('btnBackHomeGarden').click(); break;
     case 'sentierend': document.getElementById('btnSentierEndHome').click(); break;
     case 'victory': refreshHome(); goto(state.isDaily ? 'home' : 'select'); if(!state.isDaily) renderLevelSelect(); break;
-    default: break; // sur l'accueil, le retour ne fait rien (évite une sortie accidentelle)
+    case 'home': goto('splash'); break;
+    default:
+      if(HUB_PAGES.includes(state.screen)) goto('home');
+      break;
   }
+  historyAnchor();
 });
+
+/* =========================================================
+   D3. LE HUB : pages qui glissent + barre d'onglets
+   Pager maison (transform translate3d, GPU) piloté par des
+   PointerEvent : le doigt entraîne la piste, un geste assez long ou
+   assez rapide change de page, sinon elle revient en place (ressort aux
+   extrémités). Le défilement vertical reste natif (touch-action:pan-y).
+   Jamais actif pendant une partie : le hub est alors masqué.
+   Zones exclues (elles défilent elles-mêmes à l'horizontale) :
+   [data-hub-noswipe] (panorama du jardin, onglets de l'Atelier).
+========================================================= */
+let hubLastPage = 'home';
+let profileSeg = 'missions';
+const Hub = (function(){
+  let index = HUB_PAGES.indexOf('home');
+  let drag = null, lastDragEnd = 0;
+  const vp = ()=> document.getElementById('hubViewport');
+  const track = ()=> document.getElementById('hubTrack');
+  function apply(off, animate){
+    const t = track();
+    if(!t) return;
+    t.style.transition = animate ? '' : 'none';
+    t.style.transform = `translate3d(calc(${-index * 100}% + ${Math.round(off||0)}px),0,0)`;
+  }
+  function syncTabs(){
+    const bar = document.getElementById('tabbar');
+    if(!bar) return;
+    bar.style.setProperty('--i', index);
+    bar.classList.toggle('at-center', HUB_PAGES[index] === 'home');
+    bar.querySelectorAll('.tab').forEach(tb=>{
+      const on = tb.dataset.page === HUB_PAGES[index];
+      tb.classList.toggle('on', on);
+      tb.setAttribute('aria-selected', on ? 'true' : 'false');
+      tb.tabIndex = on ? 0 : -1;
+    });
+    document.querySelectorAll('#hubTrack .hub-page').forEach(pg=> pg.setAttribute('aria-hidden', pg.dataset.page === HUB_PAGES[index] ? 'false' : 'true'));
+  }
+  function show(name, animate){
+    const i = HUB_PAGES.indexOf(name);
+    if(i < 0) return;
+    index = i;
+    apply(0, animate && !reducedMotionNow());
+    syncTabs();
+  }
+  function current(){ return HUB_PAGES[index]; }
+  function blocked(e){
+    if(!document.getElementById('hub').classList.contains('on')) return true;
+    if(e.pointerType==='mouse' && e.button!==0) return true;
+    const t = e.target;
+    if(t && t.closest && t.closest('[data-hub-noswipe], input, textarea, select, .tabbar')) return true;
+    if(document.querySelector('.coach-blocker, .zone-fete, .repair-sheet, .ad-mock')) return true;
+    return false;
+  }
+  function onDown(e){
+    if(drag || blocked(e)) return;
+    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, t:performance.now(), lock:null, dx:0 };
+  }
+  function onMove(e){
+    if(!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if(drag.lock===null){
+      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      drag.lock = Math.abs(dx) > Math.abs(dy) * 1.2 ? 'x' : 'y';
+      if(drag.lock==='x'){ try{ vp().setPointerCapture(e.pointerId); }catch(err){} document.getElementById('hub').classList.add('dragging'); }
+    }
+    if(drag.lock !== 'x') return;
+    drag.dx = dx;
+    const atEdge = (index===0 && dx > 0) || (index===HUB_PAGES.length - 1 && dx < 0);
+    apply(atEdge ? dx * 0.3 : dx, false);
+  }
+  function onUp(e){
+    if(!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    document.getElementById('hub').classList.remove('dragging');
+    if(d.lock !== 'x'){ return; }
+    lastDragEnd = performance.now();
+    const W = (vp() && vp().clientWidth) || 360;
+    const v = d.dx / Math.max(1, performance.now() - d.t); // px/ms
+    let to = index;
+    if(d.dx < -W * 0.2 || (v < -0.45 && d.dx < -24)) to = index + 1;
+    else if(d.dx > W * 0.2 || (v > 0.45 && d.dx > 24)) to = index - 1;
+    to = Math.max(0, Math.min(HUB_PAGES.length - 1, to));
+    if(to !== index){ Analytics.track('nav_swipe', { from:HUB_PAGES[index], to:HUB_PAGES[to] }); goto(HUB_PAGES[to]); }
+    else apply(0, true); // retour en place (ressort)
+  }
+  function onCancel(e){
+    if(!drag || e.pointerId !== drag.id) return;
+    drag = null;
+    document.getElementById('hub').classList.remove('dragging');
+    apply(0, true);
+  }
+  function init(){
+    const v = vp();
+    if(!v) return;
+    v.addEventListener('pointerdown', onDown);
+    v.addEventListener('pointermove', onMove);
+    v.addEventListener('pointerup', onUp);
+    v.addEventListener('pointercancel', onCancel);
+    v.addEventListener('lostpointercapture', e=>{ if(drag && e.pointerId===drag.id) onCancel(e); });
+    // Un glissement ne doit pas se transformer en toucher sur un bouton.
+    v.addEventListener('click', e=>{ if(performance.now() - lastDragEnd < 350){ e.stopPropagation(); e.preventDefault(); } }, true);
+    const bar = document.getElementById('tabbar');
+    bar.querySelectorAll('.tab').forEach(tb=>{
+      tb.addEventListener('click', ()=>{
+        const page = tb.dataset.page;
+        tb.classList.remove('pop'); void tb.offsetWidth; tb.classList.add('pop');
+        if(state.screen === page){ hubScrollTop(page); return; } // 2e toucher : retour en haut de la page
+        Analytics.track('nav_tab', { to:page });
+        goto(page);
+      });
+    });
+    // Clavier : flèches entre les onglets (onglet actif seul dans l'ordre de tabulation).
+    bar.addEventListener('keydown', e=>{
+      if(e.key!=='ArrowRight' && e.key!=='ArrowLeft' && e.key!=='Home' && e.key!=='End') return;
+      e.preventDefault();
+      let to = index + (e.key==='ArrowRight' ? 1 : e.key==='ArrowLeft' ? -1 : 0);
+      if(e.key==='Home') to = 0;
+      if(e.key==='End') to = HUB_PAGES.length - 1;
+      to = Math.max(0, Math.min(HUB_PAGES.length - 1, to));
+      goto(HUB_PAGES[to]);
+      const tb = bar.querySelector(`.tab[data-page="${HUB_PAGES[to]}"]`);
+      if(tb) tb.focus();
+    });
+    window.addEventListener('resize', ()=> apply(0, false));
+    apply(0, false); syncTabs();
+  }
+  return { init, show, current, _drag:()=> drag };
+})();
+function reducedMotionNow(){ return document.documentElement.classList.contains('reduce-motion') || !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+function hubScrollTop(page){ const el = document.getElementById('screen-' + page); if(el){ try{ el.scrollTo({ top:0, behavior: reducedMotionNow() ? 'auto' : 'smooth' }); }catch(e){ el.scrollTop = 0; } } }
+// Contenu à jour à chaque arrivée sur une page ; au premier passage dans le
+// hub, toutes les pages sont rendues (on voit les voisines en glissant).
+let hubRenderedOnce = false;
+function hubRenderPage(name, entering){
+  const run = n=>{
+    try{
+      if(n==='home') refreshHome();
+      else if(n==='garden') renderGarden();
+      else if(n==='cosmetics'){ renderCosmetics(); renderCollectionExtras(); }
+      else if(n==='profile'){ renderProfile(); renderAchievements(); renderMissions(); setProfileSeg(profileSeg); }
+      else if(n==='market') renderMarket();
+    }catch(e){ if(typeof console!=='undefined') console.error(e); }
+  };
+  if(!hubRenderedOnce){ hubRenderedOnce = true; HUB_PAGES.forEach(run); return; }
+  run(name);
+}
+// Ce qui se passe en arrivant sur une page (après l'affichage) : aides
+// contextuelles, croissance des plantes, cadeaux en attente.
+function hubPageArrived(name){
+  if(name==='garden') gardenArrived();
+  if(name==='home') homeArrived();
+  if(name==='market'){ marketSeen(); updateNavBadges(); }
+  if(name==='cosmetics'){ markItemsSeen(); updateNavBadges(); }
+  if(name==='profile' && profileSeg==='succes') markAchievementsSeen();
+  // (Le Jardin gère ses aides lui-même, par priorité : voir gardenArrived.)
+  const tipKey = { market:'page_market', cosmetics:'page_collection', profile:'page_profile' }[name];
+  if(tipKey) setTimeout(()=>{ if(state.screen===name) showTipOnce(tipKey, coachLine('tip_' + tipKey), { position:'bottom' }); }, 650);
+}
+// Profil : onglets internes (Missions, Succès, Stats).
+function setProfileSeg(seg){
+  profileSeg = ['missions', 'succes', 'stats'].includes(seg) ? seg : 'missions';
+  const map = { missions:'panelMissions', succes:'panelSucces', stats:'panelStats' };
+  Object.keys(map).forEach(k=>{ const el = document.getElementById(map[k]); if(el) el.hidden = k !== profileSeg; });
+  document.querySelectorAll('#profileSeg .seg-btn').forEach(b=>{ const on = b.dataset.seg === profileSeg; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+  if(profileSeg==='succes') markAchievementsSeen();
+}
 
 /* =========================================================
    E. ÉCRAN D'ACCUEIL
@@ -6016,9 +6892,10 @@ function refreshHome(){
   }
 
   if(typeof renderHomeGarden==='function') renderHomeGarden();
-  // Nouveau rang du jardinier : célébré sur l'accueil (une seule fois).
+  renderWorldHero();
+  // Nouveau rang du jardinier : célébré à l'arrivée sur la page JOUER (homeArrived).
   const ru = checkRankUp();
-  if(ru) setTimeout(()=>{ celebrateRankUp(ru); setTimeout(()=>{ if(state.screen==='home') showTipOnce('rank', coachLine('tip_rank'), { position:'bottom' }); }, 3300); }, 700);
+  if(ru){ pendingRankUp = ru; if(state.screen==='home') homeArrived(); }
 }
 
 document.getElementById('btnContinue').addEventListener('click', ()=>{
@@ -6034,8 +6911,6 @@ document.getElementById('btnPlay').addEventListener('click', ()=>{
 document.getElementById('btnBackHome').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 document.getElementById('btnBackHomeDaily').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 document.getElementById('btnBackHomeSettings').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
-document.getElementById('btnBackHomeAchievements').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
-document.getElementById('btnAchievements').addEventListener('click', ()=>{ renderAchievements(); goto('achievements'); });
 document.getElementById('btnBackHomeHelp').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
 document.getElementById('btnHelp').addEventListener('click', ()=>{ renderMechanicHelp(); goto('help'); });
 
@@ -6279,8 +7154,6 @@ document.getElementById('atelierAction').addEventListener('click', ()=>{
     if(seed){ seed.classList.remove('arrived'); void seed.offsetWidth; seed.classList.add('arrived'); }
   }
 });
-document.getElementById('btnBackHomeCosmetics').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
-document.getElementById('btnCosmetics').addEventListener('click', ()=>{ renderCosmetics(); goto('cosmetics'); });
 
 /* =========================================================
    ÉCRAN PROFIL — vue en LECTURE SEULE, aucune donnée ni calcul propre.
@@ -6347,10 +7220,7 @@ function renderProfile(){
     swatch.classList.toggle('fx-prisme', frame.fx==='prisme');
   }
 }
-document.getElementById('btnBackHomeProfile').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
-document.getElementById('btnProfile').addEventListener('click', ()=>{ renderProfile(); goto('profile'); });
-document.getElementById('btnProfileToAchievements').addEventListener('click', ()=>{ renderAchievements(); goto('achievements'); });
-document.getElementById('btnProfileToCosmetics').addEventListener('click', ()=>{ renderCosmetics(); goto('cosmetics'); });
+document.querySelectorAll('#profileSeg .seg-btn').forEach(b=> b.addEventListener('click', ()=>{ setProfileSeg(b.dataset.seg); if(b.dataset.seg==='missions') renderMissions(); updateNavBadges(); }));
 
 /* =========================================================
    E3. LE JARDIN — MÉTA-PROGRESSION VISUELLE (audit §8, Update 3)
@@ -7146,8 +8016,8 @@ function gpPanelSVG(zi, ctx, opts){
     for(let i = 0; i < nMeadow; i++){ const x = 18 + rng()*324, y = 494 + rng()*24, c = ['#ffd166','#e88fa8','#8fcfe8','#f2efe2','#c79bf0'][i%5];
       s += `<path d="M${gpf(x)} ${gpf(y+7)} V${gpf(y)}" stroke="#5fae62" stroke-width="1.2"/>` + gpPetals(5, 2.4, 1.6, 2.6, c, 0, x, y) + `<circle cx="${gpf(x)}" cy="${gpf(y)}" r="1.3" fill="#ffcf7a"/>`; }
   }
-  // Plates-bandes des plantes des mondes.
-  (GP_PLANTS[zi] || []).forEach(b=>{
+  // Plates-bandes des plantes des mondes (pas sur l'écran de lancement : décor seul).
+  if(opts.beds !== false) (GP_PLANTS[zi] || []).forEach(b=>{
     const growth = opts.growth && opts.growth.world===b.w ? opts.growth : null;
     s += gpPlantBed(b.w, b.x, ctx.stages[b.w-1], { unlocked: ctx.unlocked[b.w-1], from: growth ? growth.from : undefined });
   });
@@ -7233,25 +8103,31 @@ function renderGardenPanorama(opts){
     strip.insertAdjacentHTML('afterend', gpFrameHTML() + gpWeatherHTML(ctx));
     gpView.sig = sig;
   }
-  // Les cinq tableaux : celui qu'on regarde tout de suite, les autres juste
-  // après (une tâche chacun) pour que le jardin s'ouvre sans attendre.
-  const first = (gardenView.zone===null || gardenView.zone===undefined) ? ctx.st.zoneIndex : gardenView.zone;
-  const build = zi=> gpPanelSVG(zi, ctx, { marker:true, germain: zi===ctx.st.zoneIndex });
-  const token = ++gpView.buildToken;
-  strip.innerHTML = GARDEN_ZONES.map((z, zi)=> `<div class="gp-panel" data-zone="${zi}">${zi===first ? build(zi) : ''}</div>`).join('');
-  const rest = GARDEN_ZONES.map((z, zi)=> zi).filter(zi=> zi!==first).sort((a, b)=> Math.abs(a - first) - Math.abs(b - first));
-  const next = ()=>{
-    if(token !== gpView.buildToken || !rest.length) return;
-    const zi = rest.shift();
-    const panel = strip.querySelector(`.gp-panel[data-zone="${zi}"]`);
-    if(panel && !panel.firstChild) panel.innerHTML = build(zi);
+  // Les cinq tableaux : reconstruits seulement si ce qu'ils montrent a changé
+  // (chaque passage par l'onglet Jardin ne refait pas tout le dessin).
+  const psig = JSON.stringify([ctx.g, ctx.stages, ctx.unlocked, ctx.stars, sig, ctx.dewLeftSpots, ctx.meadow, ctx.week, ctx.reduced, ctx.streak, ctx.st.zoneIndex]);
+  if(opts.force || gpView.psig !== psig || strip.children.length !== GARDEN_ZONES.length){
+    gpView.psig = psig;
+    // Celui qu'on regarde tout de suite, les autres juste après (une tâche
+    // chacun) pour que le jardin s'ouvre sans attendre.
+    const first = (gardenView.zone===null || gardenView.zone===undefined) ? ctx.st.zoneIndex : gardenView.zone;
+    const build = zi=> gpPanelSVG(zi, ctx, { marker:true, germain: zi===ctx.st.zoneIndex });
+    const token = ++gpView.buildToken;
+    strip.innerHTML = GARDEN_ZONES.map((z, zi)=> `<div class="gp-panel" data-zone="${zi}">${zi===first ? build(zi) : ''}</div>`).join('');
+    const rest = GARDEN_ZONES.map((z, zi)=> zi).filter(zi=> zi!==first).sort((a, b)=> Math.abs(a - first) - Math.abs(b - first));
+    const next = ()=>{
+      if(token !== gpView.buildToken || !rest.length) return;
+      const zi = rest.shift();
+      const panel = strip.querySelector(`.gp-panel[data-zone="${zi}"]`);
+      if(panel && !panel.firstChild) panel.innerHTML = build(zi);
+      setTimeout(next, 0);
+    };
     setTimeout(next, 0);
-  };
-  setTimeout(next, 0);
+    gpObservePanels();
+  }
   // Guirlande des 7 derniers défis.
   const gl = document.getElementById('gpGarland');
   if(gl) gl.innerHTML = gpGarlandHTML(ctx);
-  gpObservePanels();
   if(!gpView.built){
     gpView.built = true;
     strip.addEventListener('scroll', gpOnScroll, { passive:true });
@@ -7384,8 +8260,12 @@ function gpCollectDew(el){
   const day = todayKey(), streak = streakAliveNow();
   const r = dewCollect(loadGarden(), day, streak);
   if(!r.ok){ el.remove(); return; }
+  const firstOfDay = dewTakenToday(loadGarden(), day) === 0;
   saveGarden(r.save);
   Analytics.track('rosee_gain', { source:'dew', amount:ROSEE.dew });
+  weeklyEvent({ type:'dew' });
+  seasonGain('dew');
+  if(firstOfDay){ const nav = loadNav(); nav.dewDays = (nav.dewDays||0) + 1; saveNav(nav); checkAchievements({ inline:false }); }
   if(r.left === 0) Analytics.track('dew_all', { day });
   const stage = document.getElementById('gzStage');
   const pill = document.getElementById('gardenRoseePill');
@@ -7724,7 +8604,7 @@ function openRitualChest(){
   vibrate([15, 30, 15]);
   const icon = document.querySelector('#gardenRitual .rc-chest-icon');
   const stage = document.getElementById('gzStage');
-  if(icon && stage && !document.documentElement.classList.contains('reduce-motion')){
+  if(icon && stage && state.screen==='garden' && !document.documentElement.classList.contains('reduce-motion')){
     const st = gardenStatus(loadGarden().done);
     const target = st.complete ? { x:stage.clientWidth/2, y:stage.clientHeight/2 } : gardenPointPx(st.next.zi, st.next.ti);
     if(gardenView.zone===null || gardenView.zone===st.zoneIndex) gardenDrops(stage, icon, target, 5);
@@ -7760,9 +8640,7 @@ function renderHomeGarden(){
   const sig = [ctx.phase, ctx.weather.id, ctx.day, g.done, ctx.stages.join(''), ctx.dewLeftSpots.length, ctx.meadow, ctx.stars].join('|');
   if(sig !== homeHeroSig){
     homeHeroSig = sig;
-    sceneEl.innerHTML = gpSkySVG(ctx, 'hhs' + (++gpSeq) + '_') +
-      gpPanelSVG(zi, ctx, { viewBox:'0 120 360 380', par:'xMidYMid slice', dew:false, germain:false }) +
-      gpWeatherHTML(ctx, 14);
+    sceneEl.innerHTML = gpPanelSVG(zi, ctx, { viewBox:'0 200 360 300', par:'xMidYMid slice', dew:false, germain:false, still:true });
     sceneEl.dataset.phase = ctx.phase;
   }
   const badge = document.getElementById('homeGardenBadge');
@@ -7783,7 +8661,7 @@ function renderHomeGarden(){
   // Puces : rosée du matin à cueillir, rang du jardinier.
   const dewChip = document.getElementById('homeDewChip');
   const left = ctx.dewLeftSpots.length;
-  if(dewChip){ dewChip.hidden = left <= 0; dewChip.textContent = `💧 ${left} goutte${left>1?'s':''} à cueillir`; }
+  if(dewChip){ dewChip.hidden = left <= 0; dewChip.textContent = `💧 ${left}`; dewChip.setAttribute('aria-label', `${left} goutte${left>1?'s':''} de rosée à cueillir`); }
   const rk = gardenerRankNow();
   const rankChip = document.getElementById('homeRankChip');
   if(rankChip) rankChip.textContent = `${rk.icon} ${rk.name}`;
@@ -7887,19 +8765,22 @@ function gpPlayGrowth(events, i){
 }
 
 function renderGarden(){ renderGardenMain(); renderGardenPlants(); renderGardenRank(); }
-function openGarden(scrollToRitual){
-  gardenView.zone = null;
+// Le Jardin est une page du hub : on y arrive par l'onglet, en glissant,
+// ou par un raccourci (accueil, victoire). openGarden() est ce raccourci.
+function openGarden(){ goto('garden'); }
+function gardenArrived(){
+  if(gardenView.zone===null || gardenView.zone===undefined) gardenView.zone = gardenStatus(loadGarden().done).zoneIndex;
+  gpScrollToZone(gardenView.zone, false); // la page est visible : la largeur est connue
   const growth = gpPendingGrowth();
-  renderGarden(); goto('garden');
-  gpScrollToZone(gardenView.zone, false); // l'écran est visible : la largeur est connue
   Analytics.track('garden_open', { score:gardenTotals().score, done:loadGarden().done, dew: gpContextLight().dewZones.size });
-  if(scrollToRitual===true){ const r = document.getElementById('gardenRitual'); if(r) setTimeout(()=> r.scrollIntoView({ block:'center', behavior:'smooth' }), 80); return; }
   if(growth.length) setTimeout(()=> gpPlayGrowth(growth), 450);
   else setTimeout(()=>{
     if(state.screen!=='garden') return;
     // Chaque nouveauté du jardin s'explique une fois, quand elle apparaît :
-    // la rosée du matin d'abord, puis la guirlande dès la 1re lanterne allumée.
+    // la rosée du matin d'abord (geste immédiat), puis la page elle-même,
+    // puis la guirlande dès la 1re lanterne allumée. Une seule aide par visite.
     if(gpContextLight().dewZones.size && showTipOnce('dew', coachLine('tip_dew'), { position:'top' })) return;
+    if(showTipOnce('page_garden', coachLine('tip_page_garden'), { position:'top' })) return;
     if(gpWeekLights().some(d=> d.done)) showTipOnce('garland', coachLine('tip_garland'), { position:'top' });
   }, 700);
 }
@@ -7936,13 +8817,486 @@ document.getElementById('gzScene').addEventListener('keydown', e=>{
     if(drop){ e.preventDefault(); gpCollectDew(drop); }
   }
 });
-document.getElementById('homeRitual').addEventListener('click', ()=> openGarden(true));
+document.getElementById('homeRitual').addEventListener('click', ()=>{ profileSeg = 'missions'; goto('profile'); });
 document.getElementById('btnGardenBoost').addEventListener('click', e=> watchAdFor('garden_boost', e.currentTarget, ()=>{
   addRosee(ROSEE.adBoost, 'ad'); renderGardenTask(); bumpPill(document.getElementById('gardenRoseePill')); sfxRoseeDrop(2);
   showSimpleToast('💧', 'Arrosage bonus', `+${ROSEE.adBoost} 💧`, 'info-toast');
 }));
 document.getElementById('homeGarden').addEventListener('click', ()=> openGarden(false));
-document.getElementById('btnBackHomeGarden').addEventListener('click', ()=>{ refreshHome(); goto('home'); });
+
+/* =========================================================
+   E6. LES PAGES DU HUB : MARCHÉ, COLLECTION, MISSIONS, PASTILLES,
+   ÉCRAN DE LANCEMENT, MONDE EN COURS (logique pure en A7, stockage en B6)
+========================================================= */
+const COSMETIC_SAVERS = { seed:l=> saveOwnedCosmetics(l), move:l=> saveOwnedMoveEffects(l), victory:l=> saveOwnedVictoryEffects(l), frame:l=> saveOwnedFrames(l) };
+function cosmeticCatalog(){
+  const out = [];
+  COSMETIC_CATEGORIES.forEach(c=> c.items().forEach(it=>{ if(it.price > 0 && !it.exclusive) out.push({ cat:c.id, id:it.id, price:it.price }); }));
+  return out;
+}
+function ownedCosmeticKeys(){
+  const set = new Set();
+  COSMETIC_CATEGORIES.forEach(c=> (c.owned()||[]).forEach(id=> set.add(c.id + ':' + id)));
+  return set;
+}
+function cosmeticItem(cat, id){
+  const c = COSMETIC_CATEGORIES.find(x=> x.id===cat);
+  return c ? c.items().find(i=> i.id===id) || null : null;
+}
+// Donne un objet (achat du marché) : même effet qu'un achat dans l'Atelier.
+function grantCosmetic(cat, id){
+  const c = COSMETIC_CATEGORIES.find(x=> x.id===cat);
+  if(!c || !COSMETIC_SAVERS[cat]) return false;
+  const owned = c.owned().slice();
+  if(owned.includes(id)) return false;
+  owned.push(id); COSMETIC_SAVERS[cat](owned);
+  return true;
+}
+function currentDailyOffer(){ return marketDailyOffer(todayKey(), cosmeticCatalog(), ownedCosmeticKeys()); }
+function currentWeeklyPack(){ return marketWeeklyPack(weekKeyFor(todayKey()), cosmeticCatalog(), ownedCosmeticKeys()); }
+// Temps restant jusqu'à minuit UTC (offre du jour, cadeau) ou lundi UTC (lot).
+function untilNextDayText(){ return formatDuration(msUntilNextDay()); }
+function untilNextWeekText(){
+  const now = bcdNow();
+  const back = (now.getUTCDay() + 6) % 7;
+  const ms = Math.max(0, utcDayOffset(now, 7 - back) - now);
+  const days = Math.floor(ms / 86400000);
+  return days >= 1 ? `${days} j ${Math.floor((ms % 86400000) / 3600000)} h` : formatDuration(ms);
+}
+// Des icônes qui volent jusqu'à un compteur (pièces, rosée) : petit « juice ».
+function flyIcons(fromEl, toEl, icon, n){
+  if(!fromEl || !toEl || reducedMotionNow()) return;
+  const a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
+  if(!a.width && !b.width) return;
+  for(let i = 0; i < (n||6); i++){
+    const el = document.createElement('span');
+    el.className = 'fly-icon'; el.textContent = icon;
+    el.style.left = (a.left + a.width/2 + (Math.random()*30 - 15)) + 'px';
+    el.style.top = (a.top + a.height/2 + (Math.random()*16 - 8)) + 'px';
+    el.style.setProperty('--dx', (b.left + b.width/2 - a.left - a.width/2) + 'px');
+    el.style.setProperty('--dy', (b.top + b.height/2 - a.top - a.height/2) + 'px');
+    el.style.animationDelay = (i * 0.05) + 's';
+    document.body.appendChild(el);
+    setTimeout(()=> el.remove(), 1100 + i * 50);
+  }
+  setTimeout(()=> bumpPill(toEl), 700);
+}
+function setPill(id, text){ const el = document.getElementById(id); if(el) el.textContent = text; }
+function bundleText(b){
+  return [b.coins ? `${b.coins} 🪙` : '', b.rosee ? `${b.rosee} 💧` : '', b.freeze ? `${b.freeze} 🧊` : ''].filter(Boolean).join(' + ');
+}
+
+/* ---------- Le Marché ---------- */
+function renderMarket(){
+  setPill('marketCoinsPill', `🪙 ${loadCoins()}`);
+  renderGiftCard();
+  renderDailyOffer();
+  renderWeeklyPack();
+  renderMarketFree();
+}
+function renderGiftCard(){
+  const el = document.getElementById('mkGift');
+  if(!el) return;
+  const day = todayKey();
+  const g = loadGift(), st = giftStatus(g, day);
+  // Cases déjà ouvertes dans ce cycle : celles avant l'étape (ou, si on vient
+  // d'ouvrir, jusqu'à l'étape précédente incluse).
+  const doneUpTo = st.available ? st.step - 1 : (st.step === 0 ? DAILY_GIFTS.length - 1 : st.step - 1);
+  const todayIdx = st.available ? st.step : doneUpTo;
+  let slots = '';
+  DAILY_GIFTS.forEach((gift, i)=>{
+    const done = i <= doneUpTo && !(st.available && i >= st.step);
+    const cls = 'gift-slot' + (done ? ' done' : '') + (i === todayIdx ? ' today' : '') + (gift.chest ? ' chest' : '') + (st.available && i === st.step ? ' ready' : '');
+    const icon = gift.chest ? '🎁' : gift.freeze ? '🧊' : gift.rosee ? '💧' : '🪙';
+    const amount = gift.chest ? '' : (gift.coins || gift.rosee || gift.freeze);
+    slots += `<div class="${cls}" aria-label="Jour ${i+1} : ${bundleText(gift)}${done ? ', récupéré' : ''}"><span class="gs-day">J${i+1}</span><span class="gs-icon">${done ? '✓' : icon}</span><span class="gs-amt">${amount}</span></div>`;
+  });
+  const timer = st.available ? `Jour ${st.step + 1} sur 7` : `Prochain dans ${untilNextDayText()}`;
+  el.innerHTML = `<div class="mk-head"><b>🎁 Cadeau du jour</b><span class="mk-timer">${timer}</span></div>
+    <div class="gift-row" data-hub-noswipe>${slots}</div>
+    ${st.available ? `<button class="btn btn-primary shimmer mk-claim" id="btnGiftClaim" type="button">Récupérer : ${bundleText(st.gift)}</button>`
+      : `<div class="mk-done">✓ Récupéré aujourd'hui · un nouveau cadeau t'attend demain</div>`}
+    <button class="ad-offer" id="btnGiftDouble" type="button" hidden>▶ Doubler le cadeau <span class="ad-tag">PUB</span></button>
+    <p class="mk-sub">Un jour manqué ? Le calendrier t'attend : rien n'est perdu.</p>`;
+  const claim = el.querySelector('#btnGiftClaim');
+  if(claim) claim.addEventListener('click', ()=>{
+    const r = claimDailyGift();
+    if(!r) return;
+    sfxChestOpen(); vibrate([15, 30, 15]);
+    if(r.gift.coins) flyIcons(claim, document.getElementById('marketCoinsPill'), '🪙', 7);
+    showSimpleToast('🎁', r.gift.chest ? 'Coffre du 7e jour !' : 'Cadeau du jour', bundleText(r.gift), 'info-toast');
+    renderMarket(); updateNavBadges();
+  });
+  const dbl = el.querySelector('#btnGiftDouble');
+  const g2 = loadGift();
+  const lastGift = DAILY_GIFTS[(g2.step + DAILY_GIFTS.length - 1) % DAILY_GIFTS.length];
+  if(dbl && st.claimedToday && g2.doubled !== day && AdService.canOffer('gift_double')){
+    dbl.hidden = false;
+    dbl.innerHTML = `▶ Doubler : +${bundleText(lastGift)} <span class="ad-tag">PUB</span>`;
+    AdService.offered('gift_double', dbl);
+    dbl.addEventListener('click', ()=> showRewardedAd('gift_double', {
+      onReward: ()=>{ const gg = loadGift(); gg.doubled = todayKey(); saveGift(gg); grantBundle(lastGift, 'ad'); showSimpleToast('✨', 'Cadeau doublé', bundleText(lastGift), 'info-toast'); renderMarket(); },
+      onUnavailable: ()=>{ dbl.hidden = true; }
+    }));
+  }
+}
+function offerBodyHTML(item, cat){
+  const r = rarityOf(item);
+  const c = COSMETIC_CATEGORIES.find(x=> x.id===cat);
+  return `<div class="offer-swatch" style="--rc:${r.color}"></div><div class="offer-text" style="--rc:${r.color}"><span class="rarity-tag${item.rarity==='legendary' ? ' legendary' : ''}">${r.label}</span><b>${item.name}</b><span class="offer-cat">${c ? c.icon + ' ' + c.label : ''}</span></div>`;
+}
+function renderDailyOffer(){
+  const el = document.getElementById('mkDaily');
+  if(!el) return;
+  const day = todayKey();
+  const mk = loadMarket();
+  const off = currentDailyOffer();
+  if(mk.dailyBought === day){
+    el.innerHTML = `<div class="mk-head"><b>⭐ Offre du jour</b><span class="mk-timer">Nouvelle dans ${untilNextDayText()}</span></div><div class="mk-done">✓ Achetée ! Équipe-la dans ta Collection.</div>`;
+    return;
+  }
+  if(!off){ el.innerHTML = `<div class="mk-head"><b>⭐ Offre du jour</b></div><div class="mk-done">Tu possèdes déjà tout. Bravo, collectionneur !</div>`; return; }
+  const item = cosmeticItem(off.cat, off.id);
+  const coins = loadCoins(), can = coins >= off.price;
+  el.innerHTML = `<div class="mk-head"><b>⭐ Offre du jour</b><span class="mk-timer">⏳ ${untilNextDayText()}</span></div>
+    <div class="offer-body">${offerBodyHTML(item, off.cat)}<div class="offer-price"><s>${off.base} 🪙</s><b>${off.price} 🪙</b><span class="offer-off">−30 %</span></div></div>
+    <button class="btn ${can ? 'btn-primary' : 'btn-secondary'} mk-buy" id="btnBuyDaily" type="button" ${can ? '' : 'disabled'}>${can ? `Acheter · ${off.price} 🪙` : `Encore ${off.price - coins} 🪙`}</button>`;
+  el.querySelector('.offer-swatch').appendChild(itemSwatchEl(off.cat, item));
+  const btn = el.querySelector('#btnBuyDaily');
+  btn.addEventListener('click', ()=>{
+    const o = currentDailyOffer();
+    if(!o || loadMarket().dailyBought === todayKey()) return;
+    if(!spendCoins(o.price)){ sfxInsufficientFunds(); return; }
+    grantCosmetic(o.cat, o.id);
+    const m = loadMarket(); m.dailyBought = todayKey(); saveMarket(m);
+    sfxPurchase(); sfxRarityUnlock(['common','rare','epic','legendary'].indexOf(item.rarity) < 0 ? 0 : ['common','rare','epic','legendary'].indexOf(item.rarity));
+    Analytics.track('market_buy', { kind:'daily', id:o.cat + ':' + o.id, price:o.price });
+    showSimpleToast('⭐', 'Offre du jour', `${item.name} rejoint ta collection !`, 'info-toast');
+    renderMarket(); updateNavBadges();
+  });
+}
+function renderWeeklyPack(){
+  const el = document.getElementById('mkWeekly');
+  if(!el) return;
+  const wk = weekKeyFor(todayKey());
+  const mk = loadMarket();
+  if(mk.packBought === wk){
+    el.innerHTML = `<div class="mk-head"><b>📦 Lot de la semaine</b><span class="mk-timer">Nouveau dans ${untilNextWeekText()}</span></div><div class="mk-done">✓ Acheté cette semaine.</div>`;
+    return;
+  }
+  const pack = currentWeeklyPack();
+  if(!pack){ el.hidden = true; return; }
+  el.hidden = false;
+  const coins = loadCoins(), can = coins >= pack.price;
+  el.innerHTML = `<div class="mk-head"><b>📦 Lot de la semaine</b><span class="mk-timer">⏳ ${untilNextWeekText()}</span></div>
+    <div class="pack-items"></div>
+    <div class="offer-price pack-price"><s>${pack.base} 🪙</s><b>${pack.price} 🪙</b><span class="offer-off">−25 %</span></div>
+    <button class="btn ${can ? 'btn-primary' : 'btn-secondary'} mk-buy" id="btnBuyPack" type="button" ${can ? '' : 'disabled'}>${can ? `Acheter le lot · ${pack.price} 🪙` : `Encore ${pack.price - coins} 🪙`}</button>`;
+  const wrap = el.querySelector('.pack-items');
+  pack.items.forEach(p=>{
+    const item = cosmeticItem(p.cat, p.id);
+    const d = document.createElement('div');
+    d.className = 'pack-item';
+    d.appendChild(itemSwatchEl(p.cat, item));
+    const n = document.createElement('span'); n.textContent = item.name; d.appendChild(n);
+    wrap.appendChild(d);
+  });
+  el.querySelector('#btnBuyPack').addEventListener('click', ()=>{
+    const pk = currentWeeklyPack();
+    if(!pk || loadMarket().packBought === weekKeyFor(todayKey())) return;
+    if(!spendCoins(pk.price)){ sfxInsufficientFunds(); return; }
+    pk.items.forEach(p=> grantCosmetic(p.cat, p.id));
+    const m = loadMarket(); m.packBought = weekKeyFor(todayKey()); saveMarket(m);
+    sfxPurchase(); sfxRarityUnlock(2);
+    Analytics.track('market_buy', { kind:'weekly', price:pk.price });
+    showSimpleToast('📦', 'Lot de la semaine', `${pk.items.length} objets rejoignent ta collection !`, 'info-toast');
+    renderMarket(); updateNavBadges();
+  });
+}
+function renderMarketFree(){
+  const el = document.getElementById('mkFree');
+  if(!el) return;
+  const freezes = loadStreakFreezes();
+  const canAd = AdService.canOffer('market_coins');
+  el.innerHTML = `<div class="mk-head"><b>✨ Bonus</b></div>
+    <div class="free-row"><span class="free-ic">🪙</span><span class="free-text"><b>Pièces gratuites</b><span>Une courte pub, +20 🪙 (2 par jour)</span></span>
+      <button class="ad-offer free-btn" id="btnMarketCoins" type="button" ${canAd ? '' : 'disabled'}>${canAd ? '▶ +20 🪙 <span class="ad-tag">PUB</span>' : 'Revient demain'}</button></div>
+    <div class="free-row"><span class="free-ic">🧊</span><span class="free-text"><b>Gel de série</b><span>Protège ta série si tu manques un jour · tu en as ${freezes}</span></span>
+      <button class="cosmetic-action buy free-btn" id="btnMarketFreeze" type="button">${STREAK_FREEZE_COST} 🪙</button></div>`;
+  const adBtn = el.querySelector('#btnMarketCoins');
+  if(canAd){
+    AdService.offered('market_coins', adBtn);
+    adBtn.addEventListener('click', ()=> showRewardedAd('market_coins', {
+      onReward: ()=>{ addCoins(20); flyIcons(adBtn, document.getElementById('marketCoinsPill'), '🪙', 6); sfxCoinGain(); renderMarket(); },
+      onUnavailable: ()=>{ adBtn.disabled = true; adBtn.textContent = 'Pub indisponible'; }
+    }));
+  }
+  el.querySelector('#btnMarketFreeze').addEventListener('click', ()=>{
+    const r = purchaseStreakFreeze();
+    if(r.ok){ showSimpleToast('🧊', 'Gel de série', 'Il protégera ta série si tu manques un jour.', 'info-toast'); Analytics.track('freeze_bought', { from:'market' }); }
+    else showSimpleToast('🪙', 'Pièces insuffisantes', `Il te faut ${STREAK_FREEZE_COST} 🪙.`, 'info-toast');
+    renderMarket();
+  });
+}
+// Le marché vu aujourd'hui : la pastille « offre du jour » s'éteint.
+function marketSeen(){ const m = loadMarket(); if(m.seenDay !== todayKey()){ m.seenDay = todayKey(); saveMarket(m); } }
+
+/* ---------- La Collection (l'Atelier + paliers) ---------- */
+function renderCollectionExtras(){
+  const col = collectionCount();
+  const prog = document.getElementById('colProgress');
+  if(prog){
+    const cats = COSMETIC_CATEGORIES.map(c=>{ const all = c.items(); const own = all.filter(i=> (c.owned()||[]).includes(i.id)).length; return `<span class="col-cat">${c.icon} ${own}/${all.length}</span>`; }).join('');
+    const pct = Math.round(col.owned / Math.max(1, col.total) * 100);
+    prog.innerHTML = `<div class="col-head"><b>Ta collection</b><span>${col.owned} / ${col.total}</span></div><div class="col-bar"><div class="col-fill" style="width:${pct}%"></div></div><div class="col-cats">${cats}</div>`;
+  }
+  const msEl = document.getElementById('colMilestones');
+  if(msEl){
+    const nav = loadNav();
+    const ms = collectionMilestones(col.owned, nav.colClaimed);
+    msEl.innerHTML = `<div class="col-head"><b>🏵️ Paliers de collection</b><span>un cadeau tous les 5 objets</span></div>` + ms.map(m=>
+      `<div class="ms-row ${m.state}"><span class="ms-n">${m.n} objets</span><span class="ms-r">+${m.coins} 🪙</span>${m.state==='ready' ? `<button class="btn btn-primary ms-claim" type="button" data-n="${m.n}">Récupérer</button>` : m.state==='claimed' ? '<span class="ms-ok">✓</span>' : `<span class="ms-left">${col.owned}/${m.n}</span>`}</div>`).join('');
+    msEl.querySelectorAll('.ms-claim').forEach(b=> b.addEventListener('click', ()=>{
+      const n = Number(b.dataset.n);
+      const nv = loadNav();
+      const m = COLLECTION_MILESTONES.find(x=> x.n===n);
+      if(!m || nv.colClaimed.includes(n) || collectionCount().owned < n) return;
+      nv.colClaimed.push(n); saveNav(nv);
+      addCoins(m.coins); sfxChestOpen(); flyIcons(b, document.getElementById('cosmeticsCoinsPill'), '🪙', 6);
+      Analytics.track('collection_milestone', { n });
+      renderCosmetics(); renderCollectionExtras(); updateNavBadges();
+    }));
+  }
+  // Objets tout juste obtenus : une étiquette « Nouveau » le temps de la visite.
+  const nav = loadNav();
+  document.querySelectorAll('#atelierGrid .item-card').forEach(card=>{
+    const key = atelier.cat + ':' + card.dataset.id;
+    const isNew = ownedCosmeticKeys().has(key) && !nav.seenItems.includes(key);
+    card.classList.toggle('is-new', isNew);
+  });
+}
+function markItemsSeen(){
+  const nav = loadNav();
+  const keys = [...ownedCosmeticKeys()];
+  if(keys.every(k=> nav.seenItems.includes(k))) return;
+  nav.seenItems = Array.from(new Set(nav.seenItems.concat(keys))); saveNav(nav);
+}
+function markAchievementsSeen(){
+  const nav = loadNav();
+  const ids = Object.keys(loadUnlockedAchievements());
+  if(ids.every(k=> nav.seenAch.includes(k))) return;
+  nav.seenAch = Array.from(new Set(nav.seenAch.concat(ids))); saveNav(nav);
+  updateNavBadges();
+}
+
+/* ---------- Profil > Missions : le rituel, la semaine, la saison ---------- */
+const MONTHS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function renderMissions(){
+  renderRitualCard();
+  renderWeeklyCard();
+  renderSeasonCard();
+}
+function renderWeeklyCard(){
+  const el = document.getElementById('weeklyCard');
+  if(!el) return;
+  const w = loadWeekly();
+  let html = `<div class="rc-head"><b>📅 Missions de la semaine</b><span>Nouvelles dans ${untilNextWeekText()}</span></div>`;
+  w.ids.forEach((id, i)=>{
+    const m = weeklyMission(id), done = w.prog[i] >= m.target, claimed = w.claimed[i];
+    const pct = Math.round(w.prog[i] / m.target * 100);
+    html += `<div class="wm-row${done ? ' done' : ''}${claimed ? ' claimed' : ''}"><div class="wm-text"><span>${m.text}</span><div class="wm-bar"><div class="wm-fill" style="width:${pct}%"></div></div></div>` +
+      (claimed ? '<span class="wm-ok">✓</span>' : done ? `<button class="btn btn-primary wm-claim" type="button" data-i="${i}">+${WEEKLY_REWARD.coins} 🪙</button>` : `<span class="wm-prog">${w.prog[i]} / ${m.target}</span>`) + `</div>`;
+  });
+  const ready = weeklyChestReady(w);
+  html += `<div class="rc-chest"><span class="rc-chest-icon${ready ? ' ready' : ''}">${w.chest ? '✅' : '🧰'}</span><span class="rc-chest-text">${w.chest ? 'Coffre de la semaine ouvert. Bravo !' : `Les 4 missions ouvrent le coffre : +${WEEKLY_REWARD.chestCoins} 🪙 +${WEEKLY_REWARD.chestRosee} 💧`}</span>${ready ? '<button class="btn btn-primary shimmer" type="button" id="btnWeeklyChest">Ouvrir</button>' : ''}</div>`;
+  el.innerHTML = html;
+  el.querySelectorAll('.wm-claim').forEach(b=> b.addEventListener('click', ()=>{
+    if(claimWeeklyMission(Number(b.dataset.i))){ sfxCoinGain(); flyIcons(b, document.getElementById('profileCoinsPill'), '🪙', 5); renderMissions(); updateNavBadges(); setPill('profileCoinsPill', `🪙 ${loadCoins()}`); }
+  }));
+  const chest = el.querySelector('#btnWeeklyChest');
+  if(chest) chest.addEventListener('click', ()=>{
+    const r = claimWeeklyChest();
+    if(!r) return;
+    sfxChestOpen(); vibrate([15, 30, 15, 30, 40]);
+    flyIcons(chest, document.getElementById('profileCoinsPill'), '🪙', 8);
+    showSimpleToast('🧰', 'Coffre de la semaine', `+${r.coins} 🪙 · +${r.rosee} 💧`, 'info-toast');
+    renderMissions(); updateNavBadges(); setPill('profileCoinsPill', `🪙 ${loadCoins()}`);
+  });
+}
+function renderSeasonCard(){
+  const el = document.getElementById('seasonCard');
+  if(!el) return;
+  const sv = loadSeason();
+  const tier = seasonTier(sv.xp);
+  const into = sv.xp - tier * SEASON_XP_PER_TIER;
+  const month = MONTHS_FR[Number(sv.season.slice(4, 6)) - 1] || '';
+  const claimable = seasonClaimable(sv);
+  let nodes = '';
+  for(let t = 1; t <= SEASON_TIERS; t++){
+    const rw = seasonReward(t);
+    const reached = t <= tier, claimed = sv.claimed.includes(t);
+    const icon = rw.final ? '🏆' : rw.freeze ? '🧊' : rw.rosee && !rw.coins ? '💧' : '🪙';
+    const amt = rw.final ? '' : (rw.coins || rw.rosee || rw.freeze);
+    nodes += `<button class="ss-node${reached ? ' reached' : ''}${claimed ? ' claimed' : ''}${reached && !claimed ? ' ready' : ''}${rw.final ? ' final' : ''}" type="button" data-t="${t}" ${reached && !claimed ? '' : 'tabindex="-1"'} aria-label="Palier ${t} : ${bundleText(rw)}${claimed ? ', récupéré' : reached ? ', à récupérer' : ''}"><span class="ss-t">${t}</span><span class="ss-ic">${claimed ? '✓' : icon}</span><span class="ss-a">${amt}</span></button>`;
+  }
+  el.innerHTML = `<div class="rc-head"><b>🌟 Saison de ${month}</b><span>${seasonDaysLeft(todayKey())} j restants</span></div>
+    <div class="ss-meta"><span>Palier <b>${tier}</b> / ${SEASON_TIERS}</span><span>${tier >= SEASON_TIERS ? 'Saison terminée !' : `${into} / ${SEASON_XP_PER_TIER} XP`}</span></div>
+    <div class="ss-bar"><div class="ss-fill" style="width:${tier >= SEASON_TIERS ? 100 : Math.round(into / SEASON_XP_PER_TIER * 100)}%"></div></div>
+    <div class="ss-track" data-hub-noswipe>${nodes}</div>
+    ${claimable.length ? `<button class="btn btn-primary shimmer ss-claimall" type="button" id="btnSeasonClaim">Récupérer ${claimable.length} palier${claimable.length>1?'s':''}</button>` : ''}
+    <p class="mk-sub">Gratuit. L'XP vient des missions, du défi du jour, des niveaux, du jardin et de la rosée.</p>`;
+  const claimOne = t=>{ const r = claimSeasonTier(t); return r ? r : null; };
+  el.querySelectorAll('.ss-node.ready').forEach(b=> b.addEventListener('click', ()=>{
+    const r = claimOne(Number(b.dataset.t));
+    if(r){ sfxCoinGain(); showSimpleToast('🌟', `Palier ${b.dataset.t}`, bundleText(r.reward), 'info-toast'); renderSeasonCard(); updateNavBadges(); setPill('profileCoinsPill', `🪙 ${loadCoins()}`); }
+  }));
+  const all = el.querySelector('#btnSeasonClaim');
+  if(all) all.addEventListener('click', ()=>{
+    let coins = 0, rosee = 0, freeze = 0;
+    seasonClaimable(loadSeason()).forEach(t=>{ const r = claimOne(t); if(r){ coins += r.reward.coins||0; rosee += r.reward.rosee||0; freeze += r.reward.freeze||0; } });
+    sfxChestOpen(); flyIcons(all, document.getElementById('profileCoinsPill'), '🪙', 7);
+    showSimpleToast('🌟', 'Saison', bundleText({ coins, rosee, freeze }), 'info-toast');
+    renderSeasonCard(); updateNavBadges(); setPill('profileCoinsPill', `🪙 ${loadCoins()}`);
+  });
+  // Le prochain palier visible dans la piste.
+  const track = el.querySelector('.ss-track');
+  const target = track && track.querySelector(`.ss-node[data-t="${Math.max(1, Math.min(SEASON_TIERS, (claimable[0] || tier + 1)))}"]`);
+  if(target && track.clientWidth){ track.scrollLeft = Math.max(0, target.offsetLeft - track.clientWidth / 2 + target.clientWidth / 2); }
+}
+
+/* ---------- Pastilles de la barre d'onglets ---------- */
+function navContext(){
+  const day = todayKey();
+  const g = loadGarden(), st = gardenStatus(g.done);
+  const mk = loadMarket(), nav = loadNav();
+  const offer = currentDailyOffer();
+  const owned = [...ownedCosmeticKeys()];
+  const col = collectionCount();
+  const rit = loadRitual();
+  const w = loadWeekly();
+  const unlocked = Object.keys(loadUnlockedAchievements());
+  const levelsDone = Object.keys(loadProgress()).length;
+  return {
+    giftAvailable: giftStatus(loadGift(), day).available,
+    dailyOfferNew: !!offer && mk.seenDay !== day && mk.dailyBought !== day,
+    newItems: owned.filter(k=> !nav.seenItems.includes(k)).length,
+    collectionReady: collectionMilestones(col.owned, nav.colClaimed).filter(m=> m.state==='ready').length,
+    dailyTodo: levelsDone >= 3 && !loadTodayDailyResult(),
+    dewLeft: dewLeft(g, day, streakAliveNow()),
+    restoreReady: !!st.next && g.rosee >= st.next.task.cost,
+    ritualChestReady: ritualAllDone(rit) && !rit.chest,
+    weeklyClaimable: weeklyClaimable(w).length,
+    weeklyChestReady: weeklyChestReady(w),
+    seasonClaimable: seasonClaimable(loadSeason()).length,
+    newAchievements: unlocked.filter(k=> !nav.seenAch.includes(k)).length
+  };
+}
+const navBadgeLast = {};
+function updateNavBadges(){
+  let ctx;
+  try{ ctx = navContext(); }catch(e){ return; }
+  const counts = navBadgeCounts(ctx);
+  HUB_PAGES.forEach(page=>{
+    const tab = document.querySelector(`#tabbar .tab[data-page="${page}"]`);
+    const b = tab && tab.querySelector('.tab-badge');
+    if(!b) return;
+    const n = counts[page] || 0;
+    b.hidden = n <= 0;
+    b.classList.toggle('dot', page === 'home');
+    b.textContent = page === 'home' ? '' : (n > 9 ? '9+' : String(n));
+    tab.setAttribute('aria-label', HUB_LABELS[page] + (n > 0 ? (page==='home' ? ' : défi du jour à relever' : ` : ${n} nouveauté${n>1?'s':''}`) : ''));
+    if(n > (navBadgeLast[page] || 0)){ b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+    navBadgeLast[page] = n;
+  });
+  // Onglets internes du Profil.
+  const segM = document.querySelector('#segMissions .seg-badge'), segS = document.querySelector('#segSucces .seg-badge');
+  const nm = (ctx.ritualChestReady ? 1 : 0) + ctx.weeklyClaimable + (ctx.weeklyChestReady ? 1 : 0) + ctx.seasonClaimable;
+  if(segM){ segM.hidden = nm <= 0; segM.textContent = String(nm); }
+  if(segS){ segS.hidden = ctx.newAchievements <= 0; segS.textContent = String(ctx.newAchievements); }
+  return counts;
+}
+// Premier lancement de cette version : ce qui existe déjà est « vu » (pas
+// d'avalanche de pastilles pour un joueur qui met le jeu à jour).
+function navInit(){
+  const nav = loadNav();
+  if(nav.init) return;
+  nav.init = true;
+  nav.seenItems = [...ownedCosmeticKeys()];
+  nav.seenAch = Object.keys(loadUnlockedAchievements());
+  saveNav(nav);
+}
+
+/* ---------- Page JOUER : le monde en cours ---------- */
+function renderWorldHero(){
+  const p = loadProgress();
+  const nextIdx = findNextLevelIndex();
+  const world = nextIdx >= 0 ? LEVELS[nextIdx].world : ALL_WORLDS[ALL_WORLDS.length - 1];
+  const meta = WORLD_META[world] || { name:'Monde ' + world, emoji:'🗺️' };
+  const idxs = worldLevelIndices(world);
+  const done = idxs.filter(i=> p[i]!==undefined).length;
+  const stars = idxs.reduce((a, i)=> a + (p[i]||0), 0);
+  const hero = document.getElementById('worldHero');
+  if(!hero) return;
+  const theme = WORLD_THEMES[world] || WORLD_THEMES[1];
+  hero.style.setProperty('--wh-bg', theme.surface2);
+  hero.style.setProperty('--wh-deep', theme.bgDeep);
+  hero.style.setProperty('--wh-halo', (WORLD_AMBIENCE[world] || WORLD_AMBIENCE[1]).halo);
+  if(hero.dataset.world !== String(world)){
+    hero.dataset.world = String(world);
+    document.getElementById('worldHeroArt').innerHTML = worldArtSVG(world) || worldArtSVG(2);
+  }
+  const stage = gardenStageFor(world, p).stage;
+  const plantEl = document.getElementById('worldHeroPlant');
+  if(plantEl && plantEl.dataset.k !== world + ':' + stage){ plantEl.dataset.k = world + ':' + stage; plantEl.innerHTML = gpPlantBadgeSVG(world, stage); }
+  setPill('worldHeroKicker', `Monde ${world} ${meta.emoji || ''}`);
+  setPill('worldHeroName', meta.name);
+  setPill('worldHeroSub', `${done}/${idxs.length} niveaux · ${stars}/${idxs.length * 3} ★`);
+  const fill = document.getElementById('worldHeroFill');
+  if(fill) fill.style.width = Math.round(done / Math.max(1, idxs.length) * 100) + '%';
+  const total = Object.keys(p).length;
+  setPill('mapBtnSub', `${total}/${LEVELS.length}`);
+}
+
+/* ---------- Écran de lancement ---------- */
+function renderSplash(){
+  const scene = document.getElementById('splashScene');
+  if(scene){
+    try{
+      const ctx = gpContext();
+      scene.innerHTML = gpSkySVG(ctx, 'sps' + (++gpSeq) + '_') + gpPanelSVG(ctx.st.zoneIndex, ctx, { viewBox:'0 120 360 440', par:'xMidYMax slice', dew:false, germain:false, beds:false }) + gpWeatherHTML(ctx, 16);
+    }catch(e){}
+  }
+  const gm = document.getElementById('splashGermain');
+  if(gm && !gm.firstChild) gm.innerHTML = germainSVG().replace(/gm(Seed|Leaf)/g, 'spgm$1') + '<span class="sp-light"></span>';
+  const chips = document.getElementById('splashChips');
+  if(chips){
+    let ctx = {};
+    try{ ctx = navContext(); }catch(e){}
+    const streak = streakAliveNow();
+    const out = [];
+    if(streak > 0) out.push(`<span class="sp-chip fire">🔥 Série : ${streak} jour${streak>1?'s':''}</span>`);
+    if(ctx.giftAvailable) out.push(`<span class="sp-chip gift">🎁 Cadeau du jour prêt</span>`);
+    if(Object.keys(loadProgress()).length >= 3) out.push(loadTodayDailyResult() ? `<span class="sp-chip ok">✓ Défi du jour réussi</span>` : `<span class="sp-chip">${todayDailyRule().icon} Défi du jour à relever</span>`);
+    if(ctx.dewLeft) out.push(`<span class="sp-chip dew">💧 ${ctx.dewLeft} goutte${ctx.dewLeft>1?'s':''} au jardin</span>`);
+    const toClaim = (ctx.ritualChestReady ? 1 : 0) + (ctx.weeklyClaimable||0) + (ctx.weeklyChestReady ? 1 : 0) + (ctx.seasonClaimable||0);
+    if(toClaim) out.push(`<span class="sp-chip gift">🏅 ${toClaim} récompense${toClaim>1?'s':''} à récupérer</span>`);
+    if(!out.length) out.push(`<span class="sp-chip">🌱 Ton jardin t'attend</span>`);
+    chips.innerHTML = out.slice(0, 4).join('');
+  }
+}
+document.getElementById('btnSplashPlay').addEventListener('click', ()=>{
+  const b = document.getElementById('btnSplashPlay');
+  b.classList.remove('pressed'); void b.offsetWidth; b.classList.add('pressed');
+  Analytics.track('splash_play', null);
+  goto('home');
+});
+// En arrivant sur la page JOUER : cadeaux et fêtes en attente (jamais sur le lancement).
+let pendingRankUp = null;
+function homeArrived(){
+  if(welcomeBackPending) setTimeout(grantWelcomeBack, 900);
+  if(pendingRankUp){ const rk = pendingRankUp; pendingRankUp = null; setTimeout(()=>{ celebrateRankUp(rk); setTimeout(()=>{ if(state.screen==='home') showTipOnce('rank', coachLine('tip_rank'), { position:'bottom' }); }, 3300); }, 700); }
+  if(seasonCarriedToast){ const t = seasonCarriedToast; seasonCarriedToast = null; showSimpleToast('🌟', 'Nouvelle saison', `Récompenses de la saison passée : ${bundleText(t)}`, 'info-toast'); }
+}
 
 /* =========================================================
    E2. PARAMÈTRES (son / vibration / réinitialisation)
@@ -8021,10 +9375,14 @@ document.getElementById('btnResetProgress').addEventListener('click', ()=>{
   // donc le tutoriel recommence (les cadeaux, effacés avec le reste, aussi).
   safeStorage.remove(TUTO_KEY);
   safeStorage.remove(TIPS_KEY);
+  // Hub : cadeau du jour, missions de la semaine, saison, marché, pastilles.
+  [GIFT_KEY, WEEKLY_KEY, SEASON_KEY, MARKET_KEY, NAV_KEY].forEach(k=> safeStorage.remove(k));
+  navInit(); loadSeason();
   homeHeroSig = '';
   if(Coach) Coach.cancelAll();
   applySeedCosmetic(); // revient immédiatement au skin par défaut, sans attendre un rechargement
   refreshHome();
+  updateNavBadges();
 });
 document.getElementById('btnSettings').addEventListener('click', ()=>{
   refreshSettingsUI();
@@ -9712,7 +11070,8 @@ let onWin = function(expectedSessionId){
     addRosee(roseeGain, state.isDaily ? 'daily' : 'level');
     rewards.splice(coinsEarnedThisRun > 0 ? 1 : 0, 0, { icon:'💧', text:`+${roseeGain} rosée`, kind:'rosee' });
   }
-  const ritualDone = ritualEvent({ type: state.repair ? 'repair_win' : (state.isDaily ? 'daily_win' : 'level_win'), stars, perfect: state.moves <= state.par, hint: state.hintUsedThisAttempt });
+  const ritualDone = ritualEvent({ type: state.repair ? 'repair_win' : (state.isDaily ? 'daily_win' : 'level_win'), stars, perfect: state.moves <= state.par, hint: state.hintUsedThisAttempt,
+    newStars: state.isDaily ? 0 : Math.max(0, stars - prevStars) });
   ritualDone.forEach(m=> rewards.push({ icon:'✅', text:'Rituel : ' + m.text, kind:'ritual' }));
   if(ritualDone.some(m=> m.allDone)) rewards.push({ icon:'🎁', text:'Coffre du rituel prêt !', kind:'unlock' });
   const gardenNow = gardenStatus(loadGarden().done);
@@ -10092,6 +11451,9 @@ function showDailyResult(data){
     if(par===null) parLine.textContent = '';
     else if(data.moves <= par) parLine.innerHTML = `Solution parfaite trouvée : <b>${par} coups</b>.`;
     else parLine.innerHTML = `La solution parfaite existe en <b>${par} coups</b>. Retente ta chance !`;
+    // Toi contre toi-même (audit §9) : où se place ce défi parmi tes derniers.
+    const pr = dailyPersonalRank(loadDailyHistory(), todayKey());
+    if(pr) parLine.innerHTML += `<br><span class="daily-rank">${pr.rank===1 ? '🏆 Ton meilleur défi' : `${pr.rank}<sup>e</sup> meilleur`} sur tes ${pr.of} derniers.</span>`;
   }
 
   const streak = loadStreak();
@@ -11297,7 +12659,7 @@ Tutorial = (function(){
 
   // ---- 4. Visite des onglets, un à la fois, avec un cadeau ----
   const TOURS = {
-    garden: { target:'#homeGarden', line:()=> coachLine('tour_garden'), after: async run=>{
+    garden: { target:'#tabGarden', line:()=> coachLine('tour_garden'), after: async run=>{
       if(!(await Coach.waitScreen('garden', 2500)) || !Coach.alive(run)) return false;
       const t = st();
       if(!t.gifts.garden){ t.gifts.garden = true; saveTutorial(t); addRosee(3, 'cadeau'); renderGardenMain(); bumpPill(document.getElementById('gardenRoseePill')); }
@@ -11311,7 +12673,7 @@ Tutorial = (function(){
       sleep(1300).then(()=>{ if(Coach.alive(run) && state.screen==='garden') Coach.say({ text: coachLine('tour_garden_ok'), mood:'happy', position:'bottom', autoHide:2400 }); });
       return true;
     }},
-    shop: { target:'#btnCosmetics', line:()=> coachLine('tour_shop', { coins: loadCoins() }), after: async run=>{
+    shop: { target:'#tabCollection', line:()=> coachLine('tour_shop', { coins: loadCoins() }), after: async run=>{
       if(!(await Coach.waitScreen('cosmetics', 2500)) || !Coach.alive(run)) return false;
       const t = st();
       let gift = null;
@@ -11333,12 +12695,13 @@ Tutorial = (function(){
       return true;
     }},
     daily: { target:'#btnDaily', line:()=> coachLine('tour_daily') },
-    achievements: { target:'#btnAchievements', line:()=> coachLine('tour_achievements'), after: async run=>{
-      if(!(await Coach.waitScreen('achievements', 2500)) || !Coach.alive(run)) return false;
+    achievements: { target:'#tabProfile', line:()=> coachLine('tour_achievements'), before:()=>{ profileSeg = 'succes'; }, after: async run=>{
+      if(!(await Coach.waitScreen('profile', 2500)) || !Coach.alive(run)) return false;
+      setProfileSeg('succes');
       Coach.say({ text: coachLine('tour_achievements_in'), mood:'wink', position:'bottom', autoHide:3000 });
       return true;
     }},
-    profile: { target:'#btnProfile', line:()=> coachLine('tour_profile') }
+    profile: { target:'#tabProfile', line:()=> coachLine('tour_profile'), before:()=>{ profileSeg = 'stats'; } }
   };
   async function tour(k){
     const def = TOURS[k];
@@ -11351,6 +12714,7 @@ Tutorial = (function(){
     bubbleP.then(v=>{ if(v==='later') Coach.clearSpot('later'); });
     // Clavier : le focus va sur la cible elle-même (Entrée = le geste montré).
     setTimeout(()=>{ try{ target.focus({ preventScroll:true }); }catch(e){} }, 80);
+    if(def.before) def.before();
     const r = await Coach.spotlight(target, { screen:'home' });
     Coach.hide();
     let ok = r==='clicked';
@@ -11400,7 +12764,7 @@ Tutorial = (function(){
     const t = st(); t.news = 'done'; saveTutorial(t); // jamais reproposée
     if(r==='yes'){
       step('nouveautes');
-      for(const [sel, line] of [['#homeGarden', 'news_garden'], ['#homeRitual', 'news_ritual'], ['#btnCosmetics', 'news_shop']]){
+      for(const [sel, line] of [['#tabGarden', 'news_garden'], ['#homeRitual', 'news_ritual'], ['#tabCollection', 'news_shop'], ['#tabMarket', 'news_market']]){
         if(!Coach.alive(run) || state.screen!=='home') break;
         const el = document.querySelector(sel);
         if(!Coach.visible(el)) continue;
@@ -11410,7 +12774,12 @@ Tutorial = (function(){
         Coach.clearSpot('suivant');
         if(rr!=='next' && rr!=='tap') break;
       }
-      if(Coach.alive(run) && state.screen==='home') Coach.say({ text: coachLine('news_done'), mood:'happy', position:'bottom', autoHide:2200 });
+      // Le mot de la fin explique le geste de navigation (l'aide « nav » est alors vue).
+      if(Coach.alive(run) && state.screen==='home'){
+        const navTip = !tipSeen('nav');
+        if(navTip) markTipSeen('nav');
+        Coach.say({ text: coachLine(navTip ? 'tip_nav' : 'news_done'), mood:'happy', position:'bottom', autoHide: navTip ? 3200 : 2200 });
+      }
     }
     busy = false; currentStep = '';
   }
@@ -11427,6 +12796,9 @@ Tutorial = (function(){
       if(k && Date.now() - lastTourEnd > 15000) return tour(k);
     }
     if(tutorialNudgeDue(t, todayKey(), ctxNow())) return nudge(t);
+    // Aide de navigation (une fois), seulement quand Germain n'a rien de plus
+    // utile à dire et qu'aucun cadeau de retour n'attend.
+    if(!welcomeBackPending) showTipOnce('nav', coachLine('tip_nav'), { position:'top' });
   }
   function onScreen(name){
     Coach.onScreen(name);
@@ -11539,14 +12911,18 @@ window.addEventListener('pagehide', ()=>{
 loadTutorial(); // détecte joueur neuf / existant avant toute nouvelle sauvegarde
 applySeedCosmetic();
 spawnFireflies();
+navInit();       // ce qui existe déjà est « vu » (pas d'avalanche de pastilles à la mise à jour)
+loadSeason();    // nouveau mois : saison neuve, paliers non récupérés rendus
+Hub.init();
 refreshHome();
-goto('home');
+renderSplash();
+goto('splash');
+updateNavBadges();
 // Succès rattrapés au démarrage : un joueur qui met à jour le jeu voit
 // tout de suite ceux qu'il a déjà mérités (ils ne se vérifiaient qu'à une
 // victoire). Léger délai pour ne pas masquer l'accueil dès l'ouverture.
-setTimeout(()=>{ if(state.screen==='home'){ const n = checkAchievements(); if(n.length) refreshHome(); } }, 1200);
-// Bon retour (après 3 jours d'absence) : après l'accueil de Germain s'il y en a un.
-if(welcomeBackPending) setTimeout(grantWelcomeBack, 1600);
+setTimeout(()=>{ const n = checkAchievements(); if(n.length && state.screen==='home') refreshHome(); updateNavBadges(); }, 1200);
+// Bon retour (après 3 jours d'absence) : offert à l'arrivée sur la page JOUER (homeArrived).
 
 // Service worker : seulement servi en http(s) (GitHub Pages), jamais en
 // file:// où il n'existe pas. Un échec d'enregistrement ne gêne jamais le jeu.

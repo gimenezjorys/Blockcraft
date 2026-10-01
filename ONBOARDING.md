@@ -42,12 +42,12 @@ La question à poser en test : **à quelle étape les gens passent-ils ?**
 | Niveau 1 | Montre le geste (doigt fantôme), célèbre la victoire | 3★ |
 | Niveaux 2-3 | Un mot, puis des réactions courtes | — |
 | Nouvelle mécanique | Mini-scène (surpris, puis content), les cases pulsent | — |
-| Jardin (dès qu'un chantier est payable) | Projecteur sur la carte du Jardin, puis sur « Réveiller » | +3 💧 |
-| Atelier (dès 30 pièces) | Projecteur sur l'Atelier, puis sur « Équiper » | Une graine offerte |
-| Défi, Succès, Profil | Projecteur sur le bouton, une phrase | — |
+| Jardin (dès qu'un chantier est payable) | Projecteur sur l'onglet **Jardin** de la barre du bas, puis sur « Réveiller » | +3 💧 |
+| Atelier (dès 30 pièces) | Projecteur sur l'onglet **Collection**, puis sur « Équiper » | Une graine offerte |
+| Défi, Succès, Profil | Projecteur sur le bouton « Défi du jour », puis sur l'onglet **Profil** (rubrique Succès, puis Stats), une phrase | — |
 | Fin | Diplôme | Succès « Apprenti », +25 🪙 |
 | Lendemain (première semaine) | Rappel du défi et de la série, sans pression | — |
-| Joueur existant | « Il y a du nouveau. Petite visite ? » (Jardin, Rituel, Atelier) | — |
+| Joueur existant | « Il y a du nouveau. Petite visite ? » (onglets Jardin, Rituel, Collection, Marché), et le mot de la fin montre le geste de navigation | — |
 
 **Choix documentés** :
 - « Passer » arrête tout le tutoriel ; les mécaniques reviennent alors en aide texte.
@@ -67,8 +67,15 @@ Chaque nouveauté s'explique **une seule fois**, par Germain, au moment où le j
 | Croissance | 1re plante qui grandit sous les yeux du joueur | « Tes étoiles font grandir les plantes. Touche-les pour les voir ! » |
 | Rang | 1er nouveau rang | « Ton rang de jardinier monte avec tout ce que tu accomplis. » |
 | Rattrapage | 1re série en pause | « Ta série s'est arrêtée hier ? Rejoue ce défi pour la sauver. » |
-| Bon retour | Après 3 jours d'absence | « Te revoilà ! Le jardin t'a gardé un peu de rosée. » (+6 💧) |
+| Bon retour | Après 3 jours d'absence, à l'arrivée sur JOUER (jamais sur l'écran de lancement) | « Te revoilà ! Le jardin t'a gardé un peu de rosée. » (+6 💧) |
+| Navigation | 1re arrivée calme sur JOUER (aucune visite due) | « Glisse pour changer de page, ou touche les onglets en bas. » |
+| Marché | 1re visite | « Le Marché : un cadeau chaque jour et des offres en pièces. » |
+| Collection | 1re visite | « Ta collection : essaie chaque objet ici avant de l'acheter. » |
+| Jardin | 1re visite sans rosée à cueillir (la rosée passe d'abord : une aide par visite) | « Ton jardin ! La rosée gagnée en jouant le réveille. » |
+| Profil | 1re visite | « Tes missions, ta saison et tes succès sont rangés ici. » |
 
-Jamais pendant l'intro, jamais par-dessus une autre bulle (elle attend la prochaine occasion), toujours fermable (« Merci ! », toucher, Échap).
+Jamais pendant l'intro, jamais par-dessus une autre bulle (elle attend la prochaine occasion), toujours fermable (« Merci ! », toucher, Échap). Dans le hub, une bulle en bas se pose au-dessus de la barre d'onglets, jamais dessus.
 
-**Limites** : tests automatisés dans Chromium (Playwright, vrais clics et touches), pas dans jsdom ni sur téléphone réel. Germain n'a pas été montré à de vrais joueurs : le ton et le rythme restent à valider.
+**Écran de lancement** : Germain y apparaît en silence (il glisse dans le décor) ; il ne parle qu'une fois le joueur sur la page JOUER.
+
+**Limites** : tests automatisés dans Chromium (Playwright, vrais clics et touches) et dans jsdom, pas sur téléphone réel. Germain n'a pas été montré à de vrais joueurs : le ton et le rythme restent à valider.

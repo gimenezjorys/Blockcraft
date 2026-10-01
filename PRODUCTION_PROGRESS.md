@@ -242,18 +242,65 @@ Un fichier HTML seul ne peut pas afficher de vraies pubs. Deux voies :
 
 **Sauvegardes** : `bcd_garden_v1` passe au **schéma 2** (migration : les nouveaux champs démarrent « jamais vu », rien n'est écrasé ; pas de fête rétroactive). Nouvelle clé `bcd_tips_v1` (schéma 1).
 
+## 4f. Nouvelle navigation et nouvelles raisons de revenir (octobre 2026)
+
+**Le problème** : tous les onglets étaient serrés en haut à droite, loin du pouce, sans repère de la page active ni signal de ce qui attend le joueur.
+
+**La structure** :
+
+```
+Écran de lancement  →  [ Marché | Collection | ▶ JOUER | Jardin | Profil ]   + ⚙ (roue dentée, discrète)
+                         ←———— glisser entre les pages, ou toucher un onglet ————→
+```
+
+- **Écran de lancement** (rapide, rien à charger) : logo animé (la graine glisse vers la lumière), le jardin du joueur en fond (son ciel, son heure, sa météo), Germain, un grand bouton **Jouer**, et ce qui l'attend : série en cours, cadeau du jour prêt, défi à relever ou réussi, gouttes de rosée, récompenses à récupérer. Les cadeaux (bon retour, fête du rang) attendent la page JOUER.
+- **5 pages côte à côte**, qu'on fait glisser au doigt (la page suit le doigt, ressort aux extrémités, une pichenette suffit) **ou** par la **barre d'onglets en bas** (zone du pouce, icônes dessinées, JOUER au centre en grand, page active surlignée). Retour en haut en touchant l'onglet actif. Flèches du clavier sur la barre.
+- **JOUER** (centre) : le monde en cours et son bouton, le défi du jour, le Sentier, le rituel, la vignette du jardin, la carte des mondes.
+- **Marché** : cadeau du jour, offre du jour, lot de la semaine, pièces contre une pub, gel de série.
+- **Collection** : l'Atelier (essai en direct de chaque objet), la progression de la collection et ses paliers, les objets neufs marqués.
+- **Jardin** : le panorama vivant.
+- **Profil** : rang, puis trois rubriques — **Missions** (rituel du jour, missions de la semaine, passe de saison), **Succès**, **Stats**.
+- **Paramètres** : roue dentée en haut à droite, seule avec « ? » (aide) ; ce sont des écrans par-dessus, sans barre d'onglets.
+- **Pastilles** sur les onglets (nombre, ou point rouge sur JOUER tant que le défi du jour est à faire) et sur les rubriques du Profil ; elles disparaissent dès que c'est fait ou vu. À la mise à jour, ce que le joueur possède déjà est marqué « vu » : pas d'avalanche.
+- **Jamais de glissement de navigation pendant une partie** : le hub est masqué en jeu (le plateau garde tous les gestes). Ni au-dessus du panorama du jardin ou de la piste de saison (qui défilent eux-mêmes), ni sous un projecteur de Germain.
+- **Bouton retour du téléphone** : écran par-dessus → son retour ; page du hub → JOUER ; JOUER → lancement ; lancement → on sort de l'app.
+- **Aide de chaque page** (une fois, passable, dans n'importe quel ordre) ; l'aide « Glisse pour changer de page » vient à la première arrivée calme sur JOUER (ou en fin de visite des nouveautés). Le tutoriel de Germain montre désormais les onglets de la barre du bas.
+
+**Fonctionnalités ajoutées (une phrase de justification chacune)** :
+
+| Ajout | Page | Pourquoi (J1/J7/J30) |
+|---|---|---|
+| **Cadeau du jour** (calendrier de 7 cadeaux : coins, rosée, gel de série, coffre le 7e jour ; un jour manqué ne fait rien perdre ; doublé une fois par une pub) | Marché | Une récompense garantie à chaque ouverture, sans punition de l'absence (J1, J7). |
+| **Missions de la semaine** (4 parmi 8, tirées pour la semaine UTC, +20 coins chacune, coffre +60 coins +10 💧) | Profil › Missions | Un objectif à moyen terme entre le rituel du jour et le jardin ; audit §9 « modificateurs hebdomadaires » (J7). |
+| **Passe de saison gratuit** (20 paliers par mois UTC, XP de tout ce qu'on fait, palier 20 = 120 coins + 15 💧 ; les paliers non récupérés sont rendus au changement de mois) | Profil › Missions | Une progression mensuelle lisible, sans achat ni perte (J30). |
+| **Offre du jour** (−30 %) et **lot de la semaine** (3 objets, −25 %), en coins seulement | Marché | Donne une raison de regarder le Marché et rend les coins utiles, sans argent réel ni pay-to-win (J7). |
+| **Paliers de collection** (5/10/15/20/25 objets : 20 à 120 coins) | Collection | Met en scène le « presque complet » de l'audit §3 (effet Zeigarnik) (J30). |
+| **5 succès secrets** (rosée 7 jours, série sauvée, coffre de la semaine, cycle complet de cadeaux, palier final de saison), montrés « ??? » | Profil › Succès | Audit §9 « objectifs secrets » : récompenser la régularité sans l'exiger (J30). |
+| **Ton classement personnel** au défi du jour (« 2e meilleur sur tes 9 derniers ») | Résultat du défi | Audit §9 « comparé à un barème historique local » : se mesurer à soi, jamais à de faux joueurs (J7). |
+| **Pièces contre une pub** (+20, 2 par jour) et **cadeau doublé** (1 par jour) | Marché | Nouveaux emplacements récompensés, toujours derrière un bouton « PUB », plafonnés (`AD_PLACEMENTS`). |
+
+**Simplifications** : un seul endroit par chose (le rituel vit dans Missions, les succès dans le Profil, les cosmétiques dans Collection) ; les boutons « retour » des pages du hub ont disparu (la barre suffit) ; l'accueil ne porte plus de rangée d'icônes.
+
+**Performance** (Chromium, processeur ralenti ×4) : 56 à 60 images/s au repos sur chaque page (les animations des pages hors écran sont en pause, le reflet des boutons passe en `transform`) ; glissement entre pages à 46–58 images/s en moyenne, la piste étant animée par le compositeur ; les tableaux du jardin ne sont reconstruits que si leur contenu a changé.
+
+**Sauvegardes** : 5 nouvelles clés, toutes dans `SCHEMA_MIGRATIONS` (schéma 1) : `bcd_gift_v1`, `bcd_weekly_v1`, `bcd_season_v1`, `bcd_market_v1`, `bcd_nav_v1`. Une ancienne sauvegarde se charge sans perte ; la réinitialisation les efface aussi.
+
+**Bugs corrigés en route** : la réinitialisation oubliait les données du hub ; une bulle de Germain en bas pouvait couvrir la barre d'onglets (elle se pose maintenant au-dessus) ; deux aides pouvaient se disputer l'arrivée au Jardin (une seule par visite, par priorité) ; les tests E2E tournent en http (en `file://`, Chromium perd parfois tout le localStorage au rechargement, ce qui rendait un test instable).
+
 ## 5. Tests exécutés (résultats observés)
 
 | Commande | Ce qu'elle vérifie | Résultat |
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
-| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) ; **jardin vivant** (ciel, météo sur 1 000 jours, rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel) | 6 636 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel) |
-| `node scripts/test-dom.js` | **jsdom** avec de vrais `KeyboardEvent` / `PointerEvent` : nouveau joueur, swipe, jardin vivant (rosée, chantier, clavier), **ancienne sauvegarde** (schéma 1, clé de série « future »), **dates UTC**, rattrapage de série, bon retour, rang, aides, points d'accroche pub, animations réduites | 60 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée, **panorama, goutte touchée au doigt, ciels**), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 75 vérifications, 0 échec, 0 erreur ou avertissement console |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN | 59 vérifications, 0 échec, 0 erreur console (stable sur 2 exécutions) |
+| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) ; **jardin vivant** (ciel, météo sur 1 000 jours, rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel) | 6 702 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel ; et le **hub** : cadeau, missions de la semaine, saison et report, marché, collection, pastilles, classement personnel) |
+| `node scripts/test-dom.js` | **jsdom** avec de vrais `KeyboardEvent` / `PointerEvent` : écran de lancement, nouveau joueur, swipe, jardin vivant (rosée, chantier, clavier), **ancienne sauvegarde** (schéma 1, clé de série « future »), **dates UTC**, rattrapage de série, bon retour, rang, aides, points d'accroche pub, animations réduites ; **hub** : glisser entre les pages (pichenette, geste lent, geste vertical, bouts, panorama exclu, toucher annulé après un glissement), onglets, clavier, bouton retour ; **aucune navigation pendant une partie** ; **pastilles** (cadeau, offre vue, objet neuf, palier, défi fait, mission, saison, succès vus) ; **sauvegarde d'avant le hub** | 122 vérifications, 0 échec |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée, **panorama, goutte touchée au doigt, ciels**), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 84 vérifications, 0 échec, 0 erreur ou avertissement console (lancement, 5 onglets, glissement à la souris, Marché) |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN | 63 vérifications, 0 échec, 0 erreur console (stable sur 4 exécutions, dont 3 en parallèle) |
 | CI GitHub Actions | Les quatre suites (dont jsdom), sur toutes les branches | Vert |
 
-Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin, l'Atelier, l'aide et les succès. Aucun débordement horizontal.
+Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur le lancement, les 5 pages du hub, le jeu, la victoire, le défi, le Sentier, l'aide. Aucun débordement horizontal.
+
+Niveaux revalidés : solveur interne (60/60), et les 60 solutions rejouées dans le **vrai moteur** (touches du clavier) : victoire en exactement « par » coups pour chacun. Aucun niveau ni mécanique n'a changé dans cette session.
 
 ## 6. Plan de mesure (tests joueurs)
 
@@ -273,6 +320,8 @@ Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, s
 | Jardin vivant | `rosee_gain` (source `dew`), `dew_all`, `garden_open`, `garden_grow` | La rosée du matin fait revenir chaque jour | Plus de 60 % des jours actifs avec au moins une goutte cueillie | Un joueur peut ouvrir le jeu « pour la rosée » sans jouer : à croiser avec `l` (victoires) |
 | Série | `streak_repair_start`, `streak_repair`, `streak_repair_declined`, `welcome_back` | Sauver sa série évite l'abandon après un jour manqué | J7 et J30 plus hauts chez ceux qui ont rattrapé | Peu de cas sur un petit groupe de test |
 | Rang | `rank_up`, `tip_shown` | Le rang donne un objectif long | Rang 3 (Jardinier) atteint par la moitié des joueurs à J7 | Les paliers peuvent être trop rapides ou trop lents : à calibrer |
+| Navigation | `nav_swipe`, `nav_tab`, `splash_play` | Le glissement et la barre du bas sont compris | Plus de 30 % des changements de page au doigt dès J1 ; chaque page visitée par plus de 60 % des joueurs à J3 | Un joueur peut ignorer une page parce qu'elle ne l'intéresse pas, pas parce qu'il ne la trouve pas |
+| Cadeau, semaine, saison | `gift_claim`, `weekly_mission_claim`, `weekly_chest_open`, `season_tier`, `season_claim` | Des rendez-vous à 1, 7 et 30 jours | Cadeau récupéré sur plus de 70 % des jours actifs ; coffre de la semaine ouvert par 25 % des joueurs actifs à J7 | Des missions trop faciles deviennent une corvée ; trop dures, on les ignore |
 
 ## 7. Limites restantes
 
@@ -286,11 +335,13 @@ Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, s
 - **Pubs** : seul le fournisseur simulé existe. Aucune vraie régie n'est branchée (voir §4c).
 - **Audio jamais écouté par un humain** : il a été réglé par analyse numérique de rendus hors ligne. Le goût (mélodie, timbre) reste à valider à l'oreille.
 - **Équilibrage à calibrer en test** : chrono, bonus de temps et coins du Sentier.
+- **Navigation** : le panorama du jardin capte le glissement horizontal (il défile lui-même) ; pour changer de page depuis le Jardin, on glisse ailleurs sur la page ou on touche la barre. À observer en test.
+- **Passe de saison et missions** : barème d'XP et objectifs fixés à l'estime ; à calibrer avec `season_tier` et `weekly_mission_claim`.
 - **Blueprint non couvert** : les mondes 9 et 10 (mécaniques non implémentées), l'éditeur communautaire et la monétisation (publicité récompensée) restent à faire.
 
 ## 8. Prochaines priorités (par impact attendu)
 
-1. **Tests joueurs réels (5 à 10 personnes)** avec le rapport de rétention, pour calibrer le chrono du Sentier, la difficulté des défis et le rythme du jardin (rosée du matin comprise). Questions : les joueurs trouvent-ils les gouttes ? font-ils défiler le panorama ?
+1. **Tests joueurs réels (5 à 10 personnes)** avec le rapport de rétention, pour calibrer le chrono du Sentier, la difficulté des défis, le rythme du jardin (rosée du matin comprise), les missions de la semaine et le passe de saison. Questions : les joueurs trouvent-ils les gouttes ? glissent-ils entre les pages ou passent-ils par la barre ? ouvrent-ils le Marché chaque jour ?
 2. **Vérifier l'installation PWA sur de vrais téléphones** (Android Chrome, iOS Safari) une fois la branche fusionnée dans `main`.
 3. **Rappel du défi du jour** (notifications) : nécessite un service de push, donc un backend minimal. À arbitrer.
 4. **Ligue Fantôme** (paliers de maîtrise absolus), si les tests montrent un besoin de sensation de rang.

@@ -17,11 +17,13 @@ try { ({ chromium } = require('playwright')); }
 catch (e) { console.error('✘ Playwright introuvable (npm i -D playwright, ou NODE_PATH=$(npm root -g))'); process.exit(1); }
 
 const OUT = process.argv[2] || null;
-const FILE = 'file://' + path.resolve(__dirname, '..', 'index.html');
+// Le jeu est servi en http (comme sur GitHub Pages) : en file://, Chromium perd
+// parfois tout le localStorage au rechargement, ce qui faussait la persistance.
+let FILE = '';
 let failures = 0, checks = 0;
 function check(cond, msg) { checks++; if (!cond) { failures++; console.error('✘ ' + msg); } else console.log('✔ ' + msg); }
 
-// Serveur statique minimal (aucune dépendance) pour tester la PWA en http.
+// Serveur statique minimal (aucune dépendance) : le jeu et la PWA en http.
 function startStaticServer(root) {
   const http = require('http');
   const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.json': 'application/json' };
@@ -44,6 +46,8 @@ function startStaticServer(root) {
 (async () => {
   const launchOpts = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
   const browser = await chromium.launch(launchOpts);
+  const server = await startStaticServer(path.resolve(__dirname, '..'));
+  FILE = `http://127.0.0.1:${server.port}/index.html`;
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
   const consoleProblems = [];
   page.on('pageerror', e => consoleProblems.push('pageerror: ' + e.message));
@@ -69,8 +73,13 @@ function startStaticServer(root) {
 
   await page.goto(FILE);
   await wait(300);
+  await shot('00-lancement');
+  check(await screen() === 'screen-splash', 'écran de lancement affiché au démarrage');
+  check(await page.evaluate(() => !!document.querySelector('#btnSplashPlay') && document.getElementById('hub').classList.contains('on') === false), 'lancement : gros bouton JOUER, hub masqué');
+  await page.click('#btnSplashPlay'); await wait(450);
   await shot('01-accueil');
-  check(await screen() === 'screen-home', 'accueil affiché au lancement');
+  check(await screen() === 'screen-home', 'JOUER : page centrale du hub');
+  check(await page.evaluate(() => document.querySelectorAll('#tabbar .tab').length === 5 && document.querySelector('#tabbar .tab.on').dataset.page === 'home'), 'barre d\'onglets : 5 pages, « Jouer » active');
 
   // 1. Tutoriel : Germain accueille, JOUER lance directement le niveau 1
   await wait(700);
@@ -137,6 +146,7 @@ function startStaticServer(root) {
   // 3. Annuler + impasse (niveau 9 : bas = impasse prouvée)
   await page.evaluate(() => { const d = {}; for (let i = 0; i < 8; i++) d[i] = 3; localStorage.setItem('bcd_progress_v1', JSON.stringify({ schemaVersion: 1, data: d })); });
   await page.reload(); await wait(300);
+  await page.click('#btnSplashPlay'); await wait(300);
   await page.click('#btnPlay'); await wait(200);
   await page.click('.level-card[aria-label^="Niveau 9 "]'); await wait(300);
   await page.keyboard.press('ArrowDown'); await wait(350);
@@ -201,16 +211,27 @@ function startStaticServer(root) {
   check(stats.totalPerfect >= 4 && stats.runs === 1 && stats.bestScore === 60, 'statistiques du Sentier persistées');
   await page.click('#btnSentierEndHome'); await wait(200);
 
-  // 7. Jardin + succès
+  // 7. Jardin + succès (pages du hub)
   await page.click('#homeGarden'); await wait(500);
+  check(await screen() === 'screen-garden' && await page.evaluate(() => document.querySelector('#tabbar .tab.on').dataset.page === 'garden'), 'raccourci de l\'accueil : page Jardin, onglet actif');
   check((await page.$$('.plot')).length === 8, 'Jardin : 8 parcelles');
   check((await page.textContent('#gardenPlots')).includes('En pleine floraison'), 'Jardin : le Monde 1 à 3★ est en fleur');
   await shot('07-jardin');
-  await page.click('#btnBackHomeGarden'); await wait(200);
-  await page.click('#btnAchievements'); await wait(300);
+  await page.click('#tabProfile'); await wait(400);
+  await page.click('#segSucces'); await wait(250);
   check((await page.$$('.ach-progress')).length > 0, 'succès : barres de progression visibles');
   check((await page.$$('.achievement-card.tiered')).length === 1, 'succès évolutif « Maître du par » affiché');
-  await page.click('#btnBackHomeAchievements'); await wait(200);
+  check((await page.$$('.achievement-card.secret')).length >= 1, 'objectifs secrets affichés « ??? »');
+  await page.click('#segMissions'); await wait(200);
+  check((await page.$$('#gardenRitual .rc-mission')).length === 3 && (await page.$$('#weeklyCard .wm-row')).length === 4 && (await page.$$('#seasonCard .ss-node')).length === 20, 'Profil > Missions : rituel (3), semaine (4), saison (20 paliers)');
+  check(await page.evaluate(() => { const r = BCD_DEV.getRitual(); return r.ids[0] === 'daily' && r.prog[0] === 1; }), 'rituel : le défi réussi plus tôt est compté');
+  // Glisser le doigt (souris) vers la droite : page précédente (Jardin).
+  const vpBox = await page.evaluate(() => { const r = document.getElementById('hubViewport').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height * 0.75 }; });
+  await page.mouse.move(vpBox.x - 120, vpBox.y); await page.mouse.down();
+  for (let i = 1; i <= 8; i++) { await page.mouse.move(vpBox.x - 120 + i * 30, vpBox.y + 2); await wait(16); }
+  await page.mouse.up(); await wait(500);
+  check(await screen() === 'screen-garden', 'glissement vers la droite : page Jardin');
+  await page.click('#tabPlay'); await wait(300);
 
   // 8. Réglages : animations réduites
   await page.click('#btnSettings'); await wait(200);
@@ -221,8 +242,8 @@ function startStaticServer(root) {
 
   // 8b. L'Atelier : aperçu, achat, équipement (graine épique « Braise », 90 coins)
   await page.evaluate(() => BCD_DEV.devSetCoins(100));
-  await page.click('#btnCosmetics'); await wait(300);
-  check(await screen() === 'screen-cosmetics', 'Atelier ouvert');
+  await page.click('#tabCollection'); await wait(400);
+  check(await screen() === 'screen-cosmetics', 'Collection (Atelier) ouverte depuis la barre d\'onglets');
   await page.click('#atelierGrid .item-card[data-id="braise"]'); await wait(300);
   check((await page.textContent('#stageRarity')).length > 0 && !!(await page.$('#stageScene .stage-seed.fx-braise')), 'Atelier : aperçu de l\'objet sélectionné avec sa rareté');
   check((await page.textContent('#atelierAction')).includes('90'), 'Atelier : prix affiché avant achat');
@@ -232,7 +253,15 @@ function startStaticServer(root) {
   if (!(await page.textContent('#atelierAction')).includes('Équipé')) { await page.click('#atelierAction'); await wait(300); }
   check(await page.evaluate(() => BCD_DEV.getEquippedCosmetic() === 'braise' && document.documentElement.dataset.seedFx === 'braise'), 'Atelier : graine équipée et effet appliqué');
   await shot('08-atelier');
-  await page.click('#btnBackHomeCosmetics'); await wait(200);
+  // 8a. Le Marché : cadeau du jour (une fois par jour), pastille qui s'éteint.
+  await page.click('#tabMarket'); await wait(400);
+  check(await screen() === 'screen-market' && !!(await page.$('#btnGiftClaim')), 'Marché : cadeau du jour prêt');
+  const coinsBeforeGift = await page.evaluate(() => BCD_DEV.getCoins());
+  await page.click('#btnGiftClaim'); await wait(400);
+  check((await page.evaluate(() => BCD_DEV.getCoins())) === coinsBeforeGift + 15 && !(await page.$('#btnGiftClaim')), 'cadeau du jour 1 : +15 🪙, puis plus disponible');
+  check(await page.evaluate(() => document.querySelector('#tabMarket .tab-badge').hidden), 'pastille du Marché éteinte (cadeau pris, offre vue)');
+  await shot('08b-marche');
+  await page.click('#tabPlay'); await wait(300);
 
   // 8c. Le Jardin endormi : objectif sur l'accueil, restauration, fête de zone, rituel, pub simulée
   check((await page.textContent('#homeGardenNext')).length > 3, 'accueil : prochain chantier du jardin toujours visible');
@@ -240,8 +269,6 @@ function startStaticServer(root) {
   const coinsBeforeZone = await page.evaluate(() => BCD_DEV.getCoins());
   await page.click('#homeGarden'); await wait(400);
   check(await screen() === 'screen-garden' && !!(await page.$('#gzScene svg')), 'Jardin : scène de la zone affichée');
-  check((await page.$$('#gardenRitual .rc-mission')).length === 3, 'Jardin : rituel du jour à 3 missions');
-  check(await page.evaluate(() => { const r = BCD_DEV.getRitual(); return r.ids[0] === 'daily' && r.prog[0] === 1; }), 'rituel : le défi réussi plus tôt est compté');
   for (let i = 0; i < 5; i++) { await page.click('#btnRestore'); await wait(750); }
   const gAfter = await page.evaluate(() => BCD_DEV.getGarden());
   // Le rituel du jour dépend de la date : s'il contient « Réveille un coin
@@ -258,7 +285,7 @@ function startStaticServer(root) {
   check(await page.evaluate(() => document.getElementById('btnRestore').disabled), 'pas assez de rosée : bouton désactivé, jamais de dépense');
   await page.evaluate(() => BCD_DEV.resetAdCaps());
   await page.evaluate(() => { const r = document.getElementById('gzScene'); r.scrollIntoView(); });
-  await page.evaluate(() => { document.getElementById('btnBackHomeGarden').click(); }); await wait(200);
+  await page.evaluate(() => { document.getElementById('tabPlay').click(); }); await wait(200);
   await page.click('#homeGarden'); await wait(300);
   check(await page.evaluate(() => !document.getElementById('btnGardenBoost').hidden), 'pub récompensée proposée (arrosage bonus)');
   await page.click('#btnGardenBoost'); await wait(400);
@@ -272,7 +299,7 @@ function startStaticServer(root) {
   check(stageH >= 330, `Jardin vivant : la scène occupe l'écran (${Math.round(stageH)} px de haut)`);
   const dewInfo = await page.evaluate(() => BCD_DEV.getDew());
   if (dewInfo.left > 0) {
-    await page.evaluate(() => { window.scrollTo(0, 0); document.getElementById('gpDewChip').click(); }); await wait(700);
+    await page.evaluate(() => { document.getElementById('screen-garden').scrollTop = 0; document.getElementById('gpDewChip').click(); }); await wait(700);
     const drop = await page.evaluate(() => { const d = [...document.querySelectorAll('#gzScene .gp-dew')].find(x => { const r = x.getBoundingClientRect(); return r.left > 0 && r.right < innerWidth; }); if (!d) return null; const r = d.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
     const rBefore = await page.evaluate(() => BCD_DEV.getGarden().rosee);
     if (drop) { await page.mouse.click(drop.x, drop.y); await wait(400); }
@@ -280,16 +307,17 @@ function startStaticServer(root) {
     check(!!drop && rAfter === rBefore + 1, `rosée du matin : une goutte touchée = +1 💧 (${rBefore} → ${rAfter}, ${JSON.stringify(drop)}, coach ${await page.evaluate(() => !document.getElementById('coach').hidden)})`);
   } else check(true, 'rosée du matin déjà cueillie aujourd\'hui');
   for (const ph of ['jour', 'crepuscule']) {
-    await page.evaluate(p => { BCD_DEV.setGardenPhase(p); document.getElementById('btnBackHomeGarden').click(); }, ph); await wait(150);
+    await page.evaluate(p => { BCD_DEV.setGardenPhase(p); document.getElementById('tabPlay').click(); }, ph); await wait(150);
     await page.click('#homeGarden'); await wait(500);
     check(await page.evaluate(p => document.getElementById('gzStage').dataset.phase === p, ph), `ciel « ${ph} » appliqué`);
     await shot('11-jardin-' + ph);
   }
   await page.evaluate(() => BCD_DEV.setGardenPhase(null));
-  await page.evaluate(() => { document.getElementById('btnBackHomeGarden').click(); }); await wait(200);
+  await page.evaluate(() => { document.getElementById('tabPlay').click(); }); await wait(200);
 
   // 9. Persistance après rechargement
   await page.reload(); await wait(300);
+  await page.click('#btnSplashPlay'); await wait(300);
   check((await page.textContent('#homeDailyBadge')).includes('Fait'), 'persistance : défi du jour après rechargement');
   const report = await page.evaluate(() => BCD_DEV.getRetentionReport());
   check(report.engagement.sessions >= 3 && report.depth.sentierRuns >= 2, 'rapport de rétention local alimenté');
@@ -304,6 +332,7 @@ function startStaticServer(root) {
     localStorage.setItem('bcd_retention_v1', '{"schemaVersion":99,"data":null}');
   });
   await page.reload(); await wait(300);
+  await page.click('#btnSplashPlay'); await wait(300);
   check(await page.evaluate(() => { const g = BCD_DEV.getGarden(); return g.rosee === 0 && g.done === 0; }) &&
     (await page.textContent('#homeGardenNext')) === 'Arracher les ronces', 'sauvegardes corrompues : jeu intact, valeurs par défaut');
 
@@ -323,8 +352,7 @@ function startStaticServer(root) {
   check(consoleProblems.length === 0, 'aucune erreur ni avertissement console' + (consoleProblems.length ? ' :\n  ' + consoleProblems.join('\n  ') : ''));
 
   // 11. PWA : service worker + jeu hors ligne (serveur statique local minimal,
-  //     car un service worker n'existe pas en file://).
-  const server = await startStaticServer(path.resolve(__dirname, '..'));
+  //     sur une autre origine que la partie principale : stockage neuf).
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const pw = await ctx.newPage();
   await pw.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
@@ -336,6 +364,7 @@ function startStaticServer(root) {
   check(man.icons && man.icons.length >= 3 && man.icons.some(i => i.purpose === 'maskable') && man.name === 'Seedrift' && man.start_url === './', 'PWA : manifest valide (icônes dont maskable, nom Seedrift)');
   await ctx.setOffline(true);
   await pw.reload(); await pw.waitForTimeout(800);
+  await pw.click('#btnSplashPlay'); await pw.waitForTimeout(400);
   await pw.click('#btnContinue'); await pw.waitForTimeout(300);
   check(await pw.evaluate(() => document.querySelector('.screen.active').id) === 'screen-game', 'PWA : jeu lancé hors ligne');
   await ctx.close();

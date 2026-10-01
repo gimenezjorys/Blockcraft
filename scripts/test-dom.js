@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Tests du jeu complet dans Node.js + jsdom (sans navigateur), avec de vrais
 // KeyboardEvent et PointerEvent. Complète l'E2E Chromium (e2e-*.js) :
-//   1. nouveau joueur : Germain, « Passer », niveau 1 au clavier, victoire ;
+//   1. nouveau joueur : écran de lancement, Germain, « Passer », niveau 1 au clavier, victoire ;
 //   2. glissement au doigt (PointerEvent) sur le plateau ;
 //   3. Jardin vivant : 5 tableaux, rosée du matin cueillie, chantier réveillé ;
 //   4. ancienne sauvegarde (schéma 1, clé de série « future ») : rien n'est perdu ;
@@ -9,7 +9,12 @@
 //   6. rattrapage de série : rejouer le défi d'hier sauve la série ;
 //   7. bon retour après 3 jours, rang du jardinier, aides vues une seule fois ;
 //   8. points d'accroche publicitaires (récompensée, interstitiel désactivé) ;
-//   9. aucune erreur JavaScript.
+//   9. animations réduites ;
+//  10. hub : glissement entre les pages (PointerEvent), barre d'onglets, clavier, retour ;
+//  11. aucun glissement de navigation pendant une partie ;
+//  12. pastilles qui apparaissent et disparaissent (cadeau, offre, objet, défi, missions, saison) ;
+//  13. ancienne sauvegarde sans les clés du hub : rien de perdu, aucune avalanche de pastilles ;
+//  et aucune erreur JavaScript.
 // Usage : node scripts/test-dom.js [chemin/vers/index.html]
 // jsdom doit être installé (npm i --no-save jsdom) ou visible par NODE_PATH.
 'use strict';
@@ -57,6 +62,21 @@ async function openGame(storage, opts) {
 const screenOf = d => { const s = d.querySelector('.screen.active'); return s ? s.id : ''; };
 const key = (w, k) => w.document.dispatchEvent(new w.KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
 const click = (w, el) => el.dispatchEvent(new w.MouseEvent('click', { bubbles: true, cancelable: true }));
+// Écran de lancement → « Jouer » (page JOUER du hub).
+async function enter(g, ms) { click(g.w, g.d.getElementById('btnSplashPlay')); await sleep(ms === undefined ? 150 : ms); }
+// Glissement horizontal (dx) ou vertical (dy) au doigt, en vrais PointerEvent.
+let pid = 100;
+// slow : geste lent (≈ 0,2 px/ms), donc jugé sur sa longueur et pas comme une « pichenette ».
+async function swipe(g, el, dx, dy, slow) {
+  const id = ++pid, x0 = 200, y0 = 300, P = g.w.PointerEvent;
+  const o = (x, y) => ({ clientX: x, clientY: y, pointerId: id, pointerType: 'touch', isPrimary: true, bubbles: true, cancelable: true });
+  el.dispatchEvent(new P('pointerdown', o(x0, y0)));
+  for (let k = 1; k <= 5; k++) { if (slow) await sleep(40); el.dispatchEvent(new P('pointermove', o(x0 + dx * k / 5, y0 + (dy || 0) * k / 5))); }
+  el.dispatchEvent(new P('pointerup', o(x0 + dx, y0 + (dy || 0))));
+  if (!slow) await sleep(120);
+}
+const badge = (d, tab) => { const b = d.querySelector('#' + tab + ' .tab-badge'); return b && !b.hidden ? (b.textContent || '•') : ''; };
+const SKIPPED = env({ intro: 'done', skipped: true, done: true, tours: {}, attempts: {}, gifts: {} });
 async function solveCurrent(g) {
   const moves = g.w.BCD_DEV.solutionFromHere();
   for (const m of moves) { key(g.w, m); await sleep(60); }
@@ -67,11 +87,17 @@ async function solveCurrent(g) {
 (async () => {
   // ---------- 1. Nouveau joueur ----------
   console.log('\n— Nouveau joueur');
-  let g = await openGame({}, { wait: 1800 });
+  let g = await openGame({}, { wait: 500 });
+  check(screenOf(g.d) === 'screen-splash' && !g.d.getElementById('hub').classList.contains('on'), 'écran de lancement d\'abord, barre d\'onglets cachée');
+  check(g.d.getElementById('gameTitle').textContent === 'Seedrift', 'nom du jeu sur l\'écran de lancement');
+  check(!!g.d.querySelector('#splashScene .gp-sky') && !!g.d.querySelector('#splashScene .gp-svg') && !!g.d.querySelector('#splashGermain svg'), 'lancement : ambiance du jardin (ciel + tableau) et Germain');
+  check(g.d.querySelectorAll('#splashChips .sp-chip').length >= 1 && /Cadeau du jour/.test(g.d.getElementById('splashChips').textContent), 'lancement : aperçu de ce qui attend (cadeau du jour prêt)');
+  check(g.w.BCD_DEV.coachText() === '', 'Germain attend que le joueur touche « Jouer »');
+  await enter(g, 1300);
   const coach = g.d.getElementById('coach');
+  check(screenOf(g.d) === 'screen-home' && g.d.getElementById('hub').classList.contains('on'), '« Jouer » : page JOUER, barre d\'onglets visible');
   check(coach && !coach.hidden && /Germain/.test(g.d.querySelector('#coach .coach-text').textContent + g.d.querySelector('#coach .coach-name').textContent), 'Germain accueille le nouveau joueur');
-  check(g.d.getElementById('gameTitle').textContent === 'Seedrift', 'nom du jeu affiché sur l\'accueil');
-  check(g.d.querySelectorAll('#homeGardenScene .gp-svg').length === 1 && !!g.d.querySelector('#homeGardenScene .gp-sky'), 'fenêtre vivante sur le jardin (ciel + tableau) sur l\'accueil');
+  check(g.d.querySelectorAll('#homeGardenScene .gp-svg').length === 1, 'fenêtre vivante sur le jardin (vignette) sur la page JOUER');
   click(g.w, g.d.querySelector('#coach .coach-skip'));
   await sleep(100);
   check(g.w.BCD_DEV.getTutorial().skipped === true, '« Passer » arrête le tutoriel');
@@ -113,6 +139,7 @@ async function solveCurrent(g) {
     bcd_tutorial_v1: env({ intro: 'done', skipped: true, done: true, tours: {}, attempts: {}, gifts: {} }),
     bcd_garden_v1: env({ rosee: 4, earned: 4, done: 2 })
   }, { wait: 500 });
+  await enter(g);
   click(g.w, g.d.getElementById('homeGarden'));
   await sleep(900);
   check(screenOf(g.d) === 'screen-garden', 'le jardin s\'ouvre');
@@ -161,8 +188,8 @@ async function solveCurrent(g) {
   check(/Tournesol/.test((g.d.querySelector('#gzStage .gp-tip') || {}).textContent || ''), 'toucher une plante montre son espèce et son prochain objectif');
   // Réveil d'un chantier.
   g.w.BCD_DEV.setRosee(40);
-  click(g.w, g.d.getElementById('btnBackHomeGarden')); await sleep(100);
-  click(g.w, g.d.getElementById('homeGarden')); await sleep(500);
+  click(g.w, g.d.getElementById('tabPlay')); await sleep(100);
+  click(g.w, g.d.getElementById('tabGarden')); await sleep(500);
   const done0 = g.w.BCD_DEV.getGarden().done;
   click(g.w, g.d.getElementById('btnRestore'));
   await sleep(1600);
@@ -181,6 +208,7 @@ async function solveCurrent(g) {
     bcd_coins_v1: env(77),
     bcd_tutorial_v1: env({ intro: 'done', skipped: false, done: true, tours: {}, attempts: {}, gifts: {} })
   }, { wait: 600 });
+  await enter(g);
   const gs = g.w.BCD_DEV.getGarden();
   check(gs.rosee === 12 && gs.done === 4 && gs.earned === 30, 'jardin conservé (rosée, chantiers)');
   check(gs.dewDay === '' && gs.plantSeen === null && gs.rankSeen >= -1, 'nouveaux champs du jardin initialisés sans fête rétroactive');
@@ -197,7 +225,7 @@ async function solveCurrent(g) {
 
   // ---------- 5. Dates UTC ----------
   console.log('\n— Dates en UTC');
-  g = await openGame({ bcd_tutorial_v1: env({ intro: 'done', skipped: true, done: true, tours: {}, attempts: {}, gifts: {} }) }, { wait: 400 });
+  g = await openGame({ bcd_tutorial_v1: SKIPPED }, { wait: 400 });
   g.w.BCD_DEV.setSimulatedDate('2026-10-01T23:30:00Z');
   check(g.w.BCD_DEV.todayKey() === '20261001', '23 h 30 UTC : encore le 1er octobre');
   g.w.BCD_DEV.setSimulatedDate('2026-10-02T01:30:00+02:00');
@@ -217,6 +245,7 @@ async function solveCurrent(g) {
     bcd_streak_v1: env({ current: 5, best: 5, totalWins: 5, lastSuccessDate: dayOffset(-2) }),
     bcd_tips_v1: env({ seen: { repair: true, rank: true } })
   }, { wait: 500 });
+  await enter(g);
   check(g.w.BCD_DEV.getStreakRepair().offer && g.w.BCD_DEV.getStreakRepair().free, 'série de 5 interrompue hier : rattrapage gratuit proposé');
   check(/Sauver/.test(g.d.getElementById('homeDailyBadge').textContent), 'l\'accueil le signale sur la carte du défi');
   click(g.w, g.d.getElementById('btnDaily')); await sleep(150);
@@ -241,7 +270,9 @@ async function solveCurrent(g) {
     bcd_garden_v1: env({ rosee: 0, earned: 0, done: 0, rankSeen: 0 }),
     bcd_retention_v1: env({ first: dayOffset(-6), days }),
     bcd_analytics_v1: env([{ t: 'first_open', at: Date.now() - 6 * 864e5, p: null }])
-  }, { wait: 2600 });
+  }, { wait: 400 });
+  check(g.w.BCD_DEV.getGarden().rosee === 0 && !g.d.querySelector('.rank-up'), 'lancement : cadeau de retour et fête du rang attendent la page JOUER');
+  await enter(g, 2400);
   const gw = g.w.BCD_DEV.getGarden();
   check(gw.rosee >= 6 && gw.welcomeDay === dayOffset(0), 'après 5 jours d\'absence : +6 rosée offerte, une fois');
   const rk = g.w.BCD_DEV.getGardenerRank();
@@ -255,7 +286,8 @@ async function solveCurrent(g) {
     bcd_garden_v1: env({ rosee: 0, earned: 0, done: 0, welcomeDay: dayOffset(0) }),
     bcd_retention_v1: env({ first: dayOffset(-6), days }),
     bcd_tips_v1: env({ seen: { dew: true } })
-  }, { wait: 2600 });
+  }, { wait: 400 });
+  await enter(g, 2400);
   check(g.w.BCD_DEV.getGarden().rosee === 0, 'le cadeau de retour n\'est jamais donné deux fois le même jour');
   click(g.w, g.d.getElementById('homeGarden')); await sleep(900);
   check(!(g.d.getElementById('coach') && !g.d.getElementById('coach').hidden && /rosée du matin/.test(g.d.getElementById('coach').textContent)), 'une aide déjà vue ne revient pas');
@@ -263,7 +295,7 @@ async function solveCurrent(g) {
 
   // ---------- 8. Points d'accroche publicitaires ----------
   console.log('\n— Pubs : points d\'accroche');
-  g = await openGame({ bcd_tutorial_v1: env({ intro: 'done', skipped: true, done: true, tours: {}, attempts: {}, gifts: {} }) }, { wait: 400 });
+  g = await openGame({ bcd_tutorial_v1: SKIPPED }, { wait: 400 });
   const inter = await g.w.BCD_DEV.adShowInterstitial('level_break');
   check(inter.shown === false && inter.reason === 'disabled', 'interstitiel : désactivé, le jeu continue aussitôt');
   let unavailable = '';
@@ -273,10 +305,180 @@ async function solveCurrent(g) {
 
   // ---------- 9. Animations réduites ----------
   console.log('\n— Animations réduites');
-  g = await openGame({ bcd_tutorial_v1: env({ intro: 'done', skipped: true, done: true, tours: {}, attempts: {}, gifts: {} }), bcd_garden_v1: env({ rosee: 30, done: 0 }) }, { wait: 400, reducedMotion: true });
-  click(g.w, g.d.getElementById('homeGarden')); await sleep(400);
+  g = await openGame({ bcd_tutorial_v1: SKIPPED, bcd_garden_v1: env({ rosee: 30, done: 0 }) }, { wait: 400, reducedMotion: true });
+  await enter(g);
+  click(g.w, g.d.getElementById('tabGarden')); await sleep(400);
   click(g.w, g.d.getElementById('btnRestore')); await sleep(300);
   check(g.w.BCD_DEV.getGarden().done === 1 && g.errors.length === 0, 'réveil d\'un chantier sans animation, sans erreur');
+  g.w.close();
+
+  // ---------- 10. Hub : pages glissantes, onglets, clavier, retour ----------
+  console.log('\n— Hub : glissement, onglets, retour');
+  g = await openGame({
+    bcd_progress_v1: env({ 0: 3, 1: 3, 2: 3, 3: 3 }),
+    bcd_tutorial_v1: SKIPPED,
+    bcd_tips_v1: env({ seen: { nav: true, page_market: true, page_collection: true, page_garden: true, page_profile: true, dew: true } })
+  }, { wait: 400 });
+  const hubOn = () => g.d.getElementById('hub').classList.contains('on');
+  const page = () => g.w.BCD_DEV.hubPage();
+  const selected = () => Array.from(g.d.querySelectorAll('#tabbar .tab')).filter(t => t.getAttribute('aria-selected') === 'true').map(t => t.dataset.page).join(',');
+  await enter(g);
+  const order = Array.from(g.d.querySelectorAll('#tabbar .tab')).map(t => t.dataset.page).join(',');
+  check(order === 'market,cosmetics,home,garden,profile', `5 onglets en bas, JOUER au centre (${order})`);
+  check(page() === 'home' && selected() === 'home' && g.d.getElementById('tabPlay').tabIndex === 0, 'onglet actif marqué (aria-selected, seul dans l\'ordre de tabulation)');
+  const vp = g.d.getElementById('hubViewport');
+  await swipe(g, g.d.getElementById('screen-home'), -220);
+  check(page() === 'garden' && screenOf(g.d) === 'screen-garden' && selected() === 'garden', 'glisser vers la gauche : page suivante (Jardin)');
+  check(/-300%/.test(g.d.getElementById('hubTrack').style.transform), 'la piste suit la page (translate3d)');
+  await swipe(g, g.d.getElementById('screen-garden'), 220);
+  check(page() === 'home', 'glisser vers la droite : page précédente (JOUER)');
+  await swipe(g, g.d.getElementById('screen-home'), 220);
+  check(page() === 'cosmetics', 'encore à droite : Collection');
+  await swipe(g, g.d.getElementById('screen-cosmetics'), 220);
+  await swipe(g, g.d.getElementById('screen-market'), 220);
+  check(page() === 'market', 'au bout (Marché) : le geste revient en place, sans sortir du hub');
+  await swipe(g, g.d.getElementById('screen-market'), -40, 0, true);
+  await sleep(120);
+  check(page() === 'market', 'geste lent et court : la page revient en place');
+  await swipe(g, g.d.getElementById('screen-market'), -40, 0);
+  check(page() === 'cosmetics', 'pichenette rapide : page suivante, même sur une courte distance');
+  click(g.w, g.d.getElementById('tabMarket')); await sleep(120);
+  await swipe(g, g.d.getElementById('screen-market'), -60, -260);
+  check(page() === 'market', 'geste vertical (défilement) : jamais de changement de page');
+  click(g.w, g.d.getElementById('tabProfile')); await sleep(120);
+  check(page() === 'profile' && screenOf(g.d) === 'screen-profile' && selected() === 'profile', 'toucher l\'onglet Profil ouvre la page Profil');
+  click(g.w, g.d.getElementById('tabMarket')); await sleep(120);
+  check(page() === 'market' && /translate3d\(calc\(0%/.test(g.d.getElementById('hubTrack').style.transform), 'toucher l\'onglet Marché : la piste va tout à gauche');
+  click(g.w, g.d.getElementById('tabPlay')); await sleep(120);
+  check(page() === 'home', 'onglet JOUER : retour au centre');
+  // Une zone qui défile elle-même (panorama du jardin) ne fait pas changer de page.
+  click(g.w, g.d.getElementById('tabGarden')); await sleep(200);
+  await swipe(g, g.d.getElementById('gzScene'), -220);
+  check(page() === 'garden', 'glisser dans le panorama du jardin : on reste au Jardin');
+  // Un glissement ne se transforme pas en toucher sur un bouton.
+  click(g.w, g.d.getElementById('tabPlay')); await sleep(120);
+  await swipe(g, g.d.getElementById('btnDaily'), 40, 0, true);
+  click(g.w, g.d.getElementById('btnDaily')); await sleep(150);
+  check(screenOf(g.d) === 'screen-home', 'un glissement qui finit sur « Défi du jour » ne le lance pas');
+  // Clavier : flèches sur la barre d'onglets.
+  g.d.getElementById('tabPlay').dispatchEvent(new g.w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+  await sleep(120);
+  check(page() === 'garden' && g.d.activeElement === g.d.getElementById('tabGarden'), 'clavier : flèche droite sur la barre → onglet suivant (focus suivi)');
+  g.d.getElementById('tabGarden').dispatchEvent(new g.w.KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+  await sleep(120);
+  check(page() === 'market', 'clavier : Début → premier onglet');
+  // Bouton retour du téléphone / navigateur.
+  const back = async () => { g.w.dispatchEvent(new g.w.PopStateEvent('popstate', { state: null })); await sleep(150); };
+  await back();
+  check(page() === 'home', 'retour depuis une page du hub : page JOUER');
+  await back();
+  check(screenOf(g.d) === 'screen-splash' && !hubOn(), 'retour depuis JOUER : écran de lancement');
+  await back();
+  check(screenOf(g.d) === 'screen-splash', 'retour depuis le lancement : le jeu laisse le navigateur sortir');
+  await enter(g);
+  click(g.w, g.d.getElementById('btnSettings')); await sleep(120);
+  check(screenOf(g.d) === 'screen-settings' && !hubOn(), 'Paramètres (roue dentée) : écran par-dessus, sans barre d\'onglets');
+  await back();
+  check(page() === 'home', 'retour depuis les Paramètres : page JOUER');
+  check(g.errors.length === 0, 'aucune erreur de navigation (' + (g.errors[0] || 'ok') + ')');
+
+  // ---------- 11. Aucun glissement de navigation pendant une partie ----------
+  console.log('\n— Pas de navigation pendant une partie');
+  click(g.w, g.d.getElementById('btnContinue')); await sleep(250);
+  check(screenOf(g.d) === 'screen-game' && !hubOn() && page() === null, 'en partie : le hub est masqué');
+  await swipe(g, vp, -260);
+  await swipe(g, g.d.getElementById('screen-game'), -260);
+  check(screenOf(g.d) === 'screen-game', 'glissement hors du plateau : la partie reste à l\'écran');
+  const mv0 = g.d.getElementById('hudMoves').textContent;
+  const sol2 = g.w.BCD_DEV.solutionFromHere();
+  const v2 = { ArrowRight: [220, 0], ArrowLeft: [-220, 0], ArrowDown: [0, 220], ArrowUp: [0, -220] }[sol2[0]];
+  await swipe(g, g.d.getElementById('board'), v2[0], v2[1]);
+  await sleep(200);
+  check(screenOf(g.d) === 'screen-game' && g.d.getElementById('hudMoves').textContent === String(+mv0 + 1), 'glissement sur le plateau : un coup joué, jamais un changement de page');
+  key(g.w, 'ArrowLeft'); key(g.w, 'ArrowRight'); await sleep(250);
+  check(screenOf(g.d) === 'screen-game', 'flèches du clavier en partie : on joue, on ne change pas de page');
+  click(g.w, g.d.getElementById('btnExitGame')); await sleep(150);
+  click(g.w, g.d.getElementById('btnBackHome')); await sleep(150);
+  check(page() === 'home', 'sortie de partie : retour dans le hub');
+  check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
+  g.w.close();
+
+  // ---------- 12. Pastilles de notification ----------
+  console.log('\n— Pastilles');
+  g = await openGame({
+    bcd_progress_v1: env({ 0: 3, 1: 3, 2: 3, 3: 3 }),
+    bcd_tutorial_v1: SKIPPED,
+    bcd_coins_v1: env(500),
+    bcd_tips_v1: env({ seen: { nav: true, page_market: true, page_collection: true, page_garden: true, page_profile: true, dew: true } })
+  }, { wait: 400 });
+  await enter(g);
+  check(badge(g.d, 'tabMarket') === '2', 'Marché : 2 (cadeau du jour + offre du jour pas encore vue)');
+  check(badge(g.d, 'tabPlay') === '•', 'JOUER : point rouge tant que le défi du jour est à faire');
+  check(badge(g.d, 'tabCollection') === '' && badge(g.d, 'tabProfile') === '', 'Collection et Profil : rien de neuf, pas de pastille');
+  click(g.w, g.d.getElementById('tabMarket')); await sleep(150);
+  check(badge(g.d, 'tabMarket') === '1', 'offre vue en ouvrant le Marché : il reste le cadeau');
+  const coinsG = g.w.BCD_DEV.getCoins();
+  click(g.w, g.d.getElementById('btnGiftClaim')); await sleep(150);
+  check(badge(g.d, 'tabMarket') === '' && g.w.BCD_DEV.getCoins() === coinsG + 15 && g.w.BCD_DEV.getGift().step === 1, 'cadeau récupéré (+15 coins) : la pastille du Marché disparaît');
+  check(!g.d.getElementById('btnGiftClaim'), 'cadeau : un seul par jour');
+  g.w.BCD_DEV.simulateDailyWin(5, 30, 3); g.w.BCD_DEV.navBadges();
+  check(badge(g.d, 'tabPlay') === '', 'défi du jour réussi : le point de JOUER disparaît');
+  g.w.BCD_DEV.grantCosmetic('seed', 'jade');
+  check(badge(g.d, 'tabCollection') === '2', 'objet obtenu : pastille « 2 » sur Collection (objet neuf + palier de 5 objets)');
+  click(g.w, g.d.getElementById('tabCollection')); await sleep(150);
+  check(badge(g.d, 'tabCollection') === '1' && !!g.d.querySelector('#screen-cosmetics .ms-claim'), 'Collection ouverte : objet vu ; reste le palier à récupérer');
+  const coinsC = g.w.BCD_DEV.getCoins();
+  click(g.w, g.d.querySelector('#screen-cosmetics .ms-claim')); await sleep(150);
+  check(badge(g.d, 'tabCollection') === '' && g.w.BCD_DEV.getCoins() === coinsC + 20, 'palier récupéré (+20 coins) : pastille retirée');
+  const wk = g.w.BCD_DEV.getWeekly();
+  wk.prog[0] = 999;
+  g.w.localStorage.setItem('bcd_weekly_v1', env(wk));
+  g.w.BCD_DEV.navBadges();
+  check(+badge(g.d, 'tabProfile') >= 1 && !g.d.querySelector('#segMissions .seg-badge').hidden, 'mission de la semaine terminée : pastille sur Profil et sur « Missions »');
+  const prof0 = +badge(g.d, 'tabProfile');
+  click(g.w, g.d.getElementById('tabProfile')); await sleep(150);
+  click(g.w, g.d.getElementById('segMissions')); await sleep(80);
+  const coinsW = g.w.BCD_DEV.getCoins();
+  click(g.w, g.d.querySelector('#weeklyCard .wm-claim')); await sleep(150);
+  check(g.w.BCD_DEV.getCoins() === coinsW + 20 && g.w.BCD_DEV.getWeekly().claimed[0] === true, 'mission récupérée : +20 coins');
+  check((+badge(g.d, 'tabProfile') || 0) === prof0 - 1, 'la pastille du Profil diminue d\'autant');
+  g.w.BCD_DEV.addSeasonXP(60);
+  check(+badge(g.d, 'tabProfile') >= 1, 'palier de saison atteint : pastille sur Profil');
+  click(g.w, g.d.getElementById('tabPlay')); await sleep(100);
+  click(g.w, g.d.getElementById('tabProfile')); await sleep(150);
+  check(!!g.d.getElementById('btnSeasonClaim'), 'page Profil : bouton « Récupérer » de la saison');
+  const coinsS = g.w.BCD_DEV.getCoins();
+  click(g.w, g.d.getElementById('btnSeasonClaim')); await sleep(150);
+  check(g.w.BCD_DEV.getCoins() === coinsS + 12 && g.w.BCD_DEV.getSeason().claimed.includes(1), 'palier 1 récupéré : +12 coins');
+  click(g.w, g.d.getElementById('segSucces')); await sleep(100);
+  check(badge(g.d, 'tabProfile') === '' && g.d.querySelector('#segSucces .seg-badge').hidden, 'tout est récupéré et les nouveaux succès vus : plus de pastille sur Profil');
+  check(g.errors.length === 0, 'aucune erreur avec les pastilles (' + (g.errors[0] || 'ok') + ')');
+  g.w.close();
+
+  // ---------- 13. Ancienne sauvegarde sans les clés du hub ----------
+  console.log('\n— Mise à jour : sauvegarde d\'avant le hub');
+  const prog13 = {}; for (let i = 0; i < 12; i++) prog13[i] = 3;
+  g = await openGame({
+    bcd_progress_v1: env(prog13),
+    bcd_coins_v1: env(240),
+    bcd_cosmetics_owned_v1: env(['classic', 'jade', 'saphir']),
+    bcd_achievements_v1: env({ first_step: Date.now() - 864e5, three_stars: Date.now() - 864e5 }),
+    bcd_streak_v1: env({ current: 4, best: 6, totalWins: 9, lastSuccessDate: dayOffset(-1) }),
+    bcd_tutorial_v1: SKIPPED
+  }, { wait: 400 });
+  check(g.w.BCD_DEV.getCoins() === 240 && Object.keys(JSON.parse(g.w.localStorage.getItem('bcd_progress_v1')).data).length === 12, 'progression et coins conservés');
+  check(/Série : 4 jours/.test(g.d.getElementById('splashChips').textContent), 'lancement : la série de 4 jours est rappelée');
+  await enter(g, 1300); // les succès mérités avant la mise à jour sont rattrapés au démarrage (1,2 s)
+  const nav13 = g.w.BCD_DEV.getNav(), pre13 = ['first_step', 'three_stars'];
+  const caught = Object.keys(g.w.BCD_DEV.getAchievements()).filter(k => !pre13.includes(k)).length;
+  check(['jade', 'saphir'].every(id => nav13.seenItems.includes('seed:' + id)) && badge(g.d, 'tabCollection') === '1', 'aucune avalanche : objets déjà possédés « vus » ; seul le palier de 5 objets (vrai cadeau) est signalé');
+  check(pre13.every(k => nav13.seenAch.includes(k)) && (+badge(g.d, 'tabProfile') || 0) === caught, `succès déjà là : vus ; seuls les ${caught} rattrapés à la mise à jour sont signalés`);
+  check(g.w.BCD_DEV.getNav().init === true && g.w.BCD_DEV.getWeekly().ids.length === 4 && g.w.BCD_DEV.getSeason().xp === 0, 'nouvelles clés créées proprement (missions de la semaine, saison)');
+  for (const k of ['bcd_nav_v1', 'bcd_weekly_v1', 'bcd_season_v1']) {
+    const raw = JSON.parse(g.w.localStorage.getItem(k) || 'null');
+    check(raw && raw.schemaVersion === 1, `${k} : enveloppe versionnée (SCHEMA_MIGRATIONS)`);
+  }
+  check(g.errors.length === 0, 'aucune erreur à la mise à jour (' + (g.errors[0] || 'ok') + ')');
   g.w.close();
 
   console.log(`\n${checks} vérifications, ${failures} échec(s).`);
