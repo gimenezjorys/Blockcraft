@@ -1091,6 +1091,53 @@
     background:radial-gradient(circle, transparent 48%, rgba(191,227,255,.55) 56%, rgba(191,227,255,0) 74%);
     animation:auraFlicker 2.8s ease-in-out infinite alternate;
   }
+  /* ================= GERMAIN, LE COMPAGNON DU TUTORIEL ================= */
+  #coach{position:fixed; left:0; right:0; z-index:170; display:flex; justify-content:center; padding:0 12px; pointer-events:none;}
+  #coach[hidden]{display:none;}
+  #coach.at-top{top:calc(env(safe-area-inset-top, 0px) + 64px);}
+  #coach.at-bottom{bottom:calc(env(safe-area-inset-bottom, 0px) + 18px);}
+  .coach-row{display:flex; align-items:flex-end; gap:6px; width:100%; max-width:400px; pointer-events:none; animation:coachIn .35s cubic-bezier(.2,1.4,.4,1) both;}
+  @keyframes coachIn{from{opacity:0; transform:translateY(14px) scale(.96);} to{opacity:1; transform:none;}}
+  .coach-germain{flex:none; width:62px; height:72px; pointer-events:auto; cursor:pointer; filter:drop-shadow(0 6px 8px rgba(0,0,0,.35));}
+  .coach-germain svg{width:100%; height:100%; overflow:visible;}
+  .coach-bubble{position:relative; flex:1; min-width:0; pointer-events:auto; cursor:pointer; background:#fff8e6; color:#1d2a22;
+    border-radius:18px; padding:9px 14px 11px; box-shadow:0 10px 26px rgba(0,0,0,.4); font-family:var(--font-body);
+    font-weight:800; font-size:15px; line-height:1.32; margin-bottom:10px;}
+  .coach-bubble::before{content:""; position:absolute; left:-7px; bottom:16px; width:16px; height:16px; background:#fff8e6; transform:rotate(45deg); border-radius:3px;}
+  .coach-name{font-size:10.5px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; color:#2f8a52; margin-bottom:1px;}
+  .coach-text{min-height:1.32em;}
+  .coach-actions{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;}
+  .coach-actions:empty{display:none;}
+  .coach-actions button{min-height:42px; min-width:44px; border-radius:999px; padding:8px 16px; font-family:var(--font-body); font-weight:800; font-size:14px; border:0; cursor:pointer;}
+  .coach-actions .c-primary{background:linear-gradient(90deg,#ffe08a,#ffc24a); color:#1a2a1f; box-shadow:0 3px 10px rgba(240,160,40,.4);}
+  .coach-actions .c-ghost{background:transparent; color:#4a5a50; box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.18);}
+  .coach-skip{position:absolute; top:-14px; right:10px; min-height:28px; padding:3px 11px; border-radius:999px; border:0; cursor:pointer;
+    font-family:var(--font-body); font-weight:800; font-size:12px; color:#1d2a22; background:#e9e1cb; box-shadow:0 2px 8px rgba(0,0,0,.3);}
+  .coach-skip[hidden]{display:none;}
+  .coach-bubble:focus-visible, .coach-actions button:focus-visible, .coach-skip:focus-visible{outline:3px solid var(--gold); outline-offset:2px;}
+  .gm-body{transform-box:fill-box; transform-origin:50% 100%; animation:gmBreath 3.2s ease-in-out infinite;}
+  @keyframes gmBreath{0%,100%{transform:scale(1,1);} 50%{transform:scale(1.025,.975);}}
+  .gm-eyes-open{transform-box:fill-box; transform-origin:50% 50%; animation:gmBlink 4.6s infinite;}
+  @keyframes gmBlink{0%,93%,100%{transform:scaleY(1);} 95%{transform:scaleY(.12);}}
+  .gm-leaves{transform-box:fill-box; transform-origin:70% 100%; animation:gmLeaf 2.6s ease-in-out infinite alternate;}
+  @keyframes gmLeaf{from{transform:rotate(-4deg);} to{transform:rotate(5deg);}}
+  .germain.bounce{animation:gmBounce .45s cubic-bezier(.2,1.6,.4,1);}
+  @keyframes gmBounce{0%{transform:translateY(0) scale(1);} 35%{transform:translateY(-9px) scale(1.04,.96);} 100%{transform:translateY(0) scale(1);}}
+  .germain .gm-eyes-happy, .germain .gm-mouth-o, .germain .gm-wink{display:none;}
+  .germain.mood-happy .gm-eyes-open{display:none;} .germain.mood-happy .gm-eyes-happy{display:inline;}
+  .germain.mood-surprised .gm-mouth-smile{display:none;} .germain.mood-surprised .gm-mouth-o{display:inline;}
+  .germain.mood-surprised .gm-eyes-open{transform:scale(1.14); animation:none;}
+  .germain.mood-wink .gm-eye-left{display:none;} .germain.mood-wink .gm-wink{display:inline;}
+  .coach-blocker{position:fixed; z-index:165; background:rgba(4,10,14,.64); pointer-events:auto;}
+  .coach-ring{position:fixed; z-index:166; border-radius:18px; pointer-events:none;
+    box-shadow:0 0 0 3px #ffd166, 0 0 26px 8px rgba(255,209,102,.55); animation:coachRing 1.4s ease-in-out infinite;}
+  @keyframes coachRing{0%,100%{box-shadow:0 0 0 3px #ffd166, 0 0 18px 4px rgba(255,209,102,.4);} 50%{box-shadow:0 0 0 4px #fff3c4, 0 0 30px 10px rgba(255,209,102,.7);}}
+  .coach-hand{position:fixed; z-index:167; font-size:34px; line-height:1; pointer-events:none; filter:drop-shadow(0 3px 4px rgba(0,0,0,.5));
+    animation:coachTap 1.2s ease-in-out infinite;}
+  @keyframes coachTap{0%,100%{transform:translate(0,0);} 50%{transform:translate(-4px,-10px);}}
+  html.reduce-motion .coach-row, html.reduce-motion .germain *, html.reduce-motion .coach-ring, html.reduce-motion .coach-hand{animation:none !important;}
+  @media (prefers-reduced-motion: reduce){ .coach-row, .germain *, .coach-ring, .coach-hand{animation:none !important;} }
+  .tuto-replay{width:100%; margin-top:4px;}
   /* ================= L'ATELIER (boutique de cosmétiques) ================= */
   #screen-cosmetics{gap:12px;}
   .atelier-coins{font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--gold);
@@ -1765,6 +1812,7 @@
         <div class="toggle" id="toggleGhost" role="switch" aria-checked="true" aria-label="Afficher le fantôme du record" tabindex="0"></div>
       </div>
     </div>
+    <button class="btn btn-secondary tuto-replay" id="btnTutoReplay">🌱 Revoir le tutoriel avec Germain</button>
     <button class="settings-danger" id="btnResetProgress">Réinitialiser la progression</button>
     <p class="note">Efface toute ta progression : étoiles, coins, succès, série, Jardin, fantômes… Tes réglages restent. C'est définitif.</p>
     <p class="note">🔒 Tout reste sur cet appareil : progression, réglages et petit journal de jeu. Rien n'est envoyé, il n'y a aucun serveur.</p>
@@ -1852,6 +1900,7 @@
       <div style="width:40px;"></div>
     </div>
     <div class="achievements-list" id="mechanicHelpList"></div>
+    <button class="btn btn-secondary tuto-replay" id="btnTutoReplayHelp">🌱 Revoir le tutoriel avec Germain</button>
   </section>
 
   <!-- ============ LE JARDIN (méta-progression visuelle) ============ -->
@@ -3170,6 +3219,142 @@ function retentionSummary(ret){
   };
 }
 
+/* =========================================================
+   A5. LE TUTORIEL DE GERMAIN — LOGIQUE PURE (testée par test-logic.js)
+   Germain, la graine du jeu, guide le joueur. Principes (ONBOARDING.md) :
+   jouer d'abord, une chose à la fois, chaque onglet présenté quand il
+   sert, un cadeau à chaque découverte, « Passer » toujours possible,
+   jamais imposé aux joueurs existants.
+   Toutes les répliques sont ici, dans UNE structure prête à traduire.
+   12 mots maximum par réplique (vérifié par les tests).
+========================================================= */
+const COACH_LINES = {
+  fr: {
+    intro_hello:   "Salut ! Moi, c'est Germain, la graine de {game}.",
+    intro_goal:    "Aide-moi à glisser jusqu'à la lumière. On essaie ?",
+    intro_resume:  "On reprend ? Fais-moi glisser jusqu'à la lumière !",
+    l1_swipe:      "Glisse vers la droite. Je file tout droit !",
+    l1_move:       "Wiii ! Encore un peu…",
+    l1_win:        "Pile dans la lumière ! Tu es doué.",
+    l1_victory:    "Trois étoiles : la solution la plus courte. Bravo !",
+    l2_hello:      "À toi de jouer. Je reste dans le coin.",
+    react_win_0:   "Joli !",
+    react_win_1:   "Bien vu !",
+    react_win_2:   "Trop fort !",
+    react_win_3:   "Waouh, quelle glisse !",
+    react_stuck:   "Oups, coincé ! Annule un coup, c'est gratuit.",
+    mech_murs:          "Un mur ! Il m'arrête juste devant lui.",
+    mech_rochers:       "Un rocher ! Pousse-le pour m'ouvrir la voie.",
+    mech_ancre:         "Cette case me stoppe net. Pratique pour viser !",
+    'mech_portails':    "Un portail ! J'entre ici, je ressors là-bas.",
+    'mech_sens-unique': "Ces flèches ne se traversent que dans un sens.",
+    mech_interrupteurs: "Arrête une pièce sur l'interrupteur : la porte bouge !",
+    'mech_portails-directionnels': "Ce portail ne s'entre que dans le sens de sa flèche.",
+    tour_garden:     "De la rosée ! Viens réveiller le jardin avec moi.",
+    tour_garden_in:  "Cadeau : +3 rosée ! Touche ici pour réveiller ce coin.",
+    tour_garden_ok:  "Regarde, il se réveille déjà !",
+    tour_shop:       "Tu as {coins} pièces ! Viens voir l'Atelier.",
+    tour_shop_in:    "Cadeau : la graine de jade. Essaie-la !",
+    tour_shop_ok:    "Trop classe. Tu pourras en gagner d'autres.",
+    tour_daily:      "Un nouveau défi chaque jour, le même pour tous !",
+    tour_achievements: "Ton premier succès ! Ils sont tous rangés ici.",
+    tour_achievements_in: "Certains succès rapportent des pièces. Chasse-les !",
+    tour_profile:    "Ton profil : ta graine, tes records, ta série.",
+    done:            "Tu connais tout ! Voici ton diplôme d'Apprenti.",
+    nudge_daily:     "Re-bonjour ! Le défi du jour t'attend.",
+    nudge_streak:    "Ta série : {n} jour{s}. Sans pression, hein !",
+    news_ask:        "Psst ! Il y a du nouveau. Petite visite ?",
+    news_garden:     "Nouveau : le Jardin endormi. La rosée le réveille.",
+    news_ritual:     "Chaque jour : trois missions et un coffre.",
+    news_shop:       "L'Atelier a reçu des graines rares.",
+    news_done:       "C'est tout ! Bon jeu.",
+    skip_ack:        "Pas de souci ! Je suis dans les Paramètres.",
+    btn_go:    "C'est parti !",
+    btn_next:  "Suivant",
+    btn_skip:  "Passer",
+    btn_yes:   "Oui !",
+    btn_no:    "Non merci",
+    btn_ok:    "Merci !",
+    btn_later: "Plus tard",
+    coach_name: "Germain"
+  }
+};
+const COACH_LANG = 'fr';
+// Réplique avec variables ({game}, {coins}, {n}, {s}). Jamais de « undefined »
+// visible : une clé absente renvoie une chaîne vide, une variable absente aussi.
+function coachLine(key, vars){
+  const table = COACH_LINES[COACH_LANG] || COACH_LINES.fr;
+  const raw = Object.prototype.hasOwnProperty.call(table, key) ? table[key] : '';
+  const v = Object.assign({ game: (typeof GAME_NAME!=='undefined' ? GAME_NAME : '') }, vars||{});
+  return raw.replace(/\{(\w+)\}/g, (m, k)=> (v[k]===undefined || v[k]===null || (typeof v[k]==='number' && !Number.isFinite(v[k]))) ? '' : String(v[k]));
+}
+
+// Onglets présentés un à un, chacun au moment où il devient utile.
+const TUTO_TOURS = ['garden', 'shop', 'daily', 'achievements', 'profile'];
+const TUTO_MAX_ATTEMPTS = 2; // cible absente / retour arrière : on réessaie une fois, puis on abandonne cette étape
+const TUTO_NUDGE_DAYS = 7;   // rappel du défi : seulement la première semaine
+
+// État sauvegardé. ctx.existingPlayer : progression déjà présente au tout
+// premier chargement de cette clé → aucune intro imposée.
+function sanitizeTutorial(raw, ctx){
+  ctx = ctx || {};
+  const r = (raw && typeof raw==='object' && !Array.isArray(raw)) ? raw : null;
+  const pick = (v, allowed, dflt)=> allowed.includes(v) ? v : dflt;
+  if(!r){
+    const existing = !!ctx.existingPlayer;
+    const tours = {}, attempts = {}; TUTO_TOURS.forEach(t=>{ tours[t] = existing ? 'done' : 'pending'; attempts[t] = 0; });
+    // Joueur existant : rien à présenter (done), mais le diplôme d'Apprenti
+    // (graduated) ne se gagne qu'en faisant vraiment le tutoriel.
+    return { intro: existing ? 'done' : 'pending', skipped:false, tours, attempts, gifts:{ garden:false, shop:false }, done:existing,
+      existing, news: existing ? 'pending' : 'none', firstDay:'', lastNudge:'', started:false, graduated:false, replay:false, l2:false };
+  }
+  const tours = {};
+  TUTO_TOURS.forEach(t=>{ tours[t] = pick(r.tours && r.tours[t], ['pending', 'done', 'gone'], 'pending'); });
+  const attempts = {};
+  TUTO_TOURS.forEach(t=>{ const n = Math.floor(Number(r.attempts && r.attempts[t])); attempts[t] = Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 0; });
+  const gifts = {}; ['garden', 'shop'].forEach(g=>{ gifts[g] = !!(r.gifts && r.gifts[g]); });
+  return {
+    intro: pick(r.intro, ['pending', 'level1', 'done'], 'pending'),
+    skipped: !!r.skipped, tours, attempts, gifts, done: !!r.done, existing: !!r.existing,
+    news: pick(r.news, ['none', 'pending', 'done'], 'none'),
+    firstDay: typeof r.firstDay==='string' ? r.firstDay : '',
+    lastNudge: typeof r.lastNudge==='string' ? r.lastNudge : '',
+    started: !!r.started, graduated: !!r.graduated, replay: !!r.replay, l2: !!r.l2
+  };
+}
+// Le tutoriel guide-t-il encore (intro, mécaniques, onglets) ?
+function tutorialActive(t){ return !t.skipped && !t.done; }
+// Prochain onglet à présenter (sur l'accueil), ou null.
+// ctx : { levelsDone, coins, rosee, gardenCost, achievements, dailyDoneToday }
+function tutorialNextTour(t, ctx){
+  if(!tutorialActive(t) || t.intro!=='done') return null;
+  const c = ctx || {};
+  const ready = {
+    garden: (c.levelsDone||0) >= 2 && Number.isFinite(c.gardenCost) && (c.rosee||0) >= c.gardenCost,
+    shop: (c.levelsDone||0) >= 3 && (c.coins||0) >= 30,
+    daily: (c.levelsDone||0) >= 3 && !c.dailyDoneToday,
+    achievements: (c.levelsDone||0) >= 4 && (c.achievements||0) >= 1,
+    profile: (c.levelsDone||0) >= 6
+  };
+  return TUTO_TOURS.find(k=> t.tours[k]==='pending' && ready[k]) || null;
+}
+// Tout est vu (ou abandonné proprement) : le tutoriel est terminé.
+function tutorialAllSeen(t){ return t.intro==='done' && TUTO_TOURS.every(k=> t.tours[k]!=='pending'); }
+// Rappel bienveillant du défi : lendemain et jours suivants, une fois par
+// jour, première semaine seulement, jamais si le défi est déjà fait.
+function tutorialNudgeDue(t, dayKey, ctx){
+  if(t.skipped || t.intro!=='done' || !t.firstDay || t.lastNudge===dayKey) return false;
+  const d = dayDiff(t.firstDay, dayKey);
+  return d >= 1 && d <= TUTO_NUDGE_DAYS && !(ctx && ctx.dailyDoneToday);
+}
+// Étape annulée (cible absente, retour arrière) : on réessaiera, puis on lâche.
+function tutorialTourFailed(t, key){
+  const out = JSON.parse(JSON.stringify(t));
+  out.attempts[key] = (out.attempts[key]||0) + 1;
+  if(out.attempts[key] >= TUTO_MAX_ATTEMPTS) out.tours[key] = 'gone';
+  return out;
+}
+
 // Point d'entrée console pour les développeurs uniquement.
 // Dans les outils de développement du navigateur, taper :
 //   BCD_DEV.validateLevels()               → valide tous les niveaux de LEVELS
@@ -3216,7 +3401,11 @@ window.BCD_DEV = {
       retention: retentionSummary(loadRetention()),
       garden: { tasksDone: loadGarden().done, roseeEarned: loadGarden().earned, zones: count('garden_zone'),
         ritualMissions: count('ritual_mission'), ritualChests: count('ritual_chest') },
-      ads: { offered: count('ad_offered'), started: count('ad_start'), completed: count('ad_completed'), skipped: count('ad_skipped') }
+      ads: { offered: count('ad_offered'), started: count('ad_start'), completed: count('ad_completed'), skipped: count('ad_skipped') },
+      // Tutoriel de Germain : où les joueurs décrochent-ils ?
+      tutorial: { started: count('tutorial_started'), completed: count('tutorial_completed'),
+        skippedAt: log.filter(e=> e.t==='tutorial_skipped').map(e=> e.p && e.p.step),
+        steps: log.filter(e=> e.t==='step_completed').map(e=> e.p && e.p.step) }
     };
   },
   getAnalyticsSummary(){
@@ -3267,6 +3456,11 @@ window.BCD_DEV = {
   getSentierStats(){ return loadSentierStats(); },
   // Lance directement un niveau de campagne (index 0-based), pour la QA.
   playLevel(index){ startLevel(index, false); },
+  // Tutoriel de Germain (QA uniquement).
+  getTutorial(){ return loadTutorial(); },
+  setTutorial(patch){ const t = Object.assign(loadTutorial(), patch||{}); saveTutorial(t); return loadTutorial(); },
+  tutorialKick(){ Tutorial.kick(); },
+  coachText(){ const el = document.querySelector('#coach .coach-text'); const c = document.getElementById('coach'); return (c && !c.hidden && el) ? el.textContent : ''; },
   // Jardin endormi / rituel / pubs (QA uniquement).
   getGarden(){ return loadGarden(); },
   setRosee(n){ const g = loadGarden(); g.rosee = safeInt(n, 0, 1e7, 0); saveGarden(g); refreshHome(); return g.rosee; },
@@ -3471,7 +3665,8 @@ const SCHEMA_MIGRATIONS = {
   garden:       { current:1, migrations:{} },
   ritual:       { current:1, migrations:{} },
   ads:          { current:1, migrations:{} },
-  retention:    { current:1, migrations:{} }
+  retention:    { current:1, migrations:{} },
+  tutorial:     { current:1, migrations:{} }  // tutoriel de Germain (section A5/T)
 };
 
 // Lit une donnée versionnée depuis safeStorage et applique en cascade les
@@ -4076,7 +4271,8 @@ const COIN_REWARDS = {
     sentier_score_150: 40,
     sentier_perfect_25: 40,
     garden_5: 20,
-    garden_all: 60
+    garden_all: 60,
+    apprentice: 25
   }
 };
 function loadCoins(){
@@ -4409,7 +4605,8 @@ const ACHIEVEMENTS = [
   { id:'sentier_score_150', name:'Sprint',        desc:'Marque 150 points en une partie Chrono.',        icon:'⚡', metric:'sentierBestScore', goal:150 },
   { id:'sentier_perfect_25', name:'Œil du solveur', desc:'Trouve 25 solutions parfaites dans le Sentier.', icon:'👁️', metric:'sentierPerfect', goal:25 },
   { id:'garden_5',   name:'Jardinier',           desc:'Réveille 5 coins du Jardin.',     icon:'🪴', metric:'gardenDone', goal:5 },
-  { id:'garden_all', name:'Le jardin s’éveille', desc:'Réveille tout le Jardin endormi.', icon:'🌙', metric:'gardenDone', goal:GARDEN_TOTAL_TASKS }
+  { id:'garden_all', name:'Le jardin s’éveille', desc:'Réveille tout le Jardin endormi.', icon:'🌙', metric:'gardenDone', goal:GARDEN_TOTAL_TASKS },
+  { id:'apprentice', name:'Apprenti',           desc:'Termine le tutoriel avec Germain.', icon:'🎓', metric:'tutorialGrad', goal:1 }
 ];
 // Succès ÉVOLUTIFS (audit §3 : "aucun succès n'est récurrent ou
 // évolutif") : un seul succès à paliers qui ne s'épuise jamais vraiment.
@@ -4463,7 +4660,8 @@ function achievementMetrics(){
     sentierSolved: st.totalSolved, sentierPerfect: st.totalPerfect,
     sentierBestChain: st.bestChain, sentierBestScore: st.bestScore,
     perfectTotal: threeStars + st.totalPerfect,
-    gardenDone: loadGarden().done
+    gardenDone: loadGarden().done,
+    tutorialGrad: loadTutorial().graduated ? 1 : 0
   };
 }
 const ACHIEVEMENTS_KEY = 'bcd_achievements_v1';
@@ -4873,6 +5071,8 @@ function sfxCoinGain(){ glass(semi(NOTE_D4*4, 7), 0.035, 0, 0.3); glass(semi(NOT
 // Jardin endormi : la rosée tinte (verre aigu, en goutte), un chantier
 // « pousse » (arpège montant bois → verre), une zone réveillée joue le
 // motif signature, le coffre du rituel s'ouvre (bois puis étincelles).
+// Germain parle : un « blip » de verre très discret, une fois par bulle.
+function sfxCoachBlip(){ glass(semi(NOTE_D4*2, [19, 21, 24][Math.floor(Math.random()*3)]), 0.022, 0, 0.16); wood(semi(NOTE_D4*2, 7), 0.018, 0.03, 0.06); }
 function sfxRoseeDrop(i){ glass(semi(NOTE_D4*2, [19, 21, 24, 26][(i||0)%4]), 0.03, 0, 0.35); }
 function sfxRestore(){
   wood(semi(NOTE_D4, 0), 0.07, 0, 0.18);
@@ -5136,6 +5336,9 @@ function goto(name){
   // un seul mouvement d'écran. sfxScreenClose() reste définie et prête si
   // un vrai besoin de fermeture distincte apparaît plus tard.
   sfxScreenOpen();
+  // Germain réagit aux changements d'écran (annule une étape devenue
+  // hors sujet, intervient à l'arrivée sur l'accueil). Voir section T.
+  if(Tutorial) Tutorial.onScreen(name);
 }
 
 /* =========================================================
@@ -6321,6 +6524,10 @@ document.getElementById('btnResetProgress').addEventListener('click', ()=>{
   safeStorage.remove(ADS_KEY);
   safeStorage.remove(RETENTION_KEY); // comme le journal Analytics, effacé avec le reste
   safeStorage.remove(GHOSTS_KEY);
+  // Choix documenté : une réinitialisation complète refait un joueur neuf,
+  // donc le tutoriel recommence (les cadeaux, effacés avec le reste, aussi).
+  safeStorage.remove(TUTO_KEY);
+  if(Coach) Coach.cancelAll();
   applySeedCosmetic(); // revient immédiatement au skin par défaut, sans attendre un rechargement
   refreshHome();
 });
@@ -6672,6 +6879,9 @@ function startBoard(lvl, opts){
   if(ghost && !freshInfo && !opts.tip){
     tip = { icon:'👻', text:`Bats ton fantôme : ${ghost.moves} coup${ghost.moves>1?'s':''} en ${formatTime(Math.round(ghost.ms/1000))}.` };
   }
+  // Germain remplace l'aide texte au niveau 1 du tutoriel et pour chaque
+  // nouvelle mécanique (mini-scène). S'il a été passé : aide texte classique.
+  if(Tutorial && Tutorial.onBoardStart(lvl, index, freshInfo)) tip = opts.tip || null;
   setGameTip(tip ? tip.icon : '', tip ? tip.text : '');
   // Montrer plutôt qu'expliquer : la mécanique nommée par l'aide pulse
   // quelques fois sur le plateau (nouvelle mécanique, ou niveau INTRO/TEACH).
@@ -6775,6 +6985,7 @@ function checkStuckAfterMove(){
   if(nowStuck && !state.stuck){
     state.stuck = true;
     setGameTip('🪨', 'Impasse : plus de solution d\'ici. Annule ou recommence.', 'warn');
+    if(Tutorial) Tutorial.onStuck();
     Analytics.track('stuck', { mode:state.mode, levelIndex:state.levelIndex, moves:state.moves });
   } else if(!nowStuck && state.stuck){
     state.stuck = false;
@@ -7084,6 +7295,7 @@ function performMove(dx,dy){
   state.pathLog.push([dx, dy, Math.round(performance.now() - state.boardStartPerf)]);
   resetHint(); // l'état a changé : un indice affiché devient obsolète
   state.moves++;
+  if(Tutorial) Tutorial.onMove(state.moves);
   document.getElementById('hudMoves').textContent = state.moves;
   announceGameStatus(`Coup ${state.moves}.`);
   const isWin = state.seed.x===state.goal.x && state.seed.y===state.goal.y;
@@ -7970,6 +8182,7 @@ let onWin = function(expectedSessionId){
   if(replayBtn) replayBtn.textContent = stars < 3 ? `↻ Viser ★★★` : '↻ Rejouer';
 
   if(stillInGame) goto('victory');
+  if(stillInGame && !state.isDaily && Tutorial) Tutorial.onWin(state.levelIndex);
 }
 
 // Pub récompensée « Doubler » : proposée seulement s'il y a quelque chose
@@ -9046,6 +9259,480 @@ document.addEventListener('pointerdown', e=>{
   sfxButtonTap();
 }, { passive:true });
 
+
+/* =========================================================
+   T. GERMAIN ET LE TUTORIEL (exécution) — logique pure en A5
+   Coach : le personnage, sa bulle (texte rapide, toucher pour accélérer
+   puis avancer), son projecteur (fond assombri avec un trou sur la VRAIE
+   cible). Tutorial : le scénario (intro, niveau 1 guidé, mécaniques,
+   visite des onglets un par un, fin, rappel du lendemain, nouveautés
+   pour les joueurs existants). Jamais de blocage : un changement
+   d'écran, une cible absente ou « Passer » annulent proprement l'étape.
+========================================================= */
+const TUTO_KEY = 'bcd_tutorial_v1';
+function isExistingPlayer(){
+  try{
+    return Object.keys(loadProgress()).length > 0 || loadCoins() > 0 || (loadStreak().totalWins||0) > 0 || loadGarden().earned > 0;
+  }catch(e){ return false; }
+}
+function saveTutorial(t){ saveVersioned(TUTO_KEY, 'tutorial', t); }
+function loadTutorial(){
+  const raw = loadVersioned(TUTO_KEY, 'tutorial', null);
+  const fresh = !(raw && typeof raw==='object' && !Array.isArray(raw));
+  const t = sanitizeTutorial(fresh ? null : raw, { existingPlayer: fresh && isExistingPlayer() });
+  if(!t.firstDay) t.firstDay = todayKey();
+  if(fresh) saveTutorial(t);
+  return t;
+}
+const sleep = ms=> new Promise(r=> setTimeout(r, ms));
+
+// Germain en SVG (même dessin que l'icône) : humeurs par classe CSS.
+function germainSVG(){
+  return `<svg class="germain mood-idle" viewBox="0 -8 100 120" aria-hidden="true">
+  <defs><radialGradient id="gmSeed" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#fff0c2"/><stop offset=".35" stop-color="#ffd166"/><stop offset=".75" stop-color="#f0a02e"/><stop offset="1" stop-color="#b8661a"/></radialGradient>
+  <linearGradient id="gmLeaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b6f59a"/><stop offset="1" stop-color="#2f9e4f"/></linearGradient></defs>
+  <ellipse cx="50" cy="108" rx="30" ry="4.5" fill="#000" opacity=".25"/>
+  <g class="gm-body">
+    <g class="gm-leaves">
+      <path d="M50 24 C 49 16, 45 11, 39 9" stroke="#3aa65a" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+      <path d="M40 10 C 31 2, 18 4, 13 12 C 23 16, 34 16, 40 10 Z" fill="url(#gmLeaf)"/>
+      <path d="M46 15 C 45 4, 53 -2, 63 -2 C 63 8, 56 14, 46 15 Z" fill="url(#gmLeaf)"/>
+    </g>
+    <path d="M50 22 C 68 25, 92 46, 92 70 C 92 92, 74 106, 50 106 C 26 106, 8 92, 8 70 C 8 46, 32 25, 50 22 Z" fill="url(#gmSeed)" stroke="#8a4a10" stroke-opacity=".3" stroke-width="1.5"/>
+    <ellipse cx="32" cy="46" rx="11" ry="6.5" fill="#fff" opacity=".6" transform="rotate(-32 32 46)"/>
+    <g class="gm-eyes-open">
+      <g class="gm-eye-left"><ellipse cx="38" cy="66" rx="8.5" ry="10" fill="#fff"/><circle cx="40" cy="67" r="5" fill="#2a1609"/><circle cx="42" cy="64.5" r="1.8" fill="#fff"/></g>
+      <g><ellipse cx="62" cy="66" rx="8.5" ry="10" fill="#fff"/><circle cx="64" cy="67" r="5" fill="#2a1609"/><circle cx="66" cy="64.5" r="1.8" fill="#fff"/></g>
+    </g>
+    <path class="gm-wink" d="M31 68 Q38 61 45 68" stroke="#2a1609" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+    <g class="gm-eyes-happy"><path d="M31 68 Q38 59 45 68" stroke="#2a1609" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M55 68 Q62 59 69 68" stroke="#2a1609" stroke-width="3.6" fill="none" stroke-linecap="round"/></g>
+    <ellipse cx="27" cy="80" rx="6" ry="3.6" fill="#ff7a6a" opacity=".5"/><ellipse cx="73" cy="80" rx="6" ry="3.6" fill="#ff7a6a" opacity=".5"/>
+    <path class="gm-mouth-smile" d="M42 82 Q50 90 58 82" stroke="#6b2a0c" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <ellipse class="gm-mouth-o" cx="50" cy="85" rx="4.5" ry="5.5" fill="#6b2a0c"/>
+  </g></svg>`;
+}
+
+// var : lus par goto() (section D) avant leur initialisation ci-dessous.
+var Coach = null, Tutorial = null;
+
+Coach = (function(){
+  let root, row, germ, bubble, nameEl, textEl, actionsEl, skipBtn, live;
+  let cur = null, typing = null, spot = null, run = 0;
+  const reduced = ()=> document.documentElement.classList.contains('reduce-motion') ||
+    !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function ensure(){
+    if(root) return;
+    root = document.createElement('div');
+    root.id = 'coach'; root.hidden = true;
+    root.innerHTML = `<div class="coach-row"><div class="coach-germain" aria-hidden="true">${germainSVG()}</div>
+      <div class="coach-bubble" role="dialog" aria-label="Germain" tabindex="0"><button class="coach-skip" type="button"></button>
+      <div class="coach-name"></div><div class="coach-text"></div><div class="coach-actions"></div></div></div>`;
+    document.body.appendChild(root);
+    row = root.querySelector('.coach-row'); germ = root.querySelector('svg.germain');
+    bubble = root.querySelector('.coach-bubble'); nameEl = root.querySelector('.coach-name');
+    textEl = root.querySelector('.coach-text'); actionsEl = root.querySelector('.coach-actions'); skipBtn = root.querySelector('.coach-skip');
+    live = document.createElement('p'); live.id = 'coachLive'; live.className = 'sr-only';
+    live.setAttribute('aria-live', 'polite'); live.setAttribute('aria-atomic', 'true');
+    document.body.appendChild(live);
+    bubble.addEventListener('click', e=>{ if(!e.target.closest('button')) tap(); });
+    // Entrée/Espace sur la bulle elle-même ; un bouton garde sa propre activation.
+    bubble.addEventListener('keydown', e=>{ if((e.key==='Enter' || e.key===' ') && !e.target.closest('button')){ e.preventDefault(); tap(); } });
+    root.querySelector('.coach-germain').addEventListener('click', ()=> tap());
+    skipBtn.addEventListener('click', e=>{ e.stopPropagation(); if(Tutorial) Tutorial.skip(); });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape' && cur){ e.preventDefault(); tap(true); } });
+  }
+  function finishTyping(){ if(typing){ clearInterval(typing.iv); textEl.textContent = typing.text; typing = null; } }
+  // Toucher : termine d'abord le texte, puis avance (si la bulle le permet).
+  function tap(force){
+    if(!cur) return;
+    if(typing){ finishTyping(); if(!force) return; }
+    if(cur.opts.tapToClose || force) close('tap');
+  }
+  function setMood(m){ ensure(); germ.setAttribute('class', 'germain mood-' + (m || 'idle')); }
+  function bounce(){ if(!germ || reduced()) return; germ.classList.remove('bounce'); void germ.getBoundingClientRect(); germ.classList.add('bounce'); }
+  function say(opts){
+    ensure();
+    if(cur) close('replaced');
+    opts = Object.assign({ mood:'idle', position:'bottom', tapToClose:true, buttons:null, autoHide:0, closeOnMove:false, screen: state.screen }, opts || {});
+    const text = String(opts.text || '');
+    root.className = 'at-' + opts.position;
+    root.hidden = false;
+    row.style.animation = 'none'; void row.offsetWidth; row.style.animation = '';
+    setMood(opts.mood); bounce();
+    nameEl.textContent = coachLine('coach_name');
+    skipBtn.textContent = coachLine('btn_skip') + ' ✕';
+    skipBtn.setAttribute('aria-label', 'Passer le tutoriel');
+    skipBtn.hidden = !(Tutorial && Tutorial.isActive());
+    actionsEl.innerHTML = '';
+    (opts.buttons || []).forEach(b=>{
+      const el = document.createElement('button');
+      el.type = 'button'; el.className = b.primary ? 'c-primary' : 'c-ghost'; el.textContent = b.label;
+      el.addEventListener('click', e=>{ e.stopPropagation(); close(b.value); });
+      actionsEl.appendChild(el);
+    });
+    live.textContent = coachLine('coach_name') + ' : ' + text;
+    if(typeof sfxCoachBlip==='function') sfxCoachBlip();
+    finishTyping();
+    if(reduced()) textEl.textContent = text;
+    else {
+      textEl.textContent = '';
+      let i = 0;
+      typing = { text, iv: setInterval(()=>{ i += 2; textEl.textContent = text.slice(0, i); if(i >= text.length) finishTyping(); }, 26) };
+    }
+    return new Promise(resolve=>{
+      cur = { resolve, opts, timer: opts.autoHide ? setTimeout(()=> close('auto'), opts.autoHide) : null };
+      // Clavier : focus sur le 1er bouton, sauf en jeu (les flèches jouent).
+      if(opts.buttons && opts.buttons.length && state.screen!=='game' && opts.focus!==false){
+        setTimeout(()=>{ const f = actionsEl.querySelector('button'); if(f && cur && cur.opts===opts) f.focus({ preventScroll:true }); }, 60);
+      }
+    });
+  }
+  function close(value){
+    if(!cur) return;
+    const c = cur; cur = null;
+    if(c.timer) clearTimeout(c.timer);
+    finishTyping();
+    root.hidden = true;
+    c.resolve(value);
+  }
+  function visible(el){
+    if(!el || !el.isConnected || el.hidden || el.disabled) return false;
+    const r = el.getBoundingClientRect();
+    if(r.width < 2 || r.height < 2) return false;
+    const sc = el.closest('.screen');
+    return !sc || sc.classList.contains('active');
+  }
+  function setBox(el, x, y, w, h){ el.style.left = x+'px'; el.style.top = y+'px'; el.style.width = Math.max(0, w)+'px'; el.style.height = Math.max(0, h)+'px'; }
+  // Projecteur sur une cible réelle. Résout 'clicked' quand le joueur la
+  // touche (avant l'action du bouton), 'cancel' si elle disparaît ou si
+  // l'écran change, ou la valeur passée à clearSpot().
+  function spotlight(target, opts){
+    ensure();
+    clearSpot('replaced');
+    opts = Object.assign({ dim:true, hand:true, screen: state.screen, pad:8 }, opts || {});
+    return new Promise(resolve=>{
+      const els = [];
+      if(opts.dim){
+        for(let i=0;i<4;i++){
+          const b = document.createElement('div');
+          b.className = 'coach-blocker';
+          b.addEventListener('click', e=>{ e.stopPropagation(); bounce(); });
+          document.body.appendChild(b); els.push(b);
+        }
+      }
+      const ring = document.createElement('div'); ring.className = 'coach-ring'; document.body.appendChild(ring); els.push(ring);
+      let hand = null;
+      if(opts.hand){ hand = document.createElement('div'); hand.className = 'coach-hand'; hand.textContent = '👆'; hand.setAttribute('aria-hidden', 'true'); document.body.appendChild(hand); els.push(hand); }
+      const token = {};
+      const onClick = ()=> finish('clicked');
+      const place = ()=>{
+        if(!visible(target) || state.screen!==opts.screen){ finish('cancel'); return; }
+        const r = target.getBoundingClientRect(), p = opts.pad;
+        const x = r.left - p, y = r.top - p, w = r.width + 2*p, h = r.height + 2*p, W = window.innerWidth, H = window.innerHeight;
+        if(opts.dim){ setBox(els[0], 0, 0, W, y); setBox(els[1], 0, y+h, W, H-(y+h)); setBox(els[2], 0, y, x, h); setBox(els[3], x+w, y, W-(x+w), h); }
+        setBox(ring, x, y, w, h);
+        const br = parseFloat(getComputedStyle(target).borderRadius) || 10;
+        ring.style.borderRadius = (br + p) + 'px';
+        if(hand){ hand.style.left = (x + w*0.6) + 'px'; hand.style.top = (y + h*0.55) + 'px'; }
+      };
+      const iv = setInterval(place, 200);
+      function finish(v){
+        if(!spot || spot.token!==token) return;
+        clearInterval(iv);
+        window.removeEventListener('resize', place);
+        window.removeEventListener('scroll', place, true);
+        target.removeEventListener('click', onClick, true);
+        els.forEach(e=> e.remove());
+        spot = null;
+        resolve(v);
+      }
+      spot = { token, finish, screen: opts.screen };
+      target.addEventListener('click', onClick, true); // capture : avant l'action du bouton
+      window.addEventListener('resize', place);
+      window.addEventListener('scroll', place, true);
+      try{ target.scrollIntoView({ block:'nearest', behavior:'auto' }); }catch(e){}
+      place();
+    });
+  }
+  function clearSpot(v){ if(spot) spot.finish(v || 'cancel'); }
+  return {
+    say, setMood, bounce, visible, spotlight, clearSpot,
+    hide(){ close('hidden'); },
+    isOpen(){ return !!cur; },
+    closeOnMove(){ if(cur && cur.opts.closeOnMove) close('move'); },
+    // Un changement d'écran annule le projecteur et les bulles liées à l'ancien écran.
+    onScreen(name){
+      if(spot && spot.screen!==name) clearSpot('cancel');
+      if(cur && cur.opts.screen && cur.opts.screen!==name) close('screen');
+    },
+    waitScreen(name, ms){
+      return new Promise(resolve=>{
+        const t0 = Date.now();
+        const iv = setInterval(()=>{ if(state.screen===name){ clearInterval(iv); resolve(true); } else if(Date.now()-t0 > ms){ clearInterval(iv); resolve(false); } }, 50);
+      });
+    },
+    newRun(){ return ++run; },
+    alive(r){ return r===run; },
+    cancelAll(){ run++; clearSpot('cancel'); close('cancel'); }
+  };
+})();
+
+Tutorial = (function(){
+  let busy = false, lastTourEnd = 0, stuckSession = -1, winReacts = 0, currentStep = '';
+  const st = ()=> loadTutorial();
+  const step = name=> Analytics.track('step_completed', { step:name });
+  const posFor = el=>{ const r = el.getBoundingClientRect(); return (r.top + r.height/2) < window.innerHeight*0.5 ? 'bottom' : 'top'; };
+  function ctxNow(){
+    const g = loadGarden(), gs = gardenStatus(g.done);
+    return { levelsDone: Object.keys(loadProgress()).length, coins: loadCoins(), rosee: g.rosee,
+      gardenCost: gs.next ? gs.next.task.cost : NaN, achievements: Object.keys(loadUnlockedAchievements()).length,
+      dailyDoneToday: !!loadTodayDailyResult() };
+  }
+  function isActive(){ return tutorialActive(st()); }
+
+  function skip(){
+    const t = st();
+    Coach.cancelAll(); busy = false;
+    if(t.skipped || t.done) return;
+    const at = currentStep || (t.intro!=='done' ? 'intro' : 'onglets');
+    t.skipped = true; saveTutorial(t);
+    Analytics.track('tutorial_skipped', { step:at });
+    currentStep = '';
+    Coach.say({ text: coachLine('skip_ack'), mood:'wink', position: state.screen==='game' ? 'top' : 'bottom', autoHide:2600 });
+    // Sur le plateau en cours, l'aide texte reprend sa place.
+    if(state.screen==='game' && state.level){
+      const tip = defaultTipForBoard(state.level, state.mode, state.levelIndex, null);
+      if(tip) setGameTip(tip.icon, tip.text);
+    }
+  }
+
+  // ---- 1. Accueil du premier lancement ----
+  async function introHome(t){
+    busy = true; currentStep = 'intro';
+    const run = Coach.newRun();
+    if(!t.started){ t.started = true; saveTutorial(t); Analytics.track('tutorial_started', { replay: !!t.replay }); }
+    let r;
+    if(t.intro==='level1'){
+      r = await Coach.say({ text: coachLine('intro_resume'), mood:'happy', position:'bottom', tapToClose:false,
+        buttons:[{ label: coachLine('btn_go'), value:'go', primary:true }] });
+    } else {
+      r = await Coach.say({ text: coachLine('intro_hello'), mood:'happy', position:'bottom' });
+      if(Coach.alive(run) && r==='tap'){
+        r = await Coach.say({ text: coachLine('intro_goal'), mood:'wink', position:'bottom', tapToClose:false,
+          buttons:[{ label: coachLine('btn_go'), value:'go', primary:true }] });
+      }
+    }
+    busy = false;
+    if(!Coach.alive(run) || r!=='go') return;
+    step('intro_hello');
+    startLevel(0, false);
+  }
+
+  // ---- 2 et 3. Plateaux : niveau 1 guidé, mécaniques en mini-scènes ----
+  // Renvoie true si Germain remplace l'aide texte de ce plateau.
+  function onBoardStart(lvl, index, freshInfo){
+    const t = st();
+    if(t.skipped) return false;
+    if(state.mode==='campaign' && index===0 && t.intro!=='done' && tutorialActive(t)){
+      if(!t.started){ t.started = true; Analytics.track('tutorial_started', { replay: !!t.replay }); }
+      t.intro = 'level1'; saveTutorial(t);
+      currentStep = 'level1';
+      Coach.say({ text: coachLine('l1_swipe'), mood:'happy', position:'top', closeOnMove:true });
+      return true;
+    }
+    if(freshInfo && freshInfo.key){
+      const line = coachLine('mech_' + freshInfo.key) || freshInfo.message;
+      Coach.say({ text: line, mood:'surprised', position:'top', closeOnMove:true });
+      setTimeout(()=>{ if(Coach.isOpen()) Coach.setMood('happy'); }, 1700);
+      return true;
+    }
+    if(state.mode==='campaign' && index===1 && tutorialActive(t) && t.intro==='done' && !t.l2){
+      t.l2 = true; saveTutorial(t);
+      Coach.say({ text: coachLine('l2_hello'), mood:'wink', position:'top', autoHide:2600, closeOnMove:true });
+    }
+    return false;
+  }
+  function onMove(n){
+    if(n===1) Coach.closeOnMove();
+  }
+  function onStuck(){
+    const t = st();
+    if(t.skipped || state.mode!=='campaign' || state.levelIndex >= 12 || stuckSession===state.sessionId) return;
+    stuckSession = state.sessionId;
+    Coach.say({ text: coachLine('react_stuck'), mood:'surprised', position:'top', autoHide:2800 });
+  }
+  async function onWin(index){
+    const t = st();
+    if(t.skipped || state.mode!=='campaign') return;
+    if(index===0 && t.intro!=='done'){
+      t.intro = 'done'; saveTutorial(t);
+      step('level1'); currentStep = '';
+      const run = Coach.newRun();
+      const r = await Coach.say({ text: coachLine('l1_win'), mood:'happy', position:'top', autoHide:3200 });
+      if(Coach.alive(run) && (r==='tap' || r==='auto') && state.screen==='victory'){
+        Coach.say({ text: coachLine('l1_victory'), mood:'wink', position:'top', autoHide:4200 });
+      }
+      return;
+    }
+    if(tutorialActive(t) && index>=1 && index<=4 && winReacts < 4){
+      winReacts++;
+      Coach.say({ text: coachLine('react_win_' + (index % 4)), mood:'happy', position:'top', autoHide:1700 });
+    }
+  }
+
+  // ---- 4. Visite des onglets, un à la fois, avec un cadeau ----
+  const TOURS = {
+    garden: { target:'#homeGarden', line:()=> coachLine('tour_garden'), after: async run=>{
+      if(!(await Coach.waitScreen('garden', 2500)) || !Coach.alive(run)) return false;
+      const t = st();
+      if(!t.gifts.garden){ t.gifts.garden = true; saveTutorial(t); addRosee(3, 'cadeau'); renderGardenMain(); bumpPill(document.getElementById('gardenRoseePill')); }
+      const btn = document.getElementById('btnRestore');
+      if(!Coach.visible(btn)) return true;
+      Coach.say({ text: coachLine('tour_garden_in'), mood:'happy', position:'bottom', tapToClose:false });
+      const r = await Coach.spotlight(btn, { screen:'garden' });
+      Coach.hide();
+      if(r!=='clicked') return false;
+      // L'étape est acquise dès le geste ; le compliment suit sans bloquer.
+      sleep(1300).then(()=>{ if(Coach.alive(run) && state.screen==='garden') Coach.say({ text: coachLine('tour_garden_ok'), mood:'happy', position:'bottom', autoHide:2400 }); });
+      return true;
+    }},
+    shop: { target:'#btnCosmetics', line:()=> coachLine('tour_shop', { coins: loadCoins() }), after: async run=>{
+      if(!(await Coach.waitScreen('cosmetics', 2500)) || !Coach.alive(run)) return false;
+      const t = st();
+      let gift = null;
+      if(!t.gifts.shop){
+        const owned = loadOwnedCosmetics();
+        gift = ['jade', 'saphir', 'rubis', 'amethyste'].find(id=> !owned.includes(id)) || null;
+        if(gift){ owned.push(gift); saveOwnedCosmetics(owned); }
+        t.gifts.shop = true; saveTutorial(t);
+      }
+      if(!gift) return true;
+      atelier.cat = 'seed'; atelier.sel = gift; renderCosmetics();
+      const btn = document.getElementById('atelierAction');
+      if(!Coach.visible(btn)) return true;
+      Coach.say({ text: coachLine('tour_shop_in'), mood:'wink', position:'bottom', tapToClose:false });
+      const r = await Coach.spotlight(btn, { screen:'cosmetics' });
+      Coach.hide();
+      if(r!=='clicked') return false;
+      sleep(900).then(()=>{ if(Coach.alive(run) && state.screen==='cosmetics') Coach.say({ text: coachLine('tour_shop_ok'), mood:'happy', position:'bottom', autoHide:2400 }); });
+      return true;
+    }},
+    daily: { target:'#btnDaily', line:()=> coachLine('tour_daily') },
+    achievements: { target:'#btnAchievements', line:()=> coachLine('tour_achievements'), after: async run=>{
+      if(!(await Coach.waitScreen('achievements', 2500)) || !Coach.alive(run)) return false;
+      Coach.say({ text: coachLine('tour_achievements_in'), mood:'wink', position:'bottom', autoHide:3000 });
+      return true;
+    }},
+    profile: { target:'#btnProfile', line:()=> coachLine('tour_profile') }
+  };
+  async function tour(k){
+    const def = TOURS[k];
+    const target = document.querySelector(def.target);
+    if(!Coach.visible(target)){ saveTutorial(tutorialTourFailed(st(), k)); return; }
+    busy = true; currentStep = 'onglet_' + k;
+    const run = Coach.newRun();
+    const bubbleP = Coach.say({ text: def.line(), mood:'happy', position: posFor(target), tapToClose:false, screen:'home', focus:false,
+      buttons:[{ label: coachLine('btn_later'), value:'later' }] });
+    bubbleP.then(v=>{ if(v==='later') Coach.clearSpot('later'); });
+    // Clavier : le focus va sur la cible elle-même (Entrée = le geste montré).
+    setTimeout(()=>{ try{ target.focus({ preventScroll:true }); }catch(e){} }, 80);
+    const r = await Coach.spotlight(target, { screen:'home' });
+    Coach.hide();
+    let ok = r==='clicked';
+    if(ok && def.after) ok = await def.after(run);
+    const t = st();
+    if(!t.skipped){
+      if(ok){ t.tours[k] = 'done'; saveTutorial(t); step('onglet_' + k); }
+      else saveTutorial(tutorialTourFailed(t, k));
+    }
+    busy = false; currentStep = ''; lastTourEnd = Date.now();
+  }
+
+  // ---- 6. Fin : diplôme d'Apprenti ----
+  async function complete(t){
+    t.done = true; t.graduated = true; saveTutorial(t);
+    Analytics.track('tutorial_completed', null);
+    checkAchievements({ inline:false }); // succès « Apprenti » + ses coins
+    refreshHome();
+    busy = true;
+    await Coach.say({ text: coachLine('done'), mood:'happy', position:'bottom', tapToClose:false,
+      buttons:[{ label: coachLine('btn_ok'), value:'ok', primary:true }] });
+    busy = false;
+  }
+
+  // ---- 5. Lendemain : rappel bienveillant du défi ----
+  async function nudge(t){
+    t.lastNudge = todayKey(); saveTutorial(t);
+    busy = true; currentStep = 'rappel';
+    const run = Coach.newRun();
+    const daily = document.getElementById('btnDaily');
+    if(Coach.visible(daily)) Coach.spotlight(daily, { screen:'home', dim:false, hand:false });
+    await Coach.say({ text: coachLine('nudge_daily'), mood:'happy', position:'top', autoHide:3600 });
+    const n = loadStreak().current || 0;
+    if(Coach.alive(run) && n > 0 && state.screen==='home'){
+      await Coach.say({ text: coachLine('nudge_streak', { n, s: n > 1 ? 's' : '' }), mood:'wink', position:'top', autoHide:3600 });
+    }
+    Coach.clearSpot('fin');
+    busy = false; currentStep = '';
+  }
+
+  // ---- Joueurs existants : visite des nouveautés, facultative ----
+  async function news(){
+    busy = true; currentStep = 'nouveautes';
+    const run = Coach.newRun();
+    const r = await Coach.say({ text: coachLine('news_ask'), mood:'wink', position:'bottom', tapToClose:false,
+      buttons:[{ label: coachLine('btn_yes'), value:'yes', primary:true }, { label: coachLine('btn_no'), value:'no' }] });
+    const t = st(); t.news = 'done'; saveTutorial(t); // jamais reproposée
+    if(r==='yes'){
+      step('nouveautes');
+      for(const [sel, line] of [['#homeGarden', 'news_garden'], ['#homeRitual', 'news_ritual'], ['#btnCosmetics', 'news_shop']]){
+        if(!Coach.alive(run) || state.screen!=='home') break;
+        const el = document.querySelector(sel);
+        if(!Coach.visible(el)) continue;
+        Coach.spotlight(el, { screen:'home', hand:false });
+        const rr = await Coach.say({ text: coachLine(line), mood:'happy', position: posFor(el), tapToClose:true,
+          buttons:[{ label: coachLine('btn_next'), value:'next', primary:true }] });
+        Coach.clearSpot('suivant');
+        if(rr!=='next' && rr!=='tap') break;
+      }
+      if(Coach.alive(run) && state.screen==='home') Coach.say({ text: coachLine('news_done'), mood:'happy', position:'bottom', autoHide:2200 });
+    }
+    busy = false; currentStep = '';
+  }
+
+  // Arrivée sur l'accueil : au plus UNE intervention, la plus utile.
+  function onHome(){
+    if(busy || state.screen!=='home' || Coach.isOpen()) return;
+    const t = st();
+    if(tutorialActive(t) && t.intro!=='done') return introHome(t);
+    if(!t.skipped && t.news==='pending') return news();
+    if(tutorialActive(t)){
+      if(tutorialAllSeen(t)) return complete(t);
+      const k = tutorialNextTour(t, ctxNow());
+      if(k && Date.now() - lastTourEnd > 15000) return tour(k);
+    }
+    if(tutorialNudgeDue(t, todayKey(), ctxNow())) return nudge(t);
+  }
+  function onScreen(name){
+    Coach.onScreen(name);
+    if(name==='home') setTimeout(()=>{ if(state.screen==='home') onHome(); }, 550);
+  }
+  // « Revoir le tutoriel » : tout recommence, sauf les cadeaux (jamais deux fois).
+  function replay(){
+    const t = st();
+    TUTO_TOURS.forEach(k=>{ t.tours[k] = 'pending'; t.attempts[k] = 0; });
+    Object.assign(t, { intro:'pending', skipped:false, done:false, started:false, replay:true, l2:false, news:'none' });
+    saveTutorial(t);
+    Coach.cancelAll(); busy = false; lastTourEnd = 0; winReacts = 0;
+    refreshHome(); goto('home');
+  }
+  // QA : relance la décision de Germain sans attendre le délai entre deux visites.
+  function kick(){ lastTourEnd = 0; if(!busy) onHome(); }
+  return { isActive, skip, onBoardStart, onMove, onStuck, onWin, onScreen, onHome, replay, kick, _busy:()=> busy };
+})();
+document.getElementById('btnTutoReplay').addEventListener('click', ()=> Tutorial.replay());
+document.getElementById('btnTutoReplayHelp').addEventListener('click', ()=> Tutorial.replay());
+
 /* =========================================================
    N. INITIALISATION
 ========================================================= */
@@ -9080,6 +9767,7 @@ const sessionStartedAt = Date.now();
 window.addEventListener('pagehide', ()=>{
   Analytics.track('session_end', { durationS: Math.round((Date.now()-sessionStartedAt)/1000), screen:state.screen });
 });
+loadTutorial(); // détecte joueur neuf / existant avant toute nouvelle sauvegarde
 applySeedCosmetic();
 spawnFireflies();
 refreshHome();

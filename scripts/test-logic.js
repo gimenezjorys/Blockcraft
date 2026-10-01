@@ -26,7 +26,8 @@ const exportsList = 'LEVELS, Solver, makeRng, hashSeed, generateBoard, transform
   'GARDEN_ZONES, GARDEN_TOTAL_TASKS, GARDEN_TOTAL_COST, sanitizeGardenSave, gardenStatus, gardenRestoreNext, ' +
   'ROSEE, roseeForLevelWin, roseeForDaily, roseeForSentier, RITUAL_POOL, ritualMissionsFor, ritualFresh, ' +
   'sanitizeRitual, ritualApply, ritualAllDone, AD_PLACEMENTS, AD_DAILY_CAP, AD_MIN_INTERVAL_MS, sanitizeAdState, ' +
-  'adCanOffer, adRecordShown, sanitizeRetention, retentionBump, retentionSummary, dayDiff';
+  'adCanOffer, adRecordShown, sanitizeRetention, retentionBump, retentionSummary, dayDiff, ' +
+  'COACH_LINES, coachLine, TUTO_TOURS, sanitizeTutorial, tutorialActive, tutorialNextTour, tutorialAllSeen, tutorialNudgeDue, tutorialTourFailed';
 const ctx = vm.createContext({ console: { log() {} } });
 vm.runInContext('"use strict";\n' + js.slice(start, end) + `\n;globalThis.__t = { ${exportsList} };`, ctx, { filename: 'logic.js' });
 const T = ctx.__t;
@@ -230,6 +231,43 @@ check(sum.returnedD1 && sum.returnedD7 && !sum.returnedD30 && sum.activeDays ===
 check(sum.winsPerSession === 1.33 && sum.adAcceptRate === 0.5, `moyennes calculées (${sum.winsPerSession}, ${sum.adAcceptRate})`);
 check(T.retentionSummary('garbage').activeDays === 0 && T.dayDiff('20260228', '20260301') === 1, 'données corrompues tolérées, écart de jours en UTC');
 console.log('✔ pubs plafonnées, rétention J1/J7/J30 calculée');
+}
+
+{ // 6. Tutoriel de Germain (logique pure)
+section('Tutoriel de Germain');
+const lines = T.COACH_LINES.fr;
+let longOnes = Object.keys(lines).filter(k => !k.startsWith('btn_') && lines[k].replace(/\{\w+\}/g, 'X').split(/\s+/).filter(Boolean).length > 12);
+check(longOnes.length === 0, `répliques de 12 mots max (${longOnes.join(', ')})`);
+check(Object.keys(lines).every(k => !/undefined|NaN/.test(T.coachLine(k, {}))), 'aucune réplique ne montre undefined ou NaN, même sans variables');
+check(T.coachLine('tour_shop', { coins: 42 }) === 'Tu as 42 pièces ! Viens voir l\'Atelier.', 'variables remplacées');
+check(T.coachLine('clé_inconnue') === '', 'clé inconnue → texte vide, jamais la clé brute');
+check(T.coachLine('nudge_streak', { n: NaN }) .indexOf('NaN') < 0, 'NaN jamais affiché');
+const fresh = T.sanitizeTutorial(null, {});
+check(fresh.intro === 'pending' && !fresh.existing && T.TUTO_TOURS.every(k => fresh.tours[k] === 'pending'), 'nouveau joueur : intro et visites à faire');
+const old = T.sanitizeTutorial(null, { existingPlayer: true });
+check(old.intro === 'done' && old.existing && old.news === 'pending' && T.TUTO_TOURS.every(k => old.tours[k] === 'done'), 'joueur existant : aucune intro imposée, visite des nouveautés proposée');
+check(old.done && !old.graduated && !fresh.done, 'joueur existant : rien à présenter, mais pas de diplôme sans tutoriel');
+for (const bad of ['x', 42, [], { intro: 'zzz', tours: { garden: 'bof' }, attempts: { garden: 'NaN' } }]) {
+  const t = T.sanitizeTutorial(bad, {});
+  check(['pending', 'level1', 'done'].includes(t.intro) && T.TUTO_TOURS.every(k => ['pending', 'done', 'gone'].includes(t.tours[k])) && T.TUTO_TOURS.every(k => Number.isInteger(t.attempts[k])), `état corrompu assaini (${JSON.stringify(bad)})`);
+}
+let t = T.sanitizeTutorial(null, {}); t.intro = 'done';
+const ctx0 = { levelsDone: 1, coins: 0, rosee: 0, gardenCost: 3, achievements: 0, dailyDoneToday: false };
+check(T.tutorialNextTour(t, ctx0) === null, 'rien à présenter trop tôt');
+check(T.tutorialNextTour(t, Object.assign({}, ctx0, { levelsDone: 2, rosee: 3 })) === 'garden', 'Jardin présenté dès qu\'il y a de quoi réveiller un coin');
+check(T.tutorialNextTour(t, Object.assign({}, ctx0, { levelsDone: 3, coins: 30 })) === 'shop', 'Atelier présenté dès 30 pièces');
+check(T.tutorialNextTour(Object.assign({}, t, { intro: 'pending' }), Object.assign({}, ctx0, { levelsDone: 9, coins: 99 })) === null, 'aucune visite avant la fin de l\'intro');
+check(T.tutorialNextTour(Object.assign({}, t, { skipped: true }), Object.assign({}, ctx0, { levelsDone: 9, coins: 99 })) === null, 'tutoriel passé : plus rien n\'est imposé');
+let f = T.tutorialTourFailed(t, 'garden');
+check(f.tours.garden === 'pending' && f.attempts.garden === 1, '1er échec (cible absente) : on réessaiera');
+f = T.tutorialTourFailed(f, 'garden');
+check(f.tours.garden === 'gone', '2e échec : étape abandonnée proprement (jamais de boucle)');
+const all = Object.assign({}, t, { tours: { garden: 'done', shop: 'done', daily: 'gone', achievements: 'done', profile: 'done' } });
+check(T.tutorialAllSeen(all) && !T.tutorialAllSeen(t), 'fin du tutoriel quand tout est vu ou abandonné');
+const n = Object.assign({}, t, { firstDay: '20261001' });
+check(!T.tutorialNudgeDue(n, '20261001', {}) && T.tutorialNudgeDue(n, '20261002', {}) && !T.tutorialNudgeDue(n, '20261002', { dailyDoneToday: true }), 'rappel du défi : dès le lendemain, jamais si déjà fait');
+check(!T.tutorialNudgeDue(Object.assign({}, n, { lastNudge: '20261002' }), '20261002', {}) && !T.tutorialNudgeDue(n, '20261015', {}), 'rappel : une fois par jour, première semaine seulement');
+console.log(`✔ tutoriel : ${Object.keys(lines).length} répliques, états, visites, rappel`);
 }
 
 console.log(`\n${checks} vérifications, ${failures} échec(s).`);

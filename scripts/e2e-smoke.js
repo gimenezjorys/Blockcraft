@@ -72,10 +72,13 @@ function startStaticServer(root) {
   await shot('01-accueil');
   check(await screen() === 'screen-home', 'accueil affiché au lancement');
 
-  // 1. Tutoriel : JOUER lance directement le niveau 1
+  // 1. Tutoriel : Germain accueille, JOUER lance directement le niveau 1
+  await wait(700);
+  check((await page.evaluate(() => BCD_DEV.coachText())).length > 0, 'premier lancement : Germain accueille le joueur');
   await page.click('#btnContinue'); await wait(300);
   check((await page.textContent('#gameLevelTitle')).startsWith('1.'), 'JOUER lance le niveau 1');
-  check((await page.textContent('#gameTip')).length > 0, 'aide du tutoriel affichée sous la grille');
+  await wait(600);
+  check((await page.evaluate(() => BCD_DEV.coachText())).includes('Glisse'), 'niveau 1 : Germain montre le geste (au lieu de l\'aide texte)');
   // Mesure chronométrée DANS la page : 150 ms après le coup, donc toujours
   // avant onWin() (différé de 260 ms), qui masque l'écran de jeu.
   const tf = await page.evaluate(() => new Promise(res => {
@@ -91,8 +94,12 @@ function startStaticServer(root) {
   check(await page.evaluate(() => BCD_DEV.getGarden().rosee === 3), 'rosée créditée et sauvegardée');
   check(!(await page.textContent('#victoryRewards')).includes('Record'), 'pas de « record » à la première réussite');
   await shot('02-victoire');
+  // Le reste du parcours joue sans tutoriel (le tutoriel complet est testé
+  // par scripts/e2e-tutorial.js) : on le passe, comme un joueur pressé.
+  await page.click('#coach .coach-skip'); await wait(200);
+  check(await page.evaluate(() => BCD_DEV.getTutorial().skipped), 'tutoriel passé d\'un toucher (« Passer » visible)');
 
-  // 2. Niveaux 2 et 3 → fin du tutoriel
+  // 2. Niveaux 2 et 3
   for (let i = 0; i < 2; i++) { await page.click('#btnNextLevel'); await wait(300); await solve(); await wait(2000); }
   check(await screen() === 'screen-victory', 'niveaux 2 et 3 terminés');
 
