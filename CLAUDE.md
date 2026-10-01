@@ -13,11 +13,12 @@ L'état du produit, les décisions prises, le plan de mesure et les prochaines p
 | `index.html` | Le jeu complet, servi tel quel par GitHub Pages. |
 | `manifest.webmanifest`, `sw.js`, `icons/` | PWA : installation sur l'écran d'accueil et jeu hors ligne. Le service worker est « réseau d'abord » et n'est jamais nécessaire pour jouer. Icônes : sources SVG dans `icons/src/`, tous les formats (stores, Android adaptive, maskable, favicons) générés par `scripts/export-icons.js` ; planche `scripts/icon-contact-sheet.js` ; choix dans `ICON.md`. |
 | `scripts/check-game.js` | `node --check` sur le JS extrait, puis `Solver.validateLevels(LEVELS)`. |
-| `scripts/test-logic.js` | Tests sans navigateur : symétries des niveaux, générateur du Sentier, défi du jour généré. |
+| `scripts/test-logic.js` | Tests sans navigateur : symétries des niveaux, générateur du Sentier, défi du jour généré, logique pure du jardin vivant. |
+| `scripts/test-dom.js` | Le jeu complet dans **jsdom** avec de vrais `KeyboardEvent`/`PointerEvent` : nouveau joueur, ancienne sauvegarde, dates UTC, rosée, rattrapage, pubs. |
 | `scripts/e2e-smoke.js` | Parcours joueur complet dans Chromium (Playwright), plus la PWA hors ligne via un mini-serveur local. Échoue sur toute erreur ou avertissement console. |
 | `scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement, visites des onglets, reprise après fermeture, joueur existant, « Passer », retour arrière, cible absente, animations réduites, stockage corrompu. |
 | `NAMING.md`, `ICON.md`, `ONBOARDING.md` | Choix du nom (preuves de recherche), de l'icône (variantes, exports) et principes du tutoriel. |
-| `.github/workflows/ci.yml` | CI : les trois scripts, sur toutes les branches et PR. |
+| `.github/workflows/ci.yml` | CI : check-game, test-logic, test-dom (jsdom), e2e-smoke, e2e-tutorial, sur toutes les branches et PR. |
 | `PRODUCTION_PROGRESS.md` | Vision, recommandations appliquées, hypothèses, tests, limites, priorités. |
 | `ROADMAP-RETENTION.md` | Audit de rétention, recherche (jeux de référence), décision (Jardin endormi + rituel + pubs récompensées) et feuille de route. |
 | `docs/` | Master Blueprint (.docx), audit de rétention, étude de marché. Ce sont des références, pas du code. |
@@ -27,6 +28,7 @@ L'état du produit, les décisions prises, le plan de mesure et les prochaines p
 ```bash
 node scripts/check-game.js index.html        # attendu : 60 niveaux, 0 cassé, 4 avertissements
 node scripts/test-logic.js                   # attendu : 0 échec
+node scripts/test-dom.js                     # attendu : 0 échec (jsdom : npm i --no-save jsdom, ou NODE_PATH)
 NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attendu : 0 échec
 NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js [dossier-captures] # attendu : 0 échec
 ```
@@ -49,18 +51,23 @@ NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js [dossier-captures] # atten
   - Pubs : `AD_PLACEMENTS`, `adCanOffer`.
   - Rétention : `retentionBump`, `retentionSummary`.
   - Chaque lecture passe par un `sanitize*` (données corrompues = valeurs saines).
+- **A6. Jardin vivant, logique PURE** (testée par `test-logic.js`) : `gardenTimeOfDay` (heure locale → aube/jour/crépuscule/nuit), `gardenWeatherFor` (météo du jour, UTC), rosée du matin (`DEW`, `dewTotalFor`, `dewCollect`, `dewSpotsFor`), croissance (`plantGrowthEvents`), rangs (`GARDENER_RANKS`, `gardenerXP`, `gardenerRank`), rattrapage de série (`streakRepairStatus`, `streakApplyRepair`), `streakAlive`, `welcomeBackDue`, `interstitialAllowed`, `sanitizeTips`.
 - **A5. Tutoriel de Germain, logique PURE** : `COACH_LINES` (toutes les répliques, structure prête à traduire, 12 mots max), `coachLine`, `sanitizeTutorial`, `tutorialNextTour` (quel onglet présenter, et quand), `tutorialNudgeDue` (rappel du défi), `tutorialTourFailed` (abandon propre après 2 échecs).
 - **A15–A18** : utilitaires des mécaniques (portails, sens unique, interrupteurs/portes, portails directionnels).
+- **Dates : toutes en UTC** (`dateKeyFor`, `utcDayOffset`, `getUTCDay`). L'heure LOCALE ne sert qu'à la lumière du ciel du jardin. Une clé de série « du futur » (héritée de l'heure locale) compte comme aujourd'hui.
 - **B / B0** : état global (`state.mode` vaut `'campaign'`, `'daily'` ou `'sentier'` ; `state.level` est le plateau courant). Sauvegarde versionnée par `SCHEMA_MIGRATIONS` : toute modification de format passe par une migration.
-- **B5** : stockage du jardin, du rituel, des pubs et de la rétention (`bcd_garden_v1`, `bcd_ritual_v1`, `bcd_ads_v1`, `bcd_retention_v1`), `addRosee`, `ritualEvent`.
+- **B5** : stockage du jardin (schéma 2 : rosée du matin, plantes vues, rang vu, bon retour, rattrapage), du rituel, des pubs et de la rétention (`bcd_garden_v1`, `bcd_ritual_v1`, `bcd_ads_v1`, `bcd_retention_v1`), `addRosee`, `ritualEvent`.
 - **B2 / B3** : série quotidienne (+ gel) et succès. Les succès mesurables utilisent `metric`/`goal` ; les succès à paliers sont dans `TIERED_ACHIEVEMENTS`.
 - **C–C6** : audio WebAudio. Aucun son avant le premier geste (`audioUnlocked`). Bus commun (`bus()` : compresseur + réverbération), `voice()` pour toute note ; timbres bois (actions) et verre (récompenses). Musique générative à ambiances (`MUSIC_MOODS`, `setMusicMood`). `BCD_DEV.renderAudioPreview(kind, s)` rend un WAV hors ligne pour régler les niveaux.
 - **D** : navigation (`goto`). Les menus reviennent au thème du Monde 1.
-- **E** : accueil. **E1** : l'Atelier (cosmétiques : scène d'essai, rareté `RARITIES`, `COSMETIC_CATEGORIES`). **E3** : les plantes des mondes (SVG procédural). **E4** : le Jardin endormi (scènes SVG `gardenSceneSVG` avec un id de dégradé unique par rendu ; restauration `restoreNextTask` ; fête de zone ; carte du rituel ; objectif sur l'accueil `renderHomeGarden`). **E2** : paramètres.
+- **E5** : le **Jardin vivant** (panorama) : `gpContext`, `gpSkySVG` (ciel, étoiles = étoiles gagnées), `gpPanelSVG(zi, ctx, opts)` (un tableau par zone : collines continues, scène E4 agrandie, avant-plan, plantes `gpSpeciesArt`/`gpPlantBed`, animaux `gpCritter`, rosée, Germain), `gpGarlandHTML` (7 derniers défis), `gpWeatherHTML`, `renderGardenPanorama` (tableaux construits un par un), `gpScrollToZone`, `gpPointPx`, `gpCollectDew`, `gpPlantBadgeSVG` (carte des mondes, victoire). Toute animation SVG porte sur un `<g>` SANS attribut `transform` (sinon le CSS l'écrase). Les tableaux hors écran sont en pause.
+- **E** : accueil (héros : fenêtre vivante sur le jardin, rang, rosée à cueillir). **E1** : l'Atelier (cosmétiques : scène d'essai, rareté `RARITIES`, `COSMETIC_CATEGORIES`). **E3** : les plantes des mondes (SVG procédural). **E4** : le Jardin endormi (scènes SVG `gardenSceneSVG` avec un id de dégradé unique par rendu ; restauration `restoreNextTask` ; fête de zone ; carte du rituel ; objectif sur l'accueil `renderHomeGarden`). **E2** : paramètres.
 - **F** : carte des mondes.
 - **G** : `startLevel` → `startBoard(level, opts)`, point d'entrée unique de tout plateau.
 - **H** : moteur de glissement, Annuler, détection d'impasse. **H2** : indice. **H3** : fantôme du record (trajets dans `bcd_ghosts_v1`). **I** : entrées (swipe, flèches, Z annuler, R recommencer). Tutoriel visuel : `showSwipeHint` (démo du geste au niveau 1), `spotlightMechanic` (cases de la mécanique présentée qui pulsent).
 - **K** : victoire (emblème, puces de récompenses). **L** : défi du jour. **S** : le Sentier (mode infini). **M** : partage (texte type Wordle + carte image). **M3** : vie de l'interface (lucioles, son des boutons). **M4** : `AdService` (pubs récompensées, fournisseur `AD_PROVIDER`, `'mock'` par défaut ; brancher une vraie régie dans `AD_PROVIDERS`).
+- **T2** : aides contextuelles `showTipOnce(id, texte)` (clé `bcd_tips_v1`) et bon retour (`grantWelcomeBack`).
+- **Ambiance des mondes** : `renderWorldAmbience(world)` (appelé par `applyWorldTheme`) : décor `worldArtSVG`, lumière `--amb-halo`, particules `.wp-*`.
 - **T** : Germain et le tutoriel (exécution). `Coach` : personnage SVG, bulle (texte rapide, toucher pour accélérer), projecteur (4 bandes sombres autour de la vraie cible). `Tutorial` : intro → niveau 1 guidé → mini-scènes des mécaniques (remplacent l'aide texte, sauf si le tutoriel est passé) → visite des onglets un par un avec cadeau → succès « Apprenti » → rappel du défi le lendemain ; nouveautés pour les joueurs existants. Branché dans `goto` (`Tutorial.onScreen`), `startBoard`, `performMove`, l'impasse et `onWin`. Clé `bcd_tutorial_v1`.
 - `window.BCD_DEV` : outils console (`validateLevels()`, `playLevel(i)`, `solutionFromHere()`, `setRosee(n)`, `setGardenDone(n)`, `getRitual()`, `resetAdCaps()`, `getTutorial()`, `setTutorial(patch)`, `tutorialKick()`, `coachText()`, `generateSentierBoard()`, `getRetentionReport()`, `setSimulatedDate()`…).
 
@@ -74,7 +81,9 @@ NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js [dossier-captures] # atten
 - Si le générateur change de façon incompatible, incrémenter `DAILY_GEN_VERSION`, sinon les défis futurs changent en silence.
 - Si tu ajoutes un fichier nécessaire au jeu hors ligne, ajoute-le à `SHELL` dans `sw.js` et incrémente `CACHE`.
 - Pas de pay-to-win : les coins ne servent qu'aux cosmétiques, à l'indice et au gel de série. La rosée ne s'achète jamais et n'influence ni score, ni étoiles, ni record.
-- Pubs : uniquement **récompensées**, proposées par un bouton marqué « PUB », jamais au milieu d'un coup, jamais obligatoires. Tout nouvel emplacement s'ajoute à `AD_PLACEMENTS` (avec un plafond) et passe par `AdService`.
+- Pubs : uniquement **récompensées**, proposées par un bouton marqué « PUB », jamais au milieu d'un coup, jamais obligatoires. Tout nouvel emplacement s'ajoute à `AD_PLACEMENTS` (avec un plafond) et passe par `AdService` / `showRewardedAd`. `showInterstitial` existe comme point d'accroche mais reste **désactivé** (`INTERSTITIAL_ENABLED`) : ne l'activer que sur décision explicite, avec les règles de `interstitialAllowed`.
+- **Toute nouvelle fonctionnalité** a son aide contextuelle (`showTipOnce` + réplique dans `COACH_LINES`), montrée une fois, passable, quel que soit l'ordre de découverte.
+- **Toute nouvelle clé de stockage** est enregistrée dans `SCHEMA_MIGRATIONS` ; un changement de format passe par une migration qui n'écrase jamais une valeur existante.
 - Le fichier reste autonome. Seule exception existante : les polices Google, qui retombent sur system-ui. Aucun autre fichier externe (audio, image, CDN).
 - Langue du code, des commentaires et de l'interface : français.
 - **Tutoriel** : toute nouvelle réplique de Germain va dans `COACH_LINES` (12 mots max, tutoiement, jamais culpabilisant). « Passer » reste visible tant que le tutoriel est actif ; une étape ne doit jamais bloquer (cible absente, changement d'écran = annulation propre).

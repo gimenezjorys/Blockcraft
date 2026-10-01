@@ -1765,7 +1765,7 @@
   .hh-chips{position:absolute; z-index:4; top:86px; left:0; right:0; display:flex; justify-content:center; gap:6px; pointer-events:none;}
   .hh-chip{font-size:11px; font-weight:800; color:#fff8e0; padding:4px 10px; border-radius:99px; background:rgba(6,16,24,.5); border:1px solid rgba(255,255,255,.14);}
   .hh-chip.dew{color:#0d2230; background:linear-gradient(180deg, #e8f8ff, #9fdcff); border-color:transparent; animation:badgeBob 1.6s ease-in-out infinite;}
-  @media (max-height:700px){ .home-hero{height:clamp(200px, 34vh, 260px); margin-top:-10px;} .hh-logo .subtitle{display:none;} .hh-chips{top:58px;} #screen-home{padding-top:58px;} }
+  @media (max-height:700px){ .home-hero{height:clamp(200px, 34vh, 260px); margin:-10px -16px 0; width:calc(100% + 32px);} .hh-logo .subtitle{display:none;} .hh-chips{top:58px;} #screen-home{padding-top:58px;} }
 
   /* ================= PLATEAU : MATIÈRE, RELIEF, IMPACTS (refonte) ================= */
   #board{
@@ -7930,6 +7930,11 @@ document.getElementById('gpGarland').addEventListener('keydown', e=>{ if(e.key==
 document.getElementById('gzScene').addEventListener('keydown', e=>{
   if(e.key==='ArrowRight'){ e.preventDefault(); gpScrollToZone((gardenView.zone||0) + 1, true); }
   if(e.key==='ArrowLeft'){ e.preventDefault(); gpScrollToZone((gardenView.zone||0) - 1, true); }
+  // Entrée / Espace : cueille une goutte de rosée du coin affiché (accès clavier).
+  if(e.key==='Enter' || e.key===' '){
+    const drop = document.querySelector(`#gzScene .gp-panel[data-zone="${gardenView.zone||0}"] .gp-dew:not(.picked)`);
+    if(drop){ e.preventDefault(); gpCollectDew(drop); }
+  }
 });
 document.getElementById('homeRitual').addEventListener('click', ()=> openGarden(true));
 document.getElementById('btnGardenBoost').addEventListener('click', e=> watchAdFor('garden_boost', e.currentTarget, ()=>{

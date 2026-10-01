@@ -1,6 +1,6 @@
 # Seedrift (ex-BlockCraft Daily) — suivi de production
 
-*Dernière mise à jour : 30/09/2026. Sources : `index.html` (vérité technique), `docs/audit-blockcraft-retention.md` et `docs/BlockCraft_Daily_Master_Blueprint.docx` (vérité produit).*
+*Dernière mise à jour : 01/10/2026. Sources : `index.html` (vérité technique), `docs/audit-blockcraft-retention.md` et `docs/BlockCraft_Daily_Master_Blueprint.docx` (vérité produit).*
 
 ## 1. Vision synthétisée
 
@@ -18,7 +18,8 @@
 | Plateau | Viser le par : la jauge ★★★ du HUD montre les étoiles encore possibles. Annuler est gratuit. |
 | Session | Niveau suivant, défi du jour, parties du Sentier (3 min). |
 | Semaine | Série quotidienne, règle du jour qui change chaque jour, 7 pastilles de la semaine. |
-| Mois | Jardin (8 plantes et une prairie), succès évolutifs, records du Sentier. |
+| Jour (retour) | Rosée du matin à cueillir, rituel, défi, lanternes de la semaine. |
+| Mois | Jardin vivant (5 zones, 8 plantes, prairie), rang du jardinier, succès évolutifs, records du Sentier. |
 
 **Contrainte structurante** (audit §0) : pas de backend. Ligues, duels, guildes et vrais classements restent hors du périmètre, par décision de conception et non par oubli.
 
@@ -39,9 +40,11 @@
 | §12 Mode Zen | Sentier Zen (sans chrono ni score) | Sentier | E2E | — |
 | Blueprint §14 : pas de fausses données | Joueurs et rang **simulés supprimés** du défi | Résultat du défi | E2E (texte absent) | — |
 
+**Appliqués ensuite (§4e)** : la *Ligue Fantôme* devient les **rangs du jardinier** (barème absolu, aucun autre joueur simulé), le *rattrapage de série* est fait (rejouer le défi d'hier), le *compteur de collection* est sur le profil.
+
 **Non appliqué (et pourquoi) :**
-- *Ligue Fantôme* (§3) : risque de doublon avec « Maître du par » et le record du Sentier. Reporté.
-- *Rattrapage de série après coup* : le gel de série existe déjà. Reporté.
+- *Objectifs secrets* et *modificateurs hebdomadaires du Sentier* : utiles, mais moins urgents que la boucle quotidienne. Reportés.
+- *Éditeur de niveaux partagé, classements, notifications* : exigent un serveur (audit §0).
 
 ## 3. Hypothèses prises
 
@@ -166,7 +169,7 @@ Un fichier HTML seul ne peut pas afficher de vraies pubs. Deux voies :
 
 **Mesure** : événements `ad_offered`, `ad_start`, `ad_completed`, `ad_skipped` ; `rosee_gain` par source ; `garden_task` ; `garden_zone` ; `ritual_mission` ; `ritual_chest`. Ils s'ajoutent à un agrégat **par jour** (`bcd_retention_v1`, 120 jours, indépendant du journal plafonné) : sessions par jour, victoires par session, retours J1/J7/J30, taux d'acceptation des pubs. Tout est lisible dans `BCD_DEV.getRetentionReport()`.
 
-**Jour de référence** : tout se remet à zéro au même minuit **local** que le défi du jour et la série (`todayKey()`), pour que le joueur n'ait qu'un seul « nouveau jour ». Les écarts de jours sont calculés en UTC (`dayDiff`) pour éviter les pièges du changement d'heure.
+**Jour de référence** : depuis octobre 2026, **toutes les dates sont en UTC** (`dateKeyFor`), pour tout le monde : défi du jour, série, rituel, rosée du matin, plafonds de pubs. Le jour change donc à 1 h (hiver) ou 2 h (été) en France. Passage sans perte : une clé « du futur » héritée de l'ancienne heure locale compte comme aujourd'hui (série jamais remise à 1 pour ça). Les écarts de jours restent calculés par `dayDiff`.
 
 ## 4d. Nom, icône et tutoriel (croissance)
 
@@ -188,15 +191,67 @@ Un fichier HTML seul ne peut pas afficher de vraies pubs. Deux voies :
   - **Réinitialisation de la progression = le tutoriel recommence** : choix assumé, c'est un joueur neuf.
 - **Mesure** : `tutorial_started`, `step_completed` (étape), `tutorial_skipped` (étape où l'on décroche), `tutorial_completed`, dans `BCD_DEV.getRetentionReport().tutorial`.
 
+
+## 4e. Le Jardin vivant, la rétention quotidienne et la refonte visuelle (octobre 2026)
+
+**Le Jardin devient le cœur visuel du jeu.** Il passe d'une vignette 320×200 à un **panorama plein écran** de 5 tableaux (un par zone) qu'on fait défiler du doigt (ou aux flèches) :
+- **profondeur** : ciel en parallaxe → montagnes en perspective atmosphérique → collines et arbres continus d'un tableau à l'autre → terrasse de la zone (scènes « avant / après » agrandies) → avant-plan (allée, plantes, prairie, rosée, Germain) → cadre de feuillage ;
+- **ciel à l'heure du joueur** (aube, jour, crépuscule, nuit ; heure locale, c'est de la lumière) avec soleil et rayons, ou lune ; **la nuit, une étoile par étoile gagnée** ;
+- **météo du jour** (même pour tous, UTC) : ciel clair, brise, pluie fine, brume, pluie de pétales ;
+- **8 espèces** (une par monde : tournesol, pensée, digitale, lys de givre, orchidée de cristal, iris, rose des ruines, fleur d'étoile), **5 stades** chacune (graine → pousse → tige → bouton → fleur), qui ondulent au vent ; on les touche pour voir l'espèce et le prochain objectif ;
+- **vie** : lucioles la nuit, papillons le jour (plus il y a de chantiers, plus il y en a), oiseaux, et **un animal par zone réveillée** (rouge-gorge, grenouille, lapin, chat, chouette) ;
+- **Germain habite le jardin** (dans la zone en cours) et répond quand on le touche ;
+- **moments de récompense** : chantier réveillé = la caméra s'approche, éclair, rayons, pétales, son ; **plante qui grandit** = l'ancienne forme s'efface, la nouvelle éclot avec un éclat (rejoué à l'ouverture du jardin, puis montré en grand sur l'écran de victoire) ; zone réveillée = fête.
+
+**Le jardin reflète la régularité, jamais l'absence** (rien ne fane) :
+
+| Ce que fait le joueur | Ce qu'il voit au jardin |
+|---|---|
+| Revient chaque jour | **Rosée du matin** : 3 gouttes à cueillir d'un toucher (+1 avec une série de 3 jours, +1 à 7 jours, +1 les jours de pluie ; 6 au plus). Petite mélodie qui monte goutte après goutte. |
+| Réussit le défi du jour | Une **lanterne** s'allume dans la guirlande des 7 derniers jours (dorée en 3★). |
+| Gagne des étoiles | Les plantes grandissent ; les étoiles s'allument dans le ciel de nuit. |
+| Joue au Sentier | La prairie fleurit (1 fleur toutes les 5 solutions parfaites). |
+
+**Rétention : ce qui a été ajouté (une phrase de justification chacun)**
+
+| Ajout | Pourquoi (J1/J7/J30) |
+|---|---|
+| Rosée du matin | Une raison d'ouvrir le jeu chaque jour, en 10 secondes, même sans jouer longtemps (J1, J7). |
+| Rattrapage de série : rejouer le défi d'hier (gratuit tous les 7 jours, sinon pub récompensée) | Perdre une longue série est la première cause d'abandon ; ici on la sauve par un effort, pas un achat (J7, J30). |
+| Série affichée « vivante » | Corrige un bug : l'accueil montrait encore une série perdue depuis des jours. |
+| Rangs du jardinier (8 paliers, barème absolu) | Un objectif long et lisible qui récompense tout ce que fait le joueur, sans faux classement (J30). |
+| Bon retour après 3 jours (+6 💧, Germain, sans reproche) | Ramène le joueur qui décroche sans le culpabiliser (J30). |
+| Plante qui grandit en victoire | Relie chaque étoile au jardin, tout de suite (session). |
+| Compteur de collection sur le profil | Rend visible le « presque complet » (audit §3). |
+| Accueil = fenêtre vivante sur le jardin | Le prochain objectif, la rosée à cueillir et le rang sont visibles dès l'ouverture. |
+
+**Aides contextuelles** (règle : une fois chacune, passable, dans n'importe quel ordre) : Germain explique la rosée, la guirlande, la croissance des plantes, le rang et le rattrapage au moment où ils apparaissent ; jamais pendant l'intro ni par-dessus une autre bulle. Clé `bcd_tips_v1`.
+
+**Pubs : points d'accroche** (section M4) :
+- `showRewardedAd(placement, { onReward, onSkip, onUnavailable })` : repli propre si aucune pub n'est prête. Nouveaux emplacements : `streak_repair` (1/jour) et `dew_bonus` (seconde rosée, +3, 1/jour, seulement une fois la rosée cueillie).
+- `showInterstitial(placement)` : **désactivé** (`INTERSTITIAL_ENABLED = false`), appelé seulement aux pauses naturelles (entre deux niveaux). Règles prêtes et testées (`interstitialAllowed`) : jamais avant 12 niveaux, une pause sur 4, 5 min d'écart, 3 par jour. L'étude de marché (§7) déconseille les interstitiels agressifs : à n'activer qu'en le mesurant.
+
+**Refonte visuelle du reste du jeu** :
+- **plateau** : dalles biseautées, murs en pierre appareillée et surélevés, rochers polis, graine avec reflet, lumière de la cible qui tourne ; **impact** : poussière au point d'arrêt et plateau qui « encaisse » d'un ou deux pixels ;
+- **chaque monde a son ambiance** : décor en silhouette, lumière et particules (Cailloux : poussière chaude ; Impasses : lianes et spores ; Givre : montagnes, stalactites, neige ; Passages : cristaux et feux follets ; Courants : vagues et feuilles portées ; Ruines : colonnes et braises ; Failles : failles lumineuses et étincelles) ;
+- **carte des mondes** : la plante du monde (à son stade) dans chaque en-tête, le décor du monde en fond, les niveaux parfaits dorés ;
+- **profil** : rang du jardinier, compteur de collection ; **victoire** : la plante qui a grandi ;
+- **transitions** : les éléments d'un écran entrent en cascade (0,4 s), le jardin se construit tableau par tableau.
+
+**Performance** (Chromium, processeur ralenti ×4, approximation d'un téléphone moyen) : 57 à 60 images/s sur l'accueil, le jardin (y compris en faisant défiler) et en jeu avec la neige du Givre ; ouverture du jardin en 0,27 à 0,49 s. Les tableaux hors de l'écran sont en pause.
+
+**Sauvegardes** : `bcd_garden_v1` passe au **schéma 2** (migration : les nouveaux champs démarrent « jamais vu », rien n'est écrasé ; pas de fête rétroactive). Nouvelle clé `bcd_tips_v1` (schéma 1).
+
 ## 5. Tests exécutés (résultats observés)
 
 | Commande | Ce qu'elle vérifie | Résultat |
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
-| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) | 3 983 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel) |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 70 vérifications, 0 échec, 0 erreur ou avertissement console (stable sur 2 exécutions) |
+| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) ; **jardin vivant** (ciel, météo sur 1 000 jours, rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel) | 6 636 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel) |
+| `node scripts/test-dom.js` | **jsdom** avec de vrais `KeyboardEvent` / `PointerEvent` : nouveau joueur, swipe, jardin vivant (rosée, chantier, clavier), **ancienne sauvegarde** (schéma 1, clé de série « future »), **dates UTC**, rattrapage de série, bon retour, rang, aides, points d'accroche pub, animations réduites | 60 vérifications, 0 échec |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée, **panorama, goutte touchée au doigt, ciels**), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 75 vérifications, 0 échec, 0 erreur ou avertissement console |
 | `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN | 59 vérifications, 0 échec, 0 erreur console (stable sur 2 exécutions) |
-| CI GitHub Actions | Les trois suites, sur toutes les branches | Vert |
+| CI GitHub Actions | Les quatre suites (dont jsdom), sur toutes les branches | Vert |
 
 Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur l'accueil, le jeu, la victoire, le défi, le Sentier, le Jardin, l'Atelier, l'aide et les succès. Aucun débordement horizontal.
 
@@ -215,6 +270,9 @@ Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, s
 | Méta (Jardin) | `garden_task`, `garden_zone`, `rosee_gain` | Le jardin donne une raison de jouer au-delà des étoiles | Plus de 50 % des joueurs à J7 ont fini la zone 2 | Un rythme trop rapide épuise le jardin avant J30 |
 | Rituel | `ritual_mission`, `ritual_chest`, `retention.sessionsPerActiveDay` | 3 missions allongent la session quotidienne | Coffre ouvert chaque jour par plus de 40 % des joueurs actifs | Des missions trop faciles deviennent une corvée sans enjeu |
 | Pubs | `ad_offered` / `ad_completed` | Les pubs proposées au bon moment sont acceptées sans nuire au retour | Taux d'acceptation > 20 %, J7 stable avec ou sans pub | Le fournisseur simulé ne mesure pas le vrai coût (durée, qualité des pubs) |
+| Jardin vivant | `rosee_gain` (source `dew`), `dew_all`, `garden_open`, `garden_grow` | La rosée du matin fait revenir chaque jour | Plus de 60 % des jours actifs avec au moins une goutte cueillie | Un joueur peut ouvrir le jeu « pour la rosée » sans jouer : à croiser avec `l` (victoires) |
+| Série | `streak_repair_start`, `streak_repair`, `streak_repair_declined`, `welcome_back` | Sauver sa série évite l'abandon après un jour manqué | J7 et J30 plus hauts chez ceux qui ont rattrapé | Peu de cas sur un petit groupe de test |
+| Rang | `rank_up`, `tip_shown` | Le rang donne un objectif long | Rang 3 (Jardinier) atteint par la moitié des joueurs à J7 | Les paliers peuvent être trop rapides ou trop lents : à calibrer |
 
 ## 7. Limites restantes
 
@@ -222,7 +280,9 @@ Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, s
 - **Défi du jour lié au code** : il dépend de la version du générateur. Changer celui-ci change les défis futurs ; `DAILY_GEN_VERSION` permet de le rendre explicite.
 - **Qualité ressentie des plateaux générés** : elle n'est mesurée que par des proxys (par, états explorés, mécanique qui compte). Elle n'a pas été validée par de vrais joueurs.
 - **Non testé** sur appareils physiques (iOS Safari, Android ancien), ni avec un lecteur d'écran réel.
-- **Rythme du jardin** (720 💧) calculé sur des sessions types : il reste à calibrer avec de vrais joueurs (données : `rosee_gain`, `garden_task`).
+- **Rythme du jardin** (720 💧) calculé sur des sessions types : il reste à calibrer avec de vrais joueurs (données : `rosee_gain`, `garden_task`). La rosée du matin ajoute 3 à 6 💧 par jour de visite.
+- **Le jardin est dessiné par du code** (formes simples) : il est riche et vivant, mais un illustrateur ferait mieux, surtout pour les animaux et les plantes en gros plan.
+- **Le jour de jeu est en UTC** : pour un joueur en Amérique, le nouveau défi arrive en fin d'après-midi. Choix demandé (une seule date pour tout le monde) ; à revoir si le jeu vise surtout ces fuseaux.
 - **Pubs** : seul le fournisseur simulé existe. Aucune vraie régie n'est branchée (voir §4c).
 - **Audio jamais écouté par un humain** : il a été réglé par analyse numérique de rendus hors ligne. Le goût (mélodie, timbre) reste à valider à l'oreille.
 - **Équilibrage à calibrer en test** : chrono, bonus de temps et coins du Sentier.
@@ -230,7 +290,7 @@ Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, s
 
 ## 8. Prochaines priorités (par impact attendu)
 
-1. **Tests joueurs réels (5 à 10 personnes)** avec le rapport de rétention, pour calibrer le chrono du Sentier et la difficulté des défis.
+1. **Tests joueurs réels (5 à 10 personnes)** avec le rapport de rétention, pour calibrer le chrono du Sentier, la difficulté des défis et le rythme du jardin (rosée du matin comprise). Questions : les joueurs trouvent-ils les gouttes ? font-ils défiler le panorama ?
 2. **Vérifier l'installation PWA sur de vrais téléphones** (Android Chrome, iOS Safari) une fois la branche fusionnée dans `main`.
 3. **Rappel du défi du jour** (notifications) : nécessite un service de push, donc un backend minimal. À arbitrer.
 4. **Ligue Fantôme** (paliers de maîtrise absolus), si les tests montrent un besoin de sensation de rang.

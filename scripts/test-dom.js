@@ -126,21 +126,35 @@ async function solveCurrent(g) {
   const dew0 = g.w.BCD_DEV.getDew();
   const drops = g.d.querySelectorAll('#gzScene .gp-dew');
   check(dew0.total >= 3 && drops.length === dew0.left, `rosée du matin : ${drops.length} gouttes à cueillir`);
+  // Accès clavier : on va au coin d'une goutte (flèches), puis Entrée la cueille.
+  const ZN = ['Le Portail', 'La Fontaine', 'Le Potager', 'La Serre', 'Le Grand Arbre'];
+  const strip = g.d.getElementById('gzScene');
+  const target = +drops[drops.length - 1].closest('.gp-panel').dataset.zone;
+  for (let i = 0; i < 6 && ZN.indexOf(g.d.getElementById('gzZoneName').textContent) !== target; i++) {
+    const cur = ZN.indexOf(g.d.getElementById('gzZoneName').textContent);
+    strip.dispatchEvent(new g.w.KeyboardEvent('keydown', { key: cur < target ? 'ArrowRight' : 'ArrowLeft', bubbles: true }));
+    await sleep(30);
+  }
+  const rk0 = g.w.BCD_DEV.getGarden().rosee;
+  strip.dispatchEvent(new g.w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+  await sleep(50);
+  check(g.w.BCD_DEV.getGarden().rosee === rk0 + 1, 'clavier : flèches jusqu\'au coin, Entrée cueille une goutte');
   const roseeBefore = g.w.BCD_DEV.getGarden().rosee;
   click(g.w, drops[0].querySelector('.gp-dew-bob'));
   await sleep(50);
-  check(g.w.BCD_DEV.getGarden().rosee === roseeBefore + 1 && g.w.BCD_DEV.getDew().left === dew0.left - 1, 'toucher une goutte = +1 rosée');
+  check(g.w.BCD_DEV.getGarden().rosee === roseeBefore + 1 && g.w.BCD_DEV.getDew().left === dew0.left - 2, 'toucher une goutte = +1 rosée');
   click(g.w, drops[0]); await sleep(50);
   check(g.w.BCD_DEV.getGarden().rosee === roseeBefore + 1, 'une goutte ne se cueille qu\'une fois');
   for (const dr of Array.from(g.d.querySelectorAll('#gzScene .gp-dew:not(.picked)'))) { click(g.w, dr); await sleep(20); }
   await sleep(900);
-  check(g.w.BCD_DEV.getDew().left === 0 && g.w.BCD_DEV.getGarden().rosee === roseeBefore + dew0.left, 'toute la rosée du jour cueillie, pas une de plus');
+  check(g.w.BCD_DEV.getDew().left === 0 && g.w.BCD_DEV.getGarden().rosee === roseeBefore + dew0.left - 1, 'toute la rosée du jour cueillie, pas une de plus');
   check(!g.d.getElementById('btnDewBonus').hidden && /PUB/.test(g.d.getElementById('btnDewBonus').textContent), 'seconde rosée proposée par une pub (marquée PUB), seulement après la cueillette');
   // Navigation au clavier dans le panorama.
   const zone0 = g.d.getElementById('gzZoneName').textContent;
-  g.d.getElementById('gzScene').dispatchEvent(new g.w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  const arrow = zone0 === 'Le Grand Arbre' ? 'ArrowLeft' : 'ArrowRight';
+  g.d.getElementById('gzScene').dispatchEvent(new g.w.KeyboardEvent('keydown', { key: arrow, bubbles: true }));
   await sleep(80);
-  check(g.d.getElementById('gzZoneName').textContent !== zone0, 'flèche droite : coin suivant du jardin');
+  check(g.d.getElementById('gzZoneName').textContent !== zone0, `${arrow === 'ArrowRight' ? 'flèche droite' : 'flèche gauche'} : un autre coin du jardin`);
   // Plante touchée : bulle d'information.
   click(g.w, g.d.querySelector('#gzScene .gp-bed[data-plant="1"] rect'));
   await sleep(60);

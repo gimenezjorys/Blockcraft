@@ -56,4 +56,19 @@ La question à poser en test : **à quelle étape les gens passent-ils ?**
 - Les cadeaux ne sont jamais donnés deux fois, même avec « Revoir le tutoriel ».
 - Une visite qui échoue deux fois (cible absente, retour arrière, « Plus tard ») est abandonnée pour ne jamais boucler.
 
+## Aides contextuelles (octobre 2026)
+
+Chaque nouveauté s'explique **une seule fois**, par Germain, au moment où le joueur la rencontre, quel que soit l'ordre de découverte (`showTipOnce`, clé `bcd_tips_v1`) :
+
+| Nouveauté | Quand | Réplique |
+|---|---|---|
+| Rosée du matin | 1re visite du jardin avec des gouttes | « De la rosée du matin ! Touche les gouttes pour la cueillir. » |
+| Guirlande | 1re visite après une lanterne allumée | « Chaque défi du jour réussi allume une lanterne de la guirlande. » |
+| Croissance | 1re plante qui grandit sous les yeux du joueur | « Tes étoiles font grandir les plantes. Touche-les pour les voir ! » |
+| Rang | 1er nouveau rang | « Ton rang de jardinier monte avec tout ce que tu accomplis. » |
+| Rattrapage | 1re série en pause | « Ta série s'est arrêtée hier ? Rejoue ce défi pour la sauver. » |
+| Bon retour | Après 3 jours d'absence | « Te revoilà ! Le jardin t'a gardé un peu de rosée. » (+6 💧) |
+
+Jamais pendant l'intro, jamais par-dessus une autre bulle (elle attend la prochaine occasion), toujours fermable (« Merci ! », toucher, Échap).
+
 **Limites** : tests automatisés dans Chromium (Playwright, vrais clics et touches), pas dans jsdom ni sur téléphone réel. Germain n'a pas été montré à de vrais joueurs : le ton et le rythme restent à valider.
