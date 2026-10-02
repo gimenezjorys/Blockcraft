@@ -519,7 +519,14 @@
   @keyframes floatUp{0%{opacity:0; transform:translate(-50%,-30%) scale(.8);} 20%{opacity:1; transform:translate(-50%,-50%) scale(1.1);} 75%{opacity:1; transform:translate(-50%,-62%) scale(1);} 100%{opacity:0; transform:translate(-50%,-75%) scale(.96);}}
 
   /* ============================== VICTOIRE ============================== */
-  #screen-victory{align-items:center; justify-content:center; text-align:center; gap:12px;}
+  #screen-victory{position:relative; align-items:center; justify-content:center; text-align:center; gap:12px;}
+  /* Retour à l'accueil depuis la victoire (sans bouton retour système, ex. iPhone) : coin haut gauche. */
+  .victory-home{position:absolute; top:calc(14px + env(safe-area-inset-top, 0px)); left:14px; z-index:3; font-size:22px;}
+  #btnVictoryGarden{animation:gardenCall 1.8s ease-in-out infinite;}
+  @keyframes gardenCall{0%,100%{box-shadow:0 5px 0 var(--leaf-ink), 0 0 0 0 rgba(79,191,98,.5);} 50%{box-shadow:0 5px 0 var(--leaf-ink), 0 0 0 10px rgba(79,191,98,0);}}
+  .btn-garden{color:#fff; background:linear-gradient(180deg, #45b259, var(--leaf-lo)); box-shadow:0 5px 0 var(--leaf-ink); text-shadow:0 1px 0 rgba(20,80,30,.35);}
+  .btn-garden:active{transform:translateY(4px); box-shadow:0 1px 0 var(--leaf-ink);}
+  html.reduce-motion #btnVictoryGarden{animation:none;}
   #victoryTitle{font-size:34px; color:var(--coral); text-shadow:0 3px 0 var(--coral-lo); animation:titleBounce .6s var(--spring) .1s both;}
   @keyframes titleBounce{0%{transform:scale(.4); opacity:0;} 100%{transform:none; opacity:1;}}
   .burst{position:relative; width:128px; height:128px; margin:6px 0 6px;}
@@ -605,7 +612,8 @@
   body.in-hub #app{padding-bottom:0;}
   .hub{display:none; position:relative; flex-direction:column; height:calc(100vh - env(safe-area-inset-top, 0px)); height:calc(100dvh - env(safe-area-inset-top, 0px)); overflow:hidden;}
   .hub.on{display:flex;}
-  .hub-viewport{position:relative; flex:1; min-height:0; overflow:hidden; touch-action:pan-y;}
+  /* overflow:clip : un scrollIntoView()/focus() sur une page voisine ne peut pas faire défiler la piste (bug du projecteur). */
+  .hub-viewport{position:relative; flex:1; min-height:0; overflow:hidden; overflow:clip; touch-action:pan-y;}
   .hub-track{display:flex; height:100%; transform:translate3d(-200%,0,0); transition:transform .42s cubic-bezier(.2,.9,.22,1); will-change:transform;}
   .hub.dragging .hub-track{transition:none;}
   .hub .hub-page{display:flex !important; flex:0 0 100%; width:100%; min-width:0; height:100%; overflow-y:auto; overflow-x:hidden; overscroll-behavior-y:contain;
@@ -736,6 +744,16 @@
     background:linear-gradient(180deg, var(--sunny-hi), var(--sunny)); box-shadow:0 2px 0 var(--sunny-lo); animation:badgeBob 1.6s ease-in-out infinite;}
   .hg-mini .hh-chip.dew{position:absolute; left:6px; top:-10px; font-size:10.5px; padding:2px 8px;}
   .map-btn{max-width:none; width:100%; display:flex; justify-content:center; gap:8px; font-size:17px;}
+  /* « À demain ! » : les rendez-vous du lendemain, une fois la journée faite. */
+  .home-tomorrow{display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:var(--r-l); color:var(--ink);
+    background:linear-gradient(160deg, #f1ecff, #fff6ea); box-shadow:0 4px 0 #d9cdf3, var(--sh-soft); animation:fadeIn .4s var(--ease) both;}
+  .home-tomorrow[hidden]{display:none;}
+  .ht-head{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-size:18px;}
+  .ht-moon{font-size:22px; animation:breathe 3.2s ease-in-out infinite;}
+  .ht-when{margin-left:auto; font-family:var(--font-body); font-size:13px; font-weight:800; color:var(--ink-2);}
+  .ht-items{display:flex; flex-wrap:wrap; gap:6px;}
+  .ht-item{display:inline-flex; align-items:center; gap:5px; padding:5px 10px; border-radius:999px; background:#fff; font-size:13px; font-weight:800; box-shadow:0 2px 0 var(--edge);}
+  html.reduce-motion .home-tomorrow, html.reduce-motion .ht-moon{animation:none;}
   .map-sub{font-family:var(--font-body); font-size:12px; font-weight:900; color:var(--coral-lo); background:var(--coral-soft); border-radius:99px; padding:2px 9px;}
   .map-sub:empty{display:none;}
 
@@ -1786,6 +1804,10 @@
             <span class="hh-chip dew" id="homeDewChip" hidden>💧</span>
           </button>
         </div>
+        <div class="home-tomorrow" id="homeTomorrow" hidden>
+          <span class="ht-head"><span class="ht-moon" aria-hidden="true">🌙</span><b>À demain !</b><span class="ht-when" id="homeTomorrowWhen"></span></span>
+          <span class="ht-items" id="homeTomorrowItems"></span>
+        </div>
         <button class="btn btn-secondary map-btn" id="btnPlay" type="button">🗺 Tous les mondes <span class="map-sub" id="mapBtnSub"></span></button>
       </section>
 
@@ -1943,6 +1965,7 @@
 
   <!-- ============ VICTORY ============ -->
   <section id="screen-victory" class="screen">
+    <button class="icon-btn victory-home" id="btnVictoryHome" type="button" aria-label="Retour à l'accueil">⌂</button>
     <div class="burst"><div class="rays" aria-hidden="true"></div><div class="core" id="burstCore"><span class="core-shine"></span><span class="core-badge" id="burstBadge">🌱</span></div></div>
     <h2 id="victoryTitle">Niveau réussi !</h2>
     <div class="stars-row" id="victoryStars" aria-hidden="true">
@@ -1960,6 +1983,7 @@
     <button class="victory-plant" id="victoryPlant" type="button" hidden aria-label="Ta plante a grandi : voir le jardin"></button>
     <div class="victory-rewards" id="victoryRewards" aria-live="polite"></div>
     <div class="btn-row">
+      <button class="btn btn-garden" id="btnVictoryGarden" type="button" hidden>🌱 Réveiller le jardin</button>
       <button class="btn btn-primary shimmer" id="btnNextLevel">NIVEAU SUIVANT →</button>
       <div class="btn-pair">
         <button class="btn btn-secondary btn-small" id="btnReplayVictory">↻ Rejouer</button>
@@ -3382,10 +3406,11 @@ const COACH_LINES = {
     intro_hello:   "Salut ! Moi, c'est Germain, la graine de {game}.",
     intro_goal:    "Aide-moi à glisser jusqu'à la lumière. On essaie ?",
     intro_resume:  "On reprend ? Fais-moi glisser jusqu'à la lumière !",
+    l1_hello:      "Salut, moi c'est Germain ! Glisse-moi vers la droite.",
     l1_swipe:      "Glisse vers la droite. Je file tout droit !",
-    l1_move:       "Wiii ! Encore un peu…",
-    l1_win:        "Pile dans la lumière ! Tu es doué.",
-    l1_victory:    "Trois étoiles : la solution la plus courte. Bravo !",
+    l1_win:        "Pile dans la lumière ! Trois étoiles, le plus court chemin.",
+    garden_back:   "Ton jardin se réveille ! On continue à jouer ?",
+    btn_play:      "Jouer ▶",
     l2_hello:      "À toi de jouer. Je reste dans le coin.",
     react_win_0:   "Joli !",
     react_win_1:   "Bien vu !",
@@ -3909,6 +3934,29 @@ function sanitizeNav(raw){
 
 // ---- Pastilles de la barre d'onglets ----
 // Un chiffre = des choses à récupérer ; un point (home) = le défi du jour à faire.
+// Texte d'un lot de récompenses (« 15 🪙 + 3 💧 »).
+function bundleText(b){
+  return [b.coins ? `${b.coins} 🪙` : '', b.rosee ? `${b.rosee} 💧` : '', b.freeze ? `${b.freeze} 🧊` : ''].filter(Boolean).join(' + ');
+}
+// Rendez-vous de demain (page JOUER) : affiché une fois le défi relevé et le
+// cadeau ouvert. Uniquement des faits : le cadeau suivant, le défi de demain,
+// la série qui peut grandir, l'heure du changement de jour (UTC).
+function tomorrowPreview(giftSave, dayKey, dailyDone, streak, msLeft){
+  if(!dailyDone || !/^\d{8}$/.test(String(dayKey||''))) return null;
+  const g = giftStatus(giftSave, dayKey);
+  if(g.available) return null;
+  const k = String(dayKey);
+  const dow = (new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, +k.slice(6, 8))).getUTCDay() + 1) % 7;
+  const rule = DAILY_RULES[dow];
+  const s = safeInt(streak, 0, 1e5, 0);
+  const items = [
+    { icon:'🎁', text:`Cadeau ${g.step + 1}/7 : ${bundleText(DAILY_GIFTS[g.step])}` },
+    { icon: rule.icon, text:`Défi : ${rule.label}` }
+  ];
+  if(s > 0) items.push({ icon:'🔥', text:`Série : ${s} → ${s + 1}` });
+  const h = Math.max(1, Math.ceil(safeInt(msLeft, 0, 864e5, 0) / 3600e3));
+  return { items, hours: h };
+}
 function navBadgeCounts(c){
   c = c || {};
   const n = v=> safeInt(v, 0, 999, 0);
@@ -3916,8 +3964,12 @@ function navBadgeCounts(c){
     market: (c.giftAvailable ? 1 : 0) + (c.dailyOfferNew ? 1 : 0),
     cosmetics: n(c.newItems) + n(c.collectionReady),
     home: c.dailyTodo ? 1 : 0,
-    garden: n(c.dewLeft) + (c.restoreReady ? 1 : 0),
-    profile: (c.ritualChestReady ? 1 : 0) + n(c.weeklyClaimable) + (c.weeklyChestReady ? 1 : 0) + n(c.seasonClaimable) + n(c.newAchievements)
+    // Une pastille = une action à faire, pas un compteur d'objets : la rosée
+    // compte pour 1 (un geste), la saison pour 1 (« Tout récupérer »), et les
+    // succès déjà fêtés en partie ne font pas grimper l'onglet (ils gardent
+    // leur pastille sur la rubrique « Succès » du Profil).
+    garden: (n(c.dewLeft) > 0 ? 1 : 0) + (c.restoreReady ? 1 : 0),
+    profile: (c.ritualChestReady ? 1 : 0) + n(c.weeklyClaimable) + (c.weeklyChestReady ? 1 : 0) + (n(c.seasonClaimable) > 0 ? 1 : 0)
   };
 }
 
@@ -6222,6 +6274,7 @@ const Hub = (function(){
   function apply(off, animate){
     const t = track();
     if(!t) return;
+    const v = vp(); if(v && v.scrollLeft) v.scrollLeft = 0;
     t.style.transition = animate ? '' : 'none';
     t.style.transform = `translate3d(calc(${-index * 100}% + ${Math.round(off||0)}px),0,0)`;
   }
@@ -6325,6 +6378,10 @@ const Hub = (function(){
       if(tb) tb.focus();
     });
     window.addEventListener('resize', ()=> apply(0, false));
+    // Navigateurs sans overflow:clip : un scrollIntoView()/focus() d'un élément
+    // d'une page voisine décalait la piste pour de bon (projecteur de Germain
+    // sur une cible hors champ, joueur bloqué). La piste ne défile jamais.
+    v.addEventListener('scroll', ()=>{ if(v.scrollLeft) v.scrollLeft = 0; });
     apply(0, false); syncTabs();
   }
   return { init, show, current, _drag:()=> drag };
@@ -6384,7 +6441,26 @@ function findNextLevelIndex(){
   return -1; // tous les niveaux sont terminés
 }
 
+// « À demain ! » : voir tomorrowPreview (A7).
+function renderTomorrow(){
+  const el = document.getElementById('homeTomorrow');
+  if(!el) return;
+  const now = bcdNow();
+  const msLeft = utcDayOffset(now, 1).getTime() - now.getTime();
+  const tp = tomorrowPreview(loadGift(), todayKey(), !!loadTodayDailyResult(), streakAliveNow(), msLeft);
+  el.hidden = !tp;
+  if(!tp) return;
+  document.getElementById('homeTomorrowWhen').textContent = `nouveau jour dans ${tp.hours} h`;
+  const items = document.getElementById('homeTomorrowItems');
+  items.innerHTML = '';
+  tp.items.forEach(it=>{
+    const c = document.createElement('span'); c.className = 'ht-item';
+    c.textContent = it.icon + ' ' + it.text;
+    items.appendChild(c);
+  });
+}
 function refreshHome(){
+  renderTomorrow();
   const p = loadProgress();
   let totalStars = 0;
   LEVELS.forEach((_,i)=>{ totalStars += (p[i]||0); });
@@ -8273,6 +8349,8 @@ function checkRankUp(){
 }
 function celebrateRankUp(rk, tries){
   if(!rk) return;
+  // Seulement sur la page JOUER ; ailleurs, la fête attend le prochain passage.
+  if(state.screen!=='home'){ if(!pendingRankUp) pendingRankUp = rk; return; }
   // Jamais par-dessus une fenêtre ou une bulle : on attend qu'elle se ferme.
   if(document.querySelector('.zone-fete, .ad-mock') || (Coach && Coach.isOpen())){
     if((tries||0) < 6) setTimeout(()=> celebrateRankUp(rk, (tries||0) + 1), 2500);
@@ -8444,9 +8522,6 @@ function flyIcons(fromEl, toEl, icon, n){
   setTimeout(()=> bumpPill(toEl), 700);
 }
 function setPill(id, text){ const el = document.getElementById(id); if(el) el.textContent = text; }
-function bundleText(b){
-  return [b.coins ? `${b.coins} 🪙` : '', b.rosee ? `${b.rosee} 💧` : '', b.freeze ? `${b.freeze} 🧊` : ''].filter(Boolean).join(' + ');
-}
 
 /* ---------- Le Marché ---------- */
 function renderMarket(){
@@ -8772,7 +8847,7 @@ function updateNavBadges(){
   });
   // Onglets internes du Profil.
   const segM = document.querySelector('#segMissions .seg-badge'), segS = document.querySelector('#segSucces .seg-badge');
-  const nm = (ctx.ritualChestReady ? 1 : 0) + ctx.weeklyClaimable + (ctx.weeklyChestReady ? 1 : 0) + ctx.seasonClaimable;
+  const nm = counts.profile;
   if(segM){ segM.hidden = nm <= 0; segM.textContent = String(nm); }
   if(segS){ segS.hidden = ctx.newAchievements <= 0; segS.textContent = String(ctx.newAchievements); }
   return counts;
@@ -8839,6 +8914,9 @@ function renderSplash(){
     try{ ctx = navContext(); }catch(e){}
     const streak = streakAliveNow();
     const out = [];
+    // Tout premier lancement : rien à lire, juste « Jouer » (le reste viendra en jouant).
+    const fresh = Object.keys(loadProgress()).length === 0;
+    if(fresh) ctx = {};
     if(streak > 0) out.push(`<span class="sp-chip fire">🔥 Série : ${streak} jour${streak>1?'s':''}</span>`);
     if(ctx.giftAvailable) out.push(`<span class="sp-chip gift">🎁 Cadeau du jour prêt</span>`);
     if(Object.keys(loadProgress()).length >= 3) out.push(loadTodayDailyResult() ? `<span class="sp-chip ok">✓ Défi du jour réussi</span>` : `<span class="sp-chip">${todayDailyRule().icon} Défi du jour à relever</span>`);
@@ -8853,13 +8931,20 @@ document.getElementById('btnSplashPlay').addEventListener('click', ()=>{
   const b = document.getElementById('btnSplashPlay');
   b.classList.remove('pressed'); void b.offsetWidth; b.classList.add('pressed');
   Analytics.track('splash_play', null);
+  // Nouveau joueur : on joue tout de suite (le niveau 1 EST le tutoriel),
+  // sans détour par la page JOUER. Germain se présente sur le plateau.
+  const t = loadTutorial();
+  if(tutorialActive(t) && t.intro!=='done' && findNextLevelIndex()===0){ startLevel(0, false); return; }
   goto('home');
 });
 // En arrivant sur la page JOUER : cadeaux et fêtes en attente (jamais sur le lancement).
 let pendingRankUp = null;
 function homeArrived(){
   if(welcomeBackPending) setTimeout(grantWelcomeBack, 900);
-  if(pendingRankUp){ const rk = pendingRankUp; pendingRankUp = null; setTimeout(()=>{ celebrateRankUp(rk); setTimeout(()=>{ if(state.screen==='home') showTipOnce('rank', coachLine('tip_rank'), { position:'bottom' }); }, 3300); }, 700); }
+  if(pendingRankUp){ const rk = pendingRankUp; pendingRankUp = null; setTimeout(()=>{
+    // Le joueur est déjà reparti (Marché, partie…) : la fête attend le prochain passage sur JOUER.
+    if(state.screen!=='home'){ if(!pendingRankUp) pendingRankUp = rk; return; }
+    celebrateRankUp(rk); setTimeout(()=>{ if(state.screen==='home') showTipOnce('rank', coachLine('tip_rank'), { position:'bottom' }); }, 3300); }, 700); }
   if(seasonCarriedToast){ const t = seasonCarriedToast; seasonCarriedToast = null; showSimpleToast('🌟', 'Nouvelle saison', `Récompenses de la saison passée : ${bundleText(t)}`, 'info-toast'); }
 }
 
@@ -10661,7 +10746,8 @@ let onWin = function(expectedSessionId){
   ritualDone.forEach(m=> rewards.push({ icon:'✅', text:'Rituel : ' + m.text, kind:'ritual' }));
   if(ritualDone.some(m=> m.allDone)) rewards.push({ icon:'🎁', text:'Coffre du rituel prêt !', kind:'unlock' });
   const gardenNow = gardenStatus(loadGarden().done);
-  if(gardenNow.next && roseeBefore < gardenNow.next.task.cost && loadRosee() >= gardenNow.next.task.cost){
+  const gardenJustReady = !!gardenNow.next && roseeBefore < gardenNow.next.task.cost && loadRosee() >= gardenNow.next.task.cost;
+  if(gardenJustReady){
     rewards.push({ icon:'✨', text:`Prêt à réveiller : ${gardenNow.next.task.name}`, kind:'unlock' });
   }
   retentionTrack('l');
@@ -10706,6 +10792,22 @@ let onWin = function(expectedSessionId){
       levelRecordLine.style.display = 'none';
     }
   }
+  // Le jardin peut se réveiller : on le propose ici même, en grand pendant le
+  // tutoriel (1re grosse récompense), sinon dès que la rosée suffit pour la
+  // première fois depuis la dernière visite (le bouton remplace alors la puce).
+  const gardenBtn = document.getElementById('btnVictoryGarden');
+  let gardenLead = false;
+  if(gardenBtn){
+    const tu = loadTutorial();
+    const gNext = gardenStatus(loadGarden().done).next;
+    const gReady = !!gNext && loadRosee() >= gNext.task.cost;
+    const tutoPending = tutorialActive(tu) && tu.tours.garden==='pending';
+    const tutoGarden = state.mode==='campaign' && tutoPending && tu.intro==='done' && Object.keys(loadProgress()).length >= 2;
+    gardenBtn.hidden = !(gReady && (tutoPending ? tutoGarden : gardenJustReady));
+    // Pendant le tutoriel, le jardin passe en premier : « Niveau suivant » s'efface un peu.
+    gardenLead = !gardenBtn.hidden && tutoGarden;
+    if(!gardenBtn.hidden) for(let i = rewards.length - 1; i >= 0; i--) if(rewards[i].kind==='unlock' && rewards[i].icon==='✨') rewards.splice(i, 1);
+  }
   renderVictoryRewards(rewards);
   renderVictoryPlant();
   setupVictoryAd(roseeGain, baseCoins);
@@ -10722,6 +10824,9 @@ let onWin = function(expectedSessionId){
     nextBtn.textContent = nextIsNewWorld ? 'MONDE SUIVANT →' : 'NIVEAU SUIVANT →';
   }
   nextBtn.style.display = 'flex';
+  nextBtn.classList.toggle('btn-primary', !gardenLead);
+  nextBtn.classList.toggle('btn-secondary', gardenLead);
+  nextBtn.classList.toggle('shimmer', !gardenLead);
   const replayBtn = document.getElementById('btnReplayVictory');
   if(replayBtn) replayBtn.textContent = stars < 3 ? `↻ Viser ★★★` : '↻ Rejouer';
   // Le chemin parfait (audit §7, « fantôme du par ») : seulement en campagne,
@@ -10871,6 +10976,13 @@ function spawnVictoryEffect(fxOverride, container){
 }
 const BLOOM_COLORS = ['#ff9ec7', '#ffd166', '#c79bf0', '#7ee0d6', '#ffffff'];
 
+document.getElementById('btnVictoryHome').addEventListener('click', ()=>{
+  refreshHome(); goto('home');
+});
+document.getElementById('btnVictoryGarden').addEventListener('click', ()=>{
+  if(Tutorial && Tutorial.gardenFromVictory()) return;
+  openGarden();
+});
 document.getElementById('btnNextLevel').addEventListener('click', ()=>{
   if(state.repair && !loadTodayDailyResult()){ startDailyChallenge(); return; }
   if(state.isDaily){
@@ -12211,8 +12323,18 @@ Coach = (function(){
     });
   }
   function clearSpot(v){ if(spot) spot.finish(v || 'cancel'); }
+  // Amène la cible au milieu de sa page (défilement vertical seulement) avant
+  // de la montrer : la bulle se pose ensuite du côté libre, jamais dessus.
+  function center(el){
+    const sc = el && el.closest && el.closest('.screen');
+    if(!sc || sc.scrollHeight <= sc.clientHeight) return;
+    const r = el.getBoundingClientRect(), sr = sc.getBoundingClientRect();
+    sc.scrollTop += (r.top + r.height/2) - (sr.top + sc.clientHeight/2);
+  }
+  // Côté de la bulle : à l'opposé de la cible (moitié haute → bulle en bas).
+  function sideFor(el){ const r = el.getBoundingClientRect(); return (r.top + r.height/2) < window.innerHeight*0.5 ? 'bottom' : 'top'; }
   return {
-    say, setMood, bounce, visible, spotlight, clearSpot,
+    say, setMood, bounce, visible, spotlight, clearSpot, center, sideFor,
     hide(){ close('hidden'); },
     isOpen(){ return !!cur; },
     closeOnMove(){ if(cur && cur.opts.closeOnMove) close('move'); },
@@ -12290,10 +12412,11 @@ Tutorial = (function(){
     const t = st();
     if(t.skipped) return false;
     if(state.mode==='campaign' && index===0 && t.intro!=='done' && tutorialActive(t)){
-      if(!t.started){ t.started = true; Analytics.track('tutorial_started', { replay: !!t.replay }); }
+      const first = !t.started;
+      if(first){ t.started = true; Analytics.track('tutorial_started', { replay: !!t.replay }); step('intro_hello'); }
       t.intro = 'level1'; saveTutorial(t);
       currentStep = 'level1';
-      Coach.say({ text: coachLine('l1_swipe'), mood:'happy', position:'top', closeOnMove:true });
+      Coach.say({ text: coachLine(first ? 'l1_hello' : 'l1_swipe'), mood:'happy', position:'top', closeOnMove:true });
       return true;
     }
     if(freshInfo && freshInfo.key){
@@ -12323,11 +12446,8 @@ Tutorial = (function(){
     if(index===0 && t.intro!=='done'){
       t.intro = 'done'; saveTutorial(t);
       step('level1'); currentStep = '';
-      const run = Coach.newRun();
-      const r = await Coach.say({ text: coachLine('l1_win'), mood:'happy', position:'top', autoHide:3200 });
-      if(Coach.alive(run) && (r==='tap' || r==='auto') && state.screen==='victory'){
-        Coach.say({ text: coachLine('l1_victory'), mood:'wink', position:'top', autoHide:4200 });
-      }
+      Coach.newRun();
+      Coach.say({ text: coachLine('l1_win'), mood:'happy', position:'top', autoHide:3600 });
       return;
     }
     if(tutorialActive(t) && index>=1 && index<=4 && winReacts < 4){
@@ -12344,7 +12464,8 @@ Tutorial = (function(){
       if(!t.gifts.garden){ t.gifts.garden = true; saveTutorial(t); addRosee(3, 'cadeau'); renderGardenMain(); bumpPill(document.getElementById('gardenRoseePill')); }
       const btn = document.getElementById('btnRestore');
       if(!Coach.visible(btn)) return true;
-      Coach.say({ text: coachLine('tour_garden_in'), mood:'happy', position:'bottom', tapToClose:false });
+      Coach.center(btn);
+      Coach.say({ text: coachLine('tour_garden_in'), mood:'happy', position: Coach.sideFor(btn), tapToClose:false });
       const r = await Coach.spotlight(btn, { screen:'garden' });
       Coach.hide();
       if(r!=='clicked') return false;
@@ -12366,7 +12487,8 @@ Tutorial = (function(){
       atelier.cat = 'seed'; atelier.sel = gift; renderCosmetics();
       const btn = document.getElementById('atelierAction');
       if(!Coach.visible(btn)) return true;
-      Coach.say({ text: coachLine('tour_shop_in'), mood:'wink', position:'bottom', tapToClose:false });
+      Coach.center(btn);
+      Coach.say({ text: coachLine('tour_shop_in'), mood:'wink', position: Coach.sideFor(btn), tapToClose:false });
       const r = await Coach.spotlight(btn, { screen:'cosmetics' });
       Coach.hide();
       if(r!=='clicked') return false;
@@ -12378,7 +12500,8 @@ Tutorial = (function(){
       if(!(await Coach.waitScreen('market', 2500)) || !Coach.alive(run)) return false;
       const btn = document.getElementById('btnGiftClaim');
       if(!Coach.visible(btn)) return true; // cadeau déjà ouvert : la page est présentée, c'est l'essentiel
-      Coach.say({ text: coachLine('tour_market_in'), mood:'happy', position:'top', tapToClose:false });
+      Coach.center(btn);
+      Coach.say({ text: coachLine('tour_market_in'), mood:'happy', position: Coach.sideFor(btn), tapToClose:false });
       const r = await Coach.spotlight(btn, { screen:'market' });
       Coach.hide();
       if(r!=='clicked') return false;
@@ -12398,6 +12521,7 @@ Tutorial = (function(){
     if(!Coach.visible(target)){ saveTutorial(tutorialTourFailed(st(), k)); return; }
     busy = true; currentStep = 'onglet_' + k;
     const run = Coach.newRun();
+    Coach.center(target);
     const bubbleP = Coach.say({ text: def.line(), mood:'happy', position: posFor(target), tapToClose:false, screen:'home', focus:false,
       buttons:[{ label: coachLine('btn_later'), value:'later' }] });
     bubbleP.then(v=>{ if(v==='later') Coach.clearSpot('later'); });
@@ -12414,6 +12538,34 @@ Tutorial = (function(){
       else saveTutorial(tutorialTourFailed(t, k));
     }
     busy = false; currentStep = ''; lastTourEnd = Date.now();
+  }
+
+  // Le jardin dès la victoire (au lieu d'attendre un retour à l'accueil) :
+  // la 1re grosse récompense arrive au bout de 2 niveaux, puis Germain
+  // ramène au plateau suivant. Renvoie false si la visite n'a pas lieu d'être.
+  function gardenFromVictory(){
+    const t = st();
+    if(busy || !tutorialActive(t) || t.intro!=='done' || t.tours.garden!=='pending') return false;
+    busy = true; currentStep = 'onglet_garden';
+    const run = Coach.newRun();
+    goto('garden');
+    (async ()=>{
+      const ok = await TOURS.garden.after(run);
+      const t2 = st();
+      if(!t2.skipped){
+        if(ok){ t2.tours.garden = 'done'; saveTutorial(t2); step('onglet_garden'); }
+        else saveTutorial(tutorialTourFailed(t2, 'garden'));
+      }
+      busy = false; currentStep = ''; lastTourEnd = Date.now();
+      if(!ok) return;
+      await sleep(3900); // le chantier se réveille, Germain félicite
+      if(!Coach.alive(run) || state.screen!=='garden' || Coach.isOpen()) return;
+      const next = findNextLevelIndex();
+      const r = await Coach.say({ text: coachLine('garden_back'), mood:'happy', position:'top', tapToClose:true, screen:'garden',
+        buttons:[{ label: coachLine('btn_play'), value:'play', primary:true }] });
+      if(r==='play' && next >= 0 && state.screen==='garden') startLevel(next, false);
+    })();
+    return true;
   }
 
   // ---- 6. Fin : diplôme d'Apprenti ----
@@ -12434,11 +12586,12 @@ Tutorial = (function(){
     busy = true; currentStep = 'rappel';
     const run = Coach.newRun();
     const daily = document.getElementById('btnDaily');
+    const side = Coach.visible(daily) ? (Coach.center(daily), Coach.sideFor(daily)) : 'top';
     if(Coach.visible(daily)) Coach.spotlight(daily, { screen:'home', dim:false, hand:false });
-    await Coach.say({ text: coachLine('nudge_daily'), mood:'happy', position:'top', autoHide:3600 });
+    await Coach.say({ text: coachLine('nudge_daily'), mood:'happy', position: side, autoHide:3600 });
     const n = loadStreak().current || 0;
     if(Coach.alive(run) && n > 0 && state.screen==='home'){
-      await Coach.say({ text: coachLine('nudge_streak', { n, s: n > 1 ? 's' : '' }), mood:'wink', position:'top', autoHide:3600 });
+      await Coach.say({ text: coachLine('nudge_streak', { n, s: n > 1 ? 's' : '' }), mood:'wink', position: side, autoHide:3600 });
     }
     Coach.clearSpot('fin');
     busy = false; currentStep = '';
@@ -12518,7 +12671,7 @@ Tutorial = (function(){
   }
   // QA : relance la décision de Germain sans attendre le délai entre deux visites.
   function kick(){ lastTourEnd = 0; if(!busy) onHome(); }
-  return { isActive, skip, onBoardStart, onMove, onStuck, onWin, onScreen, onHome, replay, kick, _busy:()=> busy };
+  return { isActive, skip, onBoardStart, onMove, onStuck, onWin, onScreen, onHome, replay, kick, gardenFromVictory, _busy:()=> busy };
 })();
 document.getElementById('btnTutoReplay').addEventListener('click', ()=> Tutorial.replay());
 document.getElementById('btnTutoReplayHelp').addEventListener('click', ()=> Tutorial.replay());

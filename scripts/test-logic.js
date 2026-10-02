@@ -34,7 +34,7 @@ const exportsList = 'LEVELS, Solver, makeRng, hashSeed, generateBoard, transform
   'weekKeyFor, seasonKeyFor, DAILY_GIFTS, sanitizeGift, giftStatus, giftClaim, WEEKLY_POOL, WEEKLY_COUNT, weeklyMission, weeklyMissionsFor, ' +
   'sanitizeWeekly, weeklyApply, weeklyClaimable, weeklyClaim, weeklyChestReady, SEASON_TIERS, SEASON_XP_PER_TIER, seasonReward, sanitizeSeason, ' +
   'seasonTier, seasonClaimable, seasonRoll, seasonAddXP, seasonClaim, seasonDaysLeft, marketDailyOffer, marketWeeklyPack, sanitizeMarket, ' +
-  'COLLECTION_MILESTONES, collectionMilestones, sanitizeNav, navBadgeCounts, dailyPersonalRank';
+  'COLLECTION_MILESTONES, collectionMilestones, sanitizeNav, navBadgeCounts, dailyPersonalRank, tomorrowPreview, bundleText';
 const ctx = vm.createContext({ console: { log() {} } });
 vm.runInContext('"use strict";\n' + js.slice(start, end) + `\n;globalThis.__t = { ${exportsList} };`, ctx, { filename: 'logic.js' });
 const T = ctx.__t;
@@ -457,7 +457,17 @@ console.log(`✔ tutoriel : ${Object.keys(lines).length} répliques, états, vis
   const b0 = T.navBadgeCounts({});
   check(Object.values(b0).every(v => v === 0), 'rien à signaler : aucune pastille');
   const b1 = T.navBadgeCounts({ giftAvailable: true, dailyOfferNew: true, newItems: 2, collectionReady: 1, dailyTodo: true, dewLeft: 3, restoreReady: true, ritualChestReady: true, weeklyClaimable: 2, weeklyChestReady: true, seasonClaimable: 1, newAchievements: 1 });
-  check(b1.market === 2 && b1.cosmetics === 3 && b1.home === 1 && b1.garden === 4 && b1.profile === 6, 'pastilles comptées par page');
+  check(b1.market === 2 && b1.cosmetics === 3 && b1.home === 1 && b1.garden === 2 && b1.profile === 5, 'pastilles comptées par page (une action = 1)');
+  const b2 = T.navBadgeCounts({ newAchievements: 12, seasonClaimable: 6, dewLeft: 5 });
+  // « À demain ! » : seulement après le défi ET le cadeau du jour ; uniquement des faits.
+  const tday = '20261002'; // vendredi → demain samedi (Ruines)
+  check(T.tomorrowPreview({}, tday, true, 3, 5 * 3600e3) === null, 'demain : rien tant que le cadeau du jour attend');
+  check(T.tomorrowPreview({ step: 1, lastDay: tday }, tday, false, 3, 5 * 3600e3) === null, 'demain : rien tant que le défi du jour attend');
+  const tp = T.tomorrowPreview({ step: 1, lastDay: tday }, tday, true, 3, 5 * 3600e3 - 1);
+  check(tp && tp.hours === 5 && /Cadeau 2\/7 : 3 💧/.test(tp.items[0].text) && /Ruines/.test(tp.items[1].text) && /3 → 4/.test(tp.items[2].text), 'demain : cadeau suivant, défi de demain, série, heures');
+  check(T.tomorrowPreview({ step: 0, lastDay: tday }, tday, true, 0, 0).items.length === 2 && T.tomorrowPreview({ step: 0, lastDay: tday }, tday, true, 0, 0).hours === 1, 'demain : sans série, pas de flamme ; au moins 1 h');
+  check(T.tomorrowPreview({ step: 1, lastDay: tday }, 'pas-une-date', true, 1, 1) === null, 'demain : date invalide = rien');
+  check(b2.profile === 1 && b2.garden === 1, 'pastilles : succès déjà fêtés hors onglet, saison et rosée comptent pour 1 (jamais « 9+ » coincé)');
   check(T.navBadgeCounts({ newItems: 'x', dewLeft: -4 }).cosmetics === 0 && T.navBadgeCounts(null).garden === 0, 'pastilles : entrées corrompues ignorées');
   // Classement personnel du défi.
   const hist = [{ date: '20260925', stars: 3, time: 40 }, { date: '20260926', stars: 2, time: 30 }, { date: '20260927', stars: 3, time: 20 }, { date: '20260928', stars: 3, time: 25 }];

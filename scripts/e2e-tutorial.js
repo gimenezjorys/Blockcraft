@@ -80,17 +80,11 @@ function check(cond, msg) { checks++; if (cond) console.log('✔ ' + msg); else 
   await page.goto(FILE); await wait(page, 700);
   check(await screen(page) === 'screen-splash' && (await coach(page)) === '', 'premier lancement : écran de lancement, Germain attend « Jouer »');
   await enter(page);
-  check((await coach(page)).includes('Germain'), 'premier lancement : Germain se présente');
+  check(await screen(page) === 'screen-game' && (await page.textContent('#gameLevelTitle')).startsWith('1.'), 'premier « Jouer » : niveau 1 tout de suite (aucun écran en plus)');
+  check((await coach(page)).includes('Germain'), 'premier lancement : Germain se présente sur le plateau');
   check(await page.evaluate(() => !document.querySelector('#coach .coach-skip').hidden), '« Passer » visible dès la première bulle');
   await shot(page, 't01-intro');
-  // Toucher la bulle : termine le texte s'il s'écrit encore, sinon avance.
-  for (let i = 0; i < 3 && !(await coach(page)).startsWith('Aide'); i++) { await page.click('#coach .coach-bubble'); await wait(page, 120); }
-  await wait(page, 1300); // puis plus de souris : on laisse la réplique s'écrire
-  check((await coach(page)).includes('lumière'), 'toucher la bulle : texte accéléré puis réplique suivante');
-  check(await page.evaluate(() => document.activeElement && document.activeElement.classList.contains('c-primary')), 'clavier : le bouton « C\'est parti » reçoit le focus');
-  await page.keyboard.press('Enter'); await wait(page, 900);
-  check(await screen(page) === 'screen-game' && (await page.textContent('#gameLevelTitle')).startsWith('1.'), 'clavier : Entrée sur « C\'est parti » lance le niveau 1');
-  check((await coach(page)).includes('Glisse') && (await page.textContent('#gameTip')).trim() === '', 'niveau 1 : Germain guide, pas de mur de texte');
+  check((await coach(page)).includes('droite') && (await page.textContent('#gameTip')).trim() === '', 'niveau 1 : Germain montre le geste en une bulle, pas de mur de texte');
   check(!!(await page.$('#swipeHint')), 'niveau 1 : doigt fantôme qui montre le geste');
   await page.keyboard.press('ArrowRight'); await wait(page, 1600);
   check(await screen(page) === 'screen-victory' && (await coach(page)).includes('lumière'), 'victoire : Germain célèbre');
@@ -142,8 +136,10 @@ function check(cond, msg) { checks++; if (cond) console.log('✔ ' + msg); else 
   check(await page.evaluate(() => BCD_DEV.getEquippedCosmetic() === 'jade') && (await tuto(page)).tours.shop === 'done', 'graine essayée (équipée), étape « Atelier » validée');
   await home(page); await wait(page, 300);
   // « Plus tard » : jamais forcé ; au 2e refus l'étape est abandonnée.
+  // (Une aide déjà ouverte — ex. le rang du jardinier fêté sur JOUER — se ferme d'abord.)
+  await wait(page, 4200); await page.keyboard.press('Escape'); await wait(page, 200);
   await page.evaluate(() => BCD_DEV.tutorialKick()); await wait(page, 700);
-  check((await coach(page)).includes('défi'), 'défi du jour présenté');
+  const cDef = await coach(page); check(cDef.includes('défi'), 'défi du jour présenté (' + cDef + ')');
   await page.click('#coach .c-ghost'); await wait(page, 300);
   check(!(await page.$('.coach-ring')) && (await tuto(page)).attempts.daily === 1 && (await tuto(page)).tours.daily === 'pending', '« Plus tard » : projecteur retiré, on reproposera');
   await page.evaluate(() => BCD_DEV.tutorialKick()); await wait(page, 700);
@@ -193,12 +189,9 @@ function check(cond, msg) { checks++; if (cond) console.log('✔ ' + msg); else 
   // ================= 3. Fermeture en plein tutoriel, puis reprise =================
   page = await newPage();
   await page.goto(FILE); await enter(page, 1200);
-  await page.click('#btnContinue'); await wait(page, 500); // le joueur lance sans lire : intro « level1 »
   check((await tuto(page)).intro === 'level1', 'intro en cours sauvegardée');
   await page.reload(); await enter(page);
-  check((await coach(page)).includes('On reprend'), 'réouverture : reprise propre, sans tout répéter');
-  await page.click('#coach .c-primary'); await wait(page, 700);
-  check(await screen(page) === 'screen-game', 'reprise : niveau 1 relancé');
+  check(await screen(page) === 'screen-game' && (await coach(page)).includes('Glisse') && !(await coach(page)).includes('Salut'), 'réouverture : niveau 1 repris directement, sans se re-présenter');
   // « Passer » à une étape précise : mesure de l'endroit où l'on décroche.
   await page.click('#coach .coach-skip'); await wait(page, 300);
   const sk = await page.evaluate(() => BCD_DEV.getRetentionReport().tutorial.skippedAt);
@@ -243,7 +236,7 @@ function check(cond, msg) { checks++; if (cond) console.log('✔ ' + msg); else 
   page = await newPage({ reducedMotion: 'reduce' });
   await page.goto(FILE); await enter(page, 900);
   const full = await page.evaluate(() => { const el = document.querySelector('#coach .coach-text'); return el ? el.textContent : ''; });
-  check(full === "Salut ! Moi, c'est Germain, la graine de Seedrift.", 'animations réduites : texte affiché d\'un coup, sans effet machine à écrire');
+  check(full === "Salut, moi c'est Germain ! Glisse-moi vers la droite.", 'animations réduites : texte affiché d\'un coup, sans effet machine à écrire');
   check(await page.evaluate(() => getComputedStyle(document.querySelector('#coach .gm-body')).animationName === 'none'), 'animations réduites : Germain ne bouge pas');
   check(await page.evaluate(() => document.getElementById('coachLive').textContent.includes('Germain')), 'lecteur d\'écran : la réplique est annoncée (aria-live)');
   await page.context().close();
@@ -254,7 +247,7 @@ function check(cond, msg) { checks++; if (cond) console.log('✔ ' + msg); else 
     await page.addInitScript(b => localStorage.setItem('bcd_tutorial_v1', b), bad);
     await page.goto(FILE); await enter(page, 1200);
     const t = await tuto(page);
-    check(['pending', 'level1', 'done'].includes(t.intro) && await screen(page) === 'screen-home', `tutoriel corrompu (${bad.slice(0, 24)}…) : aucun plantage`);
+    check(['pending', 'level1', 'done'].includes(t.intro) && ['screen-home', 'screen-game'].includes(await screen(page)), `tutoriel corrompu (${bad.slice(0, 24)}…) : aucun plantage`);
     await noJunk(page, 'stockage corrompu');
     await page.context().close();
   }

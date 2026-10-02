@@ -76,17 +76,12 @@ function startStaticServer(root) {
   await shot('00-lancement');
   check(await screen() === 'screen-splash', 'écran de lancement affiché au démarrage');
   check(await page.evaluate(() => !!document.querySelector('#btnSplashPlay') && document.getElementById('hub').classList.contains('on') === false), 'lancement : gros bouton JOUER, hub masqué');
+  // 1. Nouveau joueur : « Jouer » lance directement le niveau 1, Germain s'y présente.
   await page.click('#btnSplashPlay'); await wait(450);
-  await shot('01-accueil');
-  check(await screen() === 'screen-home', 'JOUER : page centrale du hub');
-  check(await page.evaluate(() => document.querySelectorAll('#tabbar .tab').length === 5 && document.querySelector('#tabbar .tab.on').dataset.page === 'home'), 'barre d\'onglets : 5 pages, « Jouer » active');
-
-  // 1. Tutoriel : Germain accueille, JOUER lance directement le niveau 1
+  await shot('01-niveau1');
+  check(await screen() === 'screen-game' && (await page.textContent('#gameLevelTitle')).startsWith('1.'), 'nouveau joueur : « Jouer » lance directement le niveau 1');
   await wait(700);
-  check((await page.evaluate(() => BCD_DEV.coachText())).length > 0, 'premier lancement : Germain accueille le joueur');
-  await page.click('#btnContinue'); await wait(300);
-  check((await page.textContent('#gameLevelTitle')).startsWith('1.'), 'JOUER lance le niveau 1');
-  await wait(600);
+  check((await page.evaluate(() => BCD_DEV.coachText())).includes('Germain'), 'premier lancement : Germain se présente sur le plateau');
   check((await page.evaluate(() => BCD_DEV.coachText())).includes('Glisse'), 'niveau 1 : Germain montre le geste (au lieu de l\'aide texte)');
   // Mesure chronométrée DANS la page : 150 ms après le coup, donc toujours
   // avant onWin() (différé de 260 ms), qui masque l'écran de jeu.
@@ -365,7 +360,8 @@ function startStaticServer(root) {
   await ctx.setOffline(true);
   await pw.reload(); await pw.waitForTimeout(800);
   await pw.click('#btnSplashPlay'); await pw.waitForTimeout(400);
-  await pw.click('#btnContinue'); await pw.waitForTimeout(300);
+  // Nouveau joueur : « Jouer » lance directement le niveau 1.
+  if (await pw.evaluate(() => document.querySelector('.screen.active').id) !== 'screen-game') { await pw.click('#btnContinue'); await pw.waitForTimeout(300); }
   check(await pw.evaluate(() => document.querySelector('.screen.active').id) === 'screen-game', 'PWA : jeu lancé hors ligne');
   await ctx.close();
   server.close();

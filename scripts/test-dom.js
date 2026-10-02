@@ -53,6 +53,8 @@ async function openGame(storage, opts) {
       w.HTMLCanvasElement.prototype.getContext = () => null;
       w.navigator.vibrate = () => true;
       w.Element.prototype.scrollTo = function (o) { if (o && typeof o.left === 'number') this.scrollLeft = o.left; };
+      // Mise en page minimale (projecteur de Germain) : chaque élément a une taille.
+      if (opts.layout) w.Element.prototype.getBoundingClientRect = function () { return { left: 20, top: 300, width: 160, height: 48, right: 180, bottom: 348, x: 20, y: 300 }; };
     }
   });
   const w = dom.window;
@@ -91,19 +93,15 @@ async function solveCurrent(g) {
   check(screenOf(g.d) === 'screen-splash' && !g.d.getElementById('hub').classList.contains('on'), 'écran de lancement d\'abord, barre d\'onglets cachée');
   check(g.d.getElementById('gameTitle').textContent === 'Seedrift', 'nom du jeu sur l\'écran de lancement');
   check(!!g.d.querySelector('#splashScene .gp-sky') && !!g.d.querySelector('#splashScene .gp-svg') && !!g.d.querySelector('#splashGermain svg'), 'lancement : ambiance du jardin (ciel + tableau) et Germain');
-  check(g.d.querySelectorAll('#splashChips .sp-chip').length >= 1 && /Cadeau du jour/.test(g.d.getElementById('splashChips').textContent), 'lancement : aperçu de ce qui attend (cadeau du jour prêt)');
+  check(g.d.querySelectorAll('#splashChips .sp-chip').length === 1 && !/Cadeau/.test(g.d.getElementById('splashChips').textContent), 'tout premier lancement : rien à lire, juste « Jouer » (pas de promesse de cadeau)');
   check(g.w.BCD_DEV.coachText() === '', 'Germain attend que le joueur touche « Jouer »');
   await enter(g, 1300);
   const coach = g.d.getElementById('coach');
-  check(screenOf(g.d) === 'screen-home' && g.d.getElementById('hub').classList.contains('on'), '« Jouer » : page JOUER, barre d\'onglets visible');
-  check(coach && !coach.hidden && /Germain/.test(g.d.querySelector('#coach .coach-text').textContent + g.d.querySelector('#coach .coach-name').textContent), 'Germain accueille le nouveau joueur');
-  check(g.d.querySelectorAll('#homeGardenScene .gp-svg').length === 1, 'fenêtre vivante sur le jardin (vignette) sur la page JOUER');
+  check(screenOf(g.d) === 'screen-game' && !g.d.getElementById('hub').classList.contains('on') && /Premier souffle/.test(g.d.getElementById('gameLevelTitle').textContent), 'nouveau joueur : « Jouer » lance directement le niveau 1 (aucun écran en plus)');
+  check(coach && !coach.hidden && /Germain/.test(g.d.querySelector('#coach .coach-text').textContent) && /droite/.test(g.d.querySelector('#coach .coach-text').textContent), 'Germain se présente et montre le geste, en une seule bulle, sur le plateau');
   click(g.w, g.d.querySelector('#coach .coach-skip'));
   await sleep(100);
-  check(g.w.BCD_DEV.getTutorial().skipped === true, '« Passer » arrête le tutoriel');
-  click(g.w, g.d.getElementById('btnContinue'));
-  await sleep(200);
-  check(screenOf(g.d) === 'screen-game', 'JOUER lance le niveau 1');
+  check(g.w.BCD_DEV.getTutorial().skipped === true && screenOf(g.d) === 'screen-game', '« Passer » arrête le tutoriel, la partie continue');
   const n1 = await solveCurrent(g);
   check(n1 >= 1 && screenOf(g.d) === 'screen-victory', `niveau 1 résolu au clavier (KeyboardEvent, ${n1} coup)`);
   check(/Parfait|réussi/i.test(g.d.getElementById('victoryTitle').textContent), 'écran de victoire');
@@ -323,6 +321,12 @@ async function solveCurrent(g) {
   const page = () => g.w.BCD_DEV.hubPage();
   const selected = () => Array.from(g.d.querySelectorAll('#tabbar .tab')).filter(t => t.getAttribute('aria-selected') === 'true').map(t => t.dataset.page).join(',');
   await enter(g);
+  check(g.d.querySelectorAll('#homeGardenScene .gp-svg').length === 1, 'fenêtre vivante sur le jardin (vignette) sur la page JOUER');
+  // Bug corrigé : un scrollIntoView()/focus() sur une page voisine faisait défiler
+  // la piste (projecteur de Germain hors champ, joueur bloqué sous l'écran assombri).
+  const vpx = g.d.getElementById('hubViewport');
+  vpx.scrollLeft = 287; vpx.dispatchEvent(new g.w.Event('scroll'));
+  check(vpx.scrollLeft === 0, 'la piste des pages ne défile jamais toute seule (scrollLeft remis à 0)');
   const order = Array.from(g.d.querySelectorAll('#tabbar .tab')).map(t => t.dataset.page).join(',');
   check(order === 'market,cosmetics,home,garden,profile', `5 onglets en bas, JOUER au centre (${order})`);
   check(page() === 'home' && selected() === 'home' && g.d.getElementById('tabPlay').tabIndex === 0, 'onglet actif marqué (aria-selected, seul dans l\'ordre de tabulation)');
@@ -475,7 +479,8 @@ async function solveCurrent(g) {
   const nav13 = g.w.BCD_DEV.getNav(), pre13 = ['first_step', 'three_stars'];
   const caught = Object.keys(g.w.BCD_DEV.getAchievements()).filter(k => !pre13.includes(k)).length;
   check(['jade', 'saphir'].every(id => nav13.seenItems.includes('seed:' + id)) && badge(g.d, 'tabCollection') === '1', 'aucune avalanche : objets déjà possédés « vus » ; seul le palier de 5 objets (vrai cadeau) est signalé');
-  check(pre13.every(k => nav13.seenAch.includes(k)) && (+badge(g.d, 'tabProfile') || 0) === caught, `succès déjà là : vus ; seuls les ${caught} rattrapés à la mise à jour sont signalés`);
+  const segS = g.d.querySelector('#segSucces .seg-badge');
+  check(pre13.every(k => nav13.seenAch.includes(k)) && caught > 0 && segS && !segS.hidden && +segS.textContent === caught && badge(g.d, 'tabProfile') === '', `succès déjà là : vus ; les ${caught} rattrapés sont signalés sur « Succès », sans gonfler l'onglet Profil`);
   check(g.w.BCD_DEV.getNav().init === true && g.w.BCD_DEV.getWeekly().ids.length === 4 && g.w.BCD_DEV.getSeason().xp === 0, 'nouvelles clés créées proprement (missions de la semaine, saison)');
   for (const k of ['bcd_nav_v1', 'bcd_weekly_v1', 'bcd_season_v1']) {
     const raw = JSON.parse(g.w.localStorage.getItem(k) || 'null');
@@ -552,6 +557,50 @@ async function solveCurrent(g) {
   g.w.close();
   g = await openGame({}, { wait: 400 });
   check(g.w.BCD_DEV.getTutorial().look2 === true, 'nouveau joueur : aucune annonce de « nouveau look » (il n\'a jamais connu l\'ancien)');
+  g.w.close();
+
+  // ---------- 16. Les 5 premières minutes (J1) ----------
+  console.log('\n— Les 5 premières minutes');
+  g = await openGame({}, { wait: 400, layout: true });
+  await enter(g, 500);
+  check(screenOf(g.d) === 'screen-game' && /Germain/.test(g.w.BCD_DEV.coachText()), 'premier « Jouer » : niveau 1 tout de suite, Germain sur le plateau');
+  await solveCurrent(g);
+  await sleep(300);
+  check(screenOf(g.d) === 'screen-victory' && /Trois étoiles/.test(g.w.BCD_DEV.coachText()), 'victoire du niveau 1 : une seule bulle (bravo + sens des étoiles)');
+  check(g.d.getElementById('btnVictoryGarden').hidden, 'niveau 1 : on continue de jouer (pas encore le jardin)');
+  click(g.w, g.d.getElementById('btnNextLevel')); await sleep(250);
+  await solveCurrent(g); await sleep(300);
+  const vg = g.d.getElementById('btnVictoryGarden'), nx = g.d.getElementById('btnNextLevel');
+  check(!vg.hidden && nx.classList.contains('btn-secondary') && !nx.classList.contains('btn-primary'), 'niveau 2 : « Réveiller le jardin » en premier, « Niveau suivant » en second');
+  check(!/Prêt à réveiller/.test(g.d.getElementById('victoryRewards').textContent), 'pas de puce en double avec le bouton du jardin');
+  const ros0 = g.w.BCD_DEV.getGarden().rosee;
+  click(g.w, vg); await sleep(500);
+  check(screenOf(g.d) === 'screen-garden' && /Cadeau/.test(g.w.BCD_DEV.coachText()) && g.w.BCD_DEV.getGarden().rosee === ros0 + 3, 'le jardin s\'ouvre : +3 rosée offerte, Germain montre « Réveiller »');
+  check(!!g.d.querySelector('.coach-ring') && g.d.querySelectorAll('.coach-blocker').length === 4, 'projecteur sur le bouton à toucher');
+  click(g.w, g.d.getElementById('btnRestore')); await sleep(300);
+  check(g.w.BCD_DEV.getGarden().done === 1 && g.w.BCD_DEV.getTutorial().tours.garden === 'done' && !g.d.querySelector('.coach-ring'), 'premier coin du jardin réveillé : visite acquise, projecteur retiré');
+  await sleep(4400);
+  check(/continue/.test(g.w.BCD_DEV.coachText()) && !!g.d.querySelector('#coach .c-primary'), 'Germain propose de reprendre la partie');
+  click(g.w, g.d.querySelector('#coach .c-primary')); await sleep(300);
+  check(screenOf(g.d) === 'screen-game' && /Le détour/.test(g.d.getElementById('gameLevelTitle').textContent), '« Jouer ▶ » relance le niveau suivant (3)');
+  await solveCurrent(g); await sleep(300);
+  click(g.w, g.d.getElementById('btnVictoryHome')); await sleep(300);
+  check(screenOf(g.d) === 'screen-home' && g.d.getElementById('hub').classList.contains('on'), 'victoire : le bouton ⌂ ramène à l\'accueil (sans bouton retour du téléphone)');
+  check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
+  g.w.close();
+  // « À demain ! » : seulement quand le défi et le cadeau du jour sont faits.
+  const today16 = dayOffset(0);
+  const st16 = { bcd_progress_v1: env({ 0: 3, 1: 3, 2: 3, 3: 3 }), bcd_tutorial_v1: SKIPPED, bcd_tips_v1: env({ seen: { nav: true } }),
+    bcd_streak_v1: env({ current: 2, best: 2, totalWins: 2, lastSuccessDate: today16 }) };
+  g = await openGame(st16, { wait: 400 });
+  await enter(g);
+  check(g.d.getElementById('homeTomorrow').hidden, 'avant le défi et le cadeau : pas de « À demain »');
+  g.w.close();
+  g = await openGame(Object.assign({}, st16, { bcd_gift_v1: env({ step: 2, lastDay: today16, total: 2 }),
+    ['bcd_daily_' + today16]: env({ moves: 5, time: 30, stars: 3, isRecord: true, generated: true, par: 5, levelIndex: null }) }), { wait: 400 });
+  await enter(g);
+  const tm = g.d.getElementById('homeTomorrow');
+  check(!tm.hidden && /Cadeau 3\/7/.test(tm.textContent) && /Défi/.test(tm.textContent) && /2 → 3/.test(tm.textContent) && /dans \d+ h/.test(tm.textContent), 'journée faite : « À demain ! » (cadeau suivant, défi de demain, série, heure du nouveau jour)');
   g.w.close();
 
   console.log(`\n${checks} vérifications, ${failures} échec(s).`);
