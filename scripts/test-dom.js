@@ -126,6 +126,17 @@ async function solveCurrent(g) {
   check(g.d.getElementById('hudMoves').textContent === '1', 'un geste trop court est ignoré');
   key(g.w, 'z'); await sleep(80);
   check(g.d.getElementById('hudMoves').textContent === '0', 'Z annule le coup');
+  // Le coup part pendant le mouvement du doigt (aucune latence), une seule fois par contact.
+  const P2 = g.w.PointerEvent;
+  board.dispatchEvent(new P2('pointerdown', { clientX: 150, clientY: 150, pointerId: 9, bubbles: true }));
+  board.dispatchEvent(new P2('pointermove', { clientX: 150 + vec[0] / 2, clientY: 150 + vec[1] / 2, pointerId: 9, bubbles: true }));
+  board.dispatchEvent(new P2('pointermove', { clientX: 150 + vec[0] * 1.5, clientY: 150 + vec[1] * 1.5, pointerId: 9, bubbles: true }));
+  await sleep(30);
+  const midSwipe = g.d.getElementById('hudMoves').textContent;
+  board.dispatchEvent(new P2('pointerup', { clientX: 150 + vec[0] * 2, clientY: 150 + vec[1] * 2, pointerId: 9, bubbles: true }));
+  await sleep(250);
+  check(midSwipe === '1' && g.d.getElementById('hudMoves').textContent === '1', 'glissement : le coup part dès que le geste est clair, sans double déclenchement au lever du doigt');
+  key(g.w, 'z'); await sleep(80);
   check(g.errors.length === 0, 'aucune erreur pendant le parcours (' + (g.errors[0] || 'ok') + ')');
   g.w.close();
 
@@ -216,7 +227,7 @@ async function solveCurrent(g) {
   check(st.current === 9 && st.best === 11, 'un défi gagné ne remet pas la série à 1 après le passage en UTC');
   click(g.w, g.d.getElementById('homeGarden')); await sleep(400);
   const g2 = JSON.parse(g.w.localStorage.getItem('bcd_garden_v1'));
-  check(g2.schemaVersion === 2 && g2.data.rosee === 12 && Array.isArray(g2.data.plantSeen), 'jardin migré en schéma 2 sans perte');
+  check(g2.schemaVersion === 3 && g2.data.rosee === 12 && Array.isArray(g2.data.plantSeen) && g2.data.bouquets === 0, 'jardin migré (schéma 1 → 3) sans perte, bouquets à 0');
   check(Object.keys(g.w.BCD_DEV.getGarden()).length >= 11, 'sauvegarde v2 complète');
   check(g.errors.length === 0, 'aucune erreur avec une vieille sauvegarde (' + (g.errors[0] || 'ok') + ')');
   g.w.close();
@@ -601,6 +612,59 @@ async function solveCurrent(g) {
   await enter(g);
   const tm = g.d.getElementById('homeTomorrow');
   check(!tm.hidden && /Cadeau 3\/7/.test(tm.textContent) && /Défi/.test(tm.textContent) && /2 → 3/.test(tm.textContent) && /dans \d+ h/.test(tm.textContent), 'journée faite : « À demain ! » (cadeau suivant, défi de demain, série, heure du nouveau jour)');
+  g.w.close();
+
+  // ---------- 17. Les Terres sauvages : la campagne continue après le 60 ----------
+  console.log('\n— Les Terres sauvages');
+  const all60 = {}; for (let i = 0; i < 60; i++) all60[i] = 3;
+  g = await openGame({ bcd_progress_v1: env(all60), bcd_tutorial_v1: SKIPPED, bcd_tips_v1: env({ seen: { nav: true } }) }, { wait: 400 });
+  await enter(g);
+  check(/Niveau 61 · Le Verger sauvage/.test(g.d.getElementById('continueLevelName').textContent) && /Monde 9/.test(g.d.getElementById('worldHeroKicker').textContent), 'campagne finie : JOUER propose le niveau 61, Monde 9 (Terres sauvages)');
+  click(g.w, g.d.getElementById('btnContinue')); await sleep(300);
+  check(screenOf(g.d) === 'screen-game' && /^61\. Le Verger sauvage · 1/.test(g.d.getElementById('gameLevelTitle').textContent), 'niveau sauvage lancé');
+  await sleep(900);
+  check(/Terres sauvages/.test(g.w.BCD_DEV.coachText()), 'aide unique : Germain présente les Terres sauvages');
+  key(g.w, 'Escape'); await sleep(80);
+  const c17 = g.w.BCD_DEV.getCoins();
+  await solveCurrent(g); await sleep(200);
+  const p17 = JSON.parse(g.w.localStorage.getItem('bcd_progress_v1')).data;
+  check(screenOf(g.d) === 'screen-victory' && p17[60] === 3 && g.w.BCD_DEV.getCoins() >= c17 + 5 && /NIVEAU SUIVANT/.test(g.d.getElementById('btnNextLevel').textContent), 'victoire sauvage : étoiles, pièces, et toujours un niveau suivant');
+  click(g.w, g.d.getElementById('btnNextLevel')); await sleep(300);
+  check(/^62\./.test(g.d.getElementById('gameLevelTitle').textContent), 'niveau suivant : 62');
+  click(g.w, g.d.getElementById('btnExitGame')); await sleep(300);
+  const wild = Array.from(g.d.querySelectorAll('.endless-world .world-name')).map(e => e.textContent);
+  check(screenOf(g.d) === 'screen-select' && wild.length === 1 && /Monde 9/.test(wild[0]) && !!g.d.querySelector('.endless-world .level-card.current'), 'carte des mondes : le Monde 9 sauvage, niveau en cours marqué');
+  check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
+  g.w.close();
+  g = await openGame({ bcd_progress_v1: env({ 0: 3 }), bcd_tutorial_v1: SKIPPED }, { wait: 400 });
+  g.w.dispatchEvent(new g.w.PopStateEvent('popstate'));
+  await enter(g); click(g.w, g.d.getElementById('btnPlay')); await sleep(300);
+  check(!!g.d.querySelector('.endless-teaser') && !g.d.querySelector('.endless-world'), 'avant le niveau 60 : les Terres sauvages promises, verrouillées');
+  g.w.close();
+
+  // ---------- 18. Économie : défi sans pièces à volonté, bouquets, objectif d'achat ----------
+  console.log('\n— Économie');
+  const prog18 = {}; for (let i = 0; i < 6; i++) prog18[i] = 3;
+  g = await openGame({ bcd_progress_v1: env(prog18), bcd_tutorial_v1: SKIPPED, bcd_tips_v1: env({ seen: { nav: true, page_collection: true, page_garden: true, dew: true } }),
+    bcd_garden_v1: JSON.stringify({ schemaVersion: 3, data: { rosee: 20, earned: 999, done: 25, bouquets: 0 } }), bcd_coins_v1: env(0) }, { wait: 400 });
+  await enter(g);
+  click(g.w, g.d.getElementById('btnDaily')); await sleep(300);
+  await solveCurrent(g);
+  const cDaily1 = g.w.BCD_DEV.getCoins();
+  click(g.w, g.d.getElementById('btnReplayVictory')); await sleep(300);
+  await solveCurrent(g);
+  check(cDaily1 >= 8 && g.w.BCD_DEV.getCoins() === cDaily1, `défi du jour rejoué : aucune pièce de plus (fin des pièces à volonté, ${cDaily1} 🪙)`);
+  click(g.w, g.d.getElementById('btnVictoryHome')); await sleep(300);
+  click(g.w, g.d.getElementById('tabGarden')); await sleep(400);
+  const rb = g.d.getElementById('btnRestore');
+  check(!rb.hidden && /Cueillir/.test(rb.textContent), 'jardin fini : la rosée cueille des bouquets');
+  const c18 = g.w.BCD_DEV.getCoins(), r18 = g.w.BCD_DEV.getGarden().rosee;
+  click(g.w, rb); await sleep(200);
+  const gb18 = g.w.BCD_DEV.getGarden(); check(gb18.bouquets === 1 && gb18.rosee === r18 - 15 && g.w.BCD_DEV.getCoins() === c18 + 8, `bouquet : −15 💧, +8 🪙 (rosée ${gb18.rosee}, pièces +${g.w.BCD_DEV.getCoins() - c18})`);
+  click(g.w, g.d.getElementById('tabCollection')); await sleep(400);
+  const goal = g.d.querySelector('#colProgress .col-goal');
+  check(goal && /Prochain|offrir/.test(goal.textContent), 'Collection : un prochain objectif d\'achat est toujours visible (' + (goal && goal.textContent.trim()) + ')');
+  check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
   g.w.close();
 
   console.log(`\n${checks} vérifications, ${failures} échec(s).`);

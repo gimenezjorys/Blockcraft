@@ -329,6 +329,10 @@
     transition:background .5s ease, box-shadow .5s ease;
   }
   #board.shake{animation:shake .28s ease;}
+  /* Petit choc du plateau dans le sens d'un long glissement (l'impact se sent). */
+  #board.bump{animation:boardBump .24s ease-out;}
+  @keyframes boardBump{0%{transform:translate(0,0);} 35%{transform:translate(var(--bx,0px),var(--by,0px));} 100%{transform:translate(0,0);}}
+  html.reduce-motion #board.bump{animation:none;}
   @keyframes shake{0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(5px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(3px);}}
   #board.nudge{animation:boardNudge .2s ease-out;}
   @keyframes boardNudge{0%{transform:translate(0,0);} 35%{transform:translate(var(--nx,0),var(--ny,0));} 100%{transform:translate(0,0);}}
@@ -415,7 +419,8 @@
     animation:goalSpin 10s linear infinite;}
   @keyframes goalSpin{to{transform:rotate(360deg);}}
   /* Pièces mobiles */
-  .piece{position:absolute; border-radius:var(--radius-piece); transition:transform .16s cubic-bezier(.4,0,.2,1); will-change:transform;}
+  /* Durée du glissement proportionnelle à la distance (--slide-ms, posée à chaque coup) : un long glissement file puis freine. */
+  .piece{position:absolute; border-radius:var(--radius-piece); transition:transform var(--slide-ms, 160ms) cubic-bezier(.25,.85,.35,1); will-change:transform;}
   #overlay.no-resize-anim .piece{transition:none !important;}
   .piece-rock{
     border-radius:46% 42% 44% 40% / 44% 46% 40% 44%;
@@ -748,6 +753,9 @@
   .home-tomorrow{display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:var(--r-l); color:var(--ink);
     background:linear-gradient(160deg, #f1ecff, #fff6ea); box-shadow:0 4px 0 #d9cdf3, var(--sh-soft); animation:fadeIn .4s var(--ease) both;}
   .home-tomorrow[hidden]{display:none;}
+  .col-goal{display:block; width:100%; margin-top:10px; padding:9px 12px; min-height:44px; border:0; border-radius:var(--r-m); text-align:left; cursor:pointer;
+    font:800 13.5px var(--font-body); color:var(--ink); background:var(--paper-2); box-shadow:0 3px 0 var(--edge);}
+  .col-goal.ready{background:linear-gradient(180deg, #fff6d6, #ffe7a3); box-shadow:0 3px 0 var(--sunny-lo, #d9a21b);}
   .ht-head{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-size:18px;}
   .ht-moon{font-size:22px; animation:breathe 3.2s ease-in-out infinite;}
   .ht-when{margin-left:auto; font-family:var(--font-body); font-size:13px; font-weight:800; color:var(--ink-2);}
@@ -3125,6 +3133,78 @@ function buildDailyBoard(dateKey, weekday){
   return null; // repli géré par l'appelant (niveau de campagne, ancien comportement)
 }
 
+/* ---------------------------------------------------------
+   LES TERRES SAUVAGES — la campagne continue sans fin après le Monde 8.
+   Chaque monde a 8 niveaux générés, TOUJOURS les mêmes pour tout le monde
+   (graine = numéro du niveau), validés par le solveur (par exact, mécanique
+   vedette qui compte). Dans un monde, la difficulté monte en dents de scie
+   comme dans les mondes faits main (le dernier est « ultime ») ; d'un tour
+   de mondes à l'autre, elle grimpe un peu, avec un plafond. Si le
+   générateur change de façon incompatible, incrémenter ENDLESS_GEN_VERSION
+   (les étoiles déjà gagnées restent acquises, par numéro de niveau).
+--------------------------------------------------------- */
+const ENDLESS_GEN_VERSION = 'v1';
+const ENDLESS_FIRST_WORLD = 9;
+const ENDLESS_LEVELS_PER_WORLD = 8;
+// Un monde sauvage par palette des mondes 1 à 8, avec sa mécanique vedette.
+const ENDLESS_WORLDS = [
+  { theme:1, name:'Le Verger sauvage',   emoji:'🍎', featured:null },
+  { theme:2, name:'Le Canyon ocre',      emoji:'🏜️', featured:'rochers' },
+  { theme:3, name:'Les Haies folles',    emoji:'🌿', featured:null },
+  { theme:4, name:'Les Neiges hautes',   emoji:'🏔️', featured:'ancre' },
+  { theme:5, name:'Les Cristaux',        emoji:'💎', featured:'portails' },
+  { theme:6, name:'Le Grand Lagon',      emoji:'🌊', featured:'sens-unique' },
+  { theme:7, name:'La Cité d\'or',       emoji:'🏛️', featured:'interrupteurs' },
+  { theme:8, name:'Le Ciel des failles', emoji:'🌌', featured:'portails-directionnels' }
+];
+const ENDLESS_TOUR_SUFFIX = ['', ' II', ' III', ' IV', ' V', ' VI', ' VII', ' VIII', ' IX', ' X'];
+// Monde sauvage du niveau sauvage n (0 = premier niveau après le 60).
+function endlessWorldOf(n){
+  const k = Math.max(0, Math.floor(n));
+  const wi = Math.floor(k / ENDLESS_LEVELS_PER_WORLD);
+  const def = ENDLESS_WORLDS[wi % ENDLESS_WORLDS.length];
+  const cycle = Math.floor(wi / ENDLESS_WORLDS.length);
+  return { world: ENDLESS_FIRST_WORLD + wi, slot: k % ENDLESS_LEVELS_PER_WORLD, cycle, theme: def.theme,
+    name: def.name + (ENDLESS_TOUR_SUFFIX[cycle] !== undefined ? ENDLESS_TOUR_SUFFIX[cycle] : ' ' + (cycle + 1)), emoji: def.emoji, featured: def.featured };
+}
+// Profil de difficulté d'un niveau sauvage : dents de scie dans le monde,
+// légère montée par tour (plafonnée : jamais de mur infranchissable).
+function endlessProfile(slot, cycle){
+  const c = Math.min(2, Math.max(0, cycle|0));
+  const base = [[3,4],[3,4],[4,5],[4,5],[5,6],[4,6],[5,7],[6,8]][slot] || [4,6];
+  return { size: slot < 2 && c === 0 ? 5 : 6, minPar: base[0] + (c > 1 ? 1 : 0), maxPar: base[1] + c,
+    minStates: [8,10,14,14,20,18,24,30][slot] + c * 4, extraChance: slot >= 4 ? 0.5 : 0.15 };
+}
+function buildEndlessLevel(n){
+  const info = endlessWorldOf(n);
+  const prof = endlessProfile(info.slot, info.cycle);
+  const rng = makeRng(hashSeed('bcd-endless-' + ENDLESS_GEN_VERSION + '-' + Math.floor(n)));
+  // Mécanique secondaire (à partir du milieu du monde) : une autre déjà connue.
+  let extra = null;
+  if(rng() < prof.extraChance){
+    const others = GEN_MECHANICS.filter(m=> m!==info.featured && !(m.startsWith('portails') && info.featured && info.featured.startsWith('portails')));
+    extra = rngPick(rng, others);
+  }
+  // Essais du plus exigeant au plus souple : un plateau valide est garanti.
+  const tries = [
+    { size:prof.size, minPar:prof.minPar, maxPar:prof.maxPar, minStates:prof.minStates, featured:info.featured, extra },
+    { size:prof.size, minPar:prof.minPar, maxPar:prof.maxPar, minStates:prof.minStates, featured:info.featured, extra:null },
+    { size:6, minPar:Math.max(3, prof.minPar - 1), maxPar:prof.maxPar, minStates:Math.floor(prof.minStates / 2), featured:info.featured, extra:null },
+    { size:6, minPar:3, maxPar:7, minStates:0, featured:null, extra:null }
+  ];
+  let lvl = null;
+  for(const t of tries){ lvl = generateBoard(rng, Object.assign({ maxAttempts:350 }, t)); if(lvl){ lvl.featured = t.featured; break; } }
+  if(!lvl){
+    lvl = transformLevel(LEVELS[(Math.floor(n) * 7 + 11) % LEVELS.length], 1 + (Math.floor(n) % 7));
+    lvl.featured = null;
+  }
+  lvl.name = info.name + ' · ' + (info.slot + 1);
+  lvl.tag = 'ENDLESS';
+  lvl.world = info.theme;          // palette, décor et plante du monde d'origine
+  lvl.endless = { n: Math.floor(n), world: info.world, slot: info.slot };
+  return lvl;
+}
+
 /* =========================================================
    A4. LE JARDIN ENDORMI, LE RITUEL DU JOUR, LES PUBS — LOGIQUE PURE
    Boucle de rétention (voir ROADMAP-RETENTION.md). Tout ce qui suit est
@@ -3198,8 +3278,19 @@ function sanitizeGardenSave(raw){
     plantSeen: Array.isArray(r.plantSeen) ? r.plantSeen.slice(0, 16).map(v=> safeInt(v, 0, 4, 0)) : null,
     rankSeen: safeInt(r.rankSeen, -1, 99, -1),
     welcomeDay: str(r.welcomeDay),
-    repairDay: str(r.repairDay)
+    repairDay: str(r.repairDay),
+    bouquets: safeInt(r.bouquets, 0, 1e6, 0)
   };
+}
+// Jardin entièrement réveillé : la rosée cueille des bouquets (quelques
+// pièces, de l'XP de saison, et le jardin qui fleurit encore). La rosée ne
+// s'achète jamais : ce n'est pas une porte vers l'argent réel.
+const BOUQUET = { cost:15, coins:8 };
+function gardenBouquet(save){
+  const g = sanitizeGardenSave(save);
+  if(g.done < GARDEN_TOTAL_TASKS) return { ok:false, reason:'garden', save:g };
+  if(g.rosee < BOUQUET.cost) return { ok:false, reason:'rosee', save:g };
+  return { ok:true, coins:BOUQUET.coins, save:Object.assign({}, g, { rosee: g.rosee - BOUQUET.cost, bouquets: g.bouquets + 1 }) };
 }
 // Où en est le jardin après `done` chantiers terminés (dans l'ordre).
 function gardenStatus(done){
@@ -3410,6 +3501,7 @@ const COACH_LINES = {
     l1_swipe:      "Glisse vers la droite. Je file tout droit !",
     l1_win:        "Pile dans la lumière ! Trois étoiles, le plus court chemin.",
     garden_back:   "Ton jardin se réveille ! On continue à jouer ?",
+    tip_endless:   "Les Terres sauvages : des mondes sans fin, toujours parfaits !",
     btn_play:      "Jouer ▶",
     l2_hello:      "À toi de jouer. Je reste dans le coin.",
     react_win_0:   "Joli !",
@@ -3840,7 +3932,9 @@ function weeklyChestReady(w){ return !w.chest && w.claimed.length > 0 && w.claim
 // L'XP vient de ce que le joueur fait déjà ; aucune récompense ne s'achète.
 const SEASON_TIERS = 20;
 const SEASON_XP_PER_TIER = 60;
-const SEASON_XP = { level_win:4, new_star:2, daily_win:15, ritual_mission:10, ritual_chest:15, weekly_mission:30, weekly_chest:40, garden_restore:8, sentier_perfect:2, dew:1, gift:5 };
+// Barème calibré par simulation (30 jours d'un joueur régulier) : le passe se
+// termine en 3 semaines environ, au lieu de 8 jours puis plus rien.
+const SEASON_XP = { level_win:1, new_star:1, daily_win:6, ritual_mission:3, ritual_chest:6, weekly_mission:10, weekly_chest:15, garden_restore:3, sentier_perfect:1, dew:1, gift:2 };
 function seasonReward(tier){
   const t = safeInt(tier, 1, SEASON_TIERS, 1);
   if(t === SEASON_TIERS) return { coins:120, rosee:15, final:true };
@@ -4314,8 +4408,10 @@ const SCHEMA_MIGRATIONS = {
   // v2 : jardin vivant (rosée du matin, plantes vues, rang, bon retour,
   // rattrapage). Les anciennes sauvegardes gardent tout ; les nouveaux
   // champs démarrent « jamais vu » (aucune fête rétroactive).
-  garden:       { current:2, migrations:{ 1: old=> Object.assign({ dewDay:'', dewTaken:0, plantSeen:null, rankSeen:-1, welcomeDay:'', repairDay:'' },
-                  (old && typeof old==='object' && !Array.isArray(old)) ? old : {}) } },
+  // v3 : bouquets (la rosée sert encore une fois le jardin entièrement réveillé).
+  garden:       { current:3, migrations:{ 1: old=> Object.assign({ dewDay:'', dewTaken:0, plantSeen:null, rankSeen:-1, welcomeDay:'', repairDay:'' },
+                  (old && typeof old==='object' && !Array.isArray(old)) ? old : {}),
+                  2: old=> Object.assign({ bouquets:0 }, (old && typeof old==='object' && !Array.isArray(old)) ? old : {}) } },
   ritual:       { current:1, migrations:{} },
   ads:          { current:1, migrations:{} },
   retention:    { current:1, migrations:{} },
@@ -5120,21 +5216,21 @@ const SEED_COSMETICS = [
   // graines déjà achetées restent possédées et équipées) ; seuls leur rendu
   // et, pour certaines, leur nom gagnent en caractère.
   { id:'default',    name:'Graine dorée',      price:0,   rarity:'common', light:'#ffe08a', mid:'#ffb21e', deep:'#d97a06' },
-  { id:'jade',       name:'Galet de jade',     price:30,  rarity:'common', fx:'jade',      light:'#d4f7e4', mid:'#46c98e', deep:'#14775a' },
-  { id:'saphir',     name:'Saphir taillé',     price:30,  rarity:'common', fx:'saphir',    light:'#d6ecff', mid:'#3d8fe0', deep:'#173f8f' },
-  { id:'pasteque',   name:'Petite pastèque',   price:35,  rarity:'common', fx:'pasteque',  light:'#d9f7c4', mid:'#46b94a', deep:'#1f6b2a' },
-  { id:'rubis',      name:'Cœur de rubis',     price:45,  rarity:'rare',   fx:'rubis',     light:'#ffd0dc', mid:'#e8345e', deep:'#7c0f2c' },
-  { id:'amethyste',  name:'Géode d\'améthyste', price:45, rarity:'rare',   fx:'amethyste', light:'#efe0ff', mid:'#9a5cf0', deep:'#4b1d8f' },
-  { id:'coccinelle', name:'Coccinelle',        price:55,  rarity:'rare',   fx:'coccinelle', light:'#ffb3a8', mid:'#ee3b2c', deep:'#9c140c' },
-  { id:'miel',       name:'Rayon de miel',     price:65,  rarity:'rare',   fx:'miel',      light:'#fff0b8', mid:'#ffb622', deep:'#b86a00' },
-  { id:'argent',     name:'Bille de chrome',   price:80,  rarity:'rare',   fx:'argent',    light:'#ffffff', mid:'#c6ccd8', deep:'#6b7487' },
+  { id:'jade',       name:'Galet de jade',     price:40,  rarity:'common', fx:'jade',      light:'#d4f7e4', mid:'#46c98e', deep:'#14775a' },
+  { id:'saphir',     name:'Saphir taillé',     price:45,  rarity:'common', fx:'saphir',    light:'#d6ecff', mid:'#3d8fe0', deep:'#173f8f' },
+  { id:'pasteque',   name:'Petite pastèque',   price:50,  rarity:'common', fx:'pasteque',  light:'#d9f7c4', mid:'#46b94a', deep:'#1f6b2a' },
+  { id:'rubis',      name:'Cœur de rubis',     price:70,  rarity:'rare',   fx:'rubis',     light:'#ffd0dc', mid:'#e8345e', deep:'#7c0f2c' },
+  { id:'amethyste',  name:'Géode d\'améthyste', price:75, rarity:'rare',   fx:'amethyste', light:'#efe0ff', mid:'#9a5cf0', deep:'#4b1d8f' },
+  { id:'coccinelle', name:'Coccinelle',        price:90,  rarity:'rare',   fx:'coccinelle', light:'#ffb3a8', mid:'#ee3b2c', deep:'#9c140c' },
+  { id:'miel',       name:'Rayon de miel',     price:110,  rarity:'rare',   fx:'miel',      light:'#fff0b8', mid:'#ffb622', deep:'#b86a00' },
+  { id:'argent',     name:'Bille de chrome',   price:140,  rarity:'rare',   fx:'argent',    light:'#ffffff', mid:'#c6ccd8', deep:'#6b7487' },
   // Graines à EFFET animé (épiques et légendaires) : une matière vivante.
-  { id:'braise',     name:'Graine de braise',  price:90,  rarity:'epic',      fx:'braise', light:'#ffe6a8', mid:'#ff8a3a', deep:'#c2331a' },
-  { id:'givre',      name:'Graine de givre',   price:90,  rarity:'epic',      fx:'givre',  light:'#f2fbff', mid:'#9fd8f2', deep:'#3f7fa8' },
-  { id:'bulle',      name:'Bulle de savon',    price:110, rarity:'epic',      fx:'bulle',  light:'#ffffff', mid:'#cfe9ff', deep:'#9fb7ff' },
-  { id:'aurore',     name:'Graine d\'aurore',  price:140, rarity:'legendary', fx:'aurore', light:'#d4fbf5', mid:'#b98cf0', deep:'#2e8f83' },
-  { id:'nuit',       name:'Nuit étoilée',      price:150, rarity:'legendary', fx:'nuit',   light:'#8b9bf0', mid:'#2a2f7a', deep:'#0c0e2a' },
-  { id:'soleil',     name:'Petit soleil',      price:200, rarity:'legendary', fx:'soleil', light:'#fff8c8', mid:'#ffc22e', deep:'#ff7a1a' },
+  { id:'braise',     name:'Graine de braise',  price:160,  rarity:'epic',      fx:'braise', light:'#ffe6a8', mid:'#ff8a3a', deep:'#c2331a' },
+  { id:'givre',      name:'Graine de givre',   price:160,  rarity:'epic',      fx:'givre',  light:'#f2fbff', mid:'#9fd8f2', deep:'#3f7fa8' },
+  { id:'bulle',      name:'Bulle de savon',    price:200, rarity:'epic',      fx:'bulle',  light:'#ffffff', mid:'#cfe9ff', deep:'#9fb7ff' },
+  { id:'aurore',     name:'Graine d\'aurore',  price:260, rarity:'legendary', fx:'aurore', light:'#d4fbf5', mid:'#b98cf0', deep:'#2e8f83' },
+  { id:'nuit',       name:'Nuit étoilée',      price:280, rarity:'legendary', fx:'nuit',   light:'#8b9bf0', mid:'#2a2f7a', deep:'#0c0e2a' },
+  { id:'soleil',     name:'Petit soleil',      price:380, rarity:'legendary', fx:'soleil', light:'#fff8c8', mid:'#ffc22e', deep:'#ff7a1a' },
   // Exclusive au Jardin endormi : ne s'achète pas, se mérite (zone 5 réveillée).
   { id:'lune',       name:'Graine de lune',    price:0, exclusive:'Réveille le Grand Arbre du Jardin', rarity:'legendary', fx:'lune', light:'#f4fbff', mid:'#bcd8f5', deep:'#5b6fb8' }
 ];
@@ -5225,12 +5321,12 @@ function equipCosmetic(id){
 --------------------------------------------------------- */
 const VICTORY_EFFECTS = [
   { id:'default', name:'Pétales dorés',        price:0,  rarity:'common', icon:'🌸', particleClass:'petal',           count:10, cleanupMs:900 },
-  { id:'confetti', name:'Confettis festifs',   price:35, rarity:'common', icon:'🎊', particleClass:'confetti-piece',  count:16, cleanupMs:1000 },
-  { id:'sparkle',  name:'Étincelles dorées',   price:35, rarity:'rare',   icon:'✨', particleClass:'sparkle-piece',   count:14, cleanupMs:700 },
-  { id:'leaf',     name:'Feuilles tourbillonnantes', price:45, rarity:'rare', icon:'🍃', particleClass:'leaf-piece', count:12, cleanupMs:1200 },
-  { id:'papillons', name:'Envol de papillons', price:60, rarity:'rare', icon:'🦋', particleClass:'butterfly-piece', count:7, cleanupMs:1700 },
-  { id:'feux',     name:'Feu d\'artifice',     price:100, rarity:'epic', icon:'🎆', particleClass:'firework-spark', count:30, cleanupMs:1300 },
-  { id:'eclosion', name:'Éclosion',            price:120, rarity:'legendary', icon:'🌺', particleClass:'bloom-petal', count:18, cleanupMs:1500 }
+  { id:'confetti', name:'Confettis festifs',   price:50, rarity:'common', icon:'🎊', particleClass:'confetti-piece',  count:16, cleanupMs:1000 },
+  { id:'sparkle',  name:'Étincelles dorées',   price:55, rarity:'rare',   icon:'✨', particleClass:'sparkle-piece',   count:14, cleanupMs:700 },
+  { id:'leaf',     name:'Feuilles tourbillonnantes', price:70, rarity:'rare', icon:'🍃', particleClass:'leaf-piece', count:12, cleanupMs:1200 },
+  { id:'papillons', name:'Envol de papillons', price:100, rarity:'rare', icon:'🦋', particleClass:'butterfly-piece', count:7, cleanupMs:1700 },
+  { id:'feux',     name:'Feu d\'artifice',     price:170, rarity:'epic', icon:'🎆', particleClass:'firework-spark', count:30, cleanupMs:1300 },
+  { id:'eclosion', name:'Éclosion',            price:210, rarity:'legendary', icon:'🌺', particleClass:'bloom-petal', count:18, cleanupMs:1500 }
 ];
 const VICTORY_EFFECT_OWNED_KEY = 'bcd_victory_fx_owned_v1';
 const VICTORY_EFFECT_EQUIPPED_KEY = 'bcd_victory_fx_equipped_v1';
@@ -5286,15 +5382,15 @@ function equipVictoryEffect(id){
 --------------------------------------------------------- */
 const MOVE_EFFECTS = [
   { id:'default',    name:'Aucun effet',          price:0,  rarity:'common', icon:'➖', particleClass:null,        count:0, cleanupMs:0 },
-  { id:'dust',       name:'Traînée dorée',        price:25, rarity:'common', icon:'✨', particleClass:'move-dust',    count:4, cleanupMs:350 },
-  { id:'leaftrail',  name:'Sillage de feuilles',  price:30, rarity:'rare',   icon:'🍃', particleClass:'move-leaf',    count:3, cleanupMs:450 },
-  { id:'twinkle',    name:'Scintillement bref',   price:25, rarity:'common', icon:'💫', particleClass:'move-twinkle', count:3, cleanupMs:300 },
+  { id:'dust',       name:'Traînée dorée',        price:40, rarity:'common', icon:'✨', particleClass:'move-dust',    count:4, cleanupMs:350 },
+  { id:'leaftrail',  name:'Sillage de feuilles',  price:45, rarity:'rare',   icon:'🍃', particleClass:'move-leaf',    count:3, cleanupMs:450 },
+  { id:'twinkle',    name:'Scintillement bref',   price:40, rarity:'common', icon:'💫', particleClass:'move-twinkle', count:3, cleanupMs:300 },
   // Comète : une seule traînée lumineuse continue, aux couleurs de la graine.
-  { id:'bulles',     name:'Bulles',               price:40, rarity:'rare',   icon:'🫧', particleClass:'move-bubble',  count:4, cleanupMs:700 },
-  { id:'notes',      name:'Petite musique',       price:50, rarity:'rare',   icon:'🎵', particleClass:'move-note',    count:3, cleanupMs:800, glyphs:['♪','♫','♩'] },
-  { id:'comete',     name:'Comète',               price:70, rarity:'epic',   icon:'☄️', particleClass:'move-comet',   count:1, cleanupMs:460 },
+  { id:'bulles',     name:'Bulles',               price:65, rarity:'rare',   icon:'🫧', particleClass:'move-bubble',  count:4, cleanupMs:700 },
+  { id:'notes',      name:'Petite musique',       price:85, rarity:'rare',   icon:'🎵', particleClass:'move-note',    count:3, cleanupMs:800, glyphs:['♪','♫','♩'] },
+  { id:'comete',     name:'Comète',               price:120, rarity:'epic',   icon:'☄️', particleClass:'move-comet',   count:1, cleanupMs:460 },
   // Arc-en-ciel : un ruban continu (même tracé que la comète), en sept couleurs.
-  { id:'arcenciel',  name:'Arc-en-ciel',          price:150, rarity:'legendary', icon:'🌈', particleClass:'move-comet', variant:'move-rainbow', count:1, cleanupMs:620 }
+  { id:'arcenciel',  name:'Arc-en-ciel',          price:280, rarity:'legendary', icon:'🌈', particleClass:'move-comet', variant:'move-rainbow', count:1, cleanupMs:620 }
 ];
 const MOVE_EFFECT_OWNED_KEY = 'bcd_move_fx_owned_v1';
 const MOVE_EFFECT_EQUIPPED_KEY = 'bcd_move_fx_equipped_v1';
@@ -5352,13 +5448,13 @@ function equipMoveEffect(id){
 --------------------------------------------------------- */
 const PROFILE_FRAMES = [
   { id:'default', name:'Cadre simple', price:0,  rarity:'common', borderColor:'#ffffff', borderWidth:3, glow:'none' },
-  { id:'bronze',  name:'Cadre bronze', price:20, rarity:'common', borderColor:'#c97e1f', borderWidth:3, glow:'none' },
-  { id:'argent',  name:'Cadre argent', price:35, rarity:'rare',   borderColor:'#cfcfc5', borderWidth:3, glow:'0 0 8px rgba(207,207,197,.5)' },
-  { id:'saphir',  name:'Cadre saphir', price:45, rarity:'rare',   borderColor:'#4f94cf', borderWidth:3, glow:'0 0 10px rgba(79,148,207,.5)' },
-  { id:'or',      name:'Cadre doré',   price:50, rarity:'epic',   borderColor:'#ffd166', borderWidth:3, glow:'0 0 10px rgba(255,209,102,.6)' },
-  { id:'lagon',   name:'Cadre lagon',  price:35, rarity:'rare',   borderColor:'#1db3a2', borderWidth:4, glow:'0 0 10px rgba(29,179,162,.5)' },
-  { id:'fleurs',  name:'Couronne de fleurs', price:85, rarity:'epic', fx:'fleurs', borderColor:'#ff6f95', borderWidth:4, glow:'0 0 12px rgba(255,111,149,.55)' },
-  { id:'prisme',  name:'Cadre prisme', price:70, rarity:'legendary', fx:'prisme', borderColor:'#c79bf0', borderWidth:4, glow:'0 0 14px rgba(199,155,240,.6)' }
+  { id:'bronze',  name:'Cadre bronze', price:30, rarity:'common', borderColor:'#c97e1f', borderWidth:3, glow:'none' },
+  { id:'argent',  name:'Cadre argent', price:55, rarity:'rare',   borderColor:'#cfcfc5', borderWidth:3, glow:'0 0 8px rgba(207,207,197,.5)' },
+  { id:'saphir',  name:'Cadre saphir', price:70, rarity:'rare',   borderColor:'#4f94cf', borderWidth:3, glow:'0 0 10px rgba(79,148,207,.5)' },
+  { id:'or',      name:'Cadre doré',   price:85, rarity:'epic',   borderColor:'#ffd166', borderWidth:3, glow:'0 0 10px rgba(255,209,102,.6)' },
+  { id:'lagon',   name:'Cadre lagon',  price:60, rarity:'rare',   borderColor:'#1db3a2', borderWidth:4, glow:'0 0 10px rgba(29,179,162,.5)' },
+  { id:'fleurs',  name:'Couronne de fleurs', price:140, rarity:'epic', fx:'fleurs', borderColor:'#ff6f95', borderWidth:4, glow:'0 0 12px rgba(255,111,149,.55)' },
+  { id:'prisme',  name:'Cadre prisme', price:120, rarity:'legendary', fx:'prisme', borderColor:'#c79bf0', borderWidth:4, glow:'0 0 14px rgba(199,155,240,.6)' }
 ];
 const PROFILE_FRAME_OWNED_KEY = 'bcd_frames_owned_v1';
 const PROFILE_FRAME_EQUIPPED_KEY = 'bcd_frame_equipped_v1';
@@ -5607,7 +5703,8 @@ function showAchievementToast(id){
 --------------------------------------------------------- */
 function computeProfileStats(){
   const p = loadProgress();
-  const completed = Object.keys(p).length;
+  const completed = LEVELS.filter((_, i)=> p[i]!==undefined).length;
+  const wild = Object.keys(p).filter(k=> +k >= LEVELS.length).length; // Terres sauvages
   let starsTotal = 0;
   LEVELS.forEach((_,i)=>{ starsTotal += (p[i]||0); });
 
@@ -5637,7 +5734,7 @@ function computeProfileStats(){
   });
 
   return {
-    completed, total: LEVELS.length,
+    completed, total: LEVELS.length, wild,
     starsTotal, starsMax: LEVELS.length*3,
     bestWorldLabel,
     streakCurrent: streak.current||0, streakBest: streak.best||0,
@@ -5944,6 +6041,9 @@ function sfxComboMove(){
   comboStreak++;
 }
 function resetComboStreak(){ comboStreak = 0; }
+// Arrivée d'un long glissement : un « toc » sourd, plus grave et un peu plus
+// présent avec la distance (joué au moment exact de l'impact).
+function sfxImpact(dist){ clay(Math.max(150, 270 - dist * 14), 0.03 + Math.min(dist, 8) * 0.004, 0); }
 
 /* C2. INTERFACE — un "tac" de bois très bref, jamais fatigant. */
 function sfxButtonTap(){ clay(560, 0.05, 0); }
@@ -6438,7 +6538,37 @@ function findNextLevelIndex(){
   for(let i=0;i<LEVELS.length;i++){
     if(p[i]===undefined) return i;
   }
-  return -1; // tous les niveaux sont terminés
+  // Après le Monde 8 : les Terres sauvages, sans fin (index ≥ 60).
+  let i = LEVELS.length;
+  while(p[i]!==undefined && i < LEVELS.length + 100000) i++;
+  return i;
+}
+// Niveau à un index de campagne : fait main (0–59) ou sauvage (60+), généré
+// à la demande et gardé en mémoire (toujours le même pour un index donné).
+const endlessCache = new Map();
+function levelAt(i){
+  if(!Number.isInteger(i) || i < 0) return null;
+  if(i < LEVELS.length) return LEVELS[i];
+  const n = i - LEVELS.length;
+  if(!endlessCache.has(n)){
+    if(endlessCache.size > 40) endlessCache.delete(endlessCache.keys().next().value);
+    endlessCache.set(n, buildEndlessLevel(n));
+  }
+  return endlessCache.get(n);
+}
+// Monde affiché d'un index (1–8 faits main, 9+ sauvages) : numéro, nom, emoji.
+function worldInfoAt(i){
+  if(i < LEVELS.length){
+    const w = LEVELS[i].world, m = WORLD_META[w] || { name:'Monde ' + w, emoji:'🗺️' };
+    return { world:w, theme:w, name:m.name, emoji:m.emoji || '🗺️', sub:m.sub || '', endless:false };
+  }
+  const e = endlessWorldOf(i - LEVELS.length);
+  return { world:e.world, theme:e.theme, name:e.name, emoji:e.emoji, sub:'Terres sauvages', endless:true, slot:e.slot };
+}
+// Index des niveaux d'un monde sauvage (8 par monde).
+function endlessWorldIndices(world){
+  const first = LEVELS.length + (world - ENDLESS_FIRST_WORLD) * ENDLESS_LEVELS_PER_WORLD;
+  return Array.from({ length:ENDLESS_LEVELS_PER_WORLD }, (_, k)=> first + k);
 }
 
 // « À demain ! » : voir tomorrowPreview (A7).
@@ -6480,15 +6610,10 @@ function refreshHome(){
   // des mondes reste accessible juste en dessous.
   const nextIdx = findNextLevelIndex();
   const continueBtn = document.getElementById('btnContinue');
-  if(nextIdx === -1){
-    setT('continueLevelName', 'Campagne terminée · vise les ★★★');
-    if(continueBtn) continueBtn.setAttribute('aria-label', 'Tous les niveaux sont terminés : ouvrir la carte des mondes');
-  } else {
-    const lvl = LEVELS[nextIdx];
-    const meta = WORLD_META[lvl.world] || { name:'Monde '+lvl.world };
-    setT('continueLevelName', nextIdx===0 && Object.keys(p).length===0 ? 'Premier niveau · 10 secondes' : `Niveau ${nextIdx+1} · ${meta.name}`);
-    if(continueBtn) continueBtn.setAttribute('aria-label', `Jouer au niveau ${nextIdx+1}`);
-  }
+  // La campagne ne finit jamais : après le Monde 8, les Terres sauvages.
+  const nextMeta = worldInfoAt(nextIdx);
+  setT('continueLevelName', nextIdx===0 && Object.keys(p).length===0 ? 'Premier niveau · 10 secondes' : `Niveau ${nextIdx+1} · ${nextMeta.name}`);
+  if(continueBtn) continueBtn.setAttribute('aria-label', `Jouer au niveau ${nextIdx+1}`);
 
   // Carte "Défi du jour" : état lisible sans ouvrir l'écran.
   const rule = todayDailyRule();
@@ -6535,9 +6660,7 @@ function refreshHome(){
 }
 
 document.getElementById('btnContinue').addEventListener('click', ()=>{
-  const nextIdx = findNextLevelIndex();
-  if(nextIdx === -1){ renderLevelSelect(); goto('select'); return; }
-  startLevel(nextIdx, false);
+  startLevel(findNextLevelIndex(), false);
 });
 document.getElementById('btnSentier').addEventListener('click', openSentierHub);
 document.getElementById('btnPlay').addEventListener('click', ()=>{
@@ -6567,6 +6690,20 @@ const COSMETIC_CATEGORIES = [
   { id:'victory', label:'Victoires', icon:'🎉', items:()=>VICTORY_EFFECTS, owned:()=>loadOwnedVictoryEffects(), equipped:()=>loadEquippedVictoryEffect(), purchase:id=>purchaseVictoryEffect(id), equip:id=>equipVictoryEffect(id) },
   { id:'frame',   label:'Cadres',    icon:'🖼️', items:()=>PROFILE_FRAMES,  owned:()=>loadOwnedFrames(),         equipped:()=>loadEquippedFrame(),         purchase:id=>purchaseFrame(id),         equip:id=>equipFrame(id) }
 ];
+// Toujours un prochain objectif visible : l'objet le moins cher pas encore
+// possédé (hors exclusifs), et ce qu'il manque pour l'avoir.
+function nextShopGoal(){
+  let best = null;
+  COSMETIC_CATEGORIES.forEach(c=>{
+    const own = c.owned() || [];
+    c.items().forEach(it=>{
+      if(it.exclusive || !it.price || own.includes(it.id)) return;
+      if(!best || it.price < best.price) best = { cat:c.id, id:it.id, name:it.name, price:it.price };
+    });
+  });
+  if(best) best.missing = Math.max(0, best.price - loadCoins());
+  return best;
+}
 const atelier = { cat:'seed', sel:null, demoToken:0 };
 function atelierCat(){ return COSMETIC_CATEGORIES.find(c=> c.id===atelier.cat) || COSMETIC_CATEGORIES[0]; }
 function atelierItem(){ const c = atelierCat(); return c.items().find(i=> i.id===atelier.sel) || c.items()[0]; }
@@ -6806,7 +6943,7 @@ document.getElementById('atelierAction').addEventListener('click', ()=>{
 function renderProfile(){
   const stats = computeProfileStats();
   const setText = (id, txt)=>{ const el = document.getElementById(id); if(el) el.textContent = txt; };
-  setText('profileLevelsCompleted', `${stats.completed}/${stats.total}`);
+  setText('profileLevelsCompleted', stats.wild ? `${stats.completed}+${stats.wild}` : `${stats.completed}/${stats.total}`);
   setText('profileStarsTotal', `${stats.starsTotal}/${stats.starsMax}`);
   setText('profileStreak', `${stats.streakCurrent} / ${stats.streakBest}`);
 
@@ -8000,12 +8137,16 @@ function renderGardenTask(){
   const btn = document.getElementById('btnRestore');
   const fill = document.getElementById('gztFill');
   if(st.complete){
-    document.getElementById('gztKicker').textContent = 'Le jardin est entièrement réveillé';
-    document.getElementById('gztName').textContent = '🌙 Merci, jardinier.';
-    fill.style.width = '100%';
-    document.getElementById('gztCount').textContent = `💧 ${g.rosee}`;
-    btn.hidden = true;
-    document.getElementById('gztHelp').textContent = 'Ta rosée reste en réserve.';
+    const can = g.rosee >= BOUQUET.cost;
+    document.getElementById('gztKicker').textContent = 'Jardin réveillé' + (g.bouquets ? ` · ${g.bouquets} bouquet${g.bouquets>1?'s':''}` : '');
+    document.getElementById('gztName').textContent = '💐 Cueillir un bouquet';
+    fill.style.width = Math.min(100, Math.round(g.rosee / BOUQUET.cost * 100)) + '%';
+    document.getElementById('gztCount').textContent = `💧 ${Math.min(g.rosee, BOUQUET.cost)} / ${BOUQUET.cost}`;
+    btn.hidden = false;
+    btn.disabled = !can;
+    btn.classList.toggle('shimmer', can);
+    btn.textContent = can ? `💐 Cueillir · ${BOUQUET.cost} 💧` : `Encore ${BOUQUET.cost - g.rosee} 💧`;
+    document.getElementById('gztHelp').textContent = `Chaque bouquet rapporte ${BOUQUET.coins} 🪙 et de l'XP de saison.`;
   } else {
     const cost = st.next.task.cost, can = g.rosee >= cost;
     document.getElementById('gztKicker').textContent = `Prochain chantier · ${st.next.zone.name}`;
@@ -8068,7 +8209,22 @@ function gardenDrops(stage, fromEl, to, n){
   }
 }
 let restoreBusy = false;
+function pickBouquet(){
+  const r = gardenBouquet(loadGarden());
+  if(!r.ok){ if(r.reason==='rosee'){ sfxInsufficientFunds(); vibrate(20); } return; }
+  saveGarden(r.save);
+  addCoins(r.coins);
+  Analytics.track('garden_bouquet', { n:r.save.bouquets });
+  const stage = document.getElementById('gzStage'), b = document.getElementById('btnRestore');
+  if(stage && !gpReduced()){ const box = stage.getBoundingClientRect(); gardenSparks(stage, box.width/2, box.height*0.55, 16); gpBloomBurst(stage, box.width/2, box.height*0.55); }
+  sfxRestore(); vibrate([10, 30, 20]);
+  flyIcons(b, document.getElementById('gardenRoseePill'), '🪙', 5);
+  showSimpleToast('💐', 'Bouquet cueilli', `+${r.coins} 🪙`, 'info-toast');
+  ritualEvent({ type:'garden_restore' });
+  renderGardenTask(); updateNavBadges();
+}
 function restoreNextTask(){
+  if(gardenStatus(loadGarden().done).complete){ pickBouquet(); return; }
   if(restoreBusy) return;
   const r = gardenRestoreNext(loadGarden());
   if(!r.ok){
@@ -8685,7 +8841,11 @@ function renderCollectionExtras(){
   if(prog){
     const cats = COSMETIC_CATEGORIES.map(c=>{ const all = c.items(); const own = all.filter(i=> (c.owned()||[]).includes(i.id)).length; return `<span class="col-cat">${c.icon} ${own}/${all.length}</span>`; }).join('');
     const pct = Math.round(col.owned / Math.max(1, col.total) * 100);
-    prog.innerHTML = `<div class="col-head"><b>Ta collection</b><span>${col.owned} / ${col.total}</span></div><div class="col-bar"><div class="col-fill" style="width:${pct}%"></div></div><div class="col-cats">${cats}</div>`;
+    const goal = nextShopGoal();
+    const goalHtml = !goal ? '' : `<button class="col-goal${goal.missing ? '' : ' ready'}" type="button" data-cat="${goal.cat}" data-id="${goal.id}">🎯 ${goal.missing ? `Prochain : <b>${goal.name}</b> — encore ${goal.missing} 🪙` : `Tu peux t'offrir <b>${goal.name}</b> (${goal.price} 🪙)`}</button>`;
+    prog.innerHTML = `<div class="col-head"><b>Ta collection</b><span>${col.owned} / ${col.total}</span></div><div class="col-bar"><div class="col-fill" style="width:${pct}%"></div></div><div class="col-cats">${cats}</div>${goalHtml}`;
+    const gb = prog.querySelector('.col-goal');
+    if(gb) gb.addEventListener('click', ()=>{ atelier.cat = gb.dataset.cat; atelier.sel = gb.dataset.id; renderCosmetics(); });
   }
   const msEl = document.getElementById('colMilestones');
   if(msEl){
@@ -8867,9 +9027,10 @@ function navInit(){
 function renderWorldHero(){
   const p = loadProgress();
   const nextIdx = findNextLevelIndex();
-  const world = nextIdx >= 0 ? LEVELS[nextIdx].world : ALL_WORLDS[ALL_WORLDS.length - 1];
-  const meta = WORLD_META[world] || { name:'Monde ' + world, emoji:'🗺️' };
-  const idxs = worldLevelIndices(world);
+  const info = worldInfoAt(nextIdx);
+  const world = info.theme; // palette, décor et plante (un monde sauvage reprend ceux d'un monde 1–8)
+  const meta = { name: info.name, emoji: info.emoji };
+  const idxs = info.endless ? endlessWorldIndices(info.world) : worldLevelIndices(world);
   const done = idxs.filter(i=> p[i]!==undefined).length;
   const stars = idxs.reduce((a, i)=> a + (p[i]||0), 0);
   const hero = document.getElementById('worldHero');
@@ -8887,13 +9048,14 @@ function renderWorldHero(){
   const stage = gardenStageFor(world, p).stage;
   const plantEl = document.getElementById('worldHeroPlant');
   if(plantEl && plantEl.dataset.k !== world + ':' + stage){ plantEl.dataset.k = world + ':' + stage; plantEl.innerHTML = gpPlantBadgeSVG(world, stage); }
-  setPill('worldHeroKicker', `Monde ${world} ${meta.emoji || ''}`);
+  setPill('worldHeroKicker', `Monde ${info.world} ${meta.emoji || ''}${info.endless ? ' · sauvage' : ''}`);
   setPill('worldHeroName', meta.name);
   setPill('worldHeroSub', `${done}/${idxs.length} niveaux · ${stars}/${idxs.length * 3} ★`);
   const fill = document.getElementById('worldHeroFill');
   if(fill) fill.style.width = Math.round(done / Math.max(1, idxs.length) * 100) + '%';
-  const total = Object.keys(p).length;
-  setPill('mapBtnSub', `${total}/${LEVELS.length}`);
+  const total = LEVELS.filter((_, i)=> p[i]!==undefined).length;
+  const wild = Object.keys(p).filter(k=> +k >= LEVELS.length).length;
+  setPill('mapBtnSub', total < LEVELS.length ? `${total}/${LEVELS.length}` : `${LEVELS.length}/${LEVELS.length} · 🌿 ${wild}`);
 }
 
 /* ---------- Écran de lancement ---------- */
@@ -9166,6 +9328,52 @@ function renderWorldAmbience(world){
   art.innerHTML = html;
 }
 
+// Les Terres sauvages sur la carte : les mondes déjà ouverts (les 8 derniers
+// au plus), ou, avant le niveau 60, une promesse verrouillée.
+function renderEndlessSections(grid, p, nextLevelIndex){
+  const open = p[LEVELS.length - 1]!==undefined;
+  if(!open){
+    const teaser = document.createElement('div');
+    teaser.className = 'world-section locked-world endless-teaser';
+    setWorldVars(teaser, 1);
+    teaser.innerHTML = `<div class="world-header"><div class="world-emoji-badge">🌿</div><div class="lbl-group"><div class="world-name">Les Terres sauvages</div><div class="world-sub">Après le Monde 8 : des mondes sans fin, toujours résolubles.</div></div></div>`;
+    grid.appendChild(teaser);
+    return;
+  }
+  const lastWorld = worldInfoAt(nextLevelIndex).world;
+  for(let w = Math.max(ENDLESS_FIRST_WORLD, lastWorld - 7); w <= lastWorld; w++){
+    const idxs = endlessWorldIndices(w);
+    const info = worldInfoAt(idxs[0]);
+    const done = idxs.filter(i=> p[i]!==undefined).length;
+    const stars = idxs.reduce((a, i)=> a + (p[i]||0), 0);
+    const section = document.createElement('div');
+    section.className = 'world-section endless-world';
+    setWorldVars(section, info.theme);
+    section.innerHTML = `<div class="world-deco" aria-hidden="true">${worldArtSVG(info.theme)}</div>
+      <div class="world-header"><div class="world-emoji-badge">${info.emoji}</div>
+        <div class="lbl-group"><div class="world-name">Monde ${w} — ${info.name}</div><div class="world-sub">Terres sauvages</div></div>
+        <div class="world-stats"><div class="world-stat-levels">${done} / ${idxs.length} niveaux</div><div class="world-stat-stars">⭐ ${stars} / ${idxs.length * 3}</div></div></div>
+      <div class="world-bar"><div class="world-bar-fill" style="width:${Math.round(done / idxs.length * 100)}%"></div></div>`;
+    const cards = document.createElement('div');
+    cards.className = 'grid-levels';
+    idxs.forEach(i=>{
+      const unlocked = p[i-1]!==undefined, st = p[i] || 0;
+      const card = document.createElement('div');
+      card.className = 'level-card' + (unlocked ? '' : ' locked') + (i===nextLevelIndex ? ' current' : '') + (st===3 ? ' perfect' : '');
+      card.dataset.level = String(i);
+      card.innerHTML = `<div>${i+1}</div><div class="stars">${unlocked ? '★'.repeat(st)+'☆'.repeat(3-st) : '🔒'}</div>`;
+      if(unlocked){
+        card.setAttribute('role', 'button'); card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', `Niveau ${i+1} : ${info.name}${st>0 ? ', '+st+' étoile'+(st>1?'s':'') : ''}`);
+        card.addEventListener('click', ()=> startLevel(i, false));
+        card.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); card.click(); } });
+      }
+      cards.appendChild(card);
+    });
+    section.appendChild(cards);
+    grid.appendChild(section);
+  }
+}
 function renderLevelSelect(focusIndex){
   const p = loadProgress();
   const grid = document.getElementById('levelGrid');
@@ -9175,10 +9383,7 @@ function renderLevelSelect(focusIndex){
   // débloqué (même règle que "unlocked" ci-dessous) qui n'a pas encore été
   // terminé. -1 si tous les niveaux débloqués sont déjà terminés (rien à
   // mettre en avant dans ce cas).
-  const nextLevelIndex = LEVELS.findIndex((_, i)=>{
-    const unlocked = i===0 || (p[i-1]!==undefined);
-    return unlocked && p[i]===undefined;
-  });
+  const nextLevelIndex = findNextLevelIndex();
 
   ALL_WORLDS.forEach(world=>{
     const idxs = worldLevelIndices(world);
@@ -9254,6 +9459,7 @@ function renderLevelSelect(focusIndex){
     section.appendChild(cardsWrap);
     grid.appendChild(section);
   });
+  renderEndlessSections(grid, p, nextLevelIndex);
   // Carnet de maîtrise : niveaux à 2 étoiles = un seul coup de trop. Un
   // objectif court et précis, que le fantôme du record rend concret.
   const near = LEVELS.map((_,i)=>i).filter(i=> p[i]===2);
@@ -9292,7 +9498,7 @@ function renderLevelSelect(focusIndex){
    G. CHARGEMENT D'UN NIVEAU
 ========================================================= */
 function startLevel(index, isDaily){
-  const lvl = LEVELS[index];
+  const lvl = isDaily ? LEVELS[index] : levelAt(index);
   if(!lvl){
     // Niveau inexistant (ex. contenu réduit lors d'une future mise à jour,
     // index corrompu ou obsolète) : ne jamais planter en tentant de lire
@@ -9308,6 +9514,8 @@ function startLevel(index, isDaily){
     levelIndex: index,
     title: isDaily ? '🌤 Défi du jour' : (index+1)+'. '+lvl.name
   });
+  // Premier pas dans les Terres sauvages : Germain l'explique, une fois.
+  if(!isDaily && index >= LEVELS.length) setTimeout(()=>{ if(state.screen==='game' && state.levelIndex===index) showTipOnce('endless', coachLine('tip_endless'), { position:'top' }); }, 900);
 }
 
 // Tutoriel JOUÉ (Blueprint §17 : "le niveau 1 montre le swipe, le niveau 2
@@ -9518,6 +9726,7 @@ function undoMove(){
   state.stuck = false;
   document.getElementById('hudMoves').textContent = state.moves;
   resetHint();
+  document.getElementById('overlay').style.setProperty('--slide-ms', (reducedMotionNow() ? 80 : 140) + 'ms'); // retour en arrière : vif
   positionPieces(false);
   updateStarMeter(false);
   updateUndoButton();
@@ -9781,8 +9990,20 @@ function spawnTrail(container, fx, cx0, cy0, cx1, cy1, cs){
   }
 }
 
-const SLIDE_TRANSITION_MS = 160; // doit rester égal à la transition CSS de .piece
-function playLandingFeedback(isWin, dx, before){
+const SLIDE_TRANSITION_MS = 160; // durée par défaut (variable CSS --slide-ms de .piece)
+// Durée d'un glissement selon la distance parcourue (en cases) : vif sur une
+// case, plus ample sur toute la largeur, jamais au-delà de 250 ms.
+function slideMsFor(cells){
+  if(reducedMotionNow()) return 80;
+  return Math.round(Math.min(250, 112 + 22 * Math.max(1, cells)));
+}
+// Distance la plus longue parcourue par une pièce pendant ce coup.
+function moveDistance(before){
+  let d = Math.abs(state.seed.x - before.seed.x) + Math.abs(state.seed.y - before.seed.y);
+  state.rocks.forEach((r, i)=>{ const b = before.rocks[i]; if(b) d = Math.max(d, Math.abs(r.x - b.x) + Math.abs(r.y - b.y)); });
+  return d;
+}
+function playLandingFeedback(isWin, dx, before, ms){
   const gen = state.sessionId;
   setTimeout(()=>{
     if(gen !== state.sessionId) return;
@@ -9805,7 +10026,17 @@ function playLandingFeedback(isWin, dx, before){
       setTimeout(()=> el.classList.remove(cls), 220);
     });
     if(els.length) spawnImpactDust(dx, before);
-  }, SLIDE_TRANSITION_MS);
+    // Long glissement : le plateau encaisse le choc, dans le sens du coup.
+    const dist = moveDistance(before);
+    if(dist >= 3 && els.length) sfxImpact(dist);
+    if(dist >= 4 && !reducedMotionNow()){
+      const board = document.getElementById('board');
+      const dy = dx===0 ? (state.lastMoveDy||0) : 0;
+      board.style.setProperty('--bx', (dx * 3) + 'px'); board.style.setProperty('--by', (dy * 3) + 'px');
+      board.classList.remove('bump'); void board.offsetWidth; board.classList.add('bump');
+      setTimeout(()=> board.classList.remove('bump'), 260);
+    }
+  }, ms || SLIDE_TRANSITION_MS);
 }
 // Poussière au point d'arrêt de chaque pièce qui a bougé + le plateau qui
 // « encaisse » d'un ou deux pixels dans le sens du glissement. Décoratif.
@@ -9916,8 +10147,10 @@ function performMove(dx,dy){
   const isWin = state.seed.x===state.goal.x && state.seed.y===state.goal.y;
   // Les pièces glissent d'abord (transition CSS .16s), PUIS l'arrivée est
   // marquée : compression dans l'axe du glissement, ou "pop" de victoire.
+  const slideMs = slideMsFor(moveDistance(snapshot));
+  document.getElementById('overlay').style.setProperty('--slide-ms', slideMs + 'ms');
   positionPieces(false);
-  playLandingFeedback(isWin, dx, snapshot);
+  playLandingFeedback(isWin, dx, snapshot, slideMs);
   if(!isWin){
     updateStarMeter(true);
     // Vérification d'impasse (BFS, jusqu'à ~10 ms sur ordinateur) différée :
@@ -9975,14 +10208,15 @@ function performMove(dx,dy){
     else if(anyClosed) sfxDoorClose();
   }
 
-  vibrate(12);
+  // Vibration à la mesure du glissement : un frôlement sur une case, un vrai choc sur toute la largeur.
+  vibrate(Math.min(24, 8 + 2 * moveDistance(snapshot)));
   if(isWin){
     state.won = true;
     updateStarMeter(false);
     updateUndoButton();
     stopTimer();
     const winningSessionId = state.sessionId;
-    setTimeout(()=>onWin(winningSessionId), 260);
+    setTimeout(()=>onWin(winningSessionId), Math.max(260, slideMs + 110));
   }
 }
 
@@ -10436,16 +10670,30 @@ boardEl.addEventListener('pointerdown', e=>{
   // swipe valide pouvait silencieusement ne rien faire.
   try{ boardEl.setPointerCapture(e.pointerId); }catch(err){}
 });
+// Le coup part DÈS que le geste est clair (pendant le mouvement du doigt),
+// sans attendre qu'il se lève : aucune latence perçue. Un seul coup par
+// contact (fired), le lever du doigt ne rejoue rien.
+function swipeFire(dx, dy){
+  hideSwipeHint();
+  if(Math.abs(dx) > Math.abs(dy)) performMove(dx>0?1:-1, 0);
+  else performMove(0, dy>0?1:-1);
+}
+boardEl.addEventListener('pointermove', e=>{
+  if(!touchStart || touchStart.fired || e.pointerId !== touchStart.pointerId) return;
+  const dx = e.clientX - touchStart.x, dy = e.clientY - touchStart.y;
+  if(Math.max(Math.abs(dx), Math.abs(dy)) < 28) return;
+  touchStart.fired = true;
+  swipeFire(dx, dy);
+});
 boardEl.addEventListener('pointerup', e=>{
   if(!touchStart || e.pointerId !== touchStart.pointerId) return; // pas le doigt qui a initié ce swipe
   const dx = e.clientX - touchStart.x;
   const dy = e.clientY - touchStart.y;
+  const fired = touchStart.fired;
   touchStart = null;
-  const absX = Math.abs(dx), absY = Math.abs(dy);
-  if(Math.max(absX,absY) < 18) return; // trop court, ignoré
-  hideSwipeHint();
-  if(absX > absY) performMove(dx>0?1:-1, 0);
-  else performMove(0, dy>0?1:-1);
+  if(fired) return; // déjà joué pendant le mouvement
+  if(Math.max(Math.abs(dx), Math.abs(dy)) < 18) return; // trop court, ignoré
+  swipeFire(dx, dy);
 });
 // Contact interrompu par le système (ex. appel entrant, geste du navigateur) :
 // libère l'état sans essayer de jouer un coup avec des coordonnées invalides.
@@ -10652,17 +10900,16 @@ let onWin = function(expectedSessionId){
       undo:state.undoCount, hint:state.hintUsedThisAttempt, first:wasFirstCompletion });
     if(wasFirstCompletion && state.levelIndex===2) Analytics.track('tutorial_end', null);
 
+    // Le niveau suivant existe toujours (après le 60 : les Terres sauvages).
     const nextIdx = state.levelIndex + 1;
-    if(wasFirstCompletion && nextIdx < LEVELS.length){
+    const nextWorld = worldInfoAt(nextIdx), curWorld = worldInfoAt(state.levelIndex);
+    nextIsNewWorld = nextWorld.world !== curWorld.world;
+    if(wasFirstCompletion){
       if(stillInGame) setTimeout(sfxUnlock, 480);
-      if(LEVELS[nextIdx].world !== lvl.world){
-        nextIsNewWorld = true;
-        const meta = WORLD_META[LEVELS[nextIdx].world] || { name:'Monde '+LEVELS[nextIdx].world, emoji:'🗺️' };
-        rewards.push({ icon:meta.emoji, text:'Nouveau monde : '+meta.name, kind:'unlock' });
-        Analytics.track('world_unlock', { world:LEVELS[nextIdx].world });
+      if(nextIsNewWorld){
+        rewards.push({ icon:nextWorld.emoji, text:(nextWorld.endless && !curWorld.endless ? 'Terres sauvages : ' : 'Nouveau monde : ') + nextWorld.name, kind:'unlock' });
+        Analytics.track('world_unlock', { world:nextWorld.world });
       }
-    } else if(nextIdx < LEVELS.length && LEVELS[nextIdx].world !== lvl.world){
-      nextIsNewWorld = true;
     }
     // Coins : uniquement à la toute première réussite de ce niveau (anti-farming).
     if(wasFirstCompletion){
@@ -10690,10 +10937,12 @@ let onWin = function(expectedSessionId){
     const streakBefore = loadStreak();
     const dailyInfo = recordDailyCompletion(state.moves, state.elapsed, stars);
     Analytics.track('daily_complete', { moves:state.moves, time:state.elapsed, stars, retry:!!previousToday });
-    // Le défi du jour est un événement quotidien répétable : chaque réussite
-    // (même une retentative) est récompensée, un nouveau défi arrive chaque jour.
-    addCoins(COIN_REWARDS.dailyComplete);
-    coinsEarnedThisRun += COIN_REWARDS.dailyComplete;
+    // Pièces du défi : à la 1re réussite du jour seulement (une retentative
+    // améliore le score, mais ne rapporte plus rien : fin des pièces à volonté).
+    if(dailyFirstToday){
+      addCoins(COIN_REWARDS.dailyComplete);
+      coinsEarnedThisRun += COIN_REWARDS.dailyComplete;
+    }
     const cur = dailyInfo.streak.current||0;
     const streakGrew = cur > (streakBefore.current||0) || streakBefore.lastSuccessDate !== todayKey();
     rewards.push({ icon:'🔥', text:`Série : ${cur} jour${cur>1?'s':''}`, kind:'streak' });
@@ -10751,7 +11000,7 @@ let onWin = function(expectedSessionId){
     rewards.push({ icon:'✨', text:`Prêt à réveiller : ${gardenNow.next.task.name}`, kind:'unlock' });
   }
   retentionTrack('l');
-  const baseCoins = state.repair ? 0 : state.isDaily ? COIN_REWARDS.dailyComplete : (wasFirstCompletion ? COIN_REWARDS.levelFirstComplete : 0);
+  const baseCoins = state.repair ? 0 : state.isDaily ? (dailyFirstToday ? COIN_REWARDS.dailyComplete : 0) : (wasFirstCompletion ? COIN_REWARDS.levelFirstComplete : 0);
 
   if(stillInGame) spawnVictoryEffect();
   document.getElementById('vMoves').textContent = state.moves;
@@ -10818,8 +11067,6 @@ let onWin = function(expectedSessionId){
     nextBtn.textContent = loadTodayDailyResult() ? 'VOIR MON RÉSUMÉ DU JOUR →' : 'DÉFI DU JOUR →';
   } else if(state.isDaily){
     nextBtn.textContent = 'VOIR MON RÉSUMÉ DU JOUR →';
-  } else if(state.levelIndex + 1 >= LEVELS.length){
-    nextBtn.textContent = 'RETOUR À L\'ACCUEIL';
   } else {
     nextBtn.textContent = nextIsNewWorld ? 'MONDE SUIVANT →' : 'NIVEAU SUIVANT →';
   }
@@ -10993,10 +11240,7 @@ document.getElementById('btnNextLevel').addEventListener('click', ()=>{
   const next = state.levelIndex+1;
   // Pause naturelle entre deux niveaux : seul endroit (avec la fin d'une
   // partie du Sentier) où un interstitiel pourrait un jour s'afficher.
-  showInterstitial('level_break').then(()=>{
-    if(next < LEVELS.length) startLevel(next, false);
-    else { refreshHome(); goto('home'); }
-  });
+  showInterstitial('level_break').then(()=> startLevel(next, false));
 });
 // Rejouer / recommencer : relance EXACTEMENT le même plateau (campagne,
 // défi généré ou plateau du Sentier) avec les mêmes options.

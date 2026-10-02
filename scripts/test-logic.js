@@ -34,7 +34,7 @@ const exportsList = 'LEVELS, Solver, makeRng, hashSeed, generateBoard, transform
   'weekKeyFor, seasonKeyFor, DAILY_GIFTS, sanitizeGift, giftStatus, giftClaim, WEEKLY_POOL, WEEKLY_COUNT, weeklyMission, weeklyMissionsFor, ' +
   'sanitizeWeekly, weeklyApply, weeklyClaimable, weeklyClaim, weeklyChestReady, SEASON_TIERS, SEASON_XP_PER_TIER, seasonReward, sanitizeSeason, ' +
   'seasonTier, seasonClaimable, seasonRoll, seasonAddXP, seasonClaim, seasonDaysLeft, marketDailyOffer, marketWeeklyPack, sanitizeMarket, ' +
-  'COLLECTION_MILESTONES, collectionMilestones, sanitizeNav, navBadgeCounts, dailyPersonalRank, tomorrowPreview, bundleText';
+  'COLLECTION_MILESTONES, collectionMilestones, sanitizeNav, navBadgeCounts, dailyPersonalRank, tomorrowPreview, bundleText, buildEndlessLevel, endlessWorldOf, BOUQUET, gardenBouquet, endlessProfile, ENDLESS_WORLDS, ENDLESS_LEVELS_PER_WORLD, ENDLESS_FIRST_WORLD';
 const ctx = vm.createContext({ console: { log() {} } });
 vm.runInContext('"use strict";\n' + js.slice(start, end) + `\n;globalThis.__t = { ${exportsList} };`, ctx, { filename: 'logic.js' });
 const T = ctx.__t;
@@ -474,6 +474,113 @@ console.log(`✔ tutoriel : ${Object.keys(lines).length} répliques, états, vis
   check(T.dailyPersonalRank(hist, '20260928').rank === 2 && T.dailyPersonalRank(hist, '20260928').of === 4, 'défi : 2e meilleur sur 4 (étoiles puis temps)');
   check(T.dailyPersonalRank(hist.slice(0, 2), '20260926') === null && T.dailyPersonalRank(hist, '20261001') === null, 'pas de classement sans assez d\'historique ni sans résultat');
   console.log('✔ hub : cadeau du jour, missions de la semaine, saison, marché, collection, pastilles, classement personnel');
+}
+
+// ---------- BFS INDÉPENDANT (règle 3) ----------
+// Réécrit de zéro, sans rien partager avec le Solver du jeu (grilles 2D,
+// pas de Map/Set de clés texte, pas de buildPortalMap…), à partir des règles
+// écrites : glissement jusqu'à l'obstacle, rochers poussés dans l'ordre du
+// sens du coup, ancre = arrêt net, portail = téléportation (sortie occupée →
+// arrêt sur le portail), sens unique / portail directionnel = entrée filtrée,
+// porte fermée sauf si son interrupteur est occupé AVANT le coup.
+function independentMinMoves(L, cap) {
+  const N = L.size, idx = (x, y) => y * N + x;
+  const wall = new Uint8Array(N * N), anchor = new Uint8Array(N * N);
+  (L.walls || []).forEach(w => { wall[idx(w.x, w.y)] = 1; });
+  (L.anchors || []).forEach(a => { anchor[idx(a.x, a.y)] = 1; });
+  const tele = new Int32Array(N * N).fill(-1), entry = new Array(N * N).fill(null);
+  const V = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+  (L.portals || []).forEach(p => { tele[idx(p.ax, p.ay)] = idx(p.bx, p.by); tele[idx(p.bx, p.by)] = idx(p.ax, p.ay);
+    if (p.dirA) entry[idx(p.ax, p.ay)] = V[p.dirA]; if (p.dirB) entry[idx(p.bx, p.by)] = V[p.dirB]; });
+  (L.oneways || []).forEach(o => { entry[idx(o.x, o.y)] = V[o.dir]; });
+  const door = new Int32Array(N * N).fill(-1);
+  (L.switches || []).forEach(s => { door[idx(s.doorX, s.doorY)] = idx(s.x, s.y); });
+  const goal = idx(L.goal.x, L.goal.y);
+  const enc = (seed, rocks) => seed + ':' + rocks.slice().sort((a, b) => a - b).join(',');
+  const step = (seed, rocks, dx, dy) => {
+    const pieces = [{ s: true, c: seed }].concat(rocks.map(c => ({ s: false, c })));
+    const filled = new Uint8Array(N * N); filled.set(wall);
+    const onSwitch = new Set(pieces.map(p => p.c));
+    const key = p => { const x = p.c % N, y = (p.c / N) | 0; return dx > 0 ? -x : dx < 0 ? x : dy > 0 ? -y : y; };
+    const order = pieces.map((p, i) => [key(p), i]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(e => pieces[e[1]]);
+    let moved = false; const out = [];
+    for (const p of order) {
+      let x = p.c % N, y = (p.c / N) | 0, hops = 0;
+      for (;;) {
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= N || ny >= N) break;
+        const n = idx(nx, ny);
+        if (filled[n]) break;
+        if (entry[n] && (entry[n][0] !== dx || entry[n][1] !== dy)) break;
+        if (door[n] >= 0 && !onSwitch.has(door[n])) break;
+        x = nx; y = ny;
+        if (anchor[n]) break;
+        if (tele[n] >= 0) {
+          if (filled[tele[n]]) break;
+          x = tele[n] % N; y = (tele[n] / N) | 0;
+          if (anchor[tele[n]]) break;
+          if (++hops > 20) break;
+        }
+      }
+      const c = idx(x, y);
+      if (c !== p.c) moved = true;
+      filled[c] = 1; out.push({ s: p.s, c });
+    }
+    if (!moved) return null;
+    return { seed: out.find(o => o.s).c, rocks: out.filter(o => !o.s).map(o => o.c) };
+  };
+  const s0 = idx(L.seed.x, L.seed.y), r0 = (L.rocks || []).map(r => idx(r.x, r.y));
+  if (s0 === goal) return 0;
+  const seen = new Set([enc(s0, r0)]);
+  let frontier = [{ seed: s0, rocks: r0 }];
+  for (let d = 1; d <= (cap || 40) && frontier.length; d++) {
+    const next = [];
+    for (const st of frontier) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const r = step(st.seed, st.rocks, dx, dy);
+      if (!r) continue;
+      if (r.seed === goal) return d;
+      const k = enc(r.seed, r.rocks);
+      if (!seen.has(k)) { seen.add(k); next.push(r); }
+    }
+    frontier = next;
+  }
+  return -1;
+}
+{
+  let bad = T.LEVELS.map((l, i) => [i, independentMinMoves(l)]).filter(([i, m]) => m !== T.LEVELS[i].par);
+  check(bad.length === 0, `BFS indépendant : les 60 niveaux faits main ont le par annoncé${bad.length ? ' (écarts : ' + bad.map(b => (b[0] + 1) + '→' + b[1]).join(', ') + ')' : ''}`);
+  // ---------- Les Terres sauvages (campagne infinie) ----------
+  const NE = 80; const endless = [];
+  for (let n = 0; n < NE; n++) endless.push(T.buildEndlessLevel(n));
+  bad = endless.filter(l => { const a = T.Solver.analyze(l); return !a.solvable || a.minMoves !== l.par || a.brokenReason; });
+  check(bad.length === 0, `Terres sauvages : ${NE} niveaux générés valides pour le solveur interne (par exact)`);
+  bad = endless.filter(l => independentMinMoves(l) !== l.par);
+  check(bad.length === 0, `Terres sauvages : ${NE} niveaux confirmés par le BFS indépendant${bad.length ? ' (' + bad.map(l => l.name).join(', ') + ')' : ''}`);
+  check(endless.every(l => l.par >= 3), 'Terres sauvages : jamais trivial (par ≥ 3)');
+  const again = T.buildEndlessLevel(13);
+  check(JSON.stringify(again) === JSON.stringify(endless[13]), 'Terres sauvages : même numéro, même plateau (pour tout le monde)');
+  check(endless.filter(l => l.featured).every(l => T.mechanicMatters(l, l.featured, l.par)), 'Terres sauvages : la mécanique vedette compte toujours');
+  const w = T.endlessWorldOf(0), w2 = T.endlessWorldOf(8 * 8 + 3);
+  check(w.world === 9 && w.slot === 0 && endless[0].world === 1 && w2.world === 9 + 8 && / II$/.test(w2.name) && w2.slot === 3, 'Terres sauvages : monde 9, 10… ; après 8 mondes, le tour suivant (« II »)');
+  // Dents de scie : le dernier niveau d'un monde est plus long que le premier.
+  const saw = [0, 1, 2, 3, 4, 5].every(wi => endless[wi * 8 + 7].par > endless[wi * 8].par);
+  check(saw, 'Terres sauvages : dans chaque monde, le niveau « ultime » est plus exigeant que le premier');
+  const mechs = new Set(endless.map(l => l.featured).filter(Boolean));
+  check(mechs.size === 6, `Terres sauvages : toutes les mécaniques reviennent (${[...mechs].join(', ')})`);
+  // Le Sentier et le défi du jour aussi, contre le BFS indépendant.
+  const sent = []; for (let s = 1; s <= 30; s++) sent.push(T.buildSentierBoard(T.makeRng(T.hashSeed('ind-' + s)), 1 + (s % 16), { known: T.GEN_MECHANICS.slice(), completedIndices: T.LEVELS.map((_, i) => i), kind: 'chrono' }));
+  bad = sent.filter(l => independentMinMoves(l) !== (l.par || T.Solver.analyze(l).minMoves));
+  check(bad.length === 0, 'BFS indépendant : 30 plateaux du Sentier confirmés');
+  const daily = []; for (let d = 0; d < 21; d++) { const k = '202610' + String(1 + d).padStart(2, '0'); daily.push(T.buildDailyBoard(k, d % 7)); }
+  bad = daily.filter(l => l && independentMinMoves(l) !== l.par);
+  check(bad.length === 0, 'BFS indépendant : 21 défis du jour confirmés');
+  // Bouquets : la rosée sert encore, seulement une fois le jardin fini.
+  check(!T.gardenBouquet({ done: T.GARDEN_TOTAL_TASKS - 1, rosee: 99 }).ok, 'bouquet : seulement quand le jardin est entièrement réveillé');
+  check(T.gardenBouquet({ done: T.GARDEN_TOTAL_TASKS, rosee: T.BOUQUET.cost - 1 }).reason === 'rosee', 'bouquet : pas assez de rosée');
+  const bq = T.gardenBouquet({ done: T.GARDEN_TOTAL_TASKS, rosee: 40, bouquets: 2 });
+  check(bq.ok && bq.save.rosee === 40 - T.BOUQUET.cost && bq.save.bouquets === 3 && bq.coins === T.BOUQUET.coins && bq.save.done === T.GARDEN_TOTAL_TASKS, 'bouquet : rosée dépensée, pièces gagnées, compteur');
+  check(T.sanitizeGardenSave({ bouquets: 'x' }).bouquets === 0, 'bouquet : compteur corrompu = 0');
+  console.log('\n— BFS indépendant et Terres sauvages\n✔ 60 niveaux, 80 niveaux sauvages, 30 plateaux du Sentier, 21 défis : par confirmé par un second solveur écrit de zéro');
 }
 
 console.log(`\n${checks} vérifications, ${failures} échec(s).`);

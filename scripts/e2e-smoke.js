@@ -235,15 +235,15 @@ function startStaticServer(root) {
   await page.click('#toggleMotion');
   await page.click('#btnBackHomeSettings'); await wait(200);
 
-  // 8b. L'Atelier : aperçu, achat, équipement (graine épique « Braise », 90 coins)
-  await page.evaluate(() => BCD_DEV.devSetCoins(100));
+  // 8b. L'Atelier : aperçu, achat, équipement (graine épique « Braise », 160 coins)
+  await page.evaluate(() => BCD_DEV.devSetCoins(170));
   await page.click('#tabCollection'); await wait(400);
   check(await screen() === 'screen-cosmetics', 'Collection (Atelier) ouverte depuis la barre d\'onglets');
   await page.click('#atelierGrid .item-card[data-id="braise"]'); await wait(300);
   check((await page.textContent('#stageRarity')).length > 0 && !!(await page.$('#stageScene .stage-seed.fx-braise')), 'Atelier : aperçu de l\'objet sélectionné avec sa rareté');
-  check((await page.textContent('#atelierAction')).includes('90'), 'Atelier : prix affiché avant achat');
+  check((await page.textContent('#atelierAction')).includes('160'), 'Atelier : prix affiché avant achat');
   await page.click('#atelierAction'); await wait(400);
-  check((await page.evaluate(() => BCD_DEV.getCoins())) === 10, 'Atelier : achat débité (100 → 10 coins)');
+  check((await page.evaluate(() => BCD_DEV.getCoins())) === 10, 'Atelier : achat débité (170 → 10 coins)');
   check((await page.evaluate(() => BCD_DEV.getOwnedCosmetics())).includes('braise'), 'Atelier : graine achetée possédée');
   if (!(await page.textContent('#atelierAction')).includes('Équipé')) { await page.click('#atelierAction'); await wait(300); }
   check(await page.evaluate(() => BCD_DEV.getEquippedCosmetic() === 'braise' && document.documentElement.dataset.seedFx === 'braise'), 'Atelier : graine équipée et effet appliqué');
