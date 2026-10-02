@@ -409,6 +409,9 @@ async function solveCurrent(g) {
     bcd_progress_v1: env({ 0: 3, 1: 3, 2: 3, 3: 3 }),
     bcd_tutorial_v1: SKIPPED,
     bcd_coins_v1: env(500),
+    // Succès déjà mérités par cette progression : sinon le rattrapage du démarrage
+    // (1,2 s) ajouterait ses coins au milieu des vérifications.
+    bcd_achievements_v1: env({ first_step: Date.now() - 864e5, three_stars: Date.now() - 864e5 }),
     bcd_tips_v1: env({ seen: { nav: true, page_market: true, page_collection: true, page_garden: true, page_profile: true, dew: true } })
   }, { wait: 400 });
   await enter(g);
@@ -427,9 +430,9 @@ async function solveCurrent(g) {
   check(badge(g.d, 'tabCollection') === '2', 'objet obtenu : pastille « 2 » sur Collection (objet neuf + palier de 5 objets)');
   click(g.w, g.d.getElementById('tabCollection')); await sleep(150);
   check(badge(g.d, 'tabCollection') === '1' && !!g.d.querySelector('#screen-cosmetics .ms-claim'), 'Collection ouverte : objet vu ; reste le palier à récupérer');
-  const coinsC = g.w.BCD_DEV.getCoins();
+  const coinsC = g.w.BCD_DEV.getCoins(); const achC = Object.keys(g.w.BCD_DEV.getAchievements());
   click(g.w, g.d.querySelector('#screen-cosmetics .ms-claim')); await sleep(150);
-  check(badge(g.d, 'tabCollection') === '' && g.w.BCD_DEV.getCoins() === coinsC + 20, 'palier récupéré (+20 coins) : pastille retirée');
+  check(badge(g.d, 'tabCollection') === '' && g.w.BCD_DEV.getCoins() === coinsC + 20, `palier récupéré (+20 coins) : pastille retirée (pastille « ${badge(g.d, 'tabCollection')} », coins ${coinsC} → ${g.w.BCD_DEV.getCoins()}, succès ${Object.keys(g.w.BCD_DEV.getAchievements()).filter(k => !achC.includes(k))})`);
   const wk = g.w.BCD_DEV.getWeekly();
   wk.prog[0] = 999;
   g.w.localStorage.setItem('bcd_weekly_v1', env(wk));

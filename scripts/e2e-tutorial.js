@@ -150,20 +150,25 @@ function check(cond, msg) { checks++; if (cond) console.log('✔ ' + msg); else 
   await page.click('#btnDaily'); await wait(page, 700);
   check(await screen(page) === 'screen-game' && (await tuto(page)).tours.daily === 'done', 'défi lancé depuis le projecteur, étape validée');
   await home(page); await wait(page, 300);
+  // Marché : un cadeau du jour attend, ouvert sous le projecteur.
+  await page.evaluate(() => BCD_DEV.tutorialKick()); await wait(page, 700);
+  check((await coach(page)).includes('cadeau') && !!(await page.$('.coach-ring')), 'Marché présenté quand un cadeau du jour attend');
+  await page.click('#tabMarket'); await wait(page, 900);
+  check(await screen(page) === 'screen-market' && !!(await page.$('.coach-ring')), 'projecteur sur « Récupérer » du cadeau');
+  const coinsGift = await page.evaluate(() => BCD_DEV.getCoins());
+  await page.click('#btnGiftClaim'); await wait(page, 700);
+  check((await tuto(page)).tours.market === 'done' && (await page.evaluate(() => BCD_DEV.getCoins())) === coinsGift + 15, 'cadeau ouvert (+15 pièces), étape « Marché » validée');
+  await home(page); await wait(page, 300);
   // Cible absente : l'étape s'annule proprement, sans bloquer l'écran.
   for (const i of [3, 4, 5]) { await page.evaluate(i => BCD_DEV.playLevel(i), i); await wait(page, 400); await solve(page); }
   await home(page); await wait(page, 300);
   await page.evaluate(() => { document.getElementById('tabProfile').style.display = 'none'; BCD_DEV.tutorialKick(); }); await wait(page, 700);
   const tAbsent = await tuto(page);
-  check(tAbsent.attempts.achievements >= 1 && !(await page.$('.coach-blocker')), 'cible absente : étape annulée, aucun voile ne reste');
+  check(tAbsent.attempts.profile >= 1 && !(await page.$('.coach-blocker')), 'cible absente : étape annulée, aucun voile ne reste');
   await page.evaluate(() => { document.getElementById('tabProfile').style.display = ''; });
   await page.evaluate(() => BCD_DEV.tutorialKick()); await wait(page, 700);
   await page.click('#tabProfile'); await wait(page, 800);
-  check(await screen(page) === 'screen-profile' && await page.evaluate(() => !document.getElementById('panelSucces').hidden) && (await tuto(page)).tours.achievements === 'done', 'Succès présentés (page Profil, rubrique Succès), étape validée');
-  await home(page); await wait(page, 300);
-  await page.evaluate(() => BCD_DEV.tutorialKick()); await wait(page, 700);
-  await page.click('#tabProfile'); await wait(page, 600);
-  check((await tuto(page)).tours.profile === 'done', 'Profil présenté, étape validée');
+  check(await screen(page) === 'screen-profile' && await page.evaluate(() => !document.getElementById('panelMissions').hidden) && (await tuto(page)).tours.profile === 'done', 'Profil présenté (missions, saison, succès), étape validée');
   // Fin : diplôme d'Apprenti et récompense.
   const coinsBefore = await page.evaluate(() => BCD_DEV.getCoins());
   await home(page); await wait(page, 300);
