@@ -27,7 +27,7 @@ L'état du produit, les décisions prises, le plan de mesure et les prochaines p
 
 ```bash
 node scripts/check-game.js index.html        # attendu : 60 niveaux, 0 cassé, 4 avertissements
-node scripts/test-logic.js                   # attendu : 0 échec
+node scripts/test-logic.js                   # attendu : 0 échec (dont le BFS indépendant : 60 niveaux, Terres sauvages, Sentier, défis)
 node scripts/test-dom.js                     # attendu : 0 échec (jsdom : npm i --no-save jsdom, ou NODE_PATH)
 NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [dossier-captures]   # attendu : 0 échec
 NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js [dossier-captures] # attendu : 0 échec
@@ -44,6 +44,7 @@ NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js [dossier-captures] # atten
 - **A3. Générateur** (code PUR, testé par `test-logic.js`) :
   - `makeRng` / `hashSeed`, `generateBoard`, `transformLevel` (8 symétries, par conservé), `buildSentierBoard` (avec repli sur un « Écho »).
   - `buildDailyBoard` : défi du jour calculé depuis la date, avec une règle par jour de la semaine (`DAILY_RULES`).
+- **Les Terres sauvages** (A3, PUR) : `ENDLESS_WORLDS`, `endlessWorldOf(n)`, `endlessProfile`, `buildEndlessLevel(n)` (`ENDLESS_GEN_VERSION`). Côté jeu : `levelAt(i)` (0–59 faits main, 60+ générés, cache), `worldInfoAt(i)`, `endlessWorldIndices(w)`, `renderEndlessSections`. `findNextLevelIndex()` ne renvoie plus jamais −1. Progression dans `bcd_progress_v1` aux index ≥ 60.
 - **A4. Boucle de rétention, logique PURE** (testée par `test-logic.js`) :
   - `GARDEN_ZONES` : 5 zones × 5 chantiers ; `gardenStatus`, `gardenRestoreNext`.
   - Barème `ROSEE` : `roseeForLevelWin`, `roseeForDaily`, `roseeForSentier` (plafond par jour).
@@ -104,5 +105,7 @@ NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js [dossier-captures] # atten
 - **Toute nouvelle clé de stockage** est enregistrée dans `SCHEMA_MIGRATIONS` ; un changement de format passe par une migration qui n'écrase jamais une valeur existante.
 - Le fichier reste autonome. Seule exception existante : les polices Google, qui retombent sur system-ui. Aucun autre fichier externe (audio, image, CDN).
 - Langue du code, des commentaires et de l'interface : français.
+- **Économie** (calibrée par simulation de 30 jours) : défi du jour payé une fois par jour ; `SEASON_XP` pour ~3 semaines ; `nextShopGoal()` (objectif d'achat toujours visible) ; bouquets (`BOUQUET`, `gardenBouquet`) quand le jardin est fini. Tout nouveau gain se vérifie avec une simulation longue, pas à l'estime.
+- **Tout niveau généré** (Terres sauvages, Sentier, défi) passe le solveur interne ET le BFS indépendant de `test-logic.js`.
 - **Tutoriel** : toute nouvelle réplique de Germain va dans `COACH_LINES` (12 mots max, tutoiement, jamais culpabilisant). « Passer » reste visible tant que le tutoriel est actif ; une étape ne doit jamais bloquer (cible absente, changement d'écran = annulation propre).
 - **Livraison** : à la fin de chaque amélioration demandée, envoyer à l'utilisateur la dernière version du jeu (`index.html`, et le zip avec la PWA si les fichiers PWA ont changé). Il ne passe pas par GitHub pour jouer.

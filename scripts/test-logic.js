@@ -34,7 +34,7 @@ const exportsList = 'LEVELS, Solver, makeRng, hashSeed, generateBoard, transform
   'weekKeyFor, seasonKeyFor, DAILY_GIFTS, sanitizeGift, giftStatus, giftClaim, WEEKLY_POOL, WEEKLY_COUNT, weeklyMission, weeklyMissionsFor, ' +
   'sanitizeWeekly, weeklyApply, weeklyClaimable, weeklyClaim, weeklyChestReady, SEASON_TIERS, SEASON_XP_PER_TIER, seasonReward, sanitizeSeason, ' +
   'seasonTier, seasonClaimable, seasonRoll, seasonAddXP, seasonClaim, seasonDaysLeft, marketDailyOffer, marketWeeklyPack, sanitizeMarket, ' +
-  'COLLECTION_MILESTONES, collectionMilestones, sanitizeNav, navBadgeCounts, dailyPersonalRank, tomorrowPreview, bundleText, buildEndlessLevel, endlessWorldOf, BOUQUET, gardenBouquet, endlessProfile, ENDLESS_WORLDS, ENDLESS_LEVELS_PER_WORLD, ENDLESS_FIRST_WORLD';
+  'COLLECTION_MILESTONES, collectionMilestones, sanitizeNav, navBadgeCounts, dailyPersonalRank, tomorrowPreview, bundleText, buildEndlessLevel, endlessWorldOf, BOUQUET, gardenBouquet, streakCreditDay, endlessProfile, ENDLESS_WORLDS, ENDLESS_LEVELS_PER_WORLD, ENDLESS_FIRST_WORLD';
 const ctx = vm.createContext({ console: { log() {} } });
 vm.runInContext('"use strict";\n' + js.slice(start, end) + `\n;globalThis.__t = { ${exportsList} };`, ctx, { filename: 'logic.js' });
 const T = ctx.__t;
@@ -574,6 +574,9 @@ function independentMinMoves(L, cap) {
   const daily = []; for (let d = 0; d < 21; d++) { const k = '202610' + String(1 + d).padStart(2, '0'); daily.push(T.buildDailyBoard(k, d % 7)); }
   bad = daily.filter(l => l && independentMinMoves(l) !== l.par);
   check(bad.length === 0, 'BFS indépendant : 21 défis du jour confirmés');
+  const sc = T.streakCreditDay({ current: 3, best: 5, totalWins: 9, lastSuccessDate: '20261008' }, '20261009');
+  check(sc.current === 4 && sc.lastSuccessDate === '20261009' && sc.totalWins === 10 && sc.best === 5, 'série créditée pour un jour précis (lendemain : +1)');
+  check(T.streakCreditDay({ current: 3, lastSuccessDate: '20261005' }, '20261009').current === 1 && T.streakCreditDay({ current: 3, lastSuccessDate: '20261009' }, '20261009').current === 3 && T.streakCreditDay({ current: 3, lastSuccessDate: '20261010' }, '20261009').lastSuccessDate === '20261010', 'série créditée : trou = 1, même jour ou passé = inchangée');
   // Bouquets : la rosée sert encore, seulement une fois le jardin fini.
   check(!T.gardenBouquet({ done: T.GARDEN_TOTAL_TASKS - 1, rosee: 99 }).ok, 'bouquet : seulement quand le jardin est entièrement réveillé');
   check(T.gardenBouquet({ done: T.GARDEN_TOTAL_TASKS, rosee: T.BOUQUET.cost - 1 }).reason === 'rosee', 'bouquet : pas assez de rosée');

@@ -40,8 +40,9 @@ Ordre des visites (`TUTO_TOURS`) : Jardin, Collection, Défi, Marché, Profil. C
 
 | Moment | Ce que fait Germain | Cadeau |
 |---|---|---|
-| 1er lancement | 2 bulles (« Salut ! Moi, c'est Germain… », « On essaie ? »), puis le niveau 1 | — |
-| Niveau 1 | Montre le geste (doigt fantôme), célèbre la victoire | 3★ |
+| 1er lancement | « Jouer » lance directement le niveau 1 ; Germain s'y présente en une bulle (« Salut, moi c'est Germain ! Glisse-moi vers la droite. ») | — |
+| Niveau 1 | Doigt fantôme, puis une seule bulle de victoire (bravo + sens des étoiles) | 3★ |
+| Victoire du niveau 2 | « 🌱 Réveiller le jardin » en premier : Germain montre « Réveiller », puis propose « Jouer ▶ » vers le niveau suivant | +3 💧 |
 | Niveaux 2-3 | Un mot, puis des réactions courtes | — |
 | Nouvelle mécanique | Mini-scène (surpris, puis content), les cases pulsent | — |
 | Jardin (dès qu'un chantier est payable) | Projecteur sur l'onglet **Jardin** de la barre du bas, puis sur « Réveiller » | +3 💧 |
@@ -78,6 +79,9 @@ Chaque nouveauté s'explique **une seule fois**, par Germain, au moment où le j
 | Collection | 1re visite | « Ta collection : essaie chaque objet ici avant de l'acheter. » |
 | Jardin | 1re visite sans rosée à cueillir (la rosée passe d'abord : une aide par visite) | « Ton jardin ! La rosée gagnée en jouant le réveille. » |
 | Profil | 1re visite | « Tes missions, ta saison et tes succès sont rangés ici. » |
+| Terres sauvages | 1er niveau après le 60 | « Les Terres sauvages : des mondes sans fin, toujours parfaits ! » |
+| Bouquets | 1re visite du jardin entièrement réveillé | « Jardin réveillé ! Ta rosée cueille maintenant des bouquets. » |
+| À demain | 1re fois que la carte apparaît | « Journée bouclée ! Regarde ce qui t'attend demain. » |
 | Chemin parfait | 1re victoire en moins de 3 ★ en campagne | « Pas parfait ? Regarde le chemin parfait, puis bats-le ! » |
 
 Jamais pendant l'intro, jamais par-dessus une autre bulle (elle attend la prochaine occasion), toujours fermable (« Merci ! », toucher, Échap). Dans le hub, une bulle en bas se pose au-dessus de la barre d'onglets, jamais dessus.

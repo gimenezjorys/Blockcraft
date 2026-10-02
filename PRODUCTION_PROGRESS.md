@@ -341,15 +341,46 @@ Un fichier HTML seul ne peut pas afficher de vraies pubs. Deux voies :
 
 **Ce qui ne change pas** : la logique de jeu. Aucun niveau, aucune mécanique, ni le moteur, ni le solveur n'ont été touchés ; les 60 solutions rejouées dans le vrai moteur gagnent toujours en exactement « par » coups.
 
+## 4h. Passe d'amélioration globale (octobre 2026)
+
+**Méthode** : playtest simulé avant/après (Chromium, vrais clics : nouveau joueur qui suit Germain, 5 premières minutes, retour le lendemain) et simulation jsdom de 30 jours d'un joueur régulier (cadeau, défi, 5 niveaux, rosée, chantiers, missions, achats). Scripts dans le dossier de travail de la session ; les constats sont devenus des tests.
+
+**Problèmes trouvés et réglés** :
+| Constat | Correction |
+|---|---|
+| ⛔ Joueur coincé à la visite du Jardin : le projecteur faisait défiler la piste des pages (scrollLeft 287 px) et la bulle couvrait la cible | Piste en `overflow:clip` + remise à 0 ; cible centrée (`Coach.center`) puis bulle du côté libre (`Coach.sideFor`) |
+| 1er coup à 7,9 s (écran JOUER + 3 bulles) | « Jouer » lance le niveau 1 directement ; Germain se présente sur le plateau en une bulle → **2,3 s** ; 1re victoire 17 → **8,4 s** |
+| Jardin, cadeau, missions jamais vus par qui enchaîne « Niveau suivant » | « 🌱 Réveiller le jardin » sur la victoire (niveau 2 pendant le tutoriel, puis dès que la rosée suffit) ; Germain ramène au niveau suivant |
+| Pas de sortie de l'écran de victoire sans bouton retour (iPhone) | Bouton ⌂ en haut à gauche |
+| Pastille Profil « 9+ » en 5 min, coincée à vie | Une action = 1 ; succès signalés sur la rubrique « Succès » seulement |
+| Pièces infinies en rejouant le défi | Pièces à la 1re réussite du jour seulement |
+| Passe de saison fini en 8 jours | Barème `SEASON_XP` recalibré : ~3 semaines |
+| Catalogue entier achetable vers J14, 1 775 🪙 inutiles à J30 | Prix ×1,7, objectif d'achat toujours visible dans la Collection (`nextShopGoal`) |
+| Campagne finie à J13 (« Campagne terminée ») | **Les Terres sauvages** : mondes générés sans fin après le 60 |
+| Jardin fini à J23, rosée inutile ensuite | **Bouquets** : 15 💧 → 8 🪙 + XP de saison (jardin schéma 3) |
+| Défi gagné après minuit UTC compté pour le lendemain | Compté pour son jour (`state.dailyDay`, `recordLateDaily`, `streakCreditDay`) |
+| Fête de rang ouverte au milieu du Marché | Seulement sur la page JOUER |
+| Mise en page cassée à 320 px ; plateau de 140 px en paysage | Règles ≤ 340 px ; plateau 220 px en paysage |
+
+**5 premières minutes** : entrée immédiate, une bulle par moment, 1re grosse récompense (le jardin qui se réveille) au bout de 2 niveaux, et la carte **« À demain ! »** (cadeau suivant, défi de demain, série, heures avant le nouveau jour) une fois la journée faite.
+
+**Game feel** : glissement dont la durée suit la distance (112 ms + 22 ms/case, max 250 ms) avec décélération ; choc du plateau et « toc » sourd (`sfxImpact`) au-delà de 3–4 cases ; vibration proportionnelle ; le coup part pendant le geste (28 px) et non au lever du doigt, un seul coup par contact.
+
+**Les Terres sauvages** (`buildEndlessLevel`, `levelAt`, `worldInfoAt`) : monde 9, 10… de 8 niveaux, une palette et une mécanique vedette par monde (cycle des 8 mondes, puis « II », « III » un peu plus durs, plafonnés), dents de scie dans chaque monde, mêmes plateaux pour tous (graine = numéro), `ENDLESS_GEN_VERSION`. Progression dans `bcd_progress_v1` aux index ≥ 60 (aucune nouvelle clé). Vérifiés par le solveur ET par un **BFS indépendant** écrit de zéro dans `test-logic.js` (qui confirme aussi les 60 niveaux, le Sentier et le défi).
+
+**Économie après réglage (simulation 30 jours)** : ~120 🪙/jour ; graine légendaire vers J12 ; catalogue complet vers J33 ; passe fini vers J23 ; jardin fini vers J19, puis bouquets.
+
+**Robustesse** : stockage plein et stockage interdit testés (on joue et gagne sans erreur) ; 100 niveaux d'affilée : tas JS stable (~5 Mo) ; code mort retiré (`beep`, `sfxMove`, branches « campagne terminée »).
+
 ## 5. Tests exécutés (résultats observés)
 
 | Commande | Ce qu'elle vérifie | Résultat |
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
-| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) ; **jardin vivant** (ciel, météo sur 1 000 jours, rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel) | 6 707 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel ; et le **hub** : cadeau, missions de la semaine, saison et report, marché, collection, pastilles, classement personnel) |
-| `node scripts/test-dom.js` | **jsdom** avec de vrais `KeyboardEvent` / `PointerEvent` : écran de lancement, nouveau joueur, swipe, jardin vivant (rosée, chantier, clavier), **ancienne sauvegarde** (schéma 1, clé de série « future »), **dates UTC**, rattrapage de série, bon retour, rang, aides, points d'accroche pub, animations réduites ; **hub** : glisser entre les pages (pichenette, geste lent, geste vertical, bouts, panorama exclu, toucher annulé après un glissement), onglets, clavier, bouton retour ; **aucune navigation pendant une partie** ; **pastilles** (cadeau, offre vue, objet neuf, palier, défi fait, mission, saison, succès vus) ; **sauvegarde d'avant le hub** ; **chemin parfait** (démo, clavier bloqué, rejeu à 3 ★) ; **sauvegarde d'avant la refonte** (cosmétiques et pièces conservés, annonce du nouveau look une seule fois) | 141 vérifications, 0 échec |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée, **panorama, goutte touchée au doigt, ciels**), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 84 vérifications, 0 échec, 0 erreur ou avertissement console (lancement, 5 onglets, glissement à la souris, Marché) |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN ; visites du Marché (cadeau) et du Profil | 65 vérifications, 0 échec, 0 erreur console (stable sur 4 exécutions, dont 3 en parallèle) |
+| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) ; **jardin vivant** (ciel, météo sur 1 000 jours, rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel) | 6 730 vérifications, 0 échec (dont le BFS indépendant, les Terres sauvages, les bouquets, « À demain », la série créditée à un jour précis ; et le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel ; et le **hub** : cadeau, missions de la semaine, saison et report, marché, collection, pastilles, classement personnel) |
+| `node scripts/test-dom.js` | **jsdom** avec de vrais `KeyboardEvent` / `PointerEvent` : écran de lancement, nouveau joueur, swipe, jardin vivant (rosée, chantier, clavier), **ancienne sauvegarde** (schéma 1, clé de série « future »), **dates UTC**, rattrapage de série, bon retour, rang, aides, points d'accroche pub, animations réduites ; **hub** : glisser entre les pages (pichenette, geste lent, geste vertical, bouts, panorama exclu, toucher annulé après un glissement), onglets, clavier, bouton retour ; **aucune navigation pendant une partie** ; **pastilles** (cadeau, offre vue, objet neuf, palier, défi fait, mission, saison, succès vus) ; **sauvegarde d'avant le hub** ; **chemin parfait** (démo, clavier bloqué, rejeu à 3 ★) ; **sauvegarde d'avant la refonte** ; **5 premières minutes** (niveau 1 direct, jardin depuis la victoire, ⌂) ; **Terres sauvages** ; **économie** (défi sans pièces à volonté, bouquets, objectif d'achat) ; **défi à cheval sur minuit** ; **stockage plein/interdit** ; glissement déclenché pendant le geste | 177 vérifications, 0 échec |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée, **panorama, goutte touchée au doigt, ciels**), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 82 vérifications, 0 échec, 0 erreur ou avertissement console (lancement, 5 onglets, glissement à la souris, Marché) |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN ; visites du Marché (cadeau) et du Profil | 62 vérifications, 0 échec, 0 erreur console (stable sur 4 exécutions, dont 3 en parallèle) |
 | CI GitHub Actions | Les quatre suites (dont jsdom), sur toutes les branches | Vert |
 
 Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur le lancement, les 5 pages du hub, le jeu (8 mondes), la victoire, le défi, le Sentier, la carte, l'aide, la collection, Germain. Mécaniques vérifiées sous filtres niveaux de gris, deutéranopie et protanopie. Aucun débordement horizontal.

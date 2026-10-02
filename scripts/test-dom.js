@@ -53,6 +53,8 @@ async function openGame(storage, opts) {
       w.HTMLCanvasElement.prototype.getContext = () => null;
       w.navigator.vibrate = () => true;
       w.Element.prototype.scrollTo = function (o) { if (o && typeof o.left === 'number') this.scrollLeft = o.left; };
+      if (opts.storage === 'quota') w.Storage.prototype.setItem = function () { const e = new Error('QuotaExceededError'); e.name = 'QuotaExceededError'; throw e; };
+      if (opts.storage === 'none') Object.defineProperty(w, 'localStorage', { get() { throw new Error('SecurityError'); } });
       // Mise en page minimale (projecteur de Germain) : chaque élément a une taille.
       if (opts.layout) w.Element.prototype.getBoundingClientRect = function () { return { left: 20, top: 300, width: 160, height: 48, right: 180, bottom: 348, x: 20, y: 300 }; };
     }
@@ -666,6 +668,36 @@ async function solveCurrent(g) {
   check(goal && /Prochain|offrir/.test(goal.textContent), 'Collection : un prochain objectif d\'achat est toujours visible (' + (goal && goal.textContent.trim()) + ')');
   check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
   g.w.close();
+
+  // ---------- 19. Défi commencé avant minuit (UTC), gagné après ----------
+  console.log('\n— Défi à cheval sur minuit');
+  g = await openGame({ bcd_progress_v1: env(prog18), bcd_tutorial_v1: SKIPPED, bcd_tips_v1: env({ seen: { nav: true } }),
+    bcd_streak_v1: env({ current: 3, best: 3, totalWins: 3, lastSuccessDate: '20261008' }) }, { wait: 400 });
+  g.w.BCD_DEV.setSimulatedDate('2026-10-09T23:58:00Z');
+  await enter(g);
+  click(g.w, g.d.getElementById('btnDaily')); await sleep(300);
+  check(screenOf(g.d) === 'screen-game', 'défi du 09/10 commencé à 23 h 58 (UTC)');
+  g.w.BCD_DEV.setSimulatedDate('2026-10-10T00:01:00Z');
+  await solveCurrent(g);
+  const ls = g.w.localStorage;
+  const st19 = g.w.BCD_DEV.getStreak();
+  check(!!ls.getItem('bcd_daily_20261009') && !ls.getItem('bcd_daily_20261010'), 'gagné à 0 h 01 : il compte pour le 09/10, le défi du 10/10 reste à jouer');
+  check(st19.current === 4 && st19.lastSuccessDate === '20261009', 'série : 4 jours (le 09/10 compté), pas de saut ni de remise à 1');
+  check(/minuit/.test(g.d.getElementById('victoryRewards').textContent), 'la victoire explique pourquoi (minuit est passé)');
+  click(g.w, g.d.getElementById('btnVictoryHome')); await sleep(300);
+  check(/relever/i.test(g.d.getElementById('btnDaily').textContent), 'accueil : le défi du nouveau jour est à relever');
+  check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
+  g.w.close();
+
+  // ---------- 20. Stockage plein ou interdit (navigation privée) ----------
+  console.log('\n— Stockage plein ou indisponible');
+  for (const mode of ['quota', 'none']) {
+    g = await openGame({}, { wait: 400, storage: mode });
+    await enter(g, 500);
+    await solveCurrent(g);
+    check(screenOf(g.d) === 'screen-victory' && g.errors.length === 0, `stockage ${mode === 'quota' ? 'plein' : 'interdit'} : on joue et on gagne quand même, sans erreur (${g.errors[0] || 'ok'})`);
+    g.w.close();
+  }
 
   console.log(`\n${checks} vérifications, ${failures} échec(s).`);
   process.exit(failures ? 1 : 0);

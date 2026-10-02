@@ -1669,6 +1669,23 @@
     .grid-levels{gap:9px;} .level-card{font-size:20px;}
     .stars-row{font-size:40px;}
   }
+  /* Très petits écrans (320 px) : rien ne déborde ni ne se chevauche. */
+  @media (max-width:340px){
+    .home-stats{gap:5px; padding:6px 8px; font-size:12.5px;}
+    .wh-rank{display:none;} /* le rang reste au Jardin et au Profil */
+    .home-card{min-width:0; padding:12px 10px 10px;}
+    .hc-badge{font-size:10.5px; padding:3px 7px;}
+    .hc-name{font-size:15px;}
+    .hud{gap:5px;} .hud-chip{padding:5px 8px; gap:4px; font-size:13px;}
+    .topbar-title{font-size:17px;}
+  }
+  /* Téléphone tenu à l'horizontale : le plateau garde une taille jouable. */
+  @media (orientation:landscape) and (max-height:500px){
+    #screen-game{--board-reserve:170px; padding-top:8px;}
+    #screen-game.sentier-mode{--board-reserve:210px;}
+    #screen-game .topbar{margin-bottom:4px;} #screen-game .hud{margin-bottom:6px;}
+    .game-tip{font-size:12px; margin-top:4px;}
+  }
   @media (min-width:481px){ .hub{box-shadow:0 0 0 1px rgba(150,74,30,.08);} }
 </style>
 </head>
@@ -3502,6 +3519,8 @@ const COACH_LINES = {
     l1_win:        "Pile dans la lumière ! Trois étoiles, le plus court chemin.",
     garden_back:   "Ton jardin se réveille ! On continue à jouer ?",
     tip_endless:   "Les Terres sauvages : des mondes sans fin, toujours parfaits !",
+    tip_bouquet:   "Jardin réveillé ! Ta rosée cueille maintenant des bouquets.",
+    tip_tomorrow:  "Journée bouclée ! Regarde ce qui t'attend demain.",
     btn_play:      "Jouer ▶",
     l2_hello:      "À toi de jouer. Je reste dans le coin.",
     react_win_0:   "Joli !",
@@ -3782,6 +3801,17 @@ function streakRepairStatus(streak, keys, ctx){
   return { offer:true, free, reason: free ? 'free' : 'ad' };
 }
 // Applique un rattrapage réussi : hier compte comme joué.
+// Crédite la série pour un jour précis (défi commencé avant minuit UTC et
+// gagné après) : +1 si c'est le lendemain du dernier succès, sinon 1 ;
+// jamais deux fois le même jour, jamais en arrière.
+function streakCreditDay(streak, dayKey){
+  const s = Object.assign({ current:0, best:0, totalWins:0, lastSuccessDate:null }, streak || {});
+  const last = typeof s.lastSuccessDate==='string' ? s.lastSuccessDate : '';
+  if(last && last >= dayKey) return s;
+  const current = (last && dayDiff(last, dayKey) === 1) ? safeInt(s.current, 0, 1e5, 0) + 1 : 1;
+  return Object.assign({}, s, { current, best: Math.max(safeInt(s.best, 0, 1e5, 0), current),
+    totalWins: safeInt(s.totalWins, 0, 1e6, 0) + 1, lastSuccessDate: dayKey });
+}
 function streakApplyRepair(streak, yesterday){
   const s = Object.assign({ current:0, best:0, totalWins:0, lastSuccessDate:null }, streak || {});
   const current = safeInt(s.current, 0, 1e5, 0) + 1;
@@ -5967,7 +5997,6 @@ function clay(freq, gain, delay){
   voice({ freq, gain:gain||0.06, delay, dur:0.09, type:'sine', attack:0.002, bend:1.5, partials:[[1,1],[1.5,0.16]], filter:1900, send:0.05 });
 }
 // Compatibilité : ancien générateur, désormais routé par le bus commun.
-function beep(freq, dur, type, gainVal, delay){ voice({ freq, dur, type, gain:gainVal, delay, send:0.1 }); }
 
 // Gamme commune (ré majeur pentatonique) et motif signature.
 const NOTE_D4 = 293.66;
@@ -5978,7 +6007,6 @@ function pentaStep(k){ return 12*Math.floor(k/5) + PENTA[((k%5)+5)%5]; }
 // sonore du jeu, jouée à la victoire et en ouverture de la musique.
 const SIGNATURE = [0, 7, 9, 14];
 
-function sfxMove(){ sfxComboMove(); }
 function sfxBlocked(){ voice({ freq:120, dur:0.14, type:'triangle', bend:0.7, gain:0.11, filter:520, send:0.04 }); }
 // Annulation : deux touches de bois qui DESCENDENT (le temps recule).
 function sfxUndo(){ wood(semi(NOTE_D4*2, 7), 0.06, 0); wood(semi(NOTE_D4*2, 2), 0.05, 0.05); }
@@ -6580,6 +6608,7 @@ function renderTomorrow(){
   const tp = tomorrowPreview(loadGift(), todayKey(), !!loadTodayDailyResult(), streakAliveNow(), msLeft);
   el.hidden = !tp;
   if(!tp) return;
+  setTimeout(()=>{ if(state.screen==='home' && !el.hidden) showTipOnce('tomorrow', coachLine('tip_tomorrow'), { position:'top' }); }, 1200);
   document.getElementById('homeTomorrowWhen').textContent = `nouveau jour dans ${tp.hours} h`;
   const items = document.getElementById('homeTomorrowItems');
   items.innerHTML = '';
@@ -8576,6 +8605,7 @@ function gardenArrived(){
     // la rosée du matin d'abord (geste immédiat), puis la page elle-même,
     // puis la guirlande dès la 1re lanterne allumée. Une seule aide par visite.
     if(gpContextLight().dewZones.size && showTipOnce('dew', coachLine('tip_dew'), { position:'top' })) return;
+    if(gardenStatus(loadGarden().done).complete && showTipOnce('bouquet', coachLine('tip_bouquet'), { position:'top' })) return;
     if(showTipOnce('page_garden', coachLine('tip_page_garden'), { position:'top' })) return;
     if(gpWeekLights().some(d=> d.done)) showTipOnce('garland', coachLine('tip_garland'), { position:'top' });
   }, 700);
@@ -9588,6 +9618,9 @@ function startBoard(lvl, opts){
   state.sessionId++;
   state.mode = opts.mode || 'campaign';
   state.repair = !!opts.repair; // rattrapage de série : le défi d'HIER (voir startStreakRepair)
+  // Jour (UTC) où ce défi a commencé : s'il est gagné après minuit, il compte pour CE jour-là.
+  // (un plateau généré porte sa date : le relancer après minuit ne change pas son jour).
+  state.dailyDay = opts.mode==='daily' && !opts.repair ? ((lvl && /^\d{8}$/.test(lvl.dateKey||'')) ? lvl.dateKey : todayKey()) : '';
   state.level = lvl;
   state.boardOpts = opts;
   state.history = [];
@@ -10164,7 +10197,7 @@ function performMove(dx,dy){
   updateUndoButton();
 
   // Son du coup joué : un événement de mécanique spéciale remplace le clic
-  // générique de sfxMove() (retour plus informatif, jamais superposé à
+  // générique (retour plus informatif, jamais superposé à
   // lui) ; l'ouverture/fermeture d'une porte reste un signal SÉPARÉ et
   // s'ajoute par-dessus, car c'est un changement d'état du plateau distinct
   // du mouvement lui-même.
@@ -10188,11 +10221,8 @@ function performMove(dx,dy){
 
   if(seedEndedOnAnchor) sfxAnchorStop();
   else if(seedUsedPortal) sfxPortal();
-  // Coup générique : sfxComboMove() plutôt que sfxMove() (celle-ci reste
-  // définie mais n'est plus appelée ici) — chaque coup réussi consécutif
-  // fait légèrement monter la hauteur de la note (série remise à zéro sur
-  // un coup bloqué juste au-dessus, ou au chargement d'un niveau via
-  // sfxLevelStart()).
+  // Coup générique : chaque coup réussi consécutif fait légèrement monter la
+  // note (série remise à zéro sur un coup bloqué ou au chargement d'un niveau).
   else sfxComboMove();
 
   if(doorMap.size){
@@ -10931,6 +10961,16 @@ let onWin = function(expectedSessionId){
       rewards.push({ icon:'🔥', text:`Série sauvée : ${fixed.current} jours`, kind:'streak' });
       if(stillInGame) setTimeout(sfxStreakMilestone, 600);
     }
+  } else if(state.dailyDay && state.dailyDay !== todayKey()){
+    // Minuit (UTC) est passé pendant la partie : le défi compte pour le jour
+    // où il a commencé. Le défi du nouveau jour reste à jouer (bug corrigé :
+    // il était marqué fait sans avoir été joué, et la série faussée).
+    const late = recordLateDaily(state.dailyDay, state.moves, state.elapsed, stars);
+    dailyFirstToday = late.first;
+    if(late.first){ addCoins(COIN_REWARDS.dailyComplete); coinsEarnedThisRun += COIN_REWARDS.dailyComplete; }
+    const d = state.dailyDay;
+    rewards.push({ icon:'🌙', text:`Défi du ${d.slice(6,8)}/${d.slice(4,6)} compté (minuit est passé)`, kind:'streak' });
+    rewards.push({ icon:'🔥', text:`Série : ${late.streak.current} jour${late.streak.current>1?'s':''}`, kind:'streak' });
   } else {
     const previousToday = loadVersioned('bcd_daily_'+todayKey(), 'dailyResult', null);
     dailyFirstToday = !previousToday;
@@ -10990,7 +11030,8 @@ let onWin = function(expectedSessionId){
     addRosee(roseeGain, state.isDaily ? 'daily' : 'level');
     rewards.splice(coinsEarnedThisRun > 0 ? 1 : 0, 0, { icon:'💧', text:`+${roseeGain} rosée`, kind:'rosee' });
   }
-  const ritualDone = ritualEvent({ type: state.repair ? 'repair_win' : (state.isDaily ? 'daily_win' : 'level_win'), stars, perfect: state.moves <= state.par, hint: state.hintUsedThisAttempt,
+  const lateDaily = !!(state.dailyDay && state.dailyDay !== todayKey());
+  const ritualDone = ritualEvent({ type: (state.repair || lateDaily) ? 'repair_win' : (state.isDaily ? 'daily_win' : 'level_win'), stars, perfect: state.moves <= state.par, hint: state.hintUsedThisAttempt,
     newStars: state.isDaily ? 0 : Math.max(0, stars - prevStars) });
   ritualDone.forEach(m=> rewards.push({ icon:'✅', text:'Rituel : ' + m.text, kind:'ritual' }));
   if(ritualDone.some(m=> m.allDone)) rewards.push({ icon:'🎁', text:'Coffre du rituel prêt !', kind:'unlock' });
@@ -11391,6 +11432,19 @@ function startStreakRepair(){
   Analytics.track('streak_repair_start', null);
   const rule = DAILY_RULES[utcDayOffset(bcdNow(), -1).getUTCDay()];
   startBoard(board, { mode:'daily', levelIndex:-1, repair:true, title:`🔥 Rattrapage · ${rule.icon} ${rule.label}` });
+}
+// Défi commencé un jour, gagné le lendemain (après minuit UTC) : voir onWin.
+function recordLateDaily(dayKey, moves, elapsed, stars){
+  const prev = loadVersioned('bcd_daily_'+dayKey, 'dailyResult', null);
+  if(!prev){
+    saveVersioned('bcd_daily_'+dayKey, 'dailyResult', { moves, time:elapsed, stars, isRecord:false, generated:true,
+      par: Number.isFinite(state.par) ? state.par : null, levelIndex:null, late:true });
+    recordDailyHistoryEntry(dayKey, moves, elapsed, stars);
+  }
+  const streak = streakCreditDay(loadStreak(), dayKey);
+  saveStreak(streak);
+  Analytics.track('daily_complete', { moves, time:elapsed, stars, late:true, retry:!!prev });
+  return { first: !prev, streak };
 }
 function recordStreakRepair(moves, elapsed, stars){
   const st = streakRepairNow();
