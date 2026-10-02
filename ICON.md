@@ -21,7 +21,7 @@
 
 | Variante | Idée | Forces | Faiblesses |
 |---|---|---|---|
-| **A · La mascotte qui glisse** | Germain, la graine du jeu, avec un visage, en plein élan vers la lumière (traînée de glissement, case cible lumineuse) | Visage expressif, lisible en 40 px. Contraste or sur vert. Montre la vraie action. Devient le personnage du tutoriel. | Le style « mignon » vise un public large, pas les puristes du puzzle |
+| **A · La mascotte qui glisse** | Germain, la graine du jeu, avec un visage, en plein élan vers la lumière (traînée de glissement, case cible lumineuse) | Visage expressif, lisible en 40 px. Contraste or sur ciel bleu. Montre la vraie action. Devient le personnage du tutoriel. | Le style « mignon » vise un public large, pas les puristes du puzzle |
 | **B · Le plateau** | Vue de dessus 3×3 : la graine file vers la case lumineuse, un bloc de pierre en coin | La mécanique se comprend tout de suite | Ressemble aux dizaines de jeux de blocs (grilles) : peu mémorable, et contraire au nouveau positionnement |
 | **C · La pousse de lune** | Pousse lumineuse sous un croissant de lune, graine dans la terre | La plus belle ambiance, couleurs violettes qui ressortent | Pas de sujet « jeu » : on croirait une appli de méditation ou de jardinage. Moins fidèle à l'action principale. |
 
@@ -30,6 +30,7 @@
 - elle reste reconnaissable en 40 px sur fond clair comme sombre ;
 - sur le faux écran d'accueil, c'est la seule qui « regarde » le joueur ;
 - son fond a été éclairci après comparaison, car il paraissait terne à côté d'icônes très saturées.
+- **Refonte « Verger au soleil » (octobre 2026)** : le fond vert foncé devient un **ciel bleu** (#86d8ff → #2e8ee0 → #173a8c). Le joueur ne voulait plus d'une dominante verte. Le bleu garde le contraste chaud/froid (graine dorée sur ciel), raconte « la graine glisse vers le soleil », et reste lisible en 40 px. Variantes comparées : vert, ciel, baie (violet), corail, nuit ; le corail noyait la graine dorée.
 
 ## 3. Fichiers
 
@@ -54,7 +55,7 @@ NODE_PATH=$(npm root -g) node scripts/export-icons.js a     # tous les formats, 
 NODE_PATH=$(npm root -g) node scripts/icon-contact-sheet.js  # planche de comparaison
 ```
 
-Le rendu passe par Chromium (Playwright, déjà utilisé par les tests) et les PNG sont encodés par le script : aucune autre dépendance. L'intégration dans `index.html` (favicon, apple-touch-icon, `theme-color` `#0b3a2e`) et dans `manifest.webmanifest` est faite.
+Le rendu passe par Chromium (Playwright, déjà utilisé par les tests) et les PNG sont encodés par le script : aucune autre dépendance. L'intégration dans `index.html` (favicon, apple-touch-icon, `theme-color` `#fff1df`, la crème du fond du jeu) et dans `manifest.webmanifest` est faite.
 
 ## 4. Pour un niveau 100 % professionnel
 
@@ -63,7 +64,7 @@ Cette icône est propre et cohérente, mais **dessinée en formes géométriques
 > **Brief — icône d'application « Seedrift » (jeu de puzzle mobile)**
 > - **Le jeu** : on fait glisser une graine dorée sur un plateau ; elle file tout droit jusqu'à un obstacle et doit atteindre une case lumineuse. Univers : un jardin de nuit qui se rallume.
 > - **Sujet unique** : Germain, la graine-mascotte. Forme d'amande dorée (#ffd166 → #f0a02e), deux petites feuilles au sommet, grands yeux brillants tournés vers la droite, petit sourire, joues rosées. Il glisse vers une lumière dorée à droite, avec une traînée de vitesse derrière lui.
-> - **Fond** : vert d'eau lumineux au centre (#46c99a) vers vert profond aux bords (#0b3a2e). On devine discrètement des cases arrondies.
+> - **Fond** : ciel bleu lumineux au centre (#86d8ff) vers bleu profond aux bords (#173a8c). On devine discrètement des cases arrondies.
 > - **Style** : 3D douce et brillante (type Royal Match ou les jeux de fusion), lumière chaude en haut à droite, reflet net sur la graine, ombre portée douce.
 > - **Contraintes** : aucun texte ; lisible à 40 px ; carré 1024×1024 opaque sans coins arrondis ; sujet centré, à l'intérieur des 80 % centraux ; fournir aussi le fond et le sujet sur calques séparés (pour Android).
 > - **Références fournies** : `icons/src/icon-a-mascotte.svg`, `icons/compare/planche.png`.

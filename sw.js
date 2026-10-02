@@ -4,7 +4,7 @@
 // toujours la dernière version publiée ; le cache ne sert qu'en secours,
 // hors connexion. Aucune donnée de jeu ici : la progression reste dans
 // localStorage, jamais dans ce cache.
-const CACHE = 'bcd-shell-v2';
+const CACHE = 'bcd-shell-v3';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', event => {

@@ -287,20 +287,74 @@ Un fichier HTML seul ne peut pas afficher de vraies pubs. Deux voies :
 
 **Bugs corrigés en route** : la réinitialisation oubliait les données du hub ; une bulle de Germain en bas pouvait couvrir la barre d'onglets (elle se pose maintenant au-dessus) ; deux aides pouvaient se disputer l'arrivée au Jardin (une seule par visite, par priorité) ; les tests E2E tournent en http (en `file://`, Chromium perd parfois tout le localStorage au rechargement, ce qui rendait un test instable).
 
+## 4g. Refonte du design « Verger au soleil » (octobre 2026)
+
+**Le problème** : un vert foncé partout (fond, cartes, plateau, icône), des surfaces plates et semblables, peu de contraste entre les éléments importants et le décor, des mécaniques distinguées surtout par la couleur.
+
+**La nouvelle direction artistique** : un verger en plein jour, chaud et lumineux. Des objets « en pâte à modeler » qu'on a envie de toucher.
+
+- **Palette** (variables centralisées dans `:root`) : fond crème et pêche (`--paper`, `--sun-1…3`), texte prune profond (`--ink` #3b2440, jamais de noir pur), accents **corail** (`--coral`, action principale), **lagon** (`--teal`), **soleil** (`--sunny`, récompenses), **ciel** (`--sky`, information), **baie** (`--berry`, rareté épique), **feuille** (`--leaf`, réussite). Le vert n'est plus qu'un accent parmi d'autres.
+- **Matière** : chaque objet a un bord épais plus sombre en dessous (relief), une ombre douce et tiède, un reflet en haut. Un bouton pressé s'enfonce (`translateY`). Rayons généreux (`--r-s` à `--r-xl`), ressort (`--spring`) pour les apparitions.
+- **Typographie** : Baloo 2 (titres ronds et épais), Nunito (texte), avec repli sur system-ui.
+- **Inspirations** (sans copie) : Royal Match et Homescapes pour le relief et la récompense, Monument Valley et Alto pour la lumière et les dégradés, Two Dots pour la lisibilité des formes, Gardenscapes pour le jardin.
+- **Icône** : Germain sur un **ciel bleu** au lieu du vert foncé (chaud sur froid, voir `ICON.md`) ; `theme-color` et manifest en crème `#fff1df`.
+
+**Ce qui a été simplifié** :
+- **Mécaniques reconnaissables par la forme** (vérifié en niveaux de gris, deutéranopie et protanopie) : mur = bloc de briques en relief ; rocher = galet rond marqué ◆ ; ancre = glace creusée ❄ ; portails = puits en spirale ⟳/⟲ ; sens unique = dalle à flèche ; interrupteur = disque jaune ◉ ; porte fermée = barreaux ▥, ouverte = pointillés ◇ ; cible = fleur-soleil rose (forme et couleur différentes de la graine, qui est une bille brillante).
+- **Aide** : une carte par mécanique déjà vue ; les mécaniques pas encore rencontrées tiennent en une seule carte « N surprises à découvrir ».
+- **Victoire** : les succès gagnés sont regroupés en une puce « N succès débloqués » (5 puces au plus).
+- **Profil** : statistiques dédoublonnées (une seule grille).
+- **Page JOUER** : les cartes secondaires sont rangées en grille de 2 ; icônes des onglets en deux tons.
+
+**Écran par écran** :
+| Écran | Changement |
+|---|---|
+| Lancement | Fond crème au halo de soleil, logo redessiné (dalle claire, mur d'ardoise, fleur-soleil rose, graine aux couleurs du cosmétique), grand bouton corail qui respire (ombre, sans bouger : stable au toucher). |
+| Barre d'onglets | Barre blanche arrondie, JOUER en bouton corail au centre, onglet actif surligné, pastilles rouges lisibles. |
+| JOUER | Carte du monde en cours aux couleurs du monde, défi et Sentier en tuiles, vignette du jardin en plein jour. |
+| Plateau | Bac en bois clair par monde, dalles en relief, graine brillante ; à la victoire, éclosion de pétales et d'étincelles, halo du plateau (rien si animations réduites). |
+| Victoire | Emblème, étoiles et puces de récompense en relief, « Voir le chemin parfait ». |
+| Carte des mondes | Chaque monde garde sa palette ; niveau courant en corail qui respire. |
+| Marché, Collection, Profil, Paramètres, Aide | Cartes blanches en relief, raretés colorées, segments et interrupteurs en pâte. |
+| Jardin | Cadre de carte autour du panorama ; chips de rosée et de météo plus contrastées et qui ne se chevauchent plus. |
+| Germain | Bulle blanche, toujours au-dessus de la barre d'onglets. |
+| Partage | Carte image claire, aux couleurs de la nouvelle palette. |
+
+**Les 8 mondes** (en plein jour, une palette chacun : fond, bac, dalles, accent, décor) : 1 Le Jardin (matin de verger), 2 Les Cailloux (canyon de terre cuite), 3 Les Impasses (labyrinthe de haies), 4 Le Givre (matin de neige), 5 Les Passages (grotte de cristal), 6 Les Courants (lagon), 7 Les Ruines (heure dorée), 8 Les Failles (crépuscule étoilé). API : `worldVars(theme)`, `setWorldVars(el, world)`, `applyWorldTheme(world)`. Les couleurs des mécaniques, elles, ne changent jamais d'un monde à l'autre.
+
+**Cosmétiques** (identifiants conservés : rien n'est perdu, l'objet équipé reste équipé) :
+- **Chaque graine a sa matière** : jade, saphir taillé, cœur de rubis, géode d'améthyste, bille de chrome (reflet qui passe), braise, givre, aurore, nuit…
+- **Nouvelles** : 5 graines (Pastèque, Coccinelle, Rayon de miel, Bulle irisée, Petit soleil), 3 traînées (Bulles, Notes, Arc-en-ciel légendaire), 2 victoires (Papillons, Feu d'artifice), 2 cadres (Lagon, Couronne de fleurs).
+- **Raretés lisibles** : commun (gris chaud), rare (ciel), épique (baie), légendaire (soleil) ; la scène d'essai des objets épiques et légendaires a ses rayons.
+
+**Rétention** (une recommandation non appliquée de l'audit, choisie pour son impact) : **le chemin parfait** (audit §7, « fantôme du par »). Après une victoire en moins de 3 ★ en campagne, « Voir le chemin parfait » rejoue la solution optimale sur le plateau (cases numérotées), puis rend la main : « À toi : N coups pour ★★★ ! ». Il transforme l'échec en envie de rejouer (J1) et apprend la maîtrise (J7). Les modificateurs de la semaine et un mode « par exact » n'ont **pas** été ajoutés : on a préféré simplifier plutôt qu'empiler.
+
+**Son** : timbre « pâte » (`clay()`) pour les boutons, interrupteurs et l'équipement d'un objet ; étincelles de verre à la victoire. Même bus, même réverbération.
+
+**Tutoriel** : voir `ONBOARDING.md`. Visites du Marché (cadeau du jour) et du Profil (missions, saison et succès réunis) ; l'ancienne visite des succès disparaît ; annonce unique du nouveau look aux anciennes sauvegardes (`look2`) ; aide du chemin parfait.
+
+**Accessibilité** : contrastes vérifiés (texte blanc sur corail et sur ciel assombris, libellés des onglets, chips du jardin), cibles tactiles de 44 px au moins, `prefers-reduced-motion` respecté par toutes les nouvelles animations, annonces `aria-live` inchangées.
+
+**Performance** (Chromium, processeur ralenti ×4) : 57 à 60 images/s au repos sur chaque page, 45 à 58 en glissant entre les pages. Les animations des boutons cliquables ne touchent pas `transform` (pulsation d'ombre) : le toucher reste stable.
+
+**Bugs corrigés en route** : statistiques du Profil en double ; la porte fermée et le rocher avaient le même symbole ◆ ; la couronne du « Petit soleil » passait sur la graine ; la chip de météo du jardin chevauchait celle de la rosée ; l'en-tête de JOUER était coupé à 360 px ; plusieurs textes blancs sous le seuil de contraste.
+
+**Ce qui ne change pas** : la logique de jeu. Aucun niveau, aucune mécanique, ni le moteur, ni le solveur n'ont été touchés ; les 60 solutions rejouées dans le vrai moteur gagnent toujours en exactement « par » coups.
+
 ## 5. Tests exécutés (résultats observés)
 
 | Commande | Ce qu'elle vérifie | Résultat |
 |---|---|---|
 | `node scripts/check-game.js index.html` | `node --check` + solveur sur les 60 niveaux | 60 niveaux, 0 cassé, 4 avertissements (INTRO en 1 coup, voulu) |
-| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) ; **jardin vivant** (ciel, météo sur 1 000 jours, rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel) | 6 702 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel ; et le **hub** : cadeau, missions de la semaine, saison et report, marché, collection, pastilles, classement personnel) |
-| `node scripts/test-dom.js` | **jsdom** avec de vrais `KeyboardEvent` / `PointerEvent` : écran de lancement, nouveau joueur, swipe, jardin vivant (rosée, chantier, clavier), **ancienne sauvegarde** (schéma 1, clé de série « future »), **dates UTC**, rattrapage de série, bon retour, rang, aides, points d'accroche pub, animations réduites ; **hub** : glisser entre les pages (pichenette, geste lent, geste vertical, bouts, panorama exclu, toucher annulé après un glissement), onglets, clavier, bouton retour ; **aucune navigation pendant une partie** ; **pastilles** (cadeau, offre vue, objet neuf, palier, défi fait, mission, saison, succès vus) ; **sauvegarde d'avant le hub** | 122 vérifications, 0 échec |
+| `node scripts/test-logic.js` | 480 symétries ; générateur (7 mécaniques × 5 paliers) ; parties simulées ; 400 défis ; jardin (barème, plafonds, parcours complet, données corrompues), rituel (120 jours), pubs (plafonds), rétention (J1/J7/J30) ; **jardin vivant** (ciel, météo sur 1 000 jours, rosée du matin, croissance, rangs, rattrapage, bon retour, aides, interstitiel) | 6 707 vérifications, 0 échec (dont le tutoriel : répliques de 12 mots max, jamais « undefined », états corrompus, choix des visites, rappel ; et le **hub** : cadeau, missions de la semaine, saison et report, marché, collection, pastilles, classement personnel) |
+| `node scripts/test-dom.js` | **jsdom** avec de vrais `KeyboardEvent` / `PointerEvent` : écran de lancement, nouveau joueur, swipe, jardin vivant (rosée, chantier, clavier), **ancienne sauvegarde** (schéma 1, clé de série « future »), **dates UTC**, rattrapage de série, bon retour, rang, aides, points d'accroche pub, animations réduites ; **hub** : glisser entre les pages (pichenette, geste lent, geste vertical, bouts, panorama exclu, toucher annulé après un glissement), onglets, clavier, bouton retour ; **aucune navigation pendant une partie** ; **pastilles** (cadeau, offre vue, objet neuf, palier, défi fait, mission, saison, succès vus) ; **sauvegarde d'avant le hub** ; **chemin parfait** (démo, clavier bloqué, rejeu à 3 ★) ; **sauvegarde d'avant la refonte** (cosmétiques et pièces conservés, annonce du nouveau look une seule fois) | 141 vérifications, 0 échec |
 | `NODE_PATH=$(npm root -g) node scripts/e2e-smoke.js [captures]` | Parcours joueur complet dans Chromium (vrais événements clavier et souris) : fantôme, Atelier, **Jardin** (rosée en victoire, 5 chantiers, fête de zone, rituel, pub simulée plafonnée, **panorama, goutte touchée au doigt, ciels**), **sauvegardes corrompues**, PWA hors ligne, coffre de la semaine | 84 vérifications, 0 échec, 0 erreur ou avertissement console (lancement, 5 onglets, glissement à la souris, Marché) |
-| `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN | 63 vérifications, 0 échec, 0 erreur console (stable sur 4 exécutions, dont 3 en parallèle) |
+| `NODE_PATH=$(npm root -g) node scripts/e2e-tutorial.js` | Tutoriel de Germain : premier lancement complet, clavier, chaque visite d'onglet, « Plus tard », cible absente, retour système, fin et succès Apprenti, rappel du lendemain, fermeture en plein tutoriel, « Passer », « Revoir le tutoriel », réinitialisation, joueur existant, animations réduites, aria-live, 3 stockages corrompus, aucun undefined/NaN ; visites du Marché (cadeau) et du Profil | 65 vérifications, 0 échec, 0 erreur console (stable sur 4 exécutions, dont 3 en parallèle) |
 | CI GitHub Actions | Les quatre suites (dont jsdom), sur toutes les branches | Vert |
 
-Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur le lancement, les 5 pages du hub, le jeu, la victoire, le défi, le Sentier, l'aide. Aucun débordement horizontal.
+Vérifications visuelles faites par captures : 360×640, 390×844 et 430×932, sur le lancement, les 5 pages du hub, le jeu (8 mondes), la victoire, le défi, le Sentier, la carte, l'aide, la collection, Germain. Mécaniques vérifiées sous filtres niveaux de gris, deutéranopie et protanopie. Aucun débordement horizontal.
 
-Niveaux revalidés : solveur interne (60/60), et les 60 solutions rejouées dans le **vrai moteur** (touches du clavier) : victoire en exactement « par » coups pour chacun. Aucun niveau ni mécanique n'a changé dans cette session.
+Niveaux revalidés : solveur interne (60/60), et les 60 solutions rejouées dans le **vrai moteur** (touches du clavier) : victoire en exactement « par » coups pour chacun. Aucun niveau ni mécanique n'a changé (refonte visuelle comprise) : le BFS indépendant n'avait donc rien de nouveau à valider.
 
 ## 6. Plan de mesure (tests joueurs)
 
@@ -330,6 +384,7 @@ Niveaux revalidés : solveur interne (60/60), et les 60 solutions rejouées dans
 - **Qualité ressentie des plateaux générés** : elle n'est mesurée que par des proxys (par, états explorés, mécanique qui compte). Elle n'a pas été validée par de vrais joueurs.
 - **Non testé** sur appareils physiques (iOS Safari, Android ancien), ni avec un lecteur d'écran réel.
 - **Rythme du jardin** (720 💧) calculé sur des sessions types : il reste à calibrer avec de vrais joueurs (données : `rosee_gain`, `garden_task`). La rosée du matin ajoute 3 à 6 💧 par jour de visite.
+- **La refonte n'a été vue que sur captures et dans Chromium** : à regarder sur de vrais téléphones (couleurs d'écran OLED, luminosité au soleil).
 - **Le jardin est dessiné par du code** (formes simples) : il est riche et vivant, mais un illustrateur ferait mieux, surtout pour les animaux et les plantes en gros plan.
 - **Le jour de jeu est en UTC** : pour un joueur en Amérique, le nouveau défi arrive en fin d'après-midi. Choix demandé (une seule date pour tout le monde) ; à revoir si le jeu vise surtout ces fuseaux.
 - **Pubs** : seul le fournisseur simulé existe. Aucune vraie régie n'est branchée (voir §4c).

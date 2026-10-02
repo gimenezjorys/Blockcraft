@@ -34,7 +34,9 @@
 
 La question à poser en test : **à quelle étape les gens passent-ils ?**
 
-## Ce qui a été construit (voir `PRODUCTION_PROGRESS.md` §4d)
+## Ce qui a été construit (voir `PRODUCTION_PROGRESS.md` §4d et §4g)
+
+Ordre des visites (`TUTO_TOURS`) : Jardin, Collection, Défi, Marché, Profil. Chacune arrive dès que sa condition est remplie, dans n'importe quel ordre ; l'ancienne visite séparée des Succès a disparu (les succès vivent dans le Profil).
 
 | Moment | Ce que fait Germain | Cadeau |
 |---|---|---|
@@ -44,10 +46,13 @@ La question à poser en test : **à quelle étape les gens passent-ils ?**
 | Nouvelle mécanique | Mini-scène (surpris, puis content), les cases pulsent | — |
 | Jardin (dès qu'un chantier est payable) | Projecteur sur l'onglet **Jardin** de la barre du bas, puis sur « Réveiller » | +3 💧 |
 | Atelier (dès 30 pièces) | Projecteur sur l'onglet **Collection**, puis sur « Équiper » | Une graine offerte |
-| Défi, Succès, Profil | Projecteur sur le bouton « Défi du jour », puis sur l'onglet **Profil** (rubrique Succès, puis Stats), une phrase | — |
+| Défi (dès 3 niveaux, défi pas encore fait) | Projecteur sur le bouton « Défi du jour », une phrase | — |
+| Marché (dès 2 niveaux, cadeau du jour prêt) | Projecteur sur l'onglet **Marché**, puis sur « Ouvrir le cadeau » : le joueur ouvre lui-même son premier cadeau | Le cadeau du jour |
+| Profil (dès 5 niveaux et un succès) | Projecteur sur l'onglet **Profil**, ouvert sur **Missions** (missions, saison et succès au même endroit) | — |
 | Fin | Diplôme | Succès « Apprenti », +25 🪙 |
 | Lendemain (première semaine) | Rappel du défi et de la série, sans pression | — |
 | Joueur existant | « Il y a du nouveau. Petite visite ? » (onglets Jardin, Rituel, Collection, Marché), et le mot de la fin montre le geste de navigation | — |
+| Joueur existant, après la refonte « Verger au soleil » | Une seule bulle : « Le jardin a fait peau neuve ! Et de nouvelles graines. » avec « Voir » (ouvre la Collection) ou « Plus tard ». Un simple toast si le tutoriel a été passé. Jamais pour un nouveau joueur. | — |
 
 **Choix documentés** :
 - « Passer » arrête tout le tutoriel ; les mécaniques reviennent alors en aide texte.
@@ -73,6 +78,7 @@ Chaque nouveauté s'explique **une seule fois**, par Germain, au moment où le j
 | Collection | 1re visite | « Ta collection : essaie chaque objet ici avant de l'acheter. » |
 | Jardin | 1re visite sans rosée à cueillir (la rosée passe d'abord : une aide par visite) | « Ton jardin ! La rosée gagnée en jouant le réveille. » |
 | Profil | 1re visite | « Tes missions, ta saison et tes succès sont rangés ici. » |
+| Chemin parfait | 1re victoire en moins de 3 ★ en campagne | « Pas parfait ? Regarde le chemin parfait, puis bats-le ! » |
 
 Jamais pendant l'intro, jamais par-dessus une autre bulle (elle attend la prochaine occasion), toujours fermable (« Merci ! », toucher, Échap). Dans le hub, une bulle en bas se pose au-dessus de la barre d'onglets, jamais dessus.
 

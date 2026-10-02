@@ -484,6 +484,76 @@ async function solveCurrent(g) {
   check(g.errors.length === 0, 'aucune erreur à la mise à jour (' + (g.errors[0] || 'ok') + ')');
   g.w.close();
 
+  // ---------- 14. Le chemin parfait (audit §7) ----------
+  console.log('\n— Le chemin parfait');
+  const prog14 = {}; for (let i = 0; i < 12; i++) prog14[i] = 3;
+  g = await openGame({ bcd_progress_v1: env(prog14), bcd_tutorial_v1: SKIPPED, bcd_tips_v1: env({ seen: { nav: true, perfect_path: true } }) }, { wait: 400 });
+  await enter(g);
+  // Étoiles méritées, lues sur l'écran de victoire (coups et par), sans attendre leur animation.
+  const starsOn = () => { const m = +g.d.getElementById('vMoves').textContent, p = +g.d.getElementById('vPar').textContent; return m <= p ? 3 : m === p + 1 ? 2 : 1; };
+  // Un détour volontaire, puis la solution : on gagne au-dessus du par.
+  let found = -1, firstMove = '';
+  for (const lv of [4, 5, 6, 7, 8, 9, 10, 11]) {
+    for (const m of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']) {
+      g.w.BCD_DEV.playLevel(lv); await sleep(150);
+      key(g.w, m); await sleep(260);
+      if (g.d.getElementById('hudMoves').textContent !== '1' || screenOf(g.d) !== 'screen-game') continue;
+      await solveCurrent(g);
+      if (screenOf(g.d) === 'screen-victory' && starsOn() < 3) { found = lv; firstMove = m; break; }
+    }
+    if (found >= 0) break;
+  }
+  check(found >= 0, `victoire imparfaite obtenue (niveau ${found + 1}, détour ${firstMove})`);
+  const pp = g.d.getElementById('btnPerfectPath');
+  check(pp && !pp.hidden, 'victoire imparfaite : « Voir le chemin parfait » proposé');
+  const par = +g.d.getElementById('vPar').textContent;
+  click(g.w, pp); await sleep(300);
+  check(screenOf(g.d) === 'screen-game' && g.d.getElementById('hudMoves').textContent === '0' && /chemin parfait/.test(g.d.getElementById('gameTip').textContent), 'le plateau repart à zéro, la démonstration commence');
+  key(g.w, 'ArrowRight'); key(g.w, 'ArrowDown'); await sleep(200);
+  check(g.d.getElementById('hudMoves').textContent === '0', 'pendant la démonstration, les touches du joueur ne comptent pas');
+  await sleep(500 + (par - 1) * 620 + 350);
+  check(g.d.querySelectorAll('#overlay .hint-tier4-badge').length === par, `les ${par} coups parfaits sont numérotés sur le plateau`);
+  await sleep(1300);
+  check(/À toi/.test(g.d.getElementById('gameTip').textContent) && g.d.querySelectorAll('#overlay .hint-tier4-badge').length === 0, '« À toi » : la main revient au joueur, plateau propre');
+  const n14 = await solveCurrent(g);
+  check(screenOf(g.d) === 'screen-victory' && starsOn() === 3 && g.d.getElementById('btnPerfectPath').hidden, `rejoué au par : ★★★, et plus de chemin à montrer (${n14} coups)`);
+  await sleep(1500);
+  check(g.d.querySelectorAll('#victoryStars .star.on').length === 3, 'les trois étoiles s\'allument');
+  check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
+  g.w.close();
+
+  // ---------- 15. Ancienne sauvegarde : cosmétiques et nouveau look ----------
+  console.log('\n— Ancienne sauvegarde : cosmétiques conservés, nouveau look annoncé une fois');
+  const prog15 = {}; for (let i = 0; i < 10; i++) prog15[i] = 3;
+  const old15 = {
+    bcd_progress_v1: env(prog15), bcd_coins_v1: env(90),
+    bcd_cosmetics_owned_v1: env(['default', 'jade', 'argent', 'nuit']), bcd_cosmetic_equipped_v1: env('argent'),
+    bcd_move_fx_owned_v1: env(['default', 'comete']), bcd_move_fx_equipped_v1: env('comete'),
+    bcd_frames_owned_v1: env(['default', 'or']), bcd_frame_equipped_v1: env('or'),
+    bcd_tutorial_v1: env({ intro: 'done', skipped: false, done: true, tours: {}, attempts: {}, gifts: {}, news: 'done' }),
+    bcd_tips_v1: env({ seen: { nav: true } })
+  };
+  g = await openGame(old15, { wait: 400 });
+  check(g.w.BCD_DEV.getEquippedCosmetic() === 'argent' && g.d.documentElement.dataset.seedFx === 'argent', 'graine équipée conservée, avec sa nouvelle matière (chrome)');
+  check(['jade', 'argent', 'nuit'].every(id => g.w.BCD_DEV.getOwnedCosmetics().includes(id)) && g.w.BCD_DEV.getEquippedMoveEffect() === 'comete' && g.w.BCD_DEV.getEquippedFrame() === 'or', 'graines, traînée et cadre déjà achetés : tous conservés');
+  check(g.w.BCD_DEV.getCoins() === 90, 'pièces conservées');
+  await enter(g, 1300);
+  check(/peau neuve/.test(g.w.BCD_DEV.coachText()), 'à l\'ouverture : Germain annonce le nouveau look');
+  check(g.w.BCD_DEV.getTutorial().look2 === true, 'annonce notée (une seule fois)');
+  click(g.w, g.d.querySelector('#coach .c-primary')); await sleep(400);
+  check(screenOf(g.d) === 'screen-cosmetics', '« Voir » ouvre la Collection');
+  const names = Array.from(g.d.querySelectorAll('#atelierGrid .item-name')).map(e => e.textContent);
+  check(['Petit soleil', 'Coccinelle', 'Bulle de savon', 'Rayon de miel', 'Petite pastèque'].every(n => names.includes(n)), 'les nouvelles graines sont dans la Collection');
+  check(g.errors.length === 0, 'aucune erreur (' + (g.errors[0] || 'ok') + ')');
+  g.w.close();
+  g = await openGame(Object.assign({}, old15, { bcd_tutorial_v1: env({ intro: 'done', done: true, tours: {}, attempts: {}, gifts: {}, news: 'done', look2: true }) }), { wait: 400 });
+  await enter(g, 1300);
+  check(!/peau neuve/.test(g.w.BCD_DEV.coachText()), 'annonce déjà vue : elle ne revient pas');
+  g.w.close();
+  g = await openGame({}, { wait: 400 });
+  check(g.w.BCD_DEV.getTutorial().look2 === true, 'nouveau joueur : aucune annonce de « nouveau look » (il n\'a jamais connu l\'ancien)');
+  g.w.close();
+
   console.log(`\n${checks} vérifications, ${failures} échec(s).`);
   process.exit(failures ? 1 : 0);
 })().catch(e => { console.error('✘ exception : ' + (e && e.stack || e)); process.exit(1); });

@@ -12,12 +12,13 @@
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <!-- Fond plus lumineux au centre : l'icône doit « sortir » à côté
-         d'icônes très saturées sur un écran d'accueil (voir la planche). -->
+    <!-- Fond : un ciel bleu (direction artistique « Verger au soleil »),
+         plus lumineux au centre. Chaud sur froid : la graine dorée « sort »
+         à côté d'icônes très saturées sur un écran d'accueil. -->
     <radialGradient id="aBg" cx="0.62" cy="0.42" r="0.95">
-      <stop offset="0" stop-color="#46c99a"/>
-      <stop offset="0.5" stop-color="#1c7f5e"/>
-      <stop offset="1" stop-color="#0b3a2e"/>
+      <stop offset="0" stop-color="#86d8ff"/>
+      <stop offset="0.5" stop-color="#2e8ee0"/>
+      <stop offset="1" stop-color="#173a8c"/>
     </radialGradient>
     <radialGradient id="aGlow" cx="0.5" cy="0.5" r="0.5">
       <stop offset="0" stop-color="#fffbe6"/>
