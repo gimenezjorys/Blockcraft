@@ -124,4 +124,181 @@ export const SFX = {
       tone(ctx, out, { type: 'triangle', freq: 294, t0: t + 0.09, dur: 0.08, gain: 0.12 * o.k });
     },
   },
+  eyes_open: {
+    bus: 'sfx', max: 20, dur: 0.04,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 500, freqEnd: 1000, t0: t, dur: 0.04, gain: 0.07 * o.k });
+    },
+  },
+  eyes_boing: {
+    bus: 'sfx', max: 2, dur: 0.25,
+    fn(ctx, out, t, o) {
+      const osc = ctx.createOscillator();
+      const lfo = ctx.createOscillator();
+      const lg = ctx.createGain();
+      const g = ctx.createGain();
+      osc.frequency.setValueAtTime(300, t);
+      lfo.frequency.setValueAtTime(18, t);
+      lg.gain.setValueAtTime(25, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.12 * o.k, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+      lfo.connect(lg);
+      lg.connect(osc.frequency);
+      osc.connect(g);
+      g.connect(out);
+      osc.start(t);
+      lfo.start(t);
+      osc.stop(t + 0.3);
+      lfo.stop(t + 0.3);
+    },
+  },
+  wave_warn: {
+    bus: 'sfx', max: 2, dur: 0.4,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 140, freqEnd: 80, t0: t, dur: 0.12, gain: 0.12 * o.k });
+      tone(ctx, out, { freq: 140, freqEnd: 80, t0: t + 0.18, dur: 0.12, gain: 0.1 * o.k });
+      tone(ctx, out, { type: 'sawtooth', freq: 90, freqEnd: 70, t0: t, dur: 0.35, gain: 0.025 * o.k });
+    },
+  },
+  wave_start: {
+    bus: 'sfx', max: 2, dur: 0.45,
+    fn(ctx, out, t, o) {
+      for (let i = 0; i < 3; i++) {
+        tone(ctx, out, { freq: 140, freqEnd: 80, t0: t + i * 0.13, dur: 0.12, gain: 0.14 * o.k });
+        noise(ctx, out, { t0: t + i * 0.13, dur: 0.05, gain: 0.05 * o.k, filter: 'lowpass', freq: 900 });
+      }
+    },
+  },
+  wave_clear: {
+    bus: 'sfx', max: 2, dur: 0.4,
+    fn(ctx, out, t, o) {
+      [0, 2, 4].forEach((n, i) => tone(ctx, out, { freq: scaleNote('night', 7 + n), t0: t + i * 0.11, dur: 0.3, gain: 0.08 * o.k }));
+    },
+  },
+  shot_can: {
+    bus: 'sfx', max: 12, dur: 0.05,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.03, gain: 0.06 * o.k, filter: 'lowpass', freq: 1000 });
+      tone(ctx, out, { freq: 220, freqEnd: 150, t0: t, dur: 0.05, gain: 0.06 * o.k });
+    },
+  },
+  shot_coin: {
+    bus: 'sfx', max: 12, dur: 0.025,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 2600, t0: t, dur: 0.025, gain: 0.03 * o.k });
+      noise(ctx, out, { t0: t, dur: 0.004, gain: 0.03 * o.k, freq: 4000 });
+    },
+  },
+  lob: {
+    bus: 'sfx', max: 10, dur: 0.06,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 400, freqEnd: 250, t0: t, dur: 0.06, gain: 0.06 * o.k });
+    },
+  },
+  splat: {
+    bus: 'sfx', max: 10, dur: 0.12,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.1, gain: 0.08 * o.k, filter: 'lowpass', freq: 600 });
+      tone(ctx, out, { freq: 140, freqEnd: 70, t0: t, dur: 0.12, gain: 0.08 * o.k });
+    },
+  },
+  frost: {
+    bus: 'sfx', max: 8, dur: 0.18,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.18, gain: 0.05 * o.k, filter: 'highpass', freq: 4000, freqEnd: 2000 });
+      tone(ctx, out, { freq: 1800, freqEnd: 1200, t0: t, dur: 0.18, gain: 0.03 * o.k });
+    },
+  },
+  chomp: {
+    bus: 'sfx', max: 8, dur: 0.12,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.02, gain: 0.1 * o.k, filter: 'lowpass', freq: 800 });
+      noise(ctx, out, { t0: t + 0.06, dur: 0.02, gain: 0.1 * o.k, filter: 'lowpass', freq: 800 });
+      tone(ctx, out, { freq: 180, t0: t, dur: 0.1, gain: 0.06 * o.k });
+    },
+  },
+  hit: {
+    bus: 'sfx', max: 10, dur: 0.02,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.02, gain: 0.05 * o.k, freq: 1500 + (o.v % 7) * 220, q: 2 });
+    },
+  },
+  armor: {
+    bus: 'sfx', max: 8, dur: 0.08,
+    fn(ctx, out, t, o) {
+      fmBell(ctx, out, { t0: t, freq: 1200, ratio: 2.7, index: 2, dur: 0.08, gain: 0.04 * o.k });
+    },
+  },
+  pouf: {
+    bus: 'sfx', max: 10, dur: 0.18,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.16, gain: 0.08 * o.k, filter: 'lowpass', freq: 3000, freqEnd: 300 });
+      tone(ctx, out, { freq: scaleNote('night', 7 + (o.n % 5)), t0: t + 0.02, dur: 0.12, gain: 0.05 * o.k });
+    },
+  },
+  thief_grab: {
+    bus: 'sfx', max: 4, dur: 0.3,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { type: 'square', freq: mtof(69), t0: t, dur: 0.09, gain: 0.05 * o.k });
+      tone(ctx, out, { type: 'square', freq: mtof(65), t0: t + 0.1, dur: 0.09, gain: 0.05 * o.k });
+      for (let i = 0; i < 3; i++) tone(ctx, out, { freq: 2400 - i * 300, t0: t + 0.12 + i * 0.05, dur: 0.05, gain: 0.03 * o.k });
+    },
+  },
+  thief_caught: {
+    bus: 'sfx', max: 4, dur: 0.45,
+    fn(ctx, out, t, o) {
+      for (let i = 0; i < 5; i++) tone(ctx, out, { freq: scaleNote('night', 7 + i), t0: t + i * 0.04, dur: 0.1, gain: 0.06 * o.k });
+      for (let i = 0; i < 6; i++) tone(ctx, out, { freq: 2200 + i * 120, t0: t + 0.2 + i * 0.03, dur: 0.04, gain: 0.03 * o.k });
+    },
+  },
+  broken: {
+    bus: 'sfx', max: 4, dur: 0.15,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.06, gain: 0.12 * o.k, freq: 900, q: 1.5 });
+      tone(ctx, out, { freq: 120, freqEnd: 60, t0: t, dur: 0.15, gain: 0.1 * o.k });
+    },
+  },
+  repair: {
+    bus: 'sfx', max: 4, dur: 0.02,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 1800, t0: t, dur: 0.02, gain: 0.05 * o.k });
+    },
+  },
+  bell: {
+    bus: 'sfx', max: 2, dur: 1.6, steady: true,
+    fn(ctx, out, t, o) {
+      fmBell(ctx, out, { t0: t, freq: 587.33, ratio: 1.4, index: 5, indexEnd: 0.01, dur: 1.6, gain: 0.2 * o.k });
+      noise(ctx, out, { t0: t, dur: 0.6, gain: 0.05 * o.k, filter: 'lowpass', freq: 4000, freqEnd: 400 });
+    },
+  },
+  bell_empty: {
+    bus: 'ui', max: 3, dur: 0.18,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { type: 'triangle', freq: 330, t0: t, dur: 0.08, gain: 0.08 * o.k });
+      tone(ctx, out, { type: 'triangle', freq: 294, t0: t + 0.09, dur: 0.08, gain: 0.08 * o.k });
+    },
+  },
+  boss: {
+    bus: 'sfx', max: 1, dur: 2,
+    fn(ctx, out, t, o) {
+      const osc = ctx.createOscillator();
+      const f = ctx.createBiquadFilter();
+      const g = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(55, t);
+      f.type = 'lowpass';
+      f.frequency.setValueAtTime(400, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.12 * o.k, t + 1.2);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+      osc.connect(f);
+      f.connect(g);
+      g.connect(out);
+      osc.start(t);
+      osc.stop(t + 1.5);
+      for (const fr of [140, 221, 317]) tone(ctx, out, { freq: fr, t0: t + 1.2, dur: 1.8, gain: 0.05 * o.k });
+      noise(ctx, out, { t0: t + 1.2, dur: 0.4, gain: 0.08 * o.k, filter: 'lowpass', freq: 700 });
+    },
+  },
 };

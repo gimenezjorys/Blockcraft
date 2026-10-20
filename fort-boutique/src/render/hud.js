@@ -169,3 +169,155 @@ export function hudHit(x, y, { bell = false } = {}) {
   }
   return null;
 }
+
+/**
+ * Lune et pastilles de vagues (haut de l'écran la nuit, G20.8).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} wave index (0…)
+ * @param {number} total
+ * @param {number} cleared vagues terminées
+ */
+export function drawWavePips(ctx, wave, total, cleared) {
+  // Lune.
+  ctx.fillStyle = P.lune;
+  ctx.strokeStyle = P.encre;
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.arc(24, 23, 13, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#F1DE8C';
+  ctx.beginPath();
+  ctx.arc(20, 20, 3, 0, Math.PI * 2);
+  ctx.arc(28, 27, 2, 0, Math.PI * 2);
+  ctx.fill();
+  for (let i = 0; i < total; i++) {
+    const x = 48 + i * 18;
+    const done = i < cleared;
+    const cur = i === wave && !done;
+    disc(ctx, x, 23, cur ? 7 : 6, done ? P.etiquetteVerte : cur ? P.craieJaune : 'rgba(242,246,238,.3)', 2);
+    if (done) {
+      ctx.strokeStyle = P.encre;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 3, 23);
+      ctx.lineTo(x - 0.5, 26);
+      ctx.lineTo(x + 3.5, 20);
+      ctx.stroke();
+    }
+  }
+}
+
+/**
+ * Jauge du Bocal : un bocal qui se vide (G20.8), clignote en rouge au moment d'un vol.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} ratio 0 à 1 (et plus avec le bonus de récupération)
+ * @param {number} value pièces dans le Bocal
+ * @param {number} blink 0 à 1
+ */
+export function drawJarGauge(ctx, ratio, value, blink) {
+  const x = 218;
+  const y = 8;
+  ctx.save();
+  if (blink > 0) ctx.translate(Math.sin(blink * 40) * 2, 0);
+  rr(ctx, x, y + 4, 26, 30, 7);
+  fillInk(ctx, blink > 0 && Math.floor(blink * 12) % 2 ? 'rgba(255,61,110,.5)' : 'rgba(189,235,255,.55)', 2.2);
+  const k = Math.max(0, Math.min(1, ratio));
+  if (k > 0) {
+    ctx.fillStyle = P.or;
+    rr(ctx, x + 3, y + 31 - 24 * k, 20, 24 * k, 4);
+    ctx.fill();
+  }
+  rr(ctx, x + 4, y, 18, 6, 2);
+  fillInk(ctx, P.bois, 1.8);
+  ctx.restore();
+  stickerText(ctx, shortNumber(value), x + 13, y + 46, 12, P.orReflet);
+}
+
+/**
+ * Bouton Cloche (64 px, se remplit en cercle, G4) ; mode gaucher : à gauche.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} charge @param {number} need
+ * @param {number} t temps (pulsation quand prête)
+ * @param {boolean} left
+ */
+export function drawBellButton(ctx, charge, need, t, left = false) {
+  const b = HUD_BUTTONS.bell;
+  const x = left ? 360 - b.x : b.x;
+  const ready = charge >= need;
+  const k = Math.min(1, charge / need);
+  const s = ready ? 1 + Math.sin(t * 6) * 0.05 : 1;
+  ctx.save();
+  ctx.translate(x, b.y);
+  ctx.scale(s, s);
+  disc(ctx, 0, 0, b.r, ready ? P.etiquetteDoree : P.kraft, 3);
+  if (!ready) {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, b.r - 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,210,63,.75)';
+    ctx.fill();
+  }
+  // Cloche.
+  ctx.beginPath();
+  ctx.moveTo(-12, 8);
+  ctx.quadraticCurveTo(-12, -14, 0, -14);
+  ctx.quadraticCurveTo(12, -14, 12, 8);
+  ctx.closePath();
+  fillInk(ctx, ready ? P.orReflet : '#E8D3B0', 2.4);
+  disc(ctx, 0, 11, 3.5, P.encre, 0);
+  ctx.restore();
+}
+
+/**
+ * Bulle de télégraphe au-dessus d'une entrée : icônes des types qui vont sortir, « NOUVEAU » si jamais vu (G8.3).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x @param {number} y pixels
+ * @param {string[]} types
+ * @param {(ctx: CanvasRenderingContext2D, type: string) => void} icon
+ * @param {boolean} isNew
+ * @param {number} t
+ * @param {string} newLabel
+ */
+export function drawTelegraph(ctx, x, y, types, icon, isNew, t, newLabel) {
+  const s = 1 + Math.sin(t * 8) * 0.07;
+  const w = 10 + types.length * 22;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  rr(ctx, -w / 2, -18, w, 30, 10);
+  fillInk(ctx, P.ticket, 2.2);
+  ctx.beginPath();
+  ctx.moveTo(-5, 12);
+  ctx.lineTo(0, 19);
+  ctx.lineTo(5, 12);
+  ctx.fillStyle = P.ticket;
+  ctx.fill();
+  types.forEach((ty, i) => {
+    ctx.save();
+    ctx.translate(-w / 2 + 16 + i * 22, 8);
+    ctx.scale(0.55, 0.55);
+    icon(ctx, ty);
+    ctx.restore();
+  });
+  if (isNew) {
+    rr(ctx, -26, -32, 52, 14, 5);
+    fillInk(ctx, P.yeuxGrignotins, 1.8);
+    ctx.fillStyle = P.encre;
+    ctx.font = '900 9px ui-rounded, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(newLabel, 0, -25);
+  }
+  ctx.restore();
+}
+
+/** Bannière brève (« RUSH! », « 2/4 », niveau…), au centre de l'écran. */
+export function drawBanner(ctx, text, t, life, color = P.craieJaune) {
+  const k = t / life;
+  const pop = k < 0.12 ? 0.6 + (k / 0.12) * 0.5 : 1.1 - Math.min(0.1, (k - 0.12));
+  ctx.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+  stickerText(ctx, text, 180, 250, 30 * pop, color);
+  ctx.globalAlpha = 1;
+}

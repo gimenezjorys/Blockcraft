@@ -121,3 +121,28 @@ Raison : le facteur 0,97^(semaine − 1) n'a de sens que si 0,95^(jour − 1) re
 Décision : l'AudioContext est créé au premier `pointerup`, `touchend`, `click`, `keydown` ou `mousedown`.
 Alternatives : `pointerdown` / `touchstart`.
 Raison : Chrome et Safari ne comptent pas `touchstart` comme une activation : le contexte resterait muet (avertissement constaté en test).
+
+## 2026-10-20 — M5 — Rythme des vagues
+Décision : la vague suivante ne commence que lorsque plus aucun Grignotin n'est présent ; la pause de 3,5 s contient le télégraphe (ses 2,5 dernières secondes) ; la première vague a seulement le télégraphe (2,5 s).
+Alternatives : vagues qui se chevauchent à minuterie fixe.
+Raison : G19 enchaîne « dernier raton » puis « vague 2 » ; une vague à la fois reste lisible.
+
+## 2026-10-20 — M5 — Ciblage « le plus avancé »
+Décision : l'avancée d'un Grignotin est mesurée sur tout son trajet aller-retour : un voleur en fuite est toujours « plus avancé » que les Grignotins qui n'ont pas encore volé ; la portée se mesure depuis le bord du meuble + 0,5 case (le centre pour un meuble 1 × 1).
+Alternatives : distance à la caisse seulement (les voleurs deviendraient les cibles les moins prioritaires).
+Raison : un voleur emporte des pièces ; les meubles doivent l'aider, pas l'ignorer.
+
+## 2026-10-20 — M5 — Voleur scénarisé de la première nuit
+Décision : le 4e raton de la vague 2 de la toute première nuit va 1,6 × plus vite jusqu'à la caisse et n'est jamais visé par les meubles : seul le balai du marchand peut le rattraper ; sans réaction pendant 3 s, il ralentit de moitié (cette nuit-là seulement).
+Alternatives : voleur ordinaire (les meubles l'abattaient en moins d'une seconde dans les essais).
+Raison : G19 2:08 fait de ce voleur la leçon « rattraper un voleur rend les pièces ».
+
+## 2026-10-20 — M5 — Petits choix de combat
+Décision : la Confiture brûlante est physique (seul le four est « feu ») ; les Spores empoisonnent tous les Grignotins de la zone à l'impact (nuage visuel, pas de zone persistante) ; un Champiboum explose quand il arrive à côté d'un meuble après avoir fait au moins une case ; les volants passent par la cheminée quand il y en a une, sinon par les ouvertures ; un fantôme n'est visible qu'à la lumière dans tous les quartiers (lanterne du marchand comprise).
+Alternatives : poison en nuage persistant ; Champiboum qui cherche un meuble.
+Raison : règles simples, lisibles et testables ; G10.1 décrit le fantôme sans limite de quartier.
+
+## 2026-10-20 — M5 — Bocal gardé et plafond de sécurité
+Décision : le Bocal gardé affiché et les étoiles sont plafonnés à 100 % (le bonus de +10 % des sacs rattrapés reste en pièces) ; au plafond de 240 s, les Grignotins restants s'éclipsent et les sacs encore portés reviennent au Bocal sans bonus ; le butin est crédité à l'aube (les pièces volent vers le Bocal pendant la nuit, rien n'est à ramasser).
+Alternatives : Bocal gardé de 110 % ; vols perdus au plafond.
+Raison : jamais frustrant (une nuit trop longue n'est pas la faute du joueur) ; le score du Défi reste borné.

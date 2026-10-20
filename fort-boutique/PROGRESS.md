@@ -9,8 +9,8 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M2 — Sauvegarde | ✅ | 2026-10-20 | CRC32, stockage avec repli mémoire, schéma G23, 2 copies + .corrupt, migrations testées, export FB1 ; 17 tests. |
 | M3 — La boutique et le marchand | ✅ | 2026-10-20 | Grille E0–E3, cases réservées, validation G6.4, BFS, marchand qui glisse, rendu palette finale. |
 | M4 — Le jour | ✅ | 2026-10-20 | Producteurs, pile, étagères, clients (types, file, patience), caisse, tas de pièces, 6 emplacements, soleil, fermeture, sons de base. |
-| M5 — La nuit | 🔄 |  |  |
-| M6 — Cycle complet + Playtest P1 | ⬜ | | |
+| M5 — La nuit | ✅ | 2026-10-20 | Vagues à graine, 15 comportements de meubles, effets, vol/fuite/récupération, Cloche, balai, réparation, éclairage, HUD de nuit. |
+| M6 — Cycle complet + Playtest P1 | 🔄 |  |  |
 | M7 — Données et progression | ⬜ | | |
 | M8 — Aménagement | ⬜ | | |
 | M9 — La semaine et la Pleine Lune | ⬜ | | |
@@ -78,8 +78,8 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Tests : cycle de vie d'un client ; patience écoulée → départ sans vente ; pas d'encaissement si le marchand est loin ; pad payé au bon débit ; fin de journée ; recette = ventes + pourboires.
 
 **M5 — La nuit**
-- [ ] Transformation des meubles (étagère, caisse, cagette), Raton et Souris, entrées, champ de flux, générateur de vagues à graine (G8.3), projectiles et zones, dégâts et armure (G9.2), mort, butin, vol, fuite, récupération, Bocal, fin de nuit, étoiles (G8).
-- [ ] Marchand la nuit : aura d'encouragement, coup de balai automatique, réparation, Cloche (G8.7, G11.1).
+- [x] Transformation des meubles (étagère, caisse, cagette), Raton et Souris, entrées, champ de flux, générateur de vagues à graine (G8.3), projectiles et zones, dégâts et armure (G9.2), mort, butin, vol, fuite, récupération, Bocal, fin de nuit, étoiles (G8).
+- [x] Marchand la nuit : aura d'encouragement, coup de balai automatique, réparation, Cloche (G8.7, G11.1).
 - Tests : vagues identiques à graine égale ; calcul du vol et de son plafond ; récupération +10 % ; seuils d'étoiles ; champ de flux avec obstacles ; formule d'armure ; ralentissements non cumulables (le plus fort s'applique).
 
 **M6 — Cycle complet + Playtest P1**
@@ -167,3 +167,4 @@ _(aucun pour l'instant)_
 - 2026-10-20 — M2 fait : sauvegarde complète et testée. Reste : M3 boutique. Prochaine étape : data/balance.js, game/shop.js (grille, placement), pathfinding.js.
 - 2026-10-20 — M3 fait : boutique, validation, marchand. Reste : M4 le jour. Prochaine étape : day/producers, shelves, carry, customers, register, pads, barre de soleil.
 - 2026-10-20 — M4 fait : la journée complète, testée au doigt. Reste : M5 la nuit. Prochaine étape : night/waves.js (générateur à graine), monsters.js, towers.js.
+- 2026-10-20 — M5 fait : la nuit complète et testée. Reste : M6 cycle complet + P1. Prochaine étape : phases Matin/Aube, sauvegarde aux transitions, ticket, coffre, amélioration.

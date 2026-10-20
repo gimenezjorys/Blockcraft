@@ -1,2 +1,41 @@
-// Fort Boutique — Poids et calendrier des vagues (M5).
-export {};
+// Fort Boutique — paramètres des vagues (G8.3, G10.4). Les poids par quartier sont dans data/districts.js.
+
+export const WAVES = {
+  /** Nombre de vagues par nuit de la semaine 1 (N1 à N7). */
+  countWeek1: [2, 3, 3, 4, 4, 4, 5],
+  /** Semaine 2 et suivantes : 5 vagues (N7 : 6). */
+  countLater: 5,
+  countLaterBoss: 6,
+  /** Budget de menace : B = (5 + 2,5 (k − 1)) × (0,7 + 0,15 (i − 1)) × F_Q × (1 + 0,1 (s − 1)). */
+  budgetBase: 5,
+  budgetPerNight: 2.5,
+  budgetWaveBase: 0.7,
+  budgetPerWave: 0.15,
+  budgetPerWeek: 0.1,
+  bossEscort: 0.5,
+  /** Rythme (s). */
+  telegraphS: 2.5,
+  memberGapS: 0.35,
+  groupGapS: 0.9,
+  groupGapLateS: 0.7,
+  pauseS: 3.5,
+  /** Plafond de sécurité d'une nuit (s). */
+  maxNightS: 240,
+  /** Raton doré : une nuit sur 10. */
+  goldenChance: 0.1,
+  /** Première nuit du jeu, scénarisée (G19 1:49 et 2:08). */
+  tutorial: [[{ type: 'raton', count: 3 }], [{ type: 'raton', count: 4, scriptedThief: true }]],
+};
+
+/** Mise à l'échelle des PV (G10.2) : M_Q × (1 + 0,12 (k − 1)) × 1,35^(s − 1). */
+export const SCALING = {
+  hpPerNight: 0.12,
+  hpPerWeek: 1.35,
+  lootPerDistrict: 0.6,
+  lootPerWeek: 0.1,
+  thiefSpeed: 1.2,
+  recoverBonus: 1.1,
+};
+
+/** Étoiles (G8.5). */
+export const STARS = { two: 0.7, three: 1.0 };

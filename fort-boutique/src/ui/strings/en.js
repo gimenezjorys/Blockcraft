@@ -3,4 +3,5 @@ export default {
   'game.name': 'Fort Boutique',
   'game.tagline': 'Shop by day, defend by night',
   'title.tap': 'Tap to play',
+  'hud.new': 'NEW',
 };

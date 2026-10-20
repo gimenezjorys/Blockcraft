@@ -13,6 +13,8 @@ import blank from './ui/screens/blank.js';
 import { installTestHooks } from './debug/test-hooks.js';
 import { createAudio } from './audio/audio.js';
 import { startDay } from './game/day/day.js';
+import { buildCheats } from './debug/cheats.js';
+import { setClock } from './core/time.js';
 
 const VERSION = typeof __FB_VERSION__ !== 'undefined' ? __FB_VERSION__ : { version: 'dev', hash: '', date: '' };
 
@@ -26,6 +28,25 @@ function boot() {
   const audio = createAudio(window);
   audio.attach();
   app.services.audio = audio;
+  let current = null;
+  let clockShift = 0;
+  app.services.cheats = () => buildCheats({
+    game: () => current,
+    advanceClock: (ms) => {
+      clockShift += ms;
+      const base = now;
+      void base;
+      setClock(null);
+      const real = now;
+      setClock(() => real() + clockShift);
+    },
+    onChange: () => {},
+  });
+  app.services.debugStats = () => ({
+    entities: current ? (current.night ? current.night.monsters.active.length : 0) + (current.day ? current.day.customers.length : 0) : 0,
+    seed: current ? current.save.seed : '-',
+    phase: current ? current.phase.name : app.router.currentId(),
+  });
   const demo = /[?&]demo=1(?:&|$)/.test(window.location.search);
   app.onTitleTap = () => {
     if (demo) {
@@ -37,6 +58,7 @@ function boot() {
     const t = now();
     const loaded = loadSave(storage, { seed: seedFrom(t, 'nouvelle partie'), now: t, lang });
     const g = createGame({ save: loaded.data });
+    current = g;
     startDay(g);
     app.router.goto('blank');
     app.setScene(createPlay(app, g));

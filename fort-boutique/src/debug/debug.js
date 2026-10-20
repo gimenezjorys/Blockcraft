@@ -27,13 +27,20 @@ export function mountDebug(root, host) {
   const panel = h('div.debug-panel');
   const toggle = h('button.debug-toggle', { type: 'button', text: '🐞' });
   const cheats = h('div.debug-cheats');
-  for (const c of host.cheats) {
-    const b = h('button.debug-cheat', { type: 'button', text: c.label, 'data-cheat': c.id });
-    onTap(b, () => c.run(), d);
-    cheats.appendChild(b);
-  }
   cheats.hidden = true;
-  onTap(toggle, () => { cheats.hidden = !cheats.hidden; }, d);
+  // Les triches sont construites à l'ouverture : les services du jeu existent alors.
+  const fill = () => {
+    if (cheats.childElementCount) return;
+    for (const c of host.cheats) {
+      const b = h('button.debug-cheat', { type: 'button', text: c.label, 'data-cheat': c.id });
+      onTap(b, () => c.run(), d);
+      cheats.appendChild(b);
+    }
+  };
+  onTap(toggle, () => {
+    fill();
+    cheats.hidden = !cheats.hidden;
+  }, d);
   panel.append(stats, toggle, cheats);
   root.appendChild(panel);
   let acc = 0;

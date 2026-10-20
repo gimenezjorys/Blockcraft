@@ -230,7 +230,8 @@ test('fin de journée : soleil à l’horizon, 6 s de grâce, tas ramassés, cli
   const pile = g.day.pile;
   const coins = g.save.player.coins;
   ev = run(g, 5.2, () => teleport(g, 0.5, 0.5));
-  assert.equal(g.phase.name, 'dayEnd');
+  // G5.1 : après les 6 s de fermeture vient le crépuscule.
+  assert.equal(g.phase.name, 'dusk');
   assert.equal(count(ev, 'day_end'), 1);
   assert.equal(g.day.customers.length, 0);
   assert.equal(g.day.pile, 0);
