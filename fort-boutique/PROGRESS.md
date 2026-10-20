@@ -14,7 +14,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M7 — Données et progression | ✅ | 2026-10-20 | Catalogue (prix × 1,6 par exemplaire, plafonds, pose automatique), Améliorer (meubles avec gains chiffrés, marchand, recettes, agrandissement E1), cartes de déblocage au Matin ; 11 tests nouveaux. |
 | M8 — Aménagement | ✅ | 2026-10-20 | Éditeur plein écran : glisser au doigt (fantôme vert/rouge), tourner, ranger, Réserve, trajets et longueurs, Conseil de Mamie, Valider/Annuler ; 8 tests (dont 3 aux vrais gestes). |
 | M9 — La semaine et la Pleine Lune | ✅ | 2026-10-20 | Pleine Lune : Roi Raton (invocations, vol 35 %, fuite), barre de PV, carte d'intro, victoire/échec, Courage de Mamie, Coffre de Lune, semaine 2 ; carte des quartiers (boss ET niveau) ; aperçu de la lune ; 8 tests. |
-| M10 — Simulateur d'équilibrage (Q1) | ⬜ | | |
+| M10 — Simulateur d'équilibrage (Q1) | ✅ | 2026-10-20 | Simulateur (bots Faible/Moyen/Fort en parallèle, modèle provisoire des quêtes) : 300 parties par profil, tous les seuils D2.4 applicables tenus après réglages dans la marge ±25 % ; 3 bugs de jeu trouvés et corrigés ; test sim de 40 parties. |
 | M11 — Les 10 premières minutes + P2 | ⬜ | | |
 | M12 — Quêtes, calendrier, série, succès, bestiaire | ⬜ | | |
 | M13 — Hors ligne, Moka, personnel | ⬜ | | |
@@ -104,7 +104,7 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Tests : comportements du boss ; cumul de l'aide ; progression des semaines ; quartier suivant débloqué seulement si boss vaincu ET niveau requis.
 
 **M10 — Simulateur d'équilibrage (Quartier 1)**
-- [ ] `scripts/sim.mjs` (D2), bots faible/moyen/fort, 300 parties, rapport `docs/sim/SIM_Q1.md`, réglages dans les marges (D2.5), test `tests/sim/q1.test.js` (40 parties, mêmes seuils).
+- [x] `scripts/sim.mjs` (D2), bots faible/moyen/fort, 300 parties, rapport `docs/sim/SIM_Q1.md`, réglages dans les marges (D2.5), test `tests/sim/q1.test.js` (40 parties, mêmes seuils).
 - Fini quand : tous les seuils D2.4 du Quartier 1 sont tenus.
 
 **M11 — Les 10 premières minutes + Playtest P2**
@@ -159,7 +159,7 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
 
-- [ ] P1 — Jalons du début 22 à 38 % en avance sur G19 (robot rapide, mais nuits trop courtes) → M10 (simulateur) puis M11.
+- [ ] P1 — Jalons du début 22 à 38 % en avance sur G19 (robot rapide, mais nuits trop courtes) → M11 (M10 : nuits un peu plus longues, nuit 2 ≈ 28 s, nuit 6 ≈ 70 s).
 - [ ] P1 — Nuits ≈ 15 % du temps de jeu ; transformation des meubles timide (petits yeux, armes peu visibles) → M10, M21.
 - [ ] P1 — Ticket de l'aube très textuel ; les pièces gagnées ne volent pas vers le compteur → M21.
 - [ ] P1 — L'amélioration ne fait bouger que la carte, pas le meuble ; aucun chiffre ne monte → M22 (et stats sur les cartes en M7).
@@ -184,3 +184,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M7 fait : progression du Quartier 1 jouable depuis le Matin. Reste : M8 aménagement. Prochaine étape : routage des gestes vers la scène de l'éditeur (onPointer), écran Aménager déjà préparé.
 - 2026-10-20 — M8 fait : aménagement. Reste : M9 semaine et Pleine Lune. Prochaine étape : brancher boss.js dans la nuit (bossStep), carte d'intro et barre de PV, Courage de Mamie.
 - 2026-10-20 — M9 fait : semaine complète jusqu'au boss. Reste : M10 simulateur d'équilibrage Q1. Prochaine étape : scripts/sim.mjs avec scripts/lib/bots.mjs et strategy.mjs, 300 parties, seuils D2.4.
+- 2026-10-20 — M10 fait : équilibrage Q1 (docs/sim/SIM_Q1.md). Reste : M11 les 10 premières minutes + P2. Prochaine étape : G19 seconde par seconde (flèche dorée, main fantôme, objectif toujours visible).

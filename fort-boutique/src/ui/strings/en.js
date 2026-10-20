@@ -183,6 +183,7 @@ export default {
   'upgrades.expand': "Expand (E{n})",
   'upgrades.expandMax': "The shop is at full size",
   'upgrades.expandDetail': "One more row at the top",
+  'editor.product': "Shelf product",
   'editor.rotate': "Rotate",
   'editor.store': "Store",
   'editor.advice': "Grandma's tip",

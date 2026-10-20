@@ -12,6 +12,7 @@ import { ringBell } from '../../src/game/night/merchant.js';
 import { computeFields } from '../../src/game/state.js';
 import { districtEntrances } from '../../src/game/shop.js';
 import { MONSTERS, BOSSES } from '../../src/data/monsters.js';
+import { WAVES } from '../../src/data/waves.js';
 
 const ENT = districtEntrances('q1', 5, 6);
 
@@ -43,8 +44,10 @@ test('nombre de vagues et budget de menace (G8.3)', () => {
   assert.deepEqual([1, 2, 3, 4, 5, 6, 7].map((k) => waveCount(k, 1)), [2, 3, 3, 4, 4, 4, 5]);
   assert.equal(waveCount(3, 2), 5);
   assert.equal(waveCount(7, 2), 6);
-  assert.ok(Math.abs(waveBudget({ k: 1, i: 1, s: 1, districtId: 'q1' }) - 3.5) < 1e-9);
-  assert.ok(Math.abs(waveBudget({ k: 4, i: 3, s: 2, districtId: 'q2' }) - (5 + 7.5) * 1.0 * 1.15 * 1.1) < 1e-9);
+  // Formule de G8.3 avec les valeurs de data/waves.js (réglées en M10, D2.5).
+  const W = WAVES;
+  assert.ok(Math.abs(waveBudget({ k: 1, i: 1, s: 1, districtId: 'q1' }) - W.budgetBase * W.budgetWaveBase) < 1e-9);
+  assert.ok(Math.abs(waveBudget({ k: 4, i: 3, s: 2, districtId: 'q2' }) - (W.budgetBase + 3 * W.budgetPerNight) * (W.budgetWaveBase + 2 * W.budgetPerWave) * 1.15 * (1 + W.budgetPerWeek)) < 1e-9);
   // Chaque vague dépense au plus son budget.
   for (let k = 1; k <= 6; k++) {
     const night = generateNight({ seed: k, districtId: 'q1', week: 1, night: k, entrances: ENT });
@@ -196,9 +199,10 @@ test('ralentissements non cumulables : le plus fort s’applique, la durée se r
 });
 
 test('mise à l’échelle des PV et du butin (G10.2)', () => {
-  assert.equal(scaledHp(MONSTERS.raton, 'q1', 1, 1), 20);
-  assert.ok(Math.abs(scaledHp(MONSTERS.raton, 'q2', 4, 2) - 20 * 2 * 1.36 * 1.35) < 1e-9);
-  assert.ok(Math.abs(scaledHp(BOSSES.roi_raton, 'q1', 7, 3) - 900 * 1.35 ** 2) < 1e-9);
+  const R = MONSTERS.raton.hp;
+  assert.equal(scaledHp(MONSTERS.raton, 'q1', 1, 1), R);
+  assert.ok(Math.abs(scaledHp(MONSTERS.raton, 'q2', 4, 2) - R * 2 * 1.36 * 1.35) < 1e-9);
+  assert.ok(Math.abs(scaledHp(BOSSES.roi_raton, 'q1', 7, 3) - BOSSES.roi_raton.hp * 1.35 ** 2) < 1e-9);
   assert.equal(scaledLoot(MONSTERS.raton, 'q1', 1), 2);
   assert.equal(scaledLoot(MONSTERS.gourmand, 'q3', 2), Math.round(15 * 2.2 * 1.1));
 });

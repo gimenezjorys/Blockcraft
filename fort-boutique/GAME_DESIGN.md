@@ -270,14 +270,14 @@ Valeur au début de la nuit = max(20 × Q, arrondi(0,5 × recette du jour)), Q �
 
 ### G8.3 Vagues
 - Nombre de vagues selon la nuit k de la semaine : N1 2 ; N2 3 ; N3 3 ; N4 4 ; N5 4 ; N6 4 ; N7 5 (la dernière contient le boss). Semaine 2 et suivantes : 5 (N7 : 6).
-- Budget de menace de la vague i (1 à W) : **B = (5 + 2,5 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))**, avec F_Q = 1,0 / 1,15 / 1,3 / 1,45 / 1,6 pour Q1 à Q5 et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
+- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 1,15 / 1,3 / 1,45 / 1,6 pour Q1 à Q5 et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
 - Chaque monstre coûte son « coût de menace » (G10). Le générateur, à graine (graine de partie, quartier, semaine, nuit), tire des groupes de 2 à 5 du même type parmi ceux autorisés à cette nuit, avec les pondérations de `data/waves.js`, et les répartit entre les entrées actives.
 - Un type nouveau apparaît d'abord **seul**, en petit groupe, dans la vague 1 de sa nuit d'introduction.
 - **Télégraphe** : 2,5 s avant chaque vague, chaque entrée active montre une bulle pulsante avec les icônes des types qui vont sortir (et une étiquette « NOUVEAU » pour un type jamais vu).
 - Rythme : 0,35 s entre deux membres d'un groupe, 0,9 s entre deux groupes (0,7 s à partir du Q3), 3,5 s de pause entre deux vagues (bannière « Vague 2/4 »).
 
 ### G8.4 Vol et fuite
-- Un Grignotin qui atteint une case voisine de la caisse prend **son % de vol du Bocal initial** (plafonné à ce qui reste), devient **voleur** (sac sur le dos, vitesse +20 %) et repart vers l'entrée par laquelle il est venu (la plus proche s'il venait de la trappe).
+- Un Grignotin qui atteint une case voisine de la caisse prend **son % de vol du Bocal initial** (plafonné à ce qui reste), devient **voleur** (sac sur le dos, vitesse +50 % ; M10 : +20 % au départ, D2.5 ; le voleur scénarisé de la première nuit garde +20 % et 20 PV, G19) et repart vers l'entrée par laquelle il est venu (la plus proche s'il venait de la trappe).
 - Le vaincre pendant sa fuite fait tomber le sac : les pièces retournent dans le Bocal **avec +10 % de bonus**.
 - S'il sort, les pièces sont perdues pour cette nuit.
 
@@ -294,7 +294,7 @@ Valeur au début de la nuit = max(20 × Q, arrondi(0,5 × recette du jour)), Q �
 
 ### G8.7 Le marchand la nuit
 - **Encouragement** : les meubles à ≤ 1,6 case de lui gagnent +35 % de cadence (aura visible : cercle de craie qui pulse).
-- **Coup de balai** automatique sur le Grignotin le plus proche à ≤ 0,9 case : 6 dégâts toutes les 0,8 s.
+- **Coup de balai** automatique sur le Grignotin le plus proche à ≤ 0,68 case : 4,5 dégâts toutes les 1 s (M10 : 6 dégâts / 0,8 s à ≤ 0,9 case au départ, D2.5).
 - **Réparation** : voir G8.6.
 - **Cloche** : se charge avec 14 Grignotins vaincus ; un tap étourdit tous les Grignotins 1,5 s et leur inflige 15 dégâts.
 - Le marchand ne peut pas être blessé. Seul le Champiboum l'étourdit 0,8 s s'il explose à côté.
@@ -313,7 +313,7 @@ Une nuit sur 10 (tirage à graine), un Raton doré apparaît une fois dans une v
 ### G9.1 Règles générales
 - Chaque meuble a une **forme de jour** (vendre, produire, décorer) et une **forme de nuit** (tourelle, mur ou soutien).
 - **Niveaux 1 à 10**, améliorés avec des **plans** (propres à chaque meuble) + des pièces. Les niveaux sont **globaux** : un niveau gagné vaut pour tous les exemplaires de ce meuble, dans toutes les boutiques.
-- Gains par niveau : dégâts ×1,20 ; cadence +3 % ; PV ×1,15 ; portée +0,1 case aux niveaux 4, 7 et 10 ; effets (ralentissement, durée, poison) +5 % (max ×1,45) ; intervalle de production ×0,93 ; réserve +1 aux niveaux 3, 5, 7, 9 ; étagère : capacité 4 + (niveau − 1) ; caisse : encaissement −0,04 s.
+- Gains par niveau : dégâts ×1,12 (M10 : ×1,20 au départ, D2.5) ; cadence +3 % ; PV ×1,15 ; portée +0,1 case aux niveaux 4, 7 et 10 ; effets (ralentissement, durée, poison) +5 % (max ×1,45) ; intervalle de production ×0,93 ; réserve +1 aux niveaux 3, 5, 7, 9 ; étagère : capacité 4 + (niveau − 1) ; caisse : encaissement −0,04 s.
 - **Plafond de niveau** = min(10 ; 1 + arrondi supérieur(niveau de marchand ÷ 3)).
 - **Coût pour passer du niveau L à L+1** :
 
@@ -378,10 +378,10 @@ Chaque forme de nuit est un **comportement** paramétré par les données : `pro
 
 | ID | Grignotin | PV | Armure | Vitesse (cases/s) | Vol | Butin | Menace | Spécial | Apparaît |
 |---|---|---|---|---|---|---|---|---|---|
-| raton | Raton chapardeur | 20 | 0 | 1,0 | 4 % | 2 | 1 | aucun : le Grignotin de base | Q1 N1 |
-| souris | Souris grignoteuse | 9 | 0 | 1,8 | 2 % | 1 | 0,5 | arrive en groupes de 3 à 5 | Q1 N2 |
-| gloubi | Gloubi | 50 | 0 | 0,6 | 6 % | 3 | 2 | en mourant, se divise en 2 mini-gloubis (PV 14, vitesse 0,9, vol 2 %, butin 1) ; feu ×1,5 | Q1 N4 |
-| termite | Termite rongebois | 34 | 0 | 0,8 | 4 % | 3 | 1,5 | s'arrête 1 s pour ronger chaque meuble voisin de son chemin (10 dégâts/s) | Q1 N5 |
+| raton | Raton chapardeur | 25 (M10 : 20) | 0 | 1,0 | 4 % | 2 | 1 | aucun : le Grignotin de base | Q1 N1 |
+| souris | Souris grignoteuse | 11 (M10 : 9) | 0 | 1,8 | 2 % | 1 | 0,5 | arrive en groupes de 3 à 5 | Q1 N2 |
+| gloubi | Gloubi | 62 (M10 : 50) | 0 | 0,6 | 6 % | 3 | 2 | en mourant, se divise en 2 mini-gloubis (PV 17, M10 : 14 ; vitesse 0,9, vol 2 %, butin 1) ; feu ×1,5 | Q1 N4 |
+| termite | Termite rongebois | 42 (M10 : 34) | 0 | 0,8 | 4 % | 3 | 1,5 | s'arrête 1 s pour ronger chaque meuble voisin de son chemin (10 dégâts/s) | Q1 N5 |
 | chauvesouris | Chauve-souris | 14 | 0 | 1,4 | 3 % | 2 | 1 | vole : ignore le labyrinthe | Q2 N1 |
 | herisson | Hérisson | 44 | 3 | 0,9 | 5 % | 4 | 2 | armure ; feu et poison l'ignorent | Q2 N2 |
 | champiboum | Champiboum | 18 | 0 | 1,1 | 0 % | 2 | 1 | explose au contact d'un meuble : 40 dégâts aux meubles à ≤ 1 case ; étourdit le marchand 0,8 s s'il est à ≤ 1 case | Q2 N4 |
@@ -391,7 +391,7 @@ Chaque forme de nuit est un **comportement** paramétré par les données : `pro
 | corbeau | Corbeau voleur | 20 | 0 | 1,7 | 5 % | 3 | 1,5 | vole ; arrive en V de 3 | Q4 N1 |
 | golem | Golem de ferraille | 360 | 8 | 0,45 | 20 % | 25 | 10 | métal (l'aimant le ralentit) ; ralentissements de froid ×0,5 | Q4 N3 |
 | phalene | Phalène | 24 | 0 | 1,2 | 4 % | 3 | 1,5 | vole ; attirée par les lanternes, qu'elle attaque (6 dégâts/s) | Q5 N1 |
-| raton_dore | Raton doré | 40 | 0 | 1,5 | 4 % | 20 | 0 | rare (G8.8) ; traînée d'étincelles | tous |
+| raton_dore | Raton doré | 50 (M10 : 40) | 0 | 1,5 | 4 % | 20 | 0 | rare (G8.8) ; traînée d'étincelles | tous |
 
 Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus de la tête quand il est visé pour la première fois (flamme pour le gloubi et le hérisson, soleil pour le fantôme).
 
@@ -404,7 +404,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 
 | Boss | Quartier | PV (semaine 1) | Armure | Vitesse | Vol | Butin | Capacités |
 |---|---|---|---|---|---|---|---|
-| Le Roi Raton | Q1 | 900 | 2 | 0,55 | 35 % | 150 | toutes les 6 s, invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
+| Le Roi Raton | Q1 | 1 125 (M10 : 900) | 2 | 0,55 | 35 % | 150 | toutes les 4,8 s (M10 : 6 s), invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
 | La Grande Pâte | Q2 | 1 700 | 0 | 0,5 | 35 % | 250 | à 66 % et 33 % de PV, se scinde et lâche 4 gloubis ; feu ×1,5 ; ralentissements ×0,5 |
 | La Dame Blanche | Q3 | 1 500 | 0 | 0,6 | 35 % | 350 | traverse les meubles ; disparaît 3 s toutes les 7 s hors lumière ; invoque 2 fantômes toutes les 10 s ; lumière ×2 |
 | Le Ferrailleur | Q4 | 3 400 | 10 | 0,4 | 40 % | 500 | frappe les meubles voisins (30 dégâts/s) ; immunisé au recul et à l'étourdissement ; métal |
@@ -442,7 +442,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 |---|---|---|---|---|
 | Baskets | vitesse 3,0 cases/s | +0,15 case/s | 9 (4,2) | 80, 180, 400, 850, 1 700, 3 300, 6 500, 12 000 |
 | Panier | pile de 4 articles | +1 article | 11 (14) | 60, 140, 300, 650, 1 300, 2 600, 5 000, 9 000, 16 000, 28 000 |
-| Balai | 6 dégâts toutes les 0,8 s, rayon 0,9 ; réparation 12 PV/s | dégâts +20 %, réparation +10 % | 10 | 100, 250, 600, 1 300, 2 600, 5 000, 9 000, 16 000, 30 000 |
+| Balai | 4,5 dégâts toutes les 1 s, rayon 0,68 (M10 : 6 / 0,8 s / 0,9) ; réparation 12 PV/s | dégâts +20 %, réparation +10 % | 10 | 100, 250, 600, 1 300, 2 600, 5 000, 9 000, 16 000, 30 000 |
 | Sifflet | aura +35 % de cadence, rayon 1,6 | +5 % | 6 (+60 %) | 300, 900, 2 500, 6 000, 14 000 |
 | Cloche | 14 Grignotins vaincus pour charger ; étourdit 1,5 s + 15 dégâts | −1 Grignotin, +0,1 s | 6 | 400, 1 200, 3 000, 7 000, 15 000 |
 

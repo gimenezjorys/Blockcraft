@@ -2,8 +2,10 @@
 // Réserve en bas, Tourner / Ranger, Conseil de Mamie, Annuler (corail) / Valider (vert).
 import { h, onTap, tagButton } from '../widgets.js';
 import { t } from '../i18n.js';
-import { SVG, furnitureIcon } from '../icons.js';
-import { editorLengths, rotateItem, storeItem, mamieAdvice } from '../../game/editor.js';
+import { SVG, furnitureIcon, productIcon } from '../icons.js';
+import { editorLengths, rotateItem, storeItem, mamieAdvice, setShelfProduct, shelfProductChoices } from '../../game/editor.js';
+import { FURNITURE } from '../../data/furniture.js';
+import { districtDef } from '../../data/districts.js';
 import { clientToLogical } from '../../render/camera.js';
 
 /**
@@ -29,7 +31,10 @@ function mount(app, p, d) {
   const store = iconTool('ed-store', SVG.store, t('editor.store'));
   const advice = iconTool('ed-advice', SVG.bulb, t('editor.advice'), 'gold');
   advice.hidden = !p.showAdvice;
-  const tools = h('div.ed-tools', [rotate, store, advice]);
+  // Produit exposé par l'étagère sélectionnée (G7.6) : un tap passe au produit suivant.
+  const product = iconTool('ed-product', '?', t('editor.product'));
+  const choices = shelfProductChoices(districtDef(ed.districtId).products);
+  const tools = h('div.ed-tools', [rotate, store, product, advice]);
   const reserve = h('div.ed-reserve');
   const cancel = tagButton({ label: t('editor.cancel'), variant: 'coral', small: true, id: 'ed-cancel' });
   const validate = tagButton({ label: t('editor.validate'), variant: 'green', small: true, id: 'ed-validate' });
@@ -46,6 +51,15 @@ function mount(app, p, d) {
     const sel = ed.selected >= 0 ? ed.layout[ed.selected] : null;
     rotate.classList.toggle('disabled', !sel);
     store.classList.toggle('disabled', !sel || sel.id === 'caisse');
+    const isShelf = !!sel && FURNITURE[sel.id].day.kind === 'shelf';
+    product.hidden = !isShelf;
+    if (isShelf) {
+      const ico = product.querySelector('.tag-icon') || product.appendChild(h('span.tag-icon'));
+      ico.innerHTML = '';
+      if (sel.product) ico.appendChild(productIcon(sel.product, 26));
+      else ico.textContent = '?';
+      product.dataset.product = sel.product || '';
+    }
     reserve.innerHTML = '';
     ed.storage.forEach((id, i) => {
       const b = h('button.ed-res-item', { type: 'button', 'data-storage': i, 'data-furniture': id }, [furnitureIcon(id, 40)]);
@@ -111,6 +125,14 @@ function mount(app, p, d) {
     const r = storeItem(ed, ed.selected);
     sfx(r.ok ? 'drop' : 'error');
     if (r.ok) scene.refreshPaths();
+    refresh();
+  }, d);
+  onTap(product, () => {
+    const sel = ed.selected >= 0 ? ed.layout[ed.selected] : null;
+    if (!sel) return;
+    const i = choices.indexOf(sel.product || null);
+    const r = setShelfProduct(ed, ed.selected, choices[(i + 1) % choices.length]);
+    sfx(r.ok ? 'ui_tap' : 'error');
     refresh();
   }, d);
   onTap(advice, () => {

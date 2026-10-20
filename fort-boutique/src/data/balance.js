@@ -90,7 +90,7 @@ export const ECONOMY = {
 
 /** Gains par niveau de meuble (G9.1). */
 export const FURNITURE_LEVEL = {
-  dmgMult: 1.2,
+  dmgMult: 1.12, // M10 : 1,20 -> 1,12 (D2.5)
   rateAdd: 0.03,
   hpMult: 1.15,
   rangeLevels: [4, 7, 10],

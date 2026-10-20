@@ -3,6 +3,7 @@ import { Pool } from '../../core/pool.js';
 import { monsterDef, isAirborne } from '../../data/monsters.js';
 import { DISTRICT_FACTORS, districtNumber } from '../../data/balance.js';
 import { SCALING } from '../../data/waves.js';
+import { NIGHT as NIGHT_RULES } from '../../data/night.js';
 import { DIRS } from '../pathfinding.js';
 import { distToFurniture } from '../state.js';
 import { tickEffects, effectiveSlow, clearEffects } from './effects.js';
@@ -87,6 +88,7 @@ export function spawnMonster(g, type, entranceKind, o = {}) {
   // Voleur scénarisé de la nuit 1 : les meubles ne le visent jamais, seul le balai du marchand le rattrape.
   m.shielded = false;
   m.towerShield = !!o.scriptedThief;
+  if (m.scriptedThief) m.hp = m.maxHp = NIGHT_RULES.scriptedThiefHp;
   m.reacted = false;
   m.speedBoost = 1;
   m.speedBoostActive = false;
@@ -120,7 +122,7 @@ export function spawnMonster(g, type, entranceKind, o = {}) {
 function speedOf(g, m) {
   if (m.stunT > 0 || m.gnawT > 0) return 0;
   let v = m.def.speed;
-  if (m.thief) v = m.def.fleeSpeed ? m.def.fleeSpeed : v * SCALING.thiefSpeed;
+  if (m.thief) v = m.def.fleeSpeed ? m.def.fleeSpeed : v * (m.scriptedThief ? NIGHT_RULES.scriptedThiefFlee : SCALING.thiefSpeed);
   if (m.slowedByScript) v *= 0.5;
   if (m.speedBoostActive) v *= m.speedBoost || 1;
   v *= 1 - effectiveSlow(m);
@@ -141,8 +143,10 @@ function nearestExit(g, m) {
   const ci = Math.floor(m.y) * w + Math.floor(m.x);
   let best = null;
   let bestD = 1e9;
+  const open = g.night.openExits;
   for (const e of g.grid.entrances) {
     if (!e.ground || e.kind === 'trapdoor') continue;
+    if (open && !open.includes(e.kind)) continue;
     const f = g.fields.toEntrance[e.kind];
     const d = f && f[ci] >= 0 ? f[ci] : 1e6;
     if (d < bestD) {

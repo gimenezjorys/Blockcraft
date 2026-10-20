@@ -1,5 +1,6 @@
 // Fort Boutique — vol et fuite (G8.4) : un Grignotin arrivé à la caisse prend son % du Bocal initial
-// (plafonné à ce qui reste), devient voleur (+20 % de vitesse) et repart par où il est venu.
+// (plafonné à ce qui reste), devient voleur et s'enfuit (par la sortie ouverte la plus proche depuis M10).
+import { NIGHT } from '../../data/night.js';
 
 /**
  * Montant volé : % du Bocal initial, plafonné à ce qui reste.
@@ -20,6 +21,9 @@ export function stealFromJar(g, m) {
   m.carry = amount;
   m.thief = true;
   m.stoleAt = n.t;
+  // M10 : il fuit par la sortie ouverte la plus proche (comme le voleur de la trappe en G8.4), sauf le voleur
+  // scénarisé de la première nuit, qui repart par la porte de derrière (G19).
+  if (NIGHT.thiefNearestExit && !m.scriptedThief) m.exitKind = null;
   m.next = -1;
   n.thefts++;
   n.theftWave[m.wave] = (n.theftWave[m.wave] || 0) + 1;

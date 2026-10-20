@@ -250,3 +250,24 @@ test('premier jour : le premier client attend la première pomme posée', () => 
   run(g, 0.1);
   assert.equal(g.day.customers.length, 1);
 });
+
+test('la pile ne se bloque jamais : on ne ramasse pas un produit qu’aucune étagère ne peut exposer (G7.6)', async () => {
+  const { hasShelfFor } = await import('../../src/game/day/carry.js');
+  const { startDay } = await import('../../src/game/day/day.js');
+  const { newGame, run, teleport } = await import('../helpers/game.js');
+  const g = newGame(9, (s) => {
+    s.player.level = 2;
+    s.shops.q1.layout.push({ id: 'frigo', x: 4, y: 0, rot: 0, stock: 5 });
+  });
+  startDay(g);
+  for (const f of g.furn) if (f.def.day.kind === 'shelf') f.product = 'pomme';
+  assert.equal(hasShelfFor(g, 'lait'), false);
+  const fridge = g.furn.find((f) => f.id === 'frigo');
+  fridge.stock = 5;
+  teleport(g, fridge.x + 0.5, fridge.y + 1.4);
+  run(g, 1, () => teleport(g, fridge.x + 0.5, fridge.y + 1.4));
+  assert.ok(!g.player.stack.includes('lait'), 'aucun lait ramassé');
+  // Une étagère libre (ou réglée sur le lait) débloque la prise.
+  g.furn.find((f) => f.def.day.kind === 'shelf').product = null;
+  assert.equal(hasShelfFor(g, 'lait'), true);
+});

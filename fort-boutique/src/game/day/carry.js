@@ -14,6 +14,8 @@ export function stepCarry(g, dt) {
   if (p.stack.length < cap) {
     for (const f of g.furn) {
       if (f.def.day.kind !== 'producer' || f.stock <= 0) continue;
+      // On ne ramasse pas un produit qu'aucune étagère ne peut exposer : la pile ne se bloque jamais (G7.6).
+      if (!hasShelfFor(g, f.def.day.product)) continue;
       if (distToFurniture(f, p.x, p.y) <= PLAYER.pickupRange) {
         nearProducer = f;
         break;
@@ -58,4 +60,18 @@ export function stepCarry(g, dt) {
     }
   }
   if (!dropped) p.dropT = Math.min(p.dropT, 1 / PLAYER.dropRate);
+}
+
+/**
+ * Une étagère peut-elle exposer ce produit ? (la sienne, ou une étagère encore sans produit)
+ * @param {any} g
+ * @param {string} product
+ */
+export function hasShelfFor(g, product) {
+  const furn = g.furn;
+  for (let i = 0; i < furn.length; i++) {
+    const f = furn[i];
+    if (f.def.day.kind === 'shelf' && (!f.product || f.product === product)) return true;
+  }
+  return false;
 }

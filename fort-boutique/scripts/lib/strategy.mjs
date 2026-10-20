@@ -6,7 +6,7 @@ import { catalogIds, canBuy, buyFurniture, findPlacement } from '../../src/game/
 import { canUpgrade, upgradeFurniture } from '../../src/game/economy.js';
 import { unlockedFurniture } from '../../src/game/progression.js';
 import { merchantUpgradeInfo, buyMerchantUpgrade, recipeInfo, upgradeRecipe, expansionInfo, expandShop } from '../../src/game/upgrades.js';
-import { padsFinished } from '../../src/game/day/pads.js';
+import { padsFinished, nextPadDef } from '../../src/game/day/pads.js';
 import { mamieAdvice } from '../../src/game/editor.js';
 import { validateLayout, gridSize } from '../../src/game/shop.js';
 import { nightStats } from '../../src/game/stats.js';
@@ -58,7 +58,12 @@ export function morningActions(g, profile, o) {
   const shop = g.shop;
   const rng = new Rng(seedFrom(o.seed, 'matin', o.cycle, profile.id));
   const out = { bought: [], upgraded: [], moved: 0 };
-  const reserve = profile.id === 'weak' ? 0 : profile.id === 'medium' ? 20 : 10;
+  // Tant que les emplacements d'achat du tutoriel ne sont pas payés, tout le monde garde de quoi payer le prochain
+  // (ils se paient pendant la journée, et ils ouvrent le Catalogue).
+  const pad = !padsFinished(g) ? nextPadDef(g) : null;
+  const padReserve = pad ? Math.max(0, pad.price - (shop.pads.paid[pad.id] || 0)) : 0;
+  const base = profile.id === 'weak' ? 0 : profile.id === 'medium' ? 20 : 10;
+  const reserve = base + padReserve;
   // 1. Améliorations de meubles avec les plans (tous les profils ; ordre selon le profil).
   for (let guard = 0; guard < 12; guard++) {
     const candidates = unlockedFurniture(save).filter((id) => id !== 'caisse' && canUpgrade(save, id).ok);
@@ -69,33 +74,42 @@ export function morningActions(g, profile, o) {
       id = rng.pick(candidates);
     } else if (profile.buy === 'priority') id = candidates.sort((a, b) => canUpgrade(save, a).cost.coins - canUpgrade(save, b).cost.coins)[0];
     else id = candidates.sort((a, b) => countOf(shop, b) * defenseValue(b, save.furniture[b].level) - countOf(shop, a) * defenseValue(a, save.furniture[a].level))[0];
+    if (save.player.coins - canUpgrade(save, id).cost.coins < padReserve) break;
     if (!upgradeFurniture(save, id)) break;
     out.upgraded.push(id);
   }
   // 2. Améliorations du marchand et recettes (moyen et fort).
   if (profile.buy !== 'cheapest') {
     const order = profile.buy === 'optimal' ? ['basket', 'shoes', 'whistle', 'broom', 'bell'] : ['basket', 'shoes', 'broom', 'bell', 'whistle'];
-    for (const id of order) {
-      const info = merchantUpgradeInfo(save, id);
-      if (info.ok && save.player.coins - info.cost >= reserve * 3) {
-        buyMerchantUpgrade(save, id);
-        break;
+    // Un joueur qui a de quoi payer achète plusieurs améliorations le même matin (3 au plus pour le marchand, 2 recettes).
+    for (let n = 0, guard = 0; n < 3 && guard < 3; guard++) {
+      let any = false;
+      for (const id of order) {
+        const info = merchantUpgradeInfo(save, id);
+        if (n < 3 && info.ok && save.player.coins - info.cost >= base * 3 + padReserve) {
+          buyMerchantUpgrade(save, id);
+          n++;
+          any = true;
+        }
       }
+      if (!any) break;
     }
+    let recipes = 0;
     for (const prod of districtDef(g.shopId).products) {
       const info = recipeInfo(save, g.shopId, prod);
-      if (info.ok && save.player.coins - info.cost >= reserve * 5 && shop.layout.some((it) => FURNITURE[it.id].day.product === prod)) {
+      if (recipes < 2 && info.ok && save.player.coins - info.cost >= base * 5 + padReserve && shop.layout.some((it) => FURNITURE[it.id].day.product === prod)) {
         upgradeRecipe(save, g.shopId, prod);
-        break;
+        recipes++;
       }
     }
     const ex = expansionInfo(save, g.shopId);
-    if (ex.ok && save.player.coins - ex.cost >= reserve * 4) expandShop(save, g.shopId);
+    if (ex.ok && save.player.coins - ex.cost >= base * 4 + padReserve) expandShop(save, g.shopId);
   }
   // 3. Achats au catalogue (après les emplacements du tutoriel).
   if (padsFinished(g)) {
-    for (let guard = 0; guard < 4; guard++) {
-      const buyable = catalogIds(g.shopId).filter((id) => canBuy(save, g.shopId, id).ok);
+    const unplaceable = new Set();
+    for (let guard = 0; guard < 6; guard++) {
+      const buyable = catalogIds(g.shopId).filter((id) => !unplaceable.has(id) && canBuy(save, g.shopId, id).ok);
       if (!buyable.length) break;
       let id;
       if (profile.buy === 'cheapest') {
@@ -111,13 +125,29 @@ export function morningActions(g, profile, o) {
       if (!id) break;
       const price = canBuy(save, g.shopId, id).price;
       if (save.player.coins - price < reserve) break;
-      const spot = profile.layout === 'default' ? naivePlacement(g.shopId, shop.expansion, shop.layout, id) : findPlacement(g.shopId, shop.expansion, shop.layout, id);
-      if (!spot) break;
-      buyFurniture(save, g.shopId, id);
-      shop.storage.splice(shop.storage.lastIndexOf(id), 1);
-      shop.layout.push({ id, x: spot.x, y: spot.y, rot: spot.rot || 0 });
-      out.bought.push(id);
+      if (!place(id)) unplaceable.add(id);
     }
+    // Pas de trésor qui dort (Moyen et Fort) : avec plus de 4 fois le prix du moins cher des achats utiles, on l'achète.
+    if (profile.buy !== 'cheapest') {
+      for (let guard = 0; guard < 4; guard++) {
+        const cheap = catalogIds(g.shopId)
+          .filter((id) => !unplaceable.has(id) && canBuy(save, g.shopId, id).ok)
+          .sort((a, b) => canBuy(save, g.shopId, a).price - canBuy(save, g.shopId, b).price)[0];
+        if (!cheap || save.player.coins <= 4 * canBuy(save, g.shopId, cheap).price) break;
+        if (!place(cheap)) unplaceable.add(cheap);
+      }
+    }
+  }
+
+  /** Achète et pose un meuble ; faux s'il n'a pas de place. */
+  function place(id) {
+    const spot = profile.layout === 'default' ? naivePlacement(g.shopId, shop.expansion, shop.layout, id) : findPlacement(g.shopId, shop.expansion, shop.layout, id);
+    if (!spot) return false;
+    buyFurniture(save, g.shopId, id);
+    shop.storage.splice(shop.storage.lastIndexOf(id), 1);
+    shop.layout.push({ id, x: spot.x, y: spot.y, rot: spot.rot || 0 });
+    out.bought.push(id);
+    return true;
   }
   // 4. Aménagement.
   if (profile.layout === 'optimizer' && save.player.level >= 3) {

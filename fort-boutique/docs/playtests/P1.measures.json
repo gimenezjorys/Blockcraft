@@ -1,6 +1,6 @@
 {
   "playtest": "P1",
-  "durationS": 281.1,
+  "durationS": 287.2,
   "milestones": [
     {
       "id": "firstPurchase",
@@ -30,63 +30,63 @@
       "id": "firstDawn",
       "label": "Première aube",
       "targetS": 145,
-      "atS": 117.2,
-      "gapPct": -19,
+      "atS": 119.8,
+      "gapPct": -17,
       "ok": true
     },
     {
       "id": "firstChest",
       "label": "Premier coffre ouvert",
       "targetS": 165,
-      "atS": 121.7,
-      "gapPct": -26,
+      "atS": 124.4,
+      "gapPct": -25,
       "ok": false
     },
     {
       "id": "firstUpgrade",
       "label": "Première amélioration",
       "targetS": 190,
-      "atS": 121.8,
-      "gapPct": -36,
+      "atS": 124.5,
+      "gapPct": -34,
       "ok": false
     },
     {
       "id": "level2",
       "label": "Niveau 2",
       "targetS": 177,
-      "atS": 117.2,
-      "gapPct": -34,
+      "atS": 119.8,
+      "gapPct": -32,
       "ok": false
     },
     {
       "id": "firstMorning",
       "label": "Premier Matin",
       "targetS": 182,
-      "atS": 121.9,
-      "gapPct": -33,
+      "atS": 124.6,
+      "gapPct": -32,
       "ok": false
     },
     {
       "id": "day2",
       "label": "Jour 2",
       "targetS": 195,
-      "atS": 122.2,
-      "gapPct": -37,
+      "atS": 124.9,
+      "gapPct": -36,
       "ok": false
     },
     {
       "id": "thirdPurchase",
       "label": "Troisième achat (P3, Frigo)",
       "targetS": 220,
-      "atS": 136.2,
-      "gapPct": -38,
+      "atS": 138.9,
+      "gapPct": -37,
       "ok": false
     },
     {
       "id": "secondNight",
       "label": "Deuxième nuit",
       "targetS": 325,
-      "atS": 252.2,
+      "atS": 254.9,
       "gapPct": -22,
       "ok": false
     },
@@ -102,8 +102,8 @@
       "id": "secondMorning",
       "label": "Deuxième Matin",
       "targetS": 410,
-      "atS": 281.1,
-      "gapPct": -31,
+      "atS": 287.2,
+      "gapPct": -30,
       "ok": false
     }
   ],
@@ -134,7 +134,7 @@
     },
     {
       "id": ".hub-map",
-      "response": "message"
+      "response": "écran map"
     }
   ],
   "passiveNights": [
@@ -151,47 +151,47 @@
     {
       "screen": "hud",
       "from": 0.1,
-      "to": 117.2,
+      "to": 119.8,
       "exitAfter": 0
     },
     {
       "screen": "dawn",
-      "from": 117.2,
-      "to": 121.9,
-      "exitAfter": 4.5
+      "from": 119.8,
+      "to": 124.6,
+      "exitAfter": 4.6000000000000085
     },
     {
       "screen": "unlocks",
-      "from": 121.9,
-      "to": 122,
+      "from": 124.6,
+      "to": 124.7,
       "exitAfter": 0
     },
     {
       "screen": "morning",
-      "from": 122,
-      "to": 122.2,
+      "from": 124.7,
+      "to": 124.9,
       "exitAfter": 0
     },
     {
       "screen": "hud",
-      "from": 122.2,
-      "to": 276.4,
+      "from": 124.9,
+      "to": 282.4,
       "exitAfter": 0
     },
     {
       "screen": "dawn",
-      "from": 276.4,
-      "to": 281.1,
-      "exitAfter": 4.5
+      "from": 282.4,
+      "to": 287.2,
+      "exitAfter": 4.600000000000023
     },
     {
       "screen": "morning",
-      "from": 281.1,
-      "to": 281.1,
+      "from": 287.2,
+      "to": 287.2,
       "exitAfter": 0
     }
   ],
-  "taps": 22,
+  "taps": 23,
   "inertTaps": 0,
   "adOffersFirst10min": 0,
   "nightStars": [
@@ -203,7 +203,7 @@
   "final": {
     "level": 2,
     "xp": 132,
-    "coins": 380,
+    "coins": 386,
     "pads": [
       "P1",
       "P2",

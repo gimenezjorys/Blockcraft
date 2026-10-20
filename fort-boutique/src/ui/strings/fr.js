@@ -183,6 +183,7 @@ export default {
   'upgrades.expand': "Agrandir (E{n})",
   'upgrades.expandMax': "La boutique est au plus grand",
   'upgrades.expandDetail': "Une ligne de plus en haut",
+  'editor.product': "Produit de l'étagère",
   'editor.rotate': "Tourner",
   'editor.store': "Ranger",
   'editor.advice': "Conseil de Mamie",

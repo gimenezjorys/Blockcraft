@@ -7,8 +7,8 @@ export const WAVES = {
   countLater: 5,
   countLaterBoss: 6,
   /** Budget de menace : B = (5 + 2,5 (k − 1)) × (0,7 + 0,15 (i − 1)) × F_Q × (1 + 0,1 (s − 1)). */
-  budgetBase: 5,
-  budgetPerNight: 2.5,
+  budgetBase: 6.25, // M10 : 5 -> 6,25 (D2.5)
+  budgetPerNight: 3.125, // M10 : 2,5 -> 3,125
   budgetWaveBase: 0.7,
   budgetPerWave: 0.15,
   budgetPerWeek: 0.1,
@@ -33,7 +33,7 @@ export const SCALING = {
   hpPerWeek: 1.35,
   lootPerDistrict: 0.6,
   lootPerWeek: 0.1,
-  thiefSpeed: 1.2,
+  thiefSpeed: 1.5, // M10 : 1,2 -> 1,5 (D2.5)
   recoverBonus: 1.1,
 };
 

@@ -235,7 +235,7 @@ export function createEditorScene(app, ed, o) {
     snapshot() {
       return {
         editor: true,
-        layout: ed.layout.map((it) => ({ id: it.id, x: it.x, y: it.y, rot: it.rot || 0 })),
+        layout: ed.layout.map((it) => ({ id: it.id, x: it.x, y: it.y, rot: it.rot || 0, product: it.product || null })),
         storage: ed.storage.slice(),
         selected: ed.selected,
         moves: ed.moves,

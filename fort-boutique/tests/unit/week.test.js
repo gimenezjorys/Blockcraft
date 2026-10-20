@@ -10,6 +10,7 @@ import { enterDawn, leaveDawn, openDawnChest } from '../../src/game/cycle.js';
 import { generateNight } from '../../src/game/night/waves.js';
 import { districtOpen } from '../../src/game/progression.js';
 import { NIGHT } from '../../src/data/night.js';
+import { BOSSES } from '../../src/data/monsters.js';
 import { unlockCards } from '../../src/ui/screens/unlocks.js';
 import { districtStatus } from '../../src/ui/screens/map.js';
 
@@ -35,7 +36,7 @@ test('nuit 7 : la vague finale contient le Roi Raton, entré par la porte de der
   assert.equal(g.night.isBoss, true);
   const m = spawnMonster(g, 'roi_raton', 'backdoor');
   assert.equal(bossOf(g), m);
-  assert.equal(m.maxHp, 900, 'PV de la semaine 1');
+  assert.equal(m.maxHp, BOSSES.roi_raton.hp, 'PV de la semaine 1');
 });
 
 test('Roi Raton : invoque 3 ratons toutes les 6 s, immunisé au recul', () => {
@@ -117,7 +118,7 @@ test('victoire : Coffre de Lune, semaine 2 (nuit 1), PV du boss × 1,35, Courage
   g.shop.night = 7;
   g.shop.phase.dawnClaimed = false;
   startNight(g, { dayTakings: 200, waves: { waves: [{ groups: [], boss: null }], golden: -1, newTypes: [] } });
-  assert.ok(Math.abs(spawnMonster(g, 'roi_raton', 'backdoor').maxHp - 900 * 1.35) < 1e-6);
+  assert.ok(Math.abs(spawnMonster(g, 'roi_raton', 'backdoor').maxHp - BOSSES.roi_raton.hp * 1.35) < 1e-6);
 });
 
 test('quartier suivant : seulement si le boss est vaincu ET le niveau atteint (carte au Matin)', () => {

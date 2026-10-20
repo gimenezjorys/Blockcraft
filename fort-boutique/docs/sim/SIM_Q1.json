@@ -1,0 +1,96 @@
+{
+  "runs": 300,
+  "maxCycles": 30,
+  "rows": [
+    {
+      "id": "D2.4.1",
+      "label": "Moyen : Roi Raton battu entre les cycles 7 et 10 (médiane)",
+      "value": "cycle 10",
+      "ok": true
+    },
+    {
+      "id": "D2.4.2a",
+      "label": "Faible : boss battu en 4 tentatives au plus (médiane)",
+      "value": "4 tentative(s)",
+      "ok": true
+    },
+    {
+      "id": "D2.4.2b",
+      "label": "Faible : durée du quartier ≤ 1,6 × celle du Moyen",
+      "value": "1.00 ×",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3a",
+      "label": "Fort : pas plus de 1,35 × plus rapide que le Moyen",
+      "value": "1.25 ×",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3b",
+      "label": "Fort : ★★★ sur 80 % des nuits au plus",
+      "value": "79 %",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3c",
+      "label": "Fort : boss battu du premier coup 85 % des fois au plus",
+      "value": "15 %",
+      "ok": true
+    },
+    {
+      "id": "D2.4.4",
+      "label": "Moyen : jamais 3 nuits de suite sous 50 % (95 % des parties)",
+      "value": "100 %",
+      "ok": true
+    },
+    {
+      "id": "D2.4.5",
+      "label": "Moyen : achat utile en 2 cycles au plus, sans inflation (90 % des parties)",
+      "value": "100 % (accessible 100 %, inflation 0 %)",
+      "ok": true
+    },
+    {
+      "id": "D2.4.6",
+      "label": "Moyen : niveau 7 au plus tard 2 cycles après le Roi Raton (80 %)",
+      "value": "100 %",
+      "ok": true
+    },
+    {
+      "id": "G12.5a",
+      "label": "Moyen : niveau 3 à la fin du cycle 2 (médiane)",
+      "value": "niveau 3",
+      "ok": true
+    },
+    {
+      "id": "G12.5b",
+      "label": "Moyen : niveau 4 à la fin du cycle 3 (médiane)",
+      "value": "niveau 4",
+      "ok": true
+    },
+    {
+      "id": "G12.5c",
+      "label": "Moyen : niveau 5 au cycle 4 ou 5 (médiane)",
+      "value": "niveau 6 au cycle 5, 5 au cycle 4",
+      "ok": true
+    }
+  ],
+  "info": {
+    "bossCycles": {
+      "weak": 10,
+      "medium": 10,
+      "strong": 8
+    },
+    "nightS": {
+      "n1": 19.116666666666863,
+      "n2": 28.283333333333008,
+      "n6": 70.67499999999728
+    },
+    "earnedPerCycle": 608,
+    "starsShare": {
+      "weak": 0.6050420168067226,
+      "medium": 0.6261319534282018,
+      "strong": 0.7864188163884673
+    }
+  }
+}

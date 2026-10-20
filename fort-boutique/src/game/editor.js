@@ -221,3 +221,26 @@ export function mamieAdvice(districtId, expansion, layout, o = {}) {
   }
   return { layout: cur, lengths: curL, start, moves, gain: curL.monsters - start.monsters };
 }
+
+/**
+ * Change le produit exposé d'une étagère (G7.6 : « modifiable dans l'éditeur »). L'étagère redémarre vide avec
+ * son nouveau produit (les articles posés sont retirés : c'est du stock, aucune pièce n'est perdue).
+ * @param {any} ed
+ * @param {number} idx
+ * @param {string | null} product null = l'étagère prendra le premier article posé
+ * @returns {{ ok: boolean, reason?: string }}
+ */
+export function setShelfProduct(ed, idx, product) {
+  const it = ed.layout[idx];
+  if (!it || FURNITURE[it.id].day.kind !== 'shelf') return { ok: false, reason: 'notShelf' };
+  if ((it.product || null) === product) return { ok: true, same: true };
+  it.product = product;
+  it.count = 0;
+  ed.moves++;
+  return { ok: true };
+}
+
+/** Produits proposés pour une étagère : « au choix » puis ceux du quartier. */
+export function shelfProductChoices(districtProducts) {
+  return [null, ...districtProducts];
+}

@@ -251,3 +251,23 @@ Raison : G8.9, G10.3, G12.4, G13.1.
 Décision : le test d'interface « aucun bouton muet » attendait « Bientôt » sur le bouton carte (M6) ; il accepte désormais l'ouverture de la carte des quartiers ou « Bientôt ». L'intention (le bouton répond toujours) est inchangée.
 Alternatives : garder la carte fermée.
 Raison : A0.5 : l'écran existe depuis M9, l'ancienne attente était devenue fausse.
+
+## 2026-10-20 — M10 — Bugs de jeu trouvés par le simulateur
+Décision : (1) un emplacement d'achat dont la case est prise (meuble déplacé dans l'éditeur) ou décalée par un agrandissement se pose sur la case libre valide la plus proche (`padSpot`) ; avant, le tutoriel restait bloqué et le Catalogue ne s'ouvrait jamais. (2) Le marchand ne ramasse plus un produit qu'aucune étagère ne peut exposer (sinon sa pile se remplit de lait sans étagère à lait et il ne peut plus rien ramasser). (3) L'éditeur permet de changer le produit d'une étagère (G7.6, « modifiable dans l'éditeur ») ; elle repart vide.
+Alternatives : interdire de poser un meuble sur un futur emplacement ; vider la pile à la main.
+Raison : blocages reproduits par les bots (parties où le joueur ne vend plus rien à partir du jour 3) ; un joueur pouvait y tomber aussi.
+
+## 2026-10-20 — M10 — Bots et mesures des simulations
+Décision : les bots se déplacent avec un itinéraire BFS (comme un joueur qui contourne les meubles), visent la case d'accès de la caisse, gardent de quoi payer l'emplacement d'achat suivant, et le Moyen et le Fort achètent plusieurs améliorations le même matin quand ils en ont les moyens (dépenser comme une « liste de priorités raisonnable »). Les quêtes du jour (M12) sont simulées par un modèle provisoire (Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4, récompenses de G14.1) ; M12 relancera la simulation avec les vraies quêtes. Mesures : « nuits au Q1 » = toutes les nuits jouées dans le quartier, Pleine Lune comprise ; l'inflation compare le solde gardé après les achats du Matin à 4 fois l'achat utile le moins cher (un meuble sans place libre n'est pas un achat utile) ; D2.4.5 est tenu si 90 % des parties du Moyen le sont. D2.4.7 (pubs) et D2.4.8 (Défi du jour) arrivent avec M15 et M14.
+Alternatives : bots en ligne droite (ils restaient coincés derrière les meubles dès le jour 3 : 0 client servi) ; solde mesuré avant les achats (toute petite dépense de 20 pièces le faisait échouer).
+Raison : D2.2 décrit des joueurs plausibles ; mesurer un bot coincé ne dit rien de l'équilibrage.
+
+## 2026-10-20 — M10 — Essai non retenu : fuite par la sortie la plus proche
+Décision : on garde G8.4 (le voleur repart par l'entrée par laquelle il est venu). L'essai « sortie ouverte la plus proche » (`NIGHT.thiefNearestExit`, laissé à false) ne change rien tant que les Grignotins arrivent à la caisse presque morts.
+Alternatives : changer la règle.
+Raison : une règle ne se change que si le gain est démontré (D2.5) ; il ne l'est pas.
+
+## 2026-10-20 — M10 — Réglages du Quartier 1 (D2.5)
+Décision : budget de menace +25 % (base 6,25, +3,125 par nuit) ; PV des Grignotins du Q1 +21 à +25 % (raton 25, souris 11, gloubi 62, mini-gloubi 17, termite 42, raton doré 50) ; voleur ×1,5 au lieu de ×1,2 ; balai 4,5 dégâts / 1 s à 0,68 case (au lieu de 6 / 0,8 s / 0,9) ; Roi Raton 1 125 PV et invocation toutes les 4,8 s ; dégâts des meubles ×1,12 par niveau (au lieu de ×1,20). Le voleur scénarisé de la première nuit garde 20 PV et une fuite ×1,2 (`NIGHT.scriptedThiefHp`, `scriptedThiefFlee`) pour rester attrapable au balai comme le veut G19. Tout est dans la marge de ±25 %. Rapport : docs/sim/SIM_Q1.md (300 parties par profil, tous les seuils applicables tenus) ; test : tests/sim/q1.test.js (40 parties par profil, graines fixes).
+Alternatives : PV ×2 ou ×3 (hors marge ; essayés : les nuits deviennent perdables mais le Moyen s'effondre) ; changer une règle de vol (non retenu).
+Raison : avant réglage, le Fort faisait ★★★ sur 96 % des nuits et gagnait le boss du premier coup 97 % des fois (D2.4.3). Limite assumée : les nuits 2 à 6 restent presque toujours à ★★★ ; la difficulté du Q1 vient de la Pleine Lune (Moyen : cycle 10, au bord de la fenêtre). À revoir en M12 (vraies quêtes) et M20.

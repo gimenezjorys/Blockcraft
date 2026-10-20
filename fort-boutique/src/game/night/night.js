@@ -4,7 +4,7 @@ import { monsterDef } from '../../data/monsters.js';
 import { NIGHT } from '../../data/night.js';
 import { XP_GAINS } from '../../data/xp.js';
 import { districtNumber } from '../../data/balance.js';
-import { generateNight } from './waves.js';
+import { generateNight, activeEntrances } from './waves.js';
 import { bossStep } from './boss.js';
 import { createMonsterPool, spawnMonster, stepMonsters, aliveCount } from './monsters.js';
 import { createProjectilePool, stepProjectiles } from './projectiles.js';
@@ -111,6 +111,8 @@ export function startNight(g, opts = {}) {
     scripted: null,
     // Capacités des boss (G10.3), appelées par stepMonsters.
     bossStep,
+    // Sorties ouvertes cette nuit (fuite des voleurs par la plus proche).
+    openExits: activeEntrances(g.grid.entrances, k, s).map((e) => e.kind),
   };
   initTowers(g);
   computeFields(g);

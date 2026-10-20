@@ -88,7 +88,7 @@ test('Aménager : glisser un meuble au doigt le déplace, les longueurs de traje
     assert.ok(valid, 'une case libre valide existe');
     const label0 = g.$('#ed-monsters').textContent;
     const mid = drag(g, cellPx(snap.grid, it.x, it.y), cellPx(snap.grid, valid.x, valid.y));
-    assert.equal(mid.valid, true, 'fantôme vert pendant le glisser');
+    assert.equal(mid.valid, true, `fantôme vert pendant le glisser ${JSON.stringify(mid)} vers ${JSON.stringify(valid)}`);
     const after = sceneOf(g);
     assert.deepEqual({ x: after.layout[idx].x, y: after.layout[idx].y }, valid);
     assert.equal(after.moves, 1);
@@ -172,6 +172,35 @@ test('Aménager : poser un meuble de la Réserve en le faisant glisser depuis la
     g.hooks.advance(300);
     const scene = sceneOf(g);
     assert.ok(scene.furniture.some((f) => f.id === 'comptoir' && f.x === target.x && f.y === target.y), 'la boutique est reconstruite');
+    assert.deepEqual(g.errors, []);
+  } finally {
+    g.close();
+  }
+});
+
+test('Aménager : toucher une étagère puis le bouton produit change ce qu’elle expose (G7.6)', () => {
+  const g = loadGame({ storage: editorSave() });
+  try {
+    const bot = new TouchBot(g);
+    const snap = openEditor(g, bot);
+    assert.ok(g.$('#ed-product').hidden, 'rien de sélectionné : pas de bouton produit');
+    const idx = snap.layout.findIndex((it) => it.id === 'etagere');
+    const it = snap.layout[idx];
+    const p = cellPx(snap.grid, it.x, it.y);
+    g.fingers.tap(g.$('#game'), p.x, p.y, 8);
+    g.hooks.advance(50);
+    assert.equal(sceneOf(g).selected, idx);
+    assert.equal(g.$('#ed-product').hidden, false);
+    const before = g.$('#ed-product').dataset.product;
+    bot.tapEl('#ed-product');
+    g.hooks.advance(50);
+    const after = g.$('#ed-product').dataset.product;
+    assert.notEqual(after, before);
+    assert.equal(sceneOf(g).layout[idx].product || '', after);
+    bot.tapEl('#ed-validate');
+    g.hooks.advance(300);
+    const saved = parseAndVerify(g.window.localStorage.getItem(SAVE_KEY)).data;
+    assert.equal(saved.shops.q1.layout[idx].product || '', after);
     assert.deepEqual(g.errors, []);
   } finally {
     g.close();

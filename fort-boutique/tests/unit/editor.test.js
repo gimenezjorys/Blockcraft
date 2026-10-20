@@ -84,3 +84,19 @@ test('Conseil de Mamie : allonge le trajet des Grignotins, clients ≤ +30 %, di
   assert.ok(L.monsters >= a.start.monsters);
   if (a.moves.length) assert.ok(a.gain > 0);
 });
+
+test('étagère : son produit se change dans l’éditeur (G7.6) ; elle repart vide', async () => {
+  const { setShelfProduct, shelfProductChoices } = await import('../../src/game/editor.js');
+  const { g, ed } = editorGame();
+  const i = ed.layout.findIndex((it) => it.id === 'etagere');
+  ed.layout[i].product = 'pomme';
+  ed.layout[i].count = 3;
+  assert.deepEqual(shelfProductChoices(['pomme', 'lait']), [null, 'pomme', 'lait']);
+  assert.equal(setShelfProduct(ed, i, 'lait').ok, true);
+  assert.equal(ed.layout[i].product, 'lait');
+  assert.equal(ed.layout[i].count, 0);
+  const reg = ed.layout.findIndex((it) => it.id === 'caisse');
+  assert.equal(setShelfProduct(ed, reg, 'lait').ok, false, 'seulement une étagère');
+  assert.equal(commitEditor(ed, g.shop), true);
+  assert.equal(g.shop.layout[i].product, 'lait');
+});

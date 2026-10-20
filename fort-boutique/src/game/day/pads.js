@@ -5,6 +5,7 @@ import { initProducers } from './producers.js';
 import { initShelves } from './shelves.js';
 import { initRegister } from './register.js';
 import { goToCell } from './customers.js';
+import { validateLayout } from '../shop.js';
 
 /** Durée de remplissage d'un emplacement (DECISIONS.md, M4). */
 export function padFillSeconds(price) {
@@ -41,11 +42,34 @@ export function padsRemaining(g) {
   return pads.filter((p) => !g.shop.pads.done.includes(p.id)).length;
 }
 
+/**
+ * Case où poser l'emplacement : celle de G6.7 (décalée d'une ligne par agrandissement), ou, si elle est prise
+ * (meuble déplacé dans l'éditeur, P1), la case libre valide la plus proche. Jamais une case qui bloquerait un chemin.
+ * @param {any} g
+ * @param {any} def
+ * @returns {{ x: number, y: number } | null}
+ */
+export function padSpot(g, def) {
+  const shop = g.shop;
+  const { w, h } = g.grid;
+  const x0 = def.x;
+  const y0 = def.y + (shop.expansion | 0);
+  const ok = (x, y) => validateLayout(g.shopId, shop.expansion, shop.layout.concat([{ id: def.furniture, x, y, rot: 0 }])).ok;
+  if (x0 < w && y0 < h && ok(x0, y0)) return { x: x0, y: y0 };
+  const cells = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) cells.push({ x, y, d: Math.abs(x - x0) + Math.abs(y - y0) });
+  cells.sort((a, b) => a.d - b.d || a.y - b.y || a.x - b.x);
+  for (const c of cells) if (ok(c.x, c.y)) return { x: c.x, y: c.y };
+  return null;
+}
+
 function activate(g, def) {
+  const spot = padSpot(g, def);
+  if (!spot) return;
   const paid = Math.max(0, Math.min(def.price, g.shop.pads.paid[def.id] || 0));
-  g.day.pad = { id: def.id, furniture: def.furniture, x: def.x, y: def.y, price: def.price, paid, acc: 0, rate: def.price / padFillSeconds(def.price), shown: 0 };
+  g.day.pad = { id: def.id, furniture: def.furniture, x: spot.x, y: spot.y, price: def.price, paid, acc: 0, rate: def.price / padFillSeconds(def.price), shown: 0 };
   g.shop.pads.active = def.id;
-  g.events.push('pad_appear', def.x + 0.5, def.y + 0.5, def.price, 0, def.id);
+  g.events.push('pad_appear', spot.x + 0.5, spot.y + 0.5, def.price, 0, def.id);
 }
 
 /** @param {any} g @param {number} dt */

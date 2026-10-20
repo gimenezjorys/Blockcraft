@@ -1,6 +1,7 @@
 // Fort Boutique — bots des simulations d'équilibrage (D2.2) : ils pilotent la logique pure (sans DOM).
 // Profils : faible (55 %, réaction 600 ms), moyen (75 %), fort (92 %).
 import { Rng, seedFrom } from '../../src/core/rng.js';
+import { bfs } from '../../src/game/pathfinding.js';
 
 export const PROFILES = {
   weak: { id: 'weak', efficiency: 0.55, reactionS: 0.6, chase: 0, aura: 'center', bell: false, buy: 'cheapest', layout: 'default' },
@@ -19,16 +20,51 @@ export function createPilot(profile, seed) {
   const rng = new Rng(seedFrom(seed, 'pilote', profile.id));
   const st = { target: null, mode: '', decideT: 0, chaseDecision: new Map(), detour: { x: 0, y: 0, t: 0 } };
 
+  // Itinéraire : champ BFS depuis la case visée (mis en cache par case et par disposition), comme un joueur qui
+  // contourne les meubles au lieu de foncer tout droit dans un mur.
+  const route = { key: '', dist: null };
+  function waypoint(g, x, y) {
+    const { w, h, occ } = g.grid;
+    const tx = Math.max(0, Math.min(w - 1, Math.floor(x)));
+    const ty = Math.max(0, Math.min(h - 1, Math.floor(y)));
+    const px = Math.max(0, Math.min(w - 1, Math.floor(g.player.x)));
+    const py = Math.max(0, Math.min(h - 1, Math.floor(g.player.y)));
+    if (px === tx && py === ty) return null;
+    const key = `${g.layoutVersion}|${tx},${ty}|${g.furn.reduce((a, f) => a + (f.broken ? 1 : 0), 0)}`;
+    if (route.key !== key) {
+      route.key = key;
+      route.dist = bfs(w, h, [ty * w + tx], (i) => occ[i] < 0 || g.furn[occ[i]].broken, route.dist);
+    }
+    const here = py * w + px;
+    if (route.dist[here] < 0) return null;
+    let best = -1;
+    let bestD = route.dist[here];
+    for (const [ox, oy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = px + ox;
+      const ny = py + oy;
+      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+      const d = route.dist[ny * w + nx];
+      if (d >= 0 && d < bestD) {
+        bestD = d;
+        best = ny * w + nx;
+      }
+    }
+    return best < 0 ? null : { x: (best % w) + 0.5, y: Math.floor(best / w) + 0.5 };
+  }
+
   function steer(g, x, y, tol = 0.2) {
     const p = g.player;
-    const dx = x - p.x;
-    const dy = y - p.y;
-    const l = Math.hypot(dx, dy);
-    if (l < tol) {
+    if (Math.hypot(x - p.x, y - p.y) < tol) {
       g.input.x = 0;
       g.input.y = 0;
       return true;
     }
+    const wp = waypoint(g, x, y);
+    const gx = wp ? wp.x : x;
+    const gy = wp ? wp.y : y;
+    const dx = gx - p.x;
+    const dy = gy - p.y;
+    const l = Math.hypot(dx, dy) || 1;
     // Efficacité : le bot ne va pas tout droit (détours) et pas à pleine vitesse.
     const k = profile.efficiency;
     let vx = dx / l;
@@ -64,7 +100,7 @@ export function createPilot(profile, seed) {
     if (d.queue.length > 0 || d.pile > 0) {
       const lowShelf = shelves.some((s) => s.count === 0);
       if (!(lowShelf && p.stack.length === 0 && producers.some((f) => f.stock >= 3)) || d.queue.length > 1) {
-        return { x: g.register.x + 0.5, y: g.register.y - 0.5, tol: 0.35, mode: 'register' };
+        return registerSpot(g, 'register');
       }
     }
     // Producteur dont le produit manque le plus en rayon.
@@ -74,7 +110,17 @@ export function createPilot(profile, seed) {
       const c = C(prod.access, w);
       return { x: c.x, y: c.y, tol: 0.3, mode: 'producer' };
     }
-    return { x: g.register.x + 0.5, y: g.register.y - 0.6, tol: 0.4, mode: 'idle' };
+    return registerSpot(g, 'idle');
+  }
+
+  /** Case d'accès de la caisse (à côté d'elle : on encaisse et on ramasse le tas, ≤ 0,8 case). */
+  function registerSpot(g, mode) {
+    const r = g.register;
+    if (r.access >= 0) {
+      const c = C(r.access, g.grid.w);
+      return { x: c.x, y: c.y, tol: 0.25, mode };
+    }
+    return { x: r.x + 0.5, y: r.y - 0.45, tol: 0.25, mode };
   }
 
   function nightDecide(g) {

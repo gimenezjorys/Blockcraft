@@ -2,14 +2,14 @@
 // steal = part du Bocal initial volée ; threat = coût de menace (G8.3).
 
 export const MONSTERS = {
-  raton: { id: 'raton', hp: 20, armor: 0, speed: 1.0, steal: 0.04, loot: 2, threat: 1, group: [2, 5] },
-  souris: { id: 'souris', hp: 9, armor: 0, speed: 1.8, steal: 0.02, loot: 1, threat: 0.5, group: [3, 5] },
+  raton: { id: 'raton', hp: 25, armor: 0, speed: 1.0, steal: 0.04, loot: 2, threat: 1, group: [2, 5] },
+  souris: { id: 'souris', hp: 11, armor: 0, speed: 1.8, steal: 0.02, loot: 1, threat: 0.5, group: [3, 5] },
   gloubi: {
-    id: 'gloubi', hp: 50, armor: 0, speed: 0.6, steal: 0.06, loot: 3, threat: 2, group: [2, 5],
+    id: 'gloubi', hp: 62, armor: 0, speed: 0.6, steal: 0.06, loot: 3, threat: 2, group: [2, 5],
     weak: { fire: 1.5 }, split: { into: 'mini_gloubi', count: 2 },
   },
-  mini_gloubi: { id: 'mini_gloubi', hp: 14, armor: 0, speed: 0.9, steal: 0.02, loot: 1, threat: 0, child: true, weak: { fire: 1.5 } },
-  termite: { id: 'termite', hp: 34, armor: 0, speed: 0.8, steal: 0.04, loot: 3, threat: 1.5, group: [2, 5], gnaw: { stop: 1, dps: 10 } },
+  mini_gloubi: { id: 'mini_gloubi', hp: 17, armor: 0, speed: 0.9, steal: 0.02, loot: 1, threat: 0, child: true, weak: { fire: 1.5 } },
+  termite: { id: 'termite', hp: 42, armor: 0, speed: 0.8, steal: 0.04, loot: 3, threat: 1.5, group: [2, 5], gnaw: { stop: 1, dps: 10 } },
   chauvesouris: { id: 'chauvesouris', hp: 14, armor: 0, speed: 1.4, steal: 0.03, loot: 2, threat: 1, group: [2, 5], flying: true },
   herisson: { id: 'herisson', hp: 44, armor: 3, speed: 0.9, steal: 0.05, loot: 4, threat: 2, group: [2, 5] },
   champiboum: {
@@ -22,13 +22,13 @@ export const MONSTERS = {
   corbeau: { id: 'corbeau', hp: 20, armor: 0, speed: 1.7, steal: 0.05, loot: 3, threat: 1.5, group: [3, 3], flying: true, formation: 'V' },
   golem: { id: 'golem', hp: 360, armor: 8, speed: 0.45, steal: 0.2, loot: 25, threat: 10, group: [2, 5], metal: true, coldResist: 0.5 },
   phalene: { id: 'phalene', hp: 24, armor: 0, speed: 1.2, steal: 0.04, loot: 3, threat: 1.5, group: [2, 5], flying: true, lampDps: 6 },
-  raton_dore: { id: 'raton_dore', hp: 40, armor: 0, speed: 1.5, steal: 0.04, loot: 20, threat: 0, golden: true },
+  raton_dore: { id: 'raton_dore', hp: 50, armor: 0, speed: 1.5, steal: 0.04, loot: 20, threat: 0, golden: true },
 };
 
 export const BOSSES = {
   roi_raton: {
-    id: 'roi_raton', district: 'q1', hp: 900, armor: 2, speed: 0.55, steal: 0.35, loot: 150, boss: true,
-    noKnockback: true, fleeSpeed: 0.75, summon: { type: 'raton', count: 3, every: 6 },
+    id: 'roi_raton', district: 'q1', hp: 1125, armor: 2, speed: 0.55, steal: 0.35, loot: 150, boss: true,
+    noKnockback: true, fleeSpeed: 0.75, summon: { type: 'raton', count: 3, every: 4.8 },
   },
   grande_pate: {
     id: 'grande_pate', district: 'q2', hp: 1700, armor: 0, speed: 0.5, steal: 0.35, loot: 250, boss: true,
