@@ -46,3 +46,18 @@ Raison : une seule source, facile à mettre à jour quand le lien Pages sera con
 Décision : version de package.json + hash git court du commit de départ du build + date UTC (jour) du build.
 Alternatives : heure complète.
 Raison : un `npm test` relancé le même jour ne modifie pas `dist/index.html` inutilement.
+
+## 2026-10-20 — M1 — Hooks de test hors de dist/
+Décision : `window.__FB_TEST__` est installé par `src/debug/test-hooks.js`, appelé derrière la constante de compilation `__FB_TEST_BUILD__` dans `main.js`. esbuild supprime le bloc et le module du build normal (vérifié par le test de fumée).
+Alternatives : drapeau d'exécution.
+Raison : B15 exige que ces hooks n'existent pas dans `dist/index.html`.
+
+## 2026-10-20 — M1 — Joystick analogique qui suit le doigt
+Décision : norme = (distance − 6) ÷ (52 − 6), plafonnée à 1 ; au-delà de 52 px le centre du joystick suit le doigt ; relâcher fait décroître le vecteur linéairement en 60 ms.
+Alternatives : vitesse pleine dès la zone morte franchie.
+Raison : « sortie vectorielle normalisée » (B6) ; le suivi évite de « perdre » le joystick quand le pouce glisse loin.
+
+## 2026-10-20 — M1 — Tap DOM dédupliqué par geste
+Décision : `onTap` déclenche sur `pointerup` ou `touchend` et ignore seulement le `click` synthétique qui suit (700 ms) ; un `click` seul (clavier, lecteur d'écran) déclenche aussi.
+Alternatives : délai minimal entre deux taps.
+Raison : un coffre s'ouvre en 3 taps rapides (G12.7) : un délai minimal les aurait avalés.

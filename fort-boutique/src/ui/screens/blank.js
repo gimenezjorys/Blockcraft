@@ -3,6 +3,6 @@ import { h } from '../widgets.js';
 
 export default {
   mount() {
-    return { el: h('div.blank-screen') };
+    return { el: h('div.blank-screen.passthrough') };
   },
 };

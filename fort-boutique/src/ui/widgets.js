@@ -49,13 +49,12 @@ export function h(tag, attrs, children) {
  * @param {import('../core/events.js').Disposer} disposer
  */
 export function onTap(el, fn, disposer) {
-  let lastFire = -1e9;
+  // Un geste (pointerup ou touchend) déclenche ; le « click » synthétique qui suit est ignoré.
+  let suppressClickUntil = -1e9;
   let pointerDown = false;
   let touchDown = false;
   const fire = (e) => {
-    const t = perfNow();
-    if (t - lastFire < 450) return;
-    lastFire = t;
+    suppressClickUntil = perfNow() + 700;
     fn(e);
   };
   const press = (on) => el.classList.toggle('pressed', on);
@@ -97,7 +96,8 @@ export function onTap(el, fn, disposer) {
   });
   disposer.listen(el, 'click', (e) => {
     e.stopPropagation();
-    fire(e);
+    if (perfNow() < suppressClickUntil) return;
+    fn(e);
   });
 }
 

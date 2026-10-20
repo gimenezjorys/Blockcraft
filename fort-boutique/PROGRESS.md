@@ -5,8 +5,8 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | Mission | Statut | Date | Résumé |
 |---|---|---|---|
 | M0 — Démarrage du dépôt | ✅ | 2026-10-20 | Arborescence, build autonome (12 Ko), icônes, titre, helpers jsdom, test de fumée. |
-| M1 — Moteur | 🔄 |  |  |
-| M2 — Sauvegarde | ⬜ | | |
+| M1 — Moteur | ✅ | 2026-10-20 | Boucle à pas fixe, sfc32 + fork, temps UTC, pools, entrées unifiées, joystick, debug, hooks de test. |
+| M2 — Sauvegarde | 🔄 |  |  |
 | M3 — La boutique et le marchand | ⬜ | | |
 | M4 — Le jour | ⬜ | | |
 | M5 — La nuit | ⬜ | | |
@@ -53,11 +53,11 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Fini quand : `dist/index.html` s'ouvre par double-clic et affiche l'écran titre ; commit `M0: fondations`.
 
 **M1 — Moteur**
-- [ ] Boucle à pas fixe + rAF + pause onglet caché (B5), `timeScale`.
-- [ ] Générateur aléatoire à graine (sfc32 ou mulberry32) avec `fork(label)` pour des sous-générateurs indépendants.
-- [ ] `core/time.js` (B7), bus d'événements, réserves d'objets.
-- [ ] Entrées unifiées + joystick + clavier (B6), redimensionnement et bandes latérales.
-- [ ] Overlay debug (B14).
+- [x] Boucle à pas fixe + rAF + pause onglet caché (B5), `timeScale`.
+- [x] Générateur aléatoire à graine (sfc32 ou mulberry32) avec `fork(label)` pour des sous-générateurs indépendants.
+- [x] `core/time.js` (B7), bus d'événements, réserves d'objets.
+- [x] Entrées unifiées + joystick + clavier (B6), redimensionnement et bandes latérales.
+- [x] Overlay debug (B14).
 - Tests : même graine → même suite (1 000 tirages) ; frontières UTC (23:59:59.999 / 00:00:00.000) ; semaine UTC commençant le lundi ; joystick piloté par de vrais `touchstart/touchmove/touchend` ; même vecteur à la souris ; ZQSD et flèches ; second doigt ; pause sur `visibilitychange`.
 - Fini quand : dans le build, un rond se déplace au joystick.
 
@@ -163,3 +163,4 @@ _(aucun pour l'instant)_
 
 ## Journal de session
 - 2026-10-20 — M0 fait : fondations, build, titre, tests de fumée. Reste : M1 moteur. Prochaine étape : core/loop.js + rng.js + entrées.
+- 2026-10-20 — M1 fait : moteur, entrées, debug, hooks. Reste : M2 sauvegarde. Prochaine étape : save/crc32.js, storage.js, schema.js.
