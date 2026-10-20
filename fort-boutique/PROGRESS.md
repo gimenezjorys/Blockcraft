@@ -6,8 +6,8 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 |---|---|---|---|
 | M0 — Démarrage du dépôt | ✅ | 2026-10-20 | Arborescence, build autonome (12 Ko), icônes, titre, helpers jsdom, test de fumée. |
 | M1 — Moteur | ✅ | 2026-10-20 | Boucle à pas fixe, sfc32 + fork, temps UTC, pools, entrées unifiées, joystick, debug, hooks de test. |
-| M2 — Sauvegarde | 🔄 |  |  |
-| M3 — La boutique et le marchand | ⬜ | | |
+| M2 — Sauvegarde | ✅ | 2026-10-20 | CRC32, stockage avec repli mémoire, schéma G23, 2 copies + .corrupt, migrations testées, export FB1 ; 17 tests. |
+| M3 — La boutique et le marchand | 🔄 |  |  |
 | M4 — Le jour | ⬜ | | |
 | M5 — La nuit | ⬜ | | |
 | M6 — Cycle complet + Playtest P1 | ⬜ | | |
@@ -62,7 +62,7 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Fini quand : dans le build, un rond se déplace au joystick.
 
 **M2 — Sauvegarde**
-- [ ] `storage.js` (repli mémoire), `schema.js` (G23 + valeurs par défaut), `save.js` (checksum, copies de secours, écritures regroupées), `migrations.js` (registre), `export.js` (code FB1), `crc32.js`.
+- [x] `storage.js` (repli mémoire), `schema.js` (G23 + valeurs par défaut), `save.js` (checksum, copies de secours, écritures regroupées), `migrations.js` (registre), `export.js` (code FB1), `crc32.js`.
 - Tests (au moins 12) : aller-retour ; checksum faux → bak1 ; bak1 faux → bak2 ; tout faux → nouvelle partie + copie `.corrupt` ; migration d'une fixture v0 synthétique vers v1 ; champs inconnus conservés ; achats et cosmétiques conservés ; export/import identique ; code invalide refusé ; `localStorage` qui lève une exception → repli mémoire ; quota plein → aucun plantage.
 
 ### Jalon B — Version jouable minimale (Épicerie : jour + nuit)
@@ -164,3 +164,4 @@ _(aucun pour l'instant)_
 ## Journal de session
 - 2026-10-20 — M0 fait : fondations, build, titre, tests de fumée. Reste : M1 moteur. Prochaine étape : core/loop.js + rng.js + entrées.
 - 2026-10-20 — M1 fait : moteur, entrées, debug, hooks. Reste : M2 sauvegarde. Prochaine étape : save/crc32.js, storage.js, schema.js.
+- 2026-10-20 — M2 fait : sauvegarde complète et testée. Reste : M3 boutique. Prochaine étape : data/balance.js, game/shop.js (grille, placement), pathfinding.js.

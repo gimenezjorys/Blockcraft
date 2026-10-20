@@ -61,3 +61,18 @@ Raison : « sortie vectorielle normalisée » (B6) ; le suivi évite de « perdr
 Décision : `onTap` déclenche sur `pointerup` ou `touchend` et ignore seulement le `click` synthétique qui suit (700 ms) ; un `click` seul (clavier, lecteur d'écran) déclenche aussi.
 Alternatives : délai minimal entre deux taps.
 Raison : un coffre s'ouvre en 3 taps rapides (G12.7) : un délai minimal les aurait avalés.
+
+## 2026-10-20 — M2 — Copie .corrupt et rotation
+Décision : la copie `fortboutique.save.corrupt` n'est écrite que si elle n'existe pas encore (la première sauvegarde illisible est gardée telle quelle) ; la rotation des copies de secours part du texte réellement chargé, jamais d'une sauvegarde illisible.
+Alternatives : écraser `.corrupt` à chaque incident.
+Raison : « jamais effacée automatiquement » (B9) ; une copie illisible dans bak1 ferait perdre une bonne copie.
+
+## 2026-10-20 — M2 — Remise en état au chargement
+Décision : chaque champ est fusionné avec sa valeur par défaut et vérifié par type (nombre fini, booléen, chaîne, tableau, objet) ; les champs inconnus sont conservés ; monnaies, niveaux et plans sont bornés (≥ 0, niveaux 1 à 10 / 1 à 40) ; le tablier rayé de base est toujours possédé.
+Alternatives : refuser la sauvegarde au premier champ invalide.
+Raison : ne jamais perdre une partie pour un champ abîmé (A0.2, M26).
+
+## 2026-10-20 — M2 — Champs ajoutés au schéma v1
+Décision : en plus de G23, la v1 contient `shops.*.day` (jours joués dans la boutique), `shops.*.pads.paid`, `shops.*.lastNightStars`, `shops.*.phase.carried` et `firstSaleDone`, `progress.pendingUnlocks`, des compteurs de `stats`, `settings.weaknessIcons`, `daily.maxClaimDay` (anti-recul d'horloge), `ads.lastRewardedAt` et `ads.interstitialsToday`, `offline.pendingDelivery`, `collections.bestiaryTiers`. La boutique de départ contient la Caisse, la Cagette A et l'Étagère A (G6.7).
+Alternatives : version 2 dès maintenant.
+Raison : tous ces champs ont une valeur par défaut ; la fusion au chargement suffit, aucune migration n'est nécessaire.

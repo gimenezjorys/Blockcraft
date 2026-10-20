@@ -1,0 +1,24 @@
+{
+  "version": 0,
+  "coins": 1234,
+  "rubies": 17,
+  "kibble": 3,
+  "level": 7,
+  "xp": 55,
+  "cosmetics": ["apron_stripes", "hat_straw", "theme_pastel"],
+  "equipped": { "outfit": "hat_straw", "theme": "theme_pastel" },
+  "purchases": { "noAds": true, "cosmetics": ["pack_lune"], "receipts": ["rcpt-001"] },
+  "shop": {
+    "week": 2,
+    "night": 3,
+    "bossBeatenCount": 1,
+    "layout": [
+      { "id": "caisse", "x": 3, "y": 4, "rot": 0 },
+      { "id": "cagette", "x": 0, "y": 1, "rot": 0 },
+      { "id": "etagere", "x": 0, "y": 4, "rot": 0 },
+      { "id": "frigo", "x": 4, "y": 0, "rot": 0 }
+    ]
+  },
+  "furniture": { "etagere": { "level": 4, "plans": 9 }, "frigo": { "level": 2, "plans": 1 } },
+  "mysteryField": { "keep": true, "nested": [1, 2, 3] }
+}
