@@ -32,8 +32,13 @@ export function nextPadDef(g) {
 
 /** Tous les emplacements tutoriel sont-ils construits ? (le catalogue s'ouvre ensuite, G6.7) */
 export function padsFinished(g) {
+  return padsRemaining(g) === 0;
+}
+
+/** Nombre d'emplacements d'achat du tutoriel encore à payer. */
+export function padsRemaining(g) {
   const pads = g.district.pads || [];
-  return pads.every((p) => g.shop.pads.done.includes(p.id));
+  return pads.filter((p) => !g.shop.pads.done.includes(p.id)).length;
 }
 
 function activate(g, def) {

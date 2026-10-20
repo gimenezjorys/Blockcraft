@@ -27,6 +27,8 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* L'attribut hidden gagne toujours (sinon .tag { display:inline-flex } l'annule dans les vrais navigateurs). */
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
@@ -121,7 +123,7 @@ button { font: inherit; color: inherit; }
   background: var(--ardoise);
   border: 2px solid var(--encre);
 }
-.tag .tag-icon { display: inline-flex; width: 22px; height: 22px; }
+.tag .tag-icon { display: inline-flex; flex: 0 0 auto; width: 22px; height: 22px; }
 .tag .tag-icon svg { width: 100%; height: 100%; }
 .tag.small { min-height: 44px; padding: 4px 10px 4px 22px; font-size: calc(14px * var(--ui-scale)); }
 .tag[data-variant="green"] { background: var(--verte); box-shadow: 0 4px 0 #2BA877, 0 4px 0 2px var(--encre); }
@@ -206,13 +208,155 @@ button { font: inherit; color: inherit; }
 .blank-screen { background: transparent; }
 
 /* ---------- Debug (?debug=1) ---------- */
-.debug-panel { position: absolute; left: 4px; bottom: 4px; z-index: 50; pointer-events: auto; font: 10px/1.3 var(--f-mono); color: #C8FF2E; }
+.debug-panel { position: absolute; left: 4px; bottom: 4px; z-index: 50; pointer-events: none; font: 10px/1.3 var(--f-mono); color: #C8FF2E; }
 .debug-stats { margin: 0; padding: 4px 6px; background: rgba(26,20,70,.75); border-radius: 4px; white-space: pre; }
-.debug-toggle { margin-top: 4px; min-width: 44px; min-height: 32px; border: 0; border-radius: 6px; background: rgba(26,20,70,.75); }
-.debug-cheats { display: flex; flex-wrap: wrap; gap: 4px; max-width: 300px; margin-top: 4px; }
+.debug-toggle { pointer-events: auto; margin-top: 4px; min-width: 44px; min-height: 32px; border: 0; border-radius: 6px; background: rgba(26,20,70,.75); }
+.debug-cheats { pointer-events: auto; display: flex; flex-wrap: wrap; gap: 4px; max-width: 300px; margin-top: 4px; }
 .debug-cheats[hidden] { display: none; }
 .debug-cheat { min-height: 32px; padding: 2px 8px; border: 1px solid #C8FF2E; border-radius: 6px; background: rgba(26,20,70,.9); color: #C8FF2E; font: 11px var(--f-ui); }
 
 @media (prefers-reduced-motion: reduce) {
   .finger .hand, .finger .ripple { animation-duration: 2.4s; }
 }
+
+/* ---------- Messages discrets ---------- */
+.toasts { position: absolute; left: 0; right: 0; top: 56px; display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 40; pointer-events: none; }
+.toast { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border: 3px solid var(--encre); border-radius: 12px; background: var(--ticket); color: var(--encre); font-weight: 700; font-size: 14px; box-shadow: 0 3px 0 var(--encre); animation: toast-in 180ms ease-out both; }
+.toast.out { opacity: 0; transform: translateY(-6px); transition: opacity 280ms, transform 280ms; }
+.toast-ico { width: 20px; height: 20px; display: inline-flex; }
+.toast-ico svg { width: 100%; height: 100%; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(-8px) scale(.95); } to { opacity: 1; transform: none; } }
+
+/* ---------- Fenêtres (ardoise) ---------- */
+.overlay { display: flex; align-items: center; justify-content: center; background: rgba(26, 20, 70, .55); }
+.pause-panel { width: 260px; padding: 18px 18px 22px; display: flex; flex-direction: column; align-items: stretch; gap: 14px; animation: slide-in 180ms ease-out both; }
+.pause-title { margin: 0 0 4px; text-align: center; font-size: 28px; }
+@keyframes slide-in { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+/* ---------- L'Aube : ticket de caisse ---------- */
+.dawn { display: flex; flex-direction: column; align-items: center; background: linear-gradient(rgba(255,179,107,.0), rgba(255,179,107,.0)); }
+.ticket {
+  position: relative; width: 248px; margin-top: 0; padding: 16px 18px 26px; background: var(--ticket); color: var(--encre);
+  font-family: var(--f-mono); font-size: 13px; letter-spacing: .5px; border: 3px solid var(--encre); border-top: 0;
+  box-shadow: 0 6px 0 rgba(43,26,51,.35); animation: ticket-roll 700ms cubic-bezier(.2,.9,.3,1.1) both; transform-origin: top;
+}
+@keyframes ticket-roll { from { transform: translateY(-105%); } to { transform: none; } }
+.ticket-head { text-align: center; margin-bottom: 10px; border-bottom: 2px dashed rgba(43,26,51,.35); padding-bottom: 8px; }
+.ticket-shop { font-family: var(--f-title); font-weight: 900; font-size: 18px; letter-spacing: 1px; text-transform: uppercase; }
+.ticket-sub { font-size: 11px; opacity: .7; }
+.ticket-line { display: flex; justify-content: space-between; padding: 3px 0; }
+.ticket-line.hidden { visibility: hidden; }
+.ticket-line.printed { animation: print 160ms steps(3) both; }
+@keyframes print { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.ticket-line.total { font-weight: 800; font-size: 15px; border-top: 2px dashed rgba(43,26,51,.35); margin-top: 6px; padding-top: 7px; }
+.ticket-sep { height: 0; }
+.ticket-num { font-variant-numeric: tabular-nums; }
+.ticket-stars { display: flex; justify-content: center; gap: 10px; margin-top: 12px; }
+.dawn-star { width: 40px; height: 40px; display: inline-block; }
+.dawn-star svg { width: 100%; height: 100%; }
+.dawn-star.stamp { animation: stamp 300ms cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes stamp { from { transform: scale(2) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.ticket-edge { position: absolute; left: -3px; right: -3px; bottom: -10px; height: 12px;
+  background: linear-gradient(-45deg, transparent 6px, var(--ticket) 0) 0 0 / 12px 12px repeat-x, linear-gradient(45deg, transparent 6px, var(--ticket) 0) 0 0 / 12px 12px repeat-x; }
+
+.dawn-chest { margin-top: 26px; width: 150px; height: 124px; border: 0; background: none; padding: 0; cursor: pointer; }
+.dawn-chest .chest-svg { width: 100%; height: 100%; overflow: visible; }
+.dawn-chest.appear { animation: chest-drop 420ms cubic-bezier(.3,1.5,.5,1) both; }
+.dawn-chest.shake[data-taps="1"] { animation: shake1 220ms both; }
+.dawn-chest.shake[data-taps="2"] { animation: shake2 260ms both; }
+.dawn-chest.shake[data-taps="3"] { animation: shake3 300ms both; }
+.dawn-chest.open .chest-lid { transform: translateY(-14px) rotate(-14deg); transform-box: fill-box; transform-origin: left bottom; transition: transform 200ms; }
+@keyframes chest-drop { from { transform: translateY(-60px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes shake1 { 25% { transform: rotate(-3deg); } 75% { transform: rotate(3deg); } }
+@keyframes shake2 { 20% { transform: rotate(-6deg) scale(1.03); } 60% { transform: rotate(6deg) scale(1.05); } }
+@keyframes shake3 { 20% { transform: rotate(-9deg) scale(1.08); } 50% { transform: rotate(9deg) scale(1.12); } 80% { transform: rotate(-6deg) scale(1.1); } }
+
+.dawn-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; width: 340px; min-height: 10px; }
+.card { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 76px; min-height: 96px; padding: 6px 4px; border: 3px solid var(--encre); border-radius: 10px; background: var(--kraft); color: var(--encre); box-shadow: 0 4px 0 var(--kraft-ombre), 0 4px 0 2px var(--encre); font-family: var(--f-title); }
+.card.fly-in { animation: card-in 260ms cubic-bezier(.3,1.5,.5,1) both; }
+@keyframes card-in { from { transform: translateY(-80px) scale(.4) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.card.jump { animation: card-jump 360ms ease-out both; }
+@keyframes card-jump { 30% { transform: translateY(-10px) scale(1.12, .9); } 60% { transform: translateY(0) scale(.95, 1.08); } }
+.card-info { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.card-n { font-weight: 900; font-size: 15px; }
+.card-prog { font-size: 12px; font-weight: 800; }
+.card-lvl { font-size: 11px; opacity: .8; }
+.card.can-up .card-prog { color: #1E8A5A; }
+.card-up { position: absolute; top: -14px; right: -12px; width: 44px; height: 44px; border: 0; background: none; padding: 4px; animation: pulse 900ms ease-in-out infinite; cursor: pointer; }
+.card-up svg { width: 100%; height: 100%; }
+.card-ico { width: 34px; height: 34px; }
+.card-ico svg { width: 100%; height: 100%; }
+@keyframes pulse { 50% { transform: scale(1.18); } }
+.dawn-actions { position: absolute; bottom: 26px; left: 0; right: 0; display: flex; justify-content: center; gap: 14px; }
+
+/* ---------- Le Matin (hub) ---------- */
+.morning { display: flex; flex-direction: column; padding: 8px 10px 18px; pointer-events: none; }
+.morning > * { pointer-events: auto; }
+.morning .hub-spacer { flex: 1; pointer-events: none; }
+.hub-top { display: flex; align-items: center; gap: 8px; }
+.hub-level { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border: 3px solid var(--encre); border-radius: 12px; background: var(--ardoise); color: var(--craie); font-weight: 800; }
+.xp-bar { width: 64px; height: 10px; border: 2px solid var(--encre); border-radius: 6px; background: rgba(242,246,238,.2); overflow: hidden; }
+.xp-fill { display: block; height: 100%; background: var(--craie-jaune); }
+.hub-money { display: flex; gap: 8px; margin-left: auto; }
+.money { display: flex; align-items: center; gap: 4px; padding: 3px 8px; border: 3px solid var(--encre); border-radius: 12px; background: var(--ardoise); font-weight: 900; font-family: var(--f-title); }
+.money-ico { width: 18px; height: 18px; display: inline-flex; }
+.money-ico svg { width: 100%; height: 100%; }
+.hub-gear, .hub-map { width: 44px; height: 44px; border: 3px solid var(--encre); border-radius: 50%; background: var(--kraft); padding: 7px; box-shadow: 0 3px 0 var(--encre); }
+.hub-gear svg, .hub-map svg { width: 100%; height: 100%; }
+.hub-row2 { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.hub-objective-slot { flex: 1; }
+.hub-moon { display: flex; align-items: center; gap: 4px; padding: 3px 9px; border: 3px solid var(--encre); border-radius: 12px; background: var(--voileNuit, #1A1446); color: var(--craie); font-weight: 900; }
+.moon-ico { width: 24px; height: 24px; }
+.moon-ico svg { width: 100%; height: 100%; }
+.hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; margin-bottom: 14px; }
+.hub-grid .tag { justify-content: center; gap: 3px; padding: 4px 6px; font-size: 12px; }
+.hub-grid .tag .tag-hole { display: none; }
+.hub-grid .tag .tag-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hub-grid .tag .lock-ico { margin-left: 0; }
+.tag.locked { filter: saturate(.3); opacity: .75; }
+.tag.nope { animation: nope 240ms both; }
+@keyframes nope { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.badge-dot { position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; border-radius: 50%; background: var(--corail); border: 2px solid var(--encre); }
+.hub-open-wrap { display: flex; justify-content: center; }
+.tag.big { min-height: 64px; padding: 10px 28px 10px 34px; font-size: 22px; font-weight: 900; letter-spacing: .5px; }
+
+.tag .lock-ico { flex: 0 0 16px; width: 16px; height: 16px; margin-left: -4px; }
+.lvl-badge { position: absolute; top: -9px; right: -6px; padding: 1px 6px; border: 2px solid var(--encre); border-radius: 8px; background: var(--craie-jaune); color: var(--encre); font-size: 10px; font-weight: 900; }
+
+.pads-badge { display: inline-flex; align-items: center; gap: 3px; }
+.pads-badge::after { content: ''; width: 9px; height: 9px; border: 2px dashed var(--encre); border-radius: 2px; }
+.hub-map.locked { filter: saturate(.3); opacity: .75; }
+.hub-map.nope { animation: nope 240ms both; }
+
+/* ---------- Ruban de niveau (aube) ---------- */
+.dawn-level { position: absolute; left: 50%; top: 40%; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 8px 18px 8px 10px;
+  transform: translateX(-50%); border: 3px solid var(--encre); border-radius: 14px; background: var(--doree); color: var(--encre);
+  box-shadow: 0 4px 0 var(--encre); font-weight: 900; pointer-events: none; }
+.dawn-level.drop { animation: ribbon-drop 520ms cubic-bezier(.2,1.6,.4,1) both, ribbon-out 400ms 2.4s ease-in forwards; }
+.dawn-level .level-num { display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border: 3px solid var(--encre);
+  border-radius: 50%; background: var(--ticket); font: 900 28px/1 var(--f-title); }
+.dawn-level .level-text { font: 900 18px/1 var(--f-title); }
+.dawn-level .xp-bar { width: 70px; }
+.dawn-level .xp-fill { transition: width 900ms ease-out 300ms; }
+.confetti { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.confetti i { position: absolute; width: 7px; height: 11px; border-radius: 2px; background: hsl(calc(var(--i) * 30deg) 90% 62%);
+  animation: confetti 1100ms cubic-bezier(.1,.7,.3,1) both; --a: calc(var(--i) * 30deg); }
+@keyframes ribbon-drop { from { transform: translate(-50%, -120px) scale(.6); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes ribbon-out { to { transform: translate(-50%, -30px); opacity: 0; } }
+@keyframes confetti { from { transform: rotate(var(--a)) translateY(0) rotate(0); opacity: 1; } to { transform: rotate(var(--a)) translateY(-120px) rotate(400deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .dawn-level.drop { animation: ribbon-out 400ms 2.4s ease-in forwards; }
+  .confetti { display: none; }
+}
+
+/* ---------- Coche « sauvegardé » et pause ---------- */
+.save-tick { position: absolute; left: 10px; bottom: 12px; z-index: 30; width: 26px; height: 26px; opacity: 0; transform: scale(.6); pointer-events: none;
+  transition: opacity 200ms, transform 200ms; }
+.save-tick.show { opacity: 1; transform: none; }
+.save-tick svg { width: 100%; height: 100%; }
+.pause-saved { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; color: var(--craie); font-weight: 700; font-size: 13px; }
+.pause-saved-ico { display: inline-flex; width: 18px; height: 18px; }
+.pause-saved-ico svg { width: 100%; height: 100%; }
+.req-badge { display: inline-flex; align-items: center; gap: 2px; }
+.req-badge .req-ico { display: inline-flex; width: 11px; height: 11px; }
+.req-badge .req-ico svg { width: 100%; height: 100%; }

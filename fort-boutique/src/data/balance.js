@@ -133,3 +133,8 @@ export const DAY_AURAS = {
   fanPatience: 0.15,
   fanRadius: 2,
 };
+
+/** Publicités (G18) : aucune proposition pendant les 10 premières minutes de jeu cumulé. */
+export const ADS = {
+  quietPlaytimeMs: 10 * 60 * 1000,
+};

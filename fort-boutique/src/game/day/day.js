@@ -65,11 +65,18 @@ export function startDay(g, opts = {}) {
   if (opts.resume && ph.name === 'day' && ph.dayTimeLeftS > 0) {
     g.day.timeLeft = Math.min(duration, ph.dayTimeLeftS);
     g.day.takings = ph.dayTakings || 0;
+    g.day.sales = ph.daySales || 0;
+    g.day.tips = ph.dayTips || 0;
+    g.day.pile = ph.dayPile || 0;
     g.day.firstCustomerPending = false;
   } else {
     ph.name = 'day';
     ph.dayTimeLeftS = duration;
     ph.dayTakings = 0;
+    ph.daySales = 0;
+    ph.dayTips = 0;
+    ph.dayPile = 0;
+    ph.vipsSpawned = 0;
     ph.dawnClaimed = false;
   }
   g.player.stack = Array.isArray(ph.carried) ? ph.carried.slice(0, 14) : [];

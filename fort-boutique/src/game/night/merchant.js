@@ -90,7 +90,6 @@ export function ringBell(g) {
   }
   n.bellCharge = 0;
   n.bellUses++;
-  g.save.stats.bellUses++;
   g.events.push('bell', g.player.x, g.player.y);
   const arr = n.monsters.active;
   for (let i = arr.length - 1; i >= 0; i--) {

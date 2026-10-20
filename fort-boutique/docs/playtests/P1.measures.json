@@ -1,0 +1,230 @@
+{
+  "playtest": "P1",
+  "durationS": 281,
+  "milestones": [
+    {
+      "id": "firstPurchase",
+      "label": "Premier achat (P1)",
+      "targetS": 45,
+      "atS": 40.8,
+      "gapPct": -9,
+      "ok": true
+    },
+    {
+      "id": "secondPurchase",
+      "label": "Deuxième achat (P2)",
+      "targetS": 75,
+      "atS": 70.9,
+      "gapPct": -5,
+      "ok": true
+    },
+    {
+      "id": "firstNight",
+      "label": "Première nuit",
+      "targetS": 105,
+      "atS": 100.1,
+      "gapPct": -5,
+      "ok": true
+    },
+    {
+      "id": "firstDawn",
+      "label": "Première aube",
+      "targetS": 145,
+      "atS": 117.2,
+      "gapPct": -19,
+      "ok": true
+    },
+    {
+      "id": "firstChest",
+      "label": "Premier coffre ouvert",
+      "targetS": 165,
+      "atS": 121.7,
+      "gapPct": -26,
+      "ok": false
+    },
+    {
+      "id": "firstUpgrade",
+      "label": "Première amélioration",
+      "targetS": 190,
+      "atS": 121.8,
+      "gapPct": -36,
+      "ok": false
+    },
+    {
+      "id": "level2",
+      "label": "Niveau 2",
+      "targetS": 177,
+      "atS": 117.2,
+      "gapPct": -34,
+      "ok": false
+    },
+    {
+      "id": "firstMorning",
+      "label": "Premier Matin",
+      "targetS": 182,
+      "atS": 121.9,
+      "gapPct": -33,
+      "ok": false
+    },
+    {
+      "id": "day2",
+      "label": "Jour 2",
+      "targetS": 195,
+      "atS": 122.1,
+      "gapPct": -37,
+      "ok": false
+    },
+    {
+      "id": "thirdPurchase",
+      "label": "Troisième achat (P3, Frigo)",
+      "targetS": 220,
+      "atS": 136.1,
+      "gapPct": -38,
+      "ok": false
+    },
+    {
+      "id": "secondNight",
+      "label": "Deuxième nuit",
+      "targetS": 325,
+      "atS": 252.1,
+      "gapPct": -22,
+      "ok": false
+    },
+    {
+      "id": "level3",
+      "label": "Niveau 3",
+      "targetS": 390,
+      "atS": null,
+      "gapPct": null,
+      "ok": false
+    },
+    {
+      "id": "secondMorning",
+      "label": "Deuxième Matin",
+      "targetS": 410,
+      "atS": 281,
+      "gapPct": -31,
+      "ok": false
+    }
+  ],
+  "hub": [
+    {
+      "id": "hub-catalog",
+      "response": "secousse"
+    },
+    {
+      "id": "hub-editor",
+      "response": "secousse"
+    },
+    {
+      "id": "hub-upgrades",
+      "response": "message"
+    },
+    {
+      "id": "hub-quests",
+      "response": "secousse"
+    },
+    {
+      "id": "hub-calendar",
+      "response": "message"
+    },
+    {
+      "id": "hub-daily",
+      "response": "secousse"
+    },
+    {
+      "id": "hub-map locked soon nope",
+      "response": "message"
+    }
+  ],
+  "passiveNights": [
+    {
+      "stars": 2,
+      "kept": 0.96
+    },
+    {
+      "stars": 3,
+      "kept": 1
+    }
+  ],
+  "screens": [
+    {
+      "screen": "hud",
+      "from": 0.1,
+      "to": 117.2,
+      "exitAfter": 0
+    },
+    {
+      "screen": "dawn",
+      "from": 117.2,
+      "to": 121.9,
+      "exitAfter": 4.5
+    },
+    {
+      "screen": "morning",
+      "from": 121.9,
+      "to": 122.1,
+      "exitAfter": 0
+    },
+    {
+      "screen": "hud",
+      "from": 122.1,
+      "to": 276.3,
+      "exitAfter": 0
+    },
+    {
+      "screen": "dawn",
+      "from": 276.3,
+      "to": 281,
+      "exitAfter": 4.5
+    },
+    {
+      "screen": "morning",
+      "from": 281,
+      "to": 281,
+      "exitAfter": 0
+    }
+  ],
+  "taps": 20,
+  "inertTaps": 0,
+  "adOffersFirst10min": 0,
+  "nightStars": [
+    3,
+    3
+  ],
+  "worstOneStarRun": 0,
+  "errors": [],
+  "final": {
+    "level": 2,
+    "xp": 132,
+    "coins": 380,
+    "pads": [
+      "P1",
+      "P2",
+      "P3",
+      "P4"
+    ],
+    "furniture": {
+      "etagere": {
+        "level": 2,
+        "plans": 10
+      },
+      "cagette": {
+        "level": 1,
+        "plans": 8
+      },
+      "caisse": {
+        "level": 1,
+        "plans": 0
+      },
+      "frigo": {
+        "level": 2,
+        "plans": 6
+      },
+      "comptoir": {
+        "level": 1,
+        "plans": 8
+      }
+    }
+  }
+}

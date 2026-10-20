@@ -1,6 +1,7 @@
 // Fort Boutique — « juice » (G20.6) : chaque événement de la simulation devient son, particules, textes, secousse.
 import { PALETTE as P } from '../data/palette.js';
 import { COIN_COUNTER } from '../render/hud.js';
+import { screenToWorld } from '../render/camera.js';
 
 const C = 48;
 
@@ -9,6 +10,9 @@ const C = 48;
  *   camera: import('../render/camera.js').Camera, view: any }} ctx
  */
 export function createFxHandler({ app, g, fx, floaters, camera, view }) {
+  // Le compteur de pièces est à l'écran ; les pièces volent dans le monde (zoom de base de la boutique).
+  const tgt = { x: 0, y: 0 };
+  const counterInWorld = () => screenToWorld(camera.base || 1, COIN_COUNTER.x, COIN_COUNTER.y, tgt);
   const px = (x) => g.grid.origin.x + x * C;
   const py = (y) => g.grid.origin.y + y * C;
   const audio = () => app.services.audio;
@@ -54,12 +58,16 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
         break;
       case 'coins': {
         const n = Math.min(12, Math.max(1, Math.ceil(e.a / 3)));
-        for (let i = 0; i < n; i++) fx.coinFlight(px(e.x), py(e.y) - 10, COIN_COUNTER.x, COIN_COUNTER.y, i * 0.04, e.a / n);
+        const tg = counterInWorld();
+        for (let i = 0; i < n; i++) fx.coinFlight(px(e.x), py(e.y) - 10, tg.x, tg.y, i * 0.04, e.a / n);
         break;
       }
       case 'pad_tick':
         play('pad_tick', { n: e.a });
-        if (e.a % 2 === 0) fx.coinFlight(COIN_COUNTER.x, COIN_COUNTER.y, px(e.x), py(e.y), 0, 0);
+        if (e.a % 2 === 0) {
+          const tg = counterInWorld();
+          fx.coinFlight(tg.x, tg.y, px(e.x), py(e.y), 0, 0);
+        }
         view.coins = g.save.player.coins;
         break;
       case 'build_pop':
@@ -181,6 +189,8 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
         view.bossIntro = { type: e.s, t: 0 };
         break;
       case 'level_up':
+        // À l'aube, c'est le ruban de l'écran DOM qui fête le niveau (son compris).
+        if (g.phase.name === 'dawn' || g.phase.name === 'morning') break;
         play('level_up');
         view.banner = { text: `${e.a}`, t: 0, life: 1.6, color: P.or, level: true };
         break;

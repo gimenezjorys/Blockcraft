@@ -146,3 +146,73 @@ Raison : règles simples, lisibles et testables ; G10.1 décrit le fantôme sans
 Décision : le Bocal gardé affiché et les étoiles sont plafonnés à 100 % (le bonus de +10 % des sacs rattrapés reste en pièces) ; au plafond de 240 s, les Grignotins restants s'éclipsent et les sacs encore portés reviennent au Bocal sans bonus ; le butin est crédité à l'aube (les pièces volent vers le Bocal pendant la nuit, rien n'est à ramasser).
 Alternatives : Bocal gardé de 110 % ; vols perdus au plafond.
 Raison : jamais frustrant (une nuit trop longue n'est pas la faute du joueur) ; le score du Défi reste borné.
+
+## 2026-10-20 — M5/M6 — Correction d'un test (fin de journée)
+Décision : le test M4 « fin de journée » attendait la phase provisoire `dayEnd` ; il attend désormais `dusk`, la phase qui suit réellement la fermeture (G5.1), et vérifie toujours l'événement `day_end`, les clients partis, le tas ramassé et la recette.
+Alternatives : garder une phase `dayEnd` artificielle.
+Raison : A0.5 : le test était devenu faux quand M5 a branché le crépuscule ; aucune vérification n'a été retirée.
+
+## 2026-10-20 — M6 — Reprise après rechargement
+Décision : une partie rechargée pendant la fermeture, le crépuscule ou la nuit reprend au début de la nuit (même graine, mêmes vagues, même Bocal calculé sur la recette sauvegardée) ; à l'aube, le ticket et le coffre reviennent depuis `shops.*.phase.dawn` sans rien redonner (les gains de la nuit sont attribués à l'entrée dans l'aube, `dawnClaimed`) ; le coffre non ouvert attend toujours.
+Alternatives : reprendre le crépuscule ; attribuer les gains au bouton Continuer.
+Raison : G5.2 ; attribuer à l'entrée de l'aube rend impossible la perte des gains si l'onglet se ferme sur le ticket.
+
+## 2026-10-20 — M6 — Ticket de l'aube
+Décision : le ticket récapitule le cycle : Ventes et Pourboires du jour (déjà encaissés), Bocal gardé (%), Bocal (pièces), Butin, et Total = somme des quatre montants ; « Continuer » apparaît une fois le coffre ouvert ; un tap sur le ticket accélère l'impression.
+Alternatives : Total limité aux gains de la nuit.
+Raison : G20.8 liste ces lignes ; le total de la journée est la récompense lisible du cycle.
+
+## 2026-10-20 — M6 — Clic fantôme
+Décision : après un geste traité (pointerup ou touchend), tout `click` synthétique est ignoré pendant 700 ms, sur tous les éléments.
+Alternatives : suppression par élément.
+Raison : constaté en capture : le clic qui suit le tap sur « Continuer » tombait sur « OUVRIR » de l'écran suivant et sautait le Matin.
+
+## 2026-10-20 — M6 — Pas de proposition de pub pendant les 10 premières minutes
+Décision : l'étiquette « ×2 » de l'aube n'apparaît qu'après 10 minutes de jeu cumulé (`stats.playtimeMs`).
+Alternatives : l'afficher grisée dès la première aube.
+Raison : G18.3 interdit toute pub pendant les 10 premières minutes (relevé pendant la préparation de P1).
+
+## 2026-10-20 — M6 — Lune du Matin et premier jour
+Décision : la lune du Matin compte les nuits jusqu'à la Pleine Lune comprise (« 6 » au premier Matin, G19 3:02) ; au tout premier lancement, l'écran titre mène directement au jour 1 (l'intro de l'enveloppe arrive en M11) ; le Matin n'existe qu'à partir du deuxième jour.
+Alternatives : un Matin avant le jour 1.
+Raison : G19 enchaîne écran titre, intérieur, jour 1.
+
+## 2026-10-20 — M6 — Quota plein au démarrage
+Décision : si même la petite écriture de sonde échoue, le stockage passe tout de suite en mémoire (et `storage.kind` vaut `memory`).
+Alternatives : rester en `local` et échouer à chaque écriture.
+Raison : B9 : repli mémoire + alerte dans Paramètres ; la partie continue sans erreur (testé).
+
+## 2026-10-20 — M6 (P1) — L'attribut hidden l'emporte toujours
+Décision : règle globale `[hidden] { display: none !important; }` dans `ui.css` ; en plus, quitter l'aube avec un coffre fermé l'ouvre et le crédite (`leaveDawn`). Un test vérifie la règle CSS (jsdom ne reproduit pas ce conflit de cascade) et `scripts/screens.mjs` vérifie l'affichage réel dans Chromium.
+Alternatives : retirer les `display` des classes ; ne compter que sur le filet de `leaveDawn`.
+Raison : P1 (bloquant, trois joueurs) : « Continuer » et « ×2 » étaient visibles avant le coffre ; G3.8 « rien ne se perd », G18.3.
+
+## 2026-10-20 — M6 (P1) — Boutons des écrans à venir
+Décision : un bouton dont l'écran n'existe pas encore (hub, carte, Paramètres de la pause) est verrouillé avec un cadenas, se secoue et affiche « Bientôt ! ». La liste des écrans branchés est `session.hubScreens` ; chaque mission qui ajoute un écran l'y inscrit. Le niveau requis s'écrit « cadenas + chiffre » (et non « Niv. N », réservé au niveau des meubles).
+Alternatives : cacher ces boutons ; brancher tout de suite des écrans incomplets.
+Raison : P1 : un bouton qui a l'air actif et ne fait rien fait croire à un plantage. Les écrans réels arrivent en M7, M8, M9, M12 et M25.
+
+## 2026-10-20 — M6 (P1) — Zoom de base de la boutique
+Décision : la scène de jeu applique un zoom ancré en haut au centre : `min(1,2 ; 344 / largeur ; 560 / bas de la boutique)`, jamais sous 1 (1,2 en E0, 1,09 en E1, 1 ensuite). Au Matin, le zoom revient en douceur à 1 pour laisser la place au hub. Les pièces visent le compteur converti en coordonnées du monde.
+Alternatives : cases plus grandes dans la logique (toucherait G6 et les tests) ; décor de rue en bas de l'écran.
+Raison : P1 (Léa, majeur) : la boutique n'occupait que la moitié haute de l'écran. L'ancrage en haut garde la fenêtre visible à l'intérieur du monde 360 × 640, donc le voile de nuit couvre toujours tout.
+
+## 2026-10-20 — M6 (P1) — Rien ne se perd au rechargement
+Décision : la journée sauvegarde aussi `daySales`, `dayTips`, `dayPile` (tas sur la caisse) et `vipsSpawned` dans `shops.*.phase` (champs ajoutés avec valeurs par défaut, pas de changement de version : `mergeDefaults` remplit les anciennes sauvegardes). Reprise de la nuit après une fermeture interrompue : le tas est crédité une fois (`resumeNight`). Bestiaire, victimes, voleurs rattrapés et Cloches sont crédités une seule fois à l'aube (`claimNight`), plus pendant la nuit.
+Alternatives : créditer les pièces dès l'encaissement (le tas ne serait plus qu'un effet visuel) ; recommencer la nuit en remettant les compteurs.
+Raison : revue de P1 avec scripts de reproduction : 27 pièces perdues après un rechargement ; une nuit rejouée doublait le bestiaire (donc le bonus de dégâts G14.4) ; un VIP revenait à chaque rechargement. Les articles déjà pris par les clients au moment d'un rechargement en plein jour restent perdus : ce n'est que du stock, la recette et les pièces sont intactes.
+
+## 2026-10-20 — M6 (P1) — Sauvegardes de transition et limite de 500 ms
+Décision : `session.save(true)` passe par `SaveManager.request()` (écriture immédiate si 500 ms se sont écoulées, sinon au tick suivant) ; seuls `visibilitychange` (caché) et `pagehide` écrivent sans attendre. Une petite coche verte clignote 1 s après une sauvegarde de transition (au plus toutes les 8 s) et la pause dit « Partie sauvegardée : tu peux fermer quand tu veux ».
+Alternatives : écrire sans délai à chaque transition (deux copies de secours identiques en cas de rafale).
+Raison : B9 (une écriture par 500 ms, deux générations de secours utiles) ; Sam (P1) veut savoir qu'il peut fermer.
+
+## 2026-10-20 — M6 (P1) — Pause automatique en arrière-plan
+Décision : quand la page passe en arrière-plan pendant le jour, la fermeture, le crépuscule ou la nuit, la pause s'ouvre ; au retour, c'est le joueur qui relance. Au Matin et à l'Aube, rien ne change (rien n'avance).
+Alternatives : reprendre seul au retour (comportement de M1).
+Raison : Sam (P1, majeur) : les Grignotins avançaient pendant qu'il rallumait son téléphone.
+
+## 2026-10-20 — M6 (P1) — Petites corrections de lisibilité
+Décision : ruban de niveau à l'aube (après le coffre) ; flèche du voleur dessinée au-dessus du voile ; silhouette du meuble dans l'emplacement d'achat ; Cloche cachée pendant la nuit du tutoriel (elle ne peut pas s'y charger) ; lune du Matin en croissant ; ligne « Pièces sauvées » au lieu d'un second « Bocal » sur le ticket.
+Alternatives : attendre M11, M21 et M22.
+Raison : critiques de P1, corrections courtes et sans risque.

@@ -10,6 +10,8 @@ export function initDayEvents(g) {
   d.vipTimes = [];
   for (let i = 0; i < n; i++) d.vipTimes.push(d.duration * g.rng.range(0.2, 0.8));
   d.vipTimes.sort((a, b) => a - b);
+  // Reprise après rechargement : les VIP déjà venus ne reviennent pas (G7.2, un par jour au Q1).
+  d.vipTimes.splice(0, Math.min(d.vipTimes.length, g.shop.phase.vipsSpawned || 0));
 }
 
 /** @param {any} g @param {number} dt */
@@ -19,6 +21,7 @@ export function stepDayEvents(g, dt) {
   const elapsed = d.duration - d.timeLeft;
   while (d.vipTimes.length && elapsed >= d.vipTimes[0]) {
     d.vipTimes.shift();
+    g.shop.phase.vipsSpawned = (g.shop.phase.vipsSpawned || 0) + 1;
     spawnCustomer(g, 'vip');
   }
 }

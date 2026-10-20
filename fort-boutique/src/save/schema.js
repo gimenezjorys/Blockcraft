@@ -40,7 +40,10 @@ export function defaultShop(id) {
     lastDayTakings: 0,
     lastDayDurationS: 90,
     lastNightStars: 0,
-    phase: { name: 'morning', dayTimeLeftS: 0, dayTakings: 0, dawnClaimed: true, carried: [], firstSaleDone: false },
+    phase: {
+      name: 'morning', dayTimeLeftS: 0, dayTakings: 0, daySales: 0, dayTips: 0, dayPile: 0, vipsSpawned: 0,
+      dawnClaimed: true, carried: [], firstSaleDone: false,
+    },
   };
 }
 

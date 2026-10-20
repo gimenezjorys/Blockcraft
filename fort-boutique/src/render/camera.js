@@ -36,12 +36,35 @@ export function clientToLogical(vp, cx, cy, out) {
 }
 
 /**
+ * Zoom de base de la boutique : une petite boutique remplit l'écran (P1, Léa : « tout est petit »).
+ * Le zoom est ancré en haut au centre (180, 0) : la fenêtre visible reste dans le monde 360 × 640,
+ * donc le voile de nuit et le fond couvrent toujours tout l'écran.
+ * @param {number} w largeur de la grille (cases)
+ * @param {number} h hauteur de la grille (cases)
+ */
+export function shopZoom(w, h) {
+  const shopW = w * 48 + 28;
+  const bottom = 80 + h * 48 + 34;
+  return Math.max(1, Math.min(1.2, 344 / shopW, 560 / bottom));
+}
+
+/** Point de l'écran -> point du monde, pour un zoom de base ancré en (180, 0). */
+export function screenToWorld(z, sx, sy, out) {
+  out.x = 180 + (sx - 180) / z;
+  out.y = sy / z;
+  return out;
+}
+
+/**
  * Caméra du jeu : secousse et zoom léger (G20.6). Les valeurs sont en pixels logiques.
  */
 export class Camera {
   constructor() {
     this.zoom = 1;
     this.targetZoom = 1;
+    /** Zoom de base de la boutique (shopZoom) et sa cible (1 au Matin : le hub a besoin du bas de l'écran). */
+    this.base = 1;
+    this.baseTarget = 1;
     this.shakeAmp = 0;
     this.shakeT = 0;
     this.ox = 0;
@@ -71,5 +94,6 @@ export class Camera {
       }
     }
     this.zoom += (this.targetZoom - this.zoom) * Math.min(1, dt * 10);
+    this.base += (this.baseTarget - this.base) * Math.min(1, dt * 5);
   }
 }

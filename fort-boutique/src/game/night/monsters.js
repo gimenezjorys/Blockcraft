@@ -450,9 +450,8 @@ export function kill(g, m, source) {
   n.loot += Math.round(loot);
   n.kills++;
   n.killsByType[m.type] = (n.killsByType[m.type] || 0) + 1;
-  const col = g.save.collections;
-  if (!m.def.child) col.bestiary[m.type] = (col.bestiary[m.type] || 0) + 1;
-  g.save.stats.kills++;
+  // Bestiaire et statistiques : crédités par claimNight (une seule fois), jamais pendant la nuit,
+  // sinon une nuit rejouée après rechargement compterait deux fois ses victimes (G5.2, G14.4).
   if (m.thief && m.carry > 0) recoverBag(g, m);
   if (m.golden) n.goldenKilled = true;
   if (m.def.golden) n.goldenKilled = true;
@@ -479,7 +478,6 @@ export function recoverBag(g, m) {
   n.jar += back;
   n.caught++;
   n.caughtWave[m.wave] = (n.caughtWave[m.wave] || 0) + 1;
-  g.save.stats.thievesCaught++;
   g.events.push('thief_caught', m.x, m.y, back);
   m.carry = 0;
 }

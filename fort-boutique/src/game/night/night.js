@@ -1,5 +1,6 @@
 // Fort Boutique — orchestration de la nuit (G8) : Bocal, vagues, télégraphe, fin de nuit, étoiles.
 import { WAVES } from '../../data/waves.js';
+import { monsterDef } from '../../data/monsters.js';
 import { NIGHT } from '../../data/night.js';
 import { XP_GAINS } from '../../data/xp.js';
 import { districtNumber } from '../../data/balance.js';
@@ -264,6 +265,15 @@ export function claimNight(g, result, { doubleCoins = false } = {}) {
   shop.phase.dawnClaimed = true;
   g.save.player.coins += result.coins * (doubleCoins ? 2 : 1);
   addXp(g, result.xp);
+  const st = g.save.stats;
+  const col = g.save.collections;
+  st.kills += result.kills || 0;
+  st.thievesCaught += result.caught || 0;
+  st.bellUses += result.bellUses || 0;
+  for (const [type, c] of Object.entries(result.killsByType || {})) {
+    const def = monsterDef(type);
+    if (def && !def.child) col.bestiary[type] = (col.bestiary[type] || 0) + c;
+  }
   g.save.stats.nights++;
   if (result.stars === 3) g.save.stats.nights3++;
   shop.lastNightStars = result.stars;

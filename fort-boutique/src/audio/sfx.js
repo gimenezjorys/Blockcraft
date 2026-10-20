@@ -301,4 +301,59 @@ export const SFX = {
       noise(ctx, out, { t0: t + 1.2, dur: 0.4, gain: 0.08 * o.k, filter: 'lowpass', freq: 700 });
     },
   },
+  star: {
+    bus: 'sfx', max: 4, dur: 0.3,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 90, t0: t, dur: 0.08, gain: 0.2 * o.k });
+      tone(ctx, out, { freq: mtof([72, 76, 79][o.n % 3]), t0: t + 0.02, dur: 0.28, gain: 0.1 * o.k });
+      if (o.n >= 2) for (let i = 0; i < 4; i++) tone(ctx, out, { freq: 3000 + i * 500, t0: t + 0.08 + i * 0.03, dur: 0.03, gain: 0.03 * o.k });
+    },
+  },
+  chest_tap: {
+    bus: 'sfx', max: 8, dur: 0.06,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.025, gain: 0.14 * o.k, freq: 700 * (1 + o.n * 0.25), q: 3 });
+    },
+  },
+  chest_open: {
+    bus: 'sfx', max: 2, dur: 0.9,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.2, gain: 0.14 * o.k, filter: 'lowpass', freq: 5000, freqEnd: 600 });
+      [0, 4, 7, 12, 16].forEach((st, i) => tone(ctx, out, { type: 'triangle', freq: mtof(65 + 12 + st), t0: t + 0.05 + i * 0.06, dur: 0.3, gain: 0.07 * o.k }));
+      for (let i = 0; i < 8; i++) tone(ctx, out, { freq: 3000 + ((i * 271) % 2000), t0: t + 0.3 + i * 0.05, dur: 0.03, gain: 0.03 * o.k });
+    },
+  },
+  card: {
+    bus: 'sfx', max: 8, dur: 0.15,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.06, gain: 0.06 * o.k, freq: 3000, q: 1.5 });
+      tone(ctx, out, { freq: scaleNote('day', 7 + (o.n % 5)), t0: t + 0.02, dur: 0.12, gain: 0.07 * o.k });
+    },
+  },
+  upgrade: {
+    bus: 'sfx', max: 3, dur: 0.6,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 300, freqEnd: 1200, t0: t, dur: 0.25, gain: 0.08 * o.k });
+      [0, 4, 7].forEach((st) => tone(ctx, out, { type: 'triangle', freq: mtof(77 + st), t0: t + 0.22, dur: 0.3, gain: 0.07 * o.k }));
+      tone(ctx, out, { freq: 300, t0: t + 0.4, dur: 0.18, gain: 0.08 * o.k });
+    },
+  },
+  level_up: {
+    bus: 'sfx', max: 1, dur: 1.4,
+    fn(ctx, out, t, o) {
+      const notes = [65, 69, 72, 77, 72, 77];
+      const times = [0, 0.12, 0.24, 0.36, 0.6, 0.72];
+      notes.forEach((m, i) => {
+        tone(ctx, out, { type: 'square', freq: mtof(m + 12), t0: t + times[i], dur: i === 5 ? 0.6 : 0.1, gain: 0.05 * o.k });
+        tone(ctx, out, { type: 'triangle', freq: mtof(m), t0: t + times[i], dur: i === 5 ? 0.6 : 0.1, gain: 0.07 * o.k });
+      });
+    },
+  },
+  quest: {
+    bus: 'sfx', max: 3, dur: 0.2,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { freq: 90, t0: t, dur: 0.08, gain: 0.16 * o.k });
+      noise(ctx, out, { t0: t, dur: 0.05, gain: 0.08 * o.k, freq: 3000 });
+    },
+  },
 };

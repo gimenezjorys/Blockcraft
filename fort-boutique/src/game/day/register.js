@@ -109,7 +109,7 @@ export function pay(g, c) {
   d.served++;
   d.sold += c.got.length;
   if (c.type === 'vip') d.vipServed++;
-  g.shop.phase.dayTakings = d.takings;
+  syncDayPhase(g);
   const st = g.save.stats;
   st.served++;
   st.sold += c.got.length;
@@ -158,7 +158,22 @@ export function collectPile(g, force) {
   const n = d.pile;
   d.pile = 0;
   g.save.player.coins += n;
+  syncDayPhase(g);
   d.collected += n;
   g.events.push('coins', g.register.cx, g.register.cy, n, force ? 1 : 0);
   return n;
+}
+
+/**
+ * Recopie dans la sauvegarde ce qui doit survivre à un rechargement en pleine journée (G5.2) :
+ * recette, ventes, pourboires et tas de pièces encore sur la caisse (A0.2 : aucune pièce perdue).
+ * @param {any} g
+ */
+export function syncDayPhase(g) {
+  const d = g.day;
+  const ph = g.shop.phase;
+  ph.dayTakings = d.takings;
+  ph.daySales = d.sales;
+  ph.dayTips = d.tips;
+  ph.dayPile = d.pile;
 }

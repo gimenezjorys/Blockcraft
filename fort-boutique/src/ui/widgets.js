@@ -42,6 +42,9 @@ export function h(tag, attrs, children) {
   return el;
 }
 
+/** Après un geste, le « click » synthétique peut tomber sur l'écran suivant : on l'ignore partout (700 ms). */
+let lastGestureAt = -1e9;
+
 /**
  * Tap fiable sur un élément : pointeur, toucher ou clic, jamais traité deux fois.
  * @param {HTMLElement} el
@@ -50,11 +53,10 @@ export function h(tag, attrs, children) {
  */
 export function onTap(el, fn, disposer) {
   // Un geste (pointerup ou touchend) déclenche ; le « click » synthétique qui suit est ignoré.
-  let suppressClickUntil = -1e9;
   let pointerDown = false;
   let touchDown = false;
   const fire = (e) => {
-    suppressClickUntil = perfNow() + 700;
+    lastGestureAt = perfNow();
     fn(e);
   };
   const press = (on) => el.classList.toggle('pressed', on);
@@ -96,7 +98,7 @@ export function onTap(el, fn, disposer) {
   });
   disposer.listen(el, 'click', (e) => {
     e.stopPropagation();
-    if (perfNow() < suppressClickUntil) return;
+    if (perfNow() - lastGestureAt < 700) return;
     fn(e);
   });
 }

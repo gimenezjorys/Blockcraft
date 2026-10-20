@@ -1,6 +1,9 @@
 // Fort Boutique — XP, niveau de marchand et déblocages (G12.3, G12.4). Complété en M7.
 import { xpToNext, MAX_LEVEL } from '../data/xp.js';
 import { DISTRICT_FACTORS } from '../data/balance.js';
+import { FEATURE_LEVELS } from '../data/unlocks.js';
+import { DISTRICTS } from '../data/districts.js';
+import { FURNITURE, FURNITURE_IDS } from '../data/furniture.js';
 
 /**
  * Ajoute de l'XP (déjà multipliée par X_Q si besoin) et fait monter de niveau.
@@ -34,4 +37,51 @@ export function xpFactor(shopId) {
 export function levelProgress(player) {
   const need = xpToNext(player.level);
   return Number.isFinite(need) ? Math.min(1, player.xp / need) : 1;
+}
+
+/**
+ * Une fonction du jeu est-elle débloquée ? (G12.4)
+ * @param {any} save
+ * @param {string} feature clé de data/unlocks.js
+ */
+export function isUnlocked(save, feature) {
+  const lvl = FEATURE_LEVELS[feature];
+  return lvl === undefined ? true : save.player.level >= lvl;
+}
+
+/** Le quartier est-il ouvert ? (boss précédent vaincu ET niveau requis, G12.4) */
+export function districtOpen(save, id) {
+  const d = DISTRICTS[id];
+  if (!d) return false;
+  if (!d.previousBoss) return true;
+  const prev = save.shops[d.previousBoss];
+  return !!prev && prev.bossBeatenCount > 0 && save.player.level >= d.requiredLevel;
+}
+
+/**
+ * Meubles débloqués : niveau atteint et quartier du meuble ouvert.
+ * @param {any} save
+ * @returns {string[]}
+ */
+export function unlockedFurniture(save) {
+  return FURNITURE_IDS.filter((id) => {
+    const f = FURNITURE[id];
+    return save.player.level >= f.unlockLevel && (f.district === 'q1' || districtOpen(save, f.district));
+  });
+}
+
+/** Déblocages obtenus en passant au niveau `level` (fonctions et meubles). */
+export function unlocksAtLevel(level) {
+  const features = Object.entries(FEATURE_LEVELS).filter(([, l]) => l === level).map(([k]) => k);
+  const furniture = FURNITURE_IDS.filter((id) => FURNITURE[id].unlockLevel === level && id !== 'caisse');
+  return { features, furniture };
+}
+
+/** Prochain déblocage (niveau N+1 ou plus), pour l'objectif « silhouette » (G3.5). */
+export function nextUnlock(save) {
+  for (let l = save.player.level + 1; l <= 40; l++) {
+    const u = unlocksAtLevel(l);
+    if (u.features.length || u.furniture.length) return { level: l, ...u };
+  }
+  return null;
 }

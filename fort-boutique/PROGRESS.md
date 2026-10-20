@@ -10,7 +10,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M3 — La boutique et le marchand | ✅ | 2026-10-20 | Grille E0–E3, cases réservées, validation G6.4, BFS, marchand qui glisse, rendu palette finale. |
 | M4 — Le jour | ✅ | 2026-10-20 | Producteurs, pile, étagères, clients (types, file, patience), caisse, tas de pièces, 6 emplacements, soleil, fermeture, sons de base. |
 | M5 — La nuit | ✅ | 2026-10-20 | Vagues à graine, 15 comportements de meubles, effets, vol/fuite/récupération, Cloche, balai, réparation, éclairage, HUD de nuit. |
-| M6 — Cycle complet + Playtest P1 | 🔄 |  |  |
+| M6 — Cycle complet + Playtest P1 | ✅ | 2026-10-20 | Cycle Matin → Jour → Nuit → Aube → Matin sauvegardé et repris à l'identique ; ticket, coffre, plans, amélioration ; P1 : 1 bloquant et 8 majeurs corrigés (coffre perdu, pub trop tôt, boutons muets, niveau invisible, boutique trop petite, pause auto, pièces et compteurs au rechargement). |
 | M7 — Données et progression | ⬜ | | |
 | M8 — Aménagement | ⬜ | | |
 | M9 — La semaine et la Pleine Lune | ⬜ | | |
@@ -83,10 +83,10 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Tests : vagues identiques à graine égale ; calcul du vol et de son plafond ; récupération +10 % ; seuils d'étoiles ; champ de flux avec obstacles ; formule d'armure ; ralentissements non cumulables (le plus fort s'applique).
 
 **M6 — Cycle complet + Playtest P1**
-- [ ] Machine à états Matin → Jour → Crépuscule → Nuit → Aube → Matin ; sauvegarde à chaque transition ; reprise exacte après rechargement (G5.2).
-- [ ] Matin minimal, Aube minimale (ticket), coffre en bois, plans, amélioration d'un meuble.
-- [ ] Workflow GitHub Pages (E2).
-- [ ] Playtest P1 « premier lancement » (D3).
+- [x] Machine à états Matin → Jour → Crépuscule → Nuit → Aube → Matin ; sauvegarde à chaque transition ; reprise exacte après rechargement (G5.2).
+- [x] Matin minimal, Aube minimale (ticket), coffre en bois, plans, amélioration d'un meuble.
+- [x] Workflow GitHub Pages (E2) : `.github/workflows/pages.yml` prêt ; il ne s'exécute que lorsque le projet est à la racine de son propre dépôt (voir DECISIONS.md).
+- [x] Playtest P1 « premier lancement » (D3) : `docs/playtests/P1.md` ; bloquants et majeurs sans mission ultérieure corrigés.
 - Fini quand : deux cycles complets jouables depuis `dist/index.html` ; problèmes bloquants et majeurs de P1 corrigés.
 
 ### Jalon C — Progression, économie, Quartier 1 complet
@@ -157,7 +157,19 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 ## Problèmes mineurs relevés en playtest (à traiter en finition)
 
-_(aucun pour l'instant)_
+Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
+
+- [ ] P1 — Jalons du début 22 à 38 % en avance sur G19 (robot rapide, mais nuits trop courtes) → M10 (simulateur) puis M11.
+- [ ] P1 — Nuits ≈ 15 % du temps de jeu ; transformation des meubles timide (petits yeux, armes peu visibles) → M10, M21.
+- [ ] P1 — Ticket de l'aube très textuel ; les pièces gagnées ne volent pas vers le compteur → M21.
+- [ ] P1 — L'amélioration ne fait bouger que la carte, pas le meuble ; aucun chiffre ne monte → M22 (et stats sur les cartes en M7).
+- [ ] P1 — Écran titre plat (pas de façade de nuit, pas de musique) → M21, M23.
+- [ ] P1 — Aucun vrai choix pendant les 4:41 du début (ordre des emplacements fixe) → M8 (Aménager), M11.
+- [ ] P1 — Pastille de la Pleine Lune non tappable, sans silhouette du boss → M9.
+- [ ] P1 — La nuit, ni portée des meubles ni vie des Grignotins visibles → M21.
+- [ ] P1 — Le premier Matin ne donne pas de raison de revenir le lendemain → M12 (calendrier), M7 (cartes de déblocage).
+- [ ] P1 — Les libellés du hub sont des mots (pictogrammes par bouton) → M21.
+- [x] P1 — Articles pris par les clients perdus au rechargement en plein jour : accepté (DECISIONS.md, M6).
 
 ---
 
@@ -168,3 +180,4 @@ _(aucun pour l'instant)_
 - 2026-10-20 — M3 fait : boutique, validation, marchand. Reste : M4 le jour. Prochaine étape : day/producers, shelves, carry, customers, register, pads, barre de soleil.
 - 2026-10-20 — M4 fait : la journée complète, testée au doigt. Reste : M5 la nuit. Prochaine étape : night/waves.js (générateur à graine), monsters.js, towers.js.
 - 2026-10-20 — M5 fait : la nuit complète et testée. Reste : M6 cycle complet + P1. Prochaine étape : phases Matin/Aube, sauvegarde aux transitions, ticket, coffre, amélioration.
+- 2026-10-20 — M6 fait : cycle complet, playtest P1 (docs/playtests/P1.md) et corrections. Reste : M7 données et progression. Prochaine étape : brancher Catalogue/Améliorer/cartes de déblocage (fichiers déjà préparés).

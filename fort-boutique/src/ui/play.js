@@ -3,7 +3,7 @@ import { stepGame } from '../game/phases.js';
 import { createRenderer } from '../render/renderer.js';
 import { Particles } from '../render/particles.js';
 import { Floaters } from '../render/floaters.js';
-import { Camera } from '../render/camera.js';
+import { Camera, shopZoom } from '../render/camera.js';
 import { PALETTE as P, NIGHT_VEIL } from '../data/palette.js';
 import { lightSources } from '../game/night/light.js';
 import { WAVES } from '../data/waves.js';
@@ -13,6 +13,8 @@ import {
 } from '../render/hud.js';
 import { drawWantBubble } from '../render/sprites/products.js';
 import { drawMonster } from '../render/sprites/monsters.js';
+import { drawFurniture } from '../render/sprites/furniture.js';
+import { FURNITURE, footprint } from '../data/furniture.js';
 import { createFxHandler } from './play-fx.js';
 import { t } from './i18n.js';
 
@@ -31,11 +33,13 @@ export function createPlay(app, g, hooks = {}) {
       c.height = h;
       return c;
     },
-    pixelScale: () => app.viewport().scale * Math.min(2, window.devicePixelRatio || 1),
+    pixelScale: () => app.viewport().scale * Math.min(2, window.devicePixelRatio || 1) * shopZoom(g.grid.w, g.grid.h),
   });
   const fx = new Particles();
   const floaters = new Floaters();
   const camera = new Camera();
+  const baseZoomFor = () => (g.phase.name === 'morning' ? 1 : shopZoom(g.grid.w, g.grid.h));
+  camera.base = camera.baseTarget = baseZoomFor();
   const view = {
     coins: g.save.player.coins, bump: 0, comboN: 0, comboT: 0, hearts: [], eyesOpened: 0, banner: null,
     cleared: 0, jarBlink: 0, shock: null, flashes: [], zoomT: 0, bossIntro: null, lights: [],
@@ -43,7 +47,11 @@ export function createPlay(app, g, hooks = {}) {
   const onFx = createFxHandler({ app, g, fx, floaters, camera, view });
 
   const scene = {
-    joystick: true,
+    /** Le joystick n'est actif que lorsque le marchand peut marcher. */
+    get joystick() {
+      const n = g.phase.name;
+      return n === 'day' || n === 'closing' || n === 'night' || n === 'free';
+    },
     game: g,
     renderer,
     fx,
@@ -66,6 +74,7 @@ export function createPlay(app, g, hooks = {}) {
       g.events.clear();
       fx.update(dt);
       floaters.update(dt);
+      camera.baseTarget = baseZoomFor();
       camera.update(dt);
       tickView(dt);
     },
@@ -78,6 +87,9 @@ export function createPlay(app, g, hooks = {}) {
       ctx.translate(180, 330);
       ctx.scale(camera.zoom, camera.zoom);
       ctx.translate(-180 + camera.ox, -330 + camera.oy);
+      ctx.translate(180, 0);
+      ctx.scale(camera.base, camera.base);
+      ctx.translate(-180, 0);
       renderer.draw(ctx, g, {
         night,
         veil,
@@ -105,7 +117,7 @@ export function createPlay(app, g, hooks = {}) {
       drawJoystick(ctx, app.input.joystick);
     },
     hitTest(x, y) {
-      return hudHit(x, y, { bell: g.phase.name === 'night' });
+      return hudHit(x, y, { bell: g.phase.name === 'night' && !!g.night && !g.night.tutorial });
     },
     onButton(id, phase) {
       if (id === 'pause' && phase === 'up' && hooks.onPause) hooks.onPause();
@@ -195,7 +207,17 @@ function drawWorldOverlay(ctx, g, ox, oy) {
   const d = g.day;
   const name = g.phase.name;
   if (d && (name === 'day' || name === 'closing')) {
-    if (d.pad) drawPadLabel(ctx, d.pad, ox, oy, g.t);
+    if (d.pad) {
+      // Silhouette du meuble à venir, en filigrane (Hugo, P1 : on voit ce qu'on achète, sans texte).
+      const def = FURNITURE[d.pad.furniture];
+      if (def) {
+        const [w, h] = footprint(def, 0);
+        ctx.globalAlpha = 0.32;
+        drawFurniture(ctx, d.pad.furniture, ox + d.pad.x * C, oy + d.pad.y * C, w * C, h * C, {});
+        ctx.globalAlpha = 1;
+      }
+      drawPadLabel(ctx, d.pad, ox, oy, g.t);
+    }
     if (g.register && d.pile > 0) drawCoinPile(ctx, ox + g.register.x * C + 12, oy + g.register.y * C + 4, d.pile);
     for (const c of d.customers) {
       if (c.state === 'wait') {
@@ -247,6 +269,8 @@ function drawAfterLight(ctx, g, view, ox, oy) {
 
 function drawHud(ctx, g, view, app) {
   const name = g.phase.name;
+  // Au Matin et à l'Aube, l'interface DOM porte les compteurs.
+  if (name === 'morning' || name === 'dawn') return;
   const d = g.day;
   if (d && (name === 'day' || name === 'closing')) {
     drawSunBar(ctx, 1 - Math.max(0, d.timeLeft) / d.duration);
@@ -255,7 +279,8 @@ function drawHud(ctx, g, view, app) {
     const n = g.night;
     drawWavePips(ctx, n.waveIndex, n.waves.length, view.cleared);
     drawJarGauge(ctx, n.jar / Math.max(1, n.jarInitial), Math.round(n.jar), view.jarBlink);
-    if (name === 'night') drawBellButton(ctx, n.bellCharge, n.bellNeed, g.t, !!(app.services.settings && app.services.settings.leftHanded));
+    // Nuit du tutoriel : la Cloche ne peut pas se charger (7 Grignotins pour 14), on ne la montre pas (Hugo, P1).
+    if (name === 'night' && !n.tutorial) drawBellButton(ctx, n.bellCharge, n.bellNeed, g.t, !!(app.services.settings && app.services.settings.leftHanded));
   } else {
     drawCoinCounter(ctx, view.coins, view.bump);
   }
@@ -273,7 +298,17 @@ function snapshot(g, fx, renderer) {
     xp: g.save.player.xp,
     player: { x: g.player.x, y: g.player.y, stack: g.player.stack.slice() },
     grid: { w: g.grid.w, h: g.grid.h, origin: g.grid.origin },
-    furniture: g.furn.map((f) => ({ id: f.id, x: f.x, y: f.y, w: f.w, h: f.h, stock: f.stock, count: f.count, product: f.product, hp: f.hp, broken: f.broken, eyes: f.eyes })),
+    furniture: g.furn.map((f) => ({
+      id: f.id, kind: f.def.day.kind, x: f.x, y: f.y, w: f.w, h: f.h, stock: f.stock, count: f.count, capacity: f.capacity || 0,
+      product: f.def.day.kind === 'producer' ? f.def.day.product : f.product, access: f.access, hp: f.hp, maxHp: f.maxHp, broken: f.broken, eyes: f.eyes, level: f.level,
+    })),
+    save: {
+      level: g.save.player.level, xp: g.save.player.xp, coins: g.save.player.coins, rubies: g.save.player.rubies,
+      cycles: g.save.stats.cycles, nights: g.save.stats.nights, day: g.shop.day, night: g.shop.night, week: g.shop.week,
+      phaseName: g.shop.phase.name, dawnClaimed: g.shop.phase.dawnClaimed, chestsOpened: g.save.stats.chestsOpened || 0,
+      upgrades: g.save.stats.upgradesDone || 0,
+      furniture: Object.fromEntries(Object.entries(g.save.furniture).map(([k, v]) => [k, { level: v.level, plans: v.plans }])),
+    },
     day: d
       ? {
           timeLeft: d.timeLeft,
@@ -292,7 +327,7 @@ function snapshot(g, fx, renderer) {
           state: n.state,
           jar: n.jar,
           jarInitial: n.jarInitial,
-          monsters: n.monsters.active.map((m) => ({ type: m.type, x: m.x, y: m.y, hp: m.hp, thief: m.thief, carry: m.carry })),
+          monsters: n.monsters.active.map((m) => ({ type: m.type, x: m.x, y: m.y, hp: m.hp, thief: m.thief, carry: m.carry, entering: m.entering })),
           kills: n.kills,
           bellCharge: n.bellCharge,
           bellNeed: n.bellNeed,

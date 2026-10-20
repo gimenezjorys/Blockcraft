@@ -166,6 +166,7 @@ export function createRenderer(env) {
         const frame = Math.floor(m.walkT * 6) % 2;
         const sc = m.def.boss ? 1 : 1;
         drawMonsterEyes(ctx, m.type, ox + m.x * C, oy + m.y * C + 10, m.dir, frame, sc);
+        if (m.thief) drawThiefArrow(ctx, m, ox, oy, g.t);
       }
       for (let i = 0; i < n.projectiles.active.length; i++) {
         const p = n.projectiles.active[i];
@@ -199,21 +200,24 @@ export function createRenderer(env) {
         disc(ctx, x + Math.cos(a) * 9, y - 30 + Math.sin(a) * 3, 2, P.craieJaune, 0);
       }
     }
-    if (m.thief) {
-      // Flèche rouge pulsante au-dessus du voleur.
-      const L = MONSTER_LOOK[m.type] || MONSTER_LOOK.raton;
-      const by = y - L.r * 2.6 - (L.fly || 0) - 6 - Math.abs(Math.sin(t * 6)) * 4;
-      ctx.fillStyle = P.danger;
-      ctx.strokeStyle = P.encre;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x - 7, by - 8);
-      ctx.lineTo(x + 7, by - 8);
-      ctx.lineTo(x, by);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    }
+  }
+
+  /** Flèche rouge pulsante au-dessus du voleur : dessinée APRÈS le voile de nuit, comme les yeux (P1, Léa). */
+  function drawThiefArrow(ctx, m, ox, oy, t) {
+    const x = ox + m.x * C;
+    const y = oy + m.y * C + 10;
+    const L = MONSTER_LOOK[m.type] || MONSTER_LOOK.raton;
+    const by = y - L.r * 2.6 - (L.fly || 0) - 6 - Math.abs(Math.sin(t * 6)) * 4;
+    ctx.fillStyle = P.danger;
+    ctx.strokeStyle = P.encre;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x - 8, by - 9);
+    ctx.lineTo(x + 8, by - 9);
+    ctx.lineTo(x, by);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
   }
 
   function drawAura(ctx, g, ox, oy) {
