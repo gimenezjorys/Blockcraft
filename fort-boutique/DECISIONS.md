@@ -231,3 +231,13 @@ Raison : G12.4 (« au Matin suivant ») ; P1 (Léa) demandait un moment visible 
 Décision : les cartes de plans de l'aube et les lignes de l'onglet Meubles montrent le gain en chiffres (« ⚔ 6→7,2 », « ♥ 60→69 », capacité ou cadence de production) et le prix en pièces ; quand le plafond de niveau bloque, la ligne le dit (« Plafond 3 atteint : monte de niveau ! »).
 Alternatives : attendre M22.
 Raison : P1 (Hugo, majeur) ; les valeurs viennent de `game/stats.js`, aucun chiffre écrit en dur.
+
+## 2026-10-20 — M8 — Éditeur : gestes et affichage
+Décision : l'éditeur remplace le hub (plein écran) et prend la place de la scène de jeu le temps de l'édition. Les gestes du canvas passent par `scene.onPointer` (un seul doigt à la fois ; les boutons du HUD gardent la priorité) ; un meuble de la Réserve se fait glisser depuis la barre du bas. Tourner, Ranger et le Conseil de Mamie sont des boutons-icônes (⟳, ⬇, ampoule) avec leur nom pour les lecteurs d'écran. Les déplacements validés s'ajoutent à `stats.moved` (quête « Déplacer 3 meubles », M12).
+Alternatives : une fenêtre par-dessus le hub ; des boutons texte.
+Raison : G6.5 « plein écran » ; capture : le hub restait visible sous l'éditeur.
+
+## 2026-10-20 — M8 — Quand Mamie conseille
+Décision : l'ampoule apparaît si la dernière nuit a donné une étoile ou moins ; la première ouverture de l'éditeur montre la main fantôme d'un déplacement qui allonge le trajet des Grignotins d'au moins 2 cases (G19 6:50), sinon rien. Le conseil n'est qu'une proposition : le joueur peut encore Annuler.
+Alternatives : l'ampoule toujours visible.
+Raison : G6.5 (« si la dernière nuit était ★ ») et G19.

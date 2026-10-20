@@ -107,6 +107,11 @@ await shot('07-matin');
   await p2.tap('#hub-upgrades');
   await p2.waitForTimeout(700);
   await p2.screenshot({ path: join(OUT, '10-ameliorer.png') });
+  await p2.tap('.panel-back');
+  await p2.waitForTimeout(800);
+  await p2.tap('#hub-editor');
+  await p2.waitForTimeout(1200);
+  await p2.screenshot({ path: join(OUT, '11-amenager.png') });
   await ctx2.close();
 }
 await browser.close();

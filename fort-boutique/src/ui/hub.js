@@ -6,9 +6,11 @@ import { upgradeFurniture } from '../game/economy.js';
 import { buyMerchantUpgrade, upgradeRecipe, expandShop } from '../game/upgrades.js';
 import { rebuildShop } from '../game/state.js';
 import { unlockCards } from './screens/unlocks.js';
+import { openEditor, commitEditor } from '../game/editor.js';
+import { createEditorScene } from './editor-scene.js';
 
 /** Écrans du hub déjà branchés (les autres boutons disent « Bientôt »). */
-export const HUB_SCREENS = ['catalog', 'upgrades'];
+export const HUB_SCREENS = ['catalog', 'upgrades', 'editor'];
 
 /**
  * @param {any} app
@@ -29,6 +31,58 @@ export function createHub(app, o) {
   }
 
   const screens = {
+    /** Aménager (G6.5) : la scène canvas remplace la boutique le temps de l'édition. */
+    editor(g) {
+      const ed = openEditor(g.shop, g.shopId);
+      const prev = app.scene();
+      const flags = g.save.progress.flags;
+      let inst = null;
+      const refresh = () => inst && inst.refresh();
+      const scene = createEditorScene(app, ed, {
+        theme: g.save.cosmetics.equipped.theme,
+        onChange: () => {
+          if (app.services.audio) app.services.audio.play('drop');
+          refresh();
+        },
+        onSelect: () => refresh(),
+        onInvalid: () => {
+          if (app.services.audio) app.services.audio.play('error');
+          if (app.services.vibrate) app.services.vibrate(20);
+          refresh();
+        },
+      });
+      // Plein écran (G6.5) : l'éditeur remplace le hub, qui est redessiné au retour.
+      const leave = () => {
+        app.setScene(prev);
+        o.refresh();
+      };
+      app.setScene(scene);
+      inst = app.router.goto('editor', {
+        scene,
+        ed,
+        // Conseil de Mamie si la dernière nuit était à une étoile (ou perdue).
+        showAdvice: g.shop.lastNightStars !== undefined && g.shop.lastNightStars !== null && g.shop.lastNightStars <= 1 && g.save.stats.nights > 0,
+        // Première ouverture : la main fantôme propose un déplacement (G19 6:50).
+        hintFirst: !flags.editorSeen,
+        onValidate: () => {
+          if (!commitEditor(ed, g.shop)) {
+            if (app.services.audio) app.services.audio.play('error');
+            return;
+          }
+          flags.editorSeen = true;
+          g.save.stats.moved = (g.save.stats.moved || 0) + ed.moves;
+          rebuildShop(g);
+          if (app.services.audio) app.services.audio.play('upgrade');
+          o.save(true);
+          leave();
+        },
+        onCancel: () => {
+          flags.editorSeen = true;
+          o.save(true);
+          leave();
+        },
+      });
+    },
     catalog(g) {
       app.router.push('catalog', {
         g,

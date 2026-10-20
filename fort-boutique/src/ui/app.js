@@ -14,6 +14,7 @@ import { debugEnabled, mountDebug } from '../debug/debug.js';
  * @property {(x: number, y: number) => string | null} [hitTest]
  * @property {(id: string, phase: string) => void} [onButton]
  * @property {(x: number, y: number) => void} [onTap]
+ * @property {(phase: string, x: number, y: number) => boolean | void} [onPointer] gestes bruts (éditeur) ; false = refusé
  * @property {(key: string) => boolean} [onKey]
  * @property {boolean} [joystick]
  * @property {() => object} [snapshot]
@@ -118,6 +119,7 @@ export function createApp({ testBuild, version }) {
       if (scene && scene.onKey) scene.onKey(key);
     },
     joystickEnabled: () => !!(scene && scene.joystick),
+    onPointer: (phase, x, y) => (scene && scene.onPointer ? scene.onPointer(phase, x, y) !== false : false),
   });
 
   fit();

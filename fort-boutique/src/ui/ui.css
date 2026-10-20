@@ -422,3 +422,26 @@ button { font: inherit; color: inherit; }
   border-radius: 8px; background: var(--ticket); font: 900 11px/16px var(--f-title); color: var(--encre); pointer-events: none; }
 .card-cost .money-ico { width: 11px; height: 11px; }
 .card .up-stats { font-size: 10px; color: #1E5A44; }
+
+/* ---------- Aménager (G6.5) ---------- */
+.editor .ed-top { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; justify-content: center; gap: 8px; }
+.ed-top .tag { min-height: 40px; padding: 2px 10px 2px 26px; font-size: 13px; }
+.ed-top .tag .tag-hole { display: none; }
+.path-toggle::before { content: ''; position: absolute; left: 8px; top: 50%; width: 12px; margin-top: -2px; border-top: 4px dotted currentColor; }
+.path-customers::before { color: var(--craie-bleue); }
+.path-monsters::before { color: #C8FF2E; }
+.path-toggle:not(.on) { opacity: .55; }
+.path-toggle:not(.on)::before { opacity: .3; }
+.editor .ed-bottom { position: absolute; left: 6px; right: 6px; bottom: 8px; display: flex; flex-direction: column; gap: 8px; }
+.ed-reserve { display: flex; align-items: center; gap: 6px; min-height: 56px; padding: 4px 8px; overflow-x: auto; border: 3px solid var(--bois-fonce); border-radius: 10px;
+  background: rgba(36, 64, 58, .92); touch-action: none; }
+.ed-res-item { flex: 0 0 48px; width: 48px; height: 48px; padding: 2px; border: 2px solid var(--encre); border-radius: 8px; background: var(--kraft); touch-action: none; }
+.ed-res-item canvas { width: 40px; height: 40px; pointer-events: none; }
+.ed-res-empty { flex: 1; text-align: center; font-size: 12px; font-weight: 700; color: rgba(242,246,238,.6); }
+.ed-bar { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.ed-tools, .ed-actions { display: flex; gap: 6px; }
+.tag.icon-only { width: 46px; min-width: 46px; padding: 0; justify-content: center; }
+.tag.icon-only .tag-hole, .tag.icon-only .tag-label { display: none; }
+.tag.icon-only .tag-icon { width: 26px; height: 26px; }
+.ed-actions .tag { min-height: 44px; padding: 2px 12px; font-size: 14px; }
+.ed-actions .tag .tag-hole { display: none; }

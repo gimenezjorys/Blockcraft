@@ -46,6 +46,8 @@ const KEYMAP = {
  * @property {(x: number, y: number) => void} [onTap] tap hors bouton et hors joystick
  * @property {(key: string) => void} [onKey] Échap, Entrée, Espace…
  * @property {() => boolean} [joystickEnabled]
+ * @property {(phase: 'down' | 'move' | 'up' | 'cancel', x: number, y: number) => boolean | void} [onPointer]
+ *   gestes bruts pour une scène qui les gère elle-même (éditeur) : si 'down' renvoie vrai, le doigt lui appartient
  */
 
 /**
@@ -54,7 +56,7 @@ const KEYMAP = {
 export function createInput(opts) {
   const d = new Disposer();
   const joy = new Joystick();
-  /** @type {Map<string, { kind: 'joy' | 'button' | 'tap', button?: string, x0: number, y0: number, moved: boolean }>} */
+  /** @type {Map<string, { kind: 'joy' | 'button' | 'tap' | 'scene', button?: string, x0: number, y0: number, moved: boolean }>} */
   const pointers = new Map();
   const keys = new Set();
   const pt = { x: 0, y: 0 };
@@ -85,6 +87,11 @@ export function createInput(opts) {
       if (opts.onButton) opts.onButton(button, 'down');
       return;
     }
+    // Un seul doigt à la fois pour la scène (glisser un meuble).
+    if (opts.onPointer && ![...pointers.values()].some((s) => s.kind === 'scene') && opts.onPointer('down', p.x, p.y)) {
+      pointers.set(key, { kind: 'scene', x0: p.x, y0: p.y, moved: false });
+      return;
+    }
     const joyOk = !opts.joystickEnabled || opts.joystickEnabled();
     if (joyOk && !joy.active && p.y >= 640 * 0.25) {
       joy.begin(key, p.x, p.y);
@@ -100,12 +107,18 @@ export function createInput(opts) {
     const p = toLogical(cx, cy);
     if (Math.hypot(p.x - st.x0, p.y - st.y0) > 10) st.moved = true;
     if (st.kind === 'joy' && joy.pointerId === key) joy.move(p.x, p.y);
+    else if (st.kind === 'scene' && opts.onPointer) opts.onPointer('move', p.x, p.y);
   }
 
   function up(key, cx, cy) {
     const st = pointers.get(key);
     if (!st) return;
     pointers.delete(key);
+    if (st.kind === 'scene') {
+      const p = toLogical(cx, cy);
+      if (opts.onPointer) opts.onPointer('up', p.x, p.y);
+      return;
+    }
     if (st.kind === 'joy') {
       if (joy.pointerId === key) joy.end();
       // Un tap très court sans déplacement compte aussi comme tap (HUD, objectif).
@@ -123,6 +136,7 @@ export function createInput(opts) {
   }
 
   function cancelAll() {
+    for (const st of pointers.values()) if (st.kind === 'scene' && opts.onPointer) opts.onPointer('cancel', st.x0, st.y0);
     pointers.clear();
     joy.cancel();
   }

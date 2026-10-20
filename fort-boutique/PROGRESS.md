@@ -12,7 +12,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M5 — La nuit | ✅ | 2026-10-20 | Vagues à graine, 15 comportements de meubles, effets, vol/fuite/récupération, Cloche, balai, réparation, éclairage, HUD de nuit. |
 | M6 — Cycle complet + Playtest P1 | ✅ | 2026-10-20 | Cycle Matin → Jour → Nuit → Aube → Matin sauvegardé et repris à l'identique ; ticket, coffre, plans, amélioration ; P1 : 1 bloquant et 8 majeurs corrigés (coffre perdu, pub trop tôt, boutons muets, niveau invisible, boutique trop petite, pause auto, pièces et compteurs au rechargement). |
 | M7 — Données et progression | ✅ | 2026-10-20 | Catalogue (prix × 1,6 par exemplaire, plafonds, pose automatique), Améliorer (meubles avec gains chiffrés, marchand, recettes, agrandissement E1), cartes de déblocage au Matin ; 11 tests nouveaux. |
-| M8 — Aménagement | ⬜ | | |
+| M8 — Aménagement | ✅ | 2026-10-20 | Éditeur plein écran : glisser au doigt (fantôme vert/rouge), tourner, ranger, Réserve, trajets et longueurs, Conseil de Mamie, Valider/Annuler ; 8 tests (dont 3 aux vrais gestes). |
 | M9 — La semaine et la Pleine Lune | ⬜ | | |
 | M10 — Simulateur d'équilibrage (Q1) | ⬜ | | |
 | M11 — Les 10 premières minutes + P2 | ⬜ | | |
@@ -96,7 +96,7 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Tests : courbe d'XP ; déblocages ; prix par exemplaire ; plafonds ; coûts en plans et en pièces.
 
 **M8 — Aménagement**
-- [ ] Éditeur G6.5 : sélectionner, glisser, tourner, ranger, fantôme vert/rouge, aperçu des trajets (clients en bleu, Grignotins en vert acide) avec leurs longueurs, validation, annulation, Conseil de Mamie.
+- [x] Éditeur G6.5 : sélectionner, glisser, tourner, ranger, fantôme vert/rouge, aperçu des trajets (clients en bleu, Grignotins en vert acide) avec leurs longueurs, validation, annulation, Conseil de Mamie.
 - Tests d'interface (jsdom, vrais gestes) : glisser un meuble au doigt le déplace ; placement invalide refusé avec retour visuel ; longueurs mises à jour ; Annuler restaure l'état initial.
 
 **M9 — La semaine et la Pleine Lune**
@@ -182,3 +182,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M5 fait : la nuit complète et testée. Reste : M6 cycle complet + P1. Prochaine étape : phases Matin/Aube, sauvegarde aux transitions, ticket, coffre, amélioration.
 - 2026-10-20 — M6 fait : cycle complet, playtest P1 (docs/playtests/P1.md) et corrections. Reste : M7 données et progression. Prochaine étape : brancher Catalogue/Améliorer/cartes de déblocage (fichiers déjà préparés).
 - 2026-10-20 — M7 fait : progression du Quartier 1 jouable depuis le Matin. Reste : M8 aménagement. Prochaine étape : routage des gestes vers la scène de l'éditeur (onPointer), écran Aménager déjà préparé.
+- 2026-10-20 — M8 fait : aménagement. Reste : M9 semaine et Pleine Lune. Prochaine étape : brancher boss.js dans la nuit (bossStep), carte d'intro et barre de PV, Courage de Mamie.

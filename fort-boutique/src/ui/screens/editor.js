@@ -18,15 +18,22 @@ function mount(app, p, d) {
   custBtn.classList.add('path-toggle', 'on', 'path-customers');
   monBtn.classList.add('path-toggle', 'on', 'path-monsters');
   const top = h('div.ed-top', [custBtn, monBtn]);
-  const rotate = tagButton({ label: t('editor.rotate'), small: true, id: 'ed-rotate' });
-  const store = tagButton({ label: t('editor.store'), small: true, id: 'ed-store' });
-  const advice = tagButton({ label: t('editor.advice'), small: true, variant: 'gold', id: 'ed-advice' });
+  // Outils en icônes (G6.5 : Tourner ⟳, Ranger ⬇, ampoule du Conseil de Mamie) ; le nom reste lisible par les lecteurs d'écran.
+  const iconTool = (id, svg, label, variant = 'kraft') => {
+    const b = tagButton({ label: '', small: true, variant, icon: svg, id });
+    b.classList.add('icon-only');
+    b.setAttribute('aria-label', label);
+    return b;
+  };
+  const rotate = iconTool('ed-rotate', SVG.rotate, t('editor.rotate'));
+  const store = iconTool('ed-store', SVG.store, t('editor.store'));
+  const advice = iconTool('ed-advice', SVG.bulb, t('editor.advice'), 'gold');
   advice.hidden = !p.showAdvice;
   const tools = h('div.ed-tools', [rotate, store, advice]);
   const reserve = h('div.ed-reserve');
   const cancel = tagButton({ label: t('editor.cancel'), variant: 'coral', small: true, id: 'ed-cancel' });
-  const validate = tagButton({ label: t('editor.validate'), variant: 'green', id: 'ed-validate' });
-  const bottom = h('div.ed-bottom', [tools, reserve, h('div.ed-actions', [cancel, validate])]);
+  const validate = tagButton({ label: t('editor.validate'), variant: 'green', small: true, id: 'ed-validate' });
+  const bottom = h('div.ed-bottom', [reserve, h('div.ed-bar', [tools, h('div.ed-actions', [cancel, validate])])]);
   const el = h('div.editor.passthrough', [top, bottom]);
   top.classList.add('interactive');
   bottom.classList.add('interactive');

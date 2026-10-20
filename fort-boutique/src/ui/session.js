@@ -6,7 +6,8 @@ import { createGame, rebuildShop } from '../game/state.js';
 import { resumePoint, enterMorning, openShop, markNightPending, resumeNight, enterDawn, openDawnChest, leaveDawn } from '../game/cycle.js';
 import { startDay } from '../game/day/day.js';
 import { startNight } from '../game/night/night.js';
-import { upgradeFurniture } from '../game/economy.js';
+import { upgradeFurniture, canUpgrade } from '../game/economy.js';
+import { isUnlocked, unlockedFurniture } from '../game/progression.js';
 import { createPlay } from './play.js';
 import { ADS } from '../data/balance.js';
 import { t } from './i18n.js';
@@ -63,6 +64,15 @@ export function createSession(app, o) {
     hub.showUnlocks();
   }
 
+  /** Pastilles du hub : Aménager qui vient d'ouvrir (G19 6:50), une amélioration possible. */
+  function hubBadges(game) {
+    const save = game.save;
+    return {
+      editor: isUnlocked(save, 'editor') && !save.progress.flags.editorSeen,
+      upgrades: unlockedFurniture(save).some((id) => canUpgrade(save, id).ok),
+    };
+  }
+
   /** (Re)dessine le hub du Matin, par exemple au retour du Catalogue. */
   function renderMorning() {
     app.router.goto('morning', {
@@ -77,6 +87,7 @@ export function createSession(app, o) {
         else hub.open(id);
       },
       ready: session.hubScreens,
+      badges: hubBadges(g),
       onSettings: () => pause(),
     });
   }
