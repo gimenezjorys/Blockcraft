@@ -85,12 +85,16 @@ export function bossStep(g, m, dt) {
 
 /** Le boss est-il dans une lumière (lanterne, marchand) ? */
 function isLit(g, m) {
-  for (const L of g.night.lights) if (Math.hypot(m.x - L.x, m.y - L.y) <= L.r) return true;
+  const lights = g.night.lights || [];
+  for (const L of lights) if (Math.hypot(m.x - L.x, m.y - L.y) <= L.r) return true;
   return false;
 }
 
 /** Barre de PV du boss (HUD). */
 export function bossOf(g) {
   if (!g.night) return null;
-  return g.night.monsters.active.find((m) => m.def.boss) || null;
+  // Boucle simple : appelé à chaque image par le HUD, sans fermeture (B5).
+  const arr = g.night.monsters.active;
+  for (let i = 0; i < arr.length; i++) if (arr[i].def.boss) return arr[i];
+  return null;
 }

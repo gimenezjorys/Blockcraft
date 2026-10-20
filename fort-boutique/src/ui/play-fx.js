@@ -2,6 +2,7 @@
 import { PALETTE as P } from '../data/palette.js';
 import { COIN_COUNTER } from '../render/hud.js';
 import { screenToWorld } from '../render/camera.js';
+import { t } from './i18n.js';
 
 const C = 48;
 
@@ -125,9 +126,17 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
         fx.burst('star', px(e.x), py(e.y) - 12, 8, P.craieJaune, 90, 0.5, 3);
         for (let i = 0; i < 2 + (e.a % 3); i++) fx.burst('spark', px(e.x), py(e.y) - 10, 1, P.or, 70, 0.45, 3);
         if (e.a > 0) {
-          for (let i = 0; i < Math.min(4, e.a); i++) fx.coinFlight(px(e.x), py(e.y) - 10, 230, 30, 0.15 + i * 0.05, 0);
+          // Vers le Bocal du HUD (coordonnées écran converties dans le monde zoomé).
+          const jar = screenToWorld(camera.base || 1, 230, 30, tgt);
+          for (let i = 0; i < Math.min(4, e.a); i++) fx.coinFlight(px(e.x), py(e.y) - 10, jar.x, jar.y, 0.15 + i * 0.05, 0);
         }
-        if (e.b) shake(5, 0.4);
+        if (e.b) {
+          // Boss vaincu (G8.9) : bannière, fanfare, confettis.
+          shake(5, 0.4);
+          play('level_up');
+          view.banner = { text: t('night.victory'), t: 0, life: 2.2, color: P.or };
+          for (let i = 0; i < 4; i++) fx.burst('star', px(e.x), py(e.y) - 20, 10, [P.or, P.craieRose, P.craieBleue, P.etiquetteVerte][i], 140, 0.9, 4);
+        }
         break;
       case 'thief_grab':
         play('thief_grab');

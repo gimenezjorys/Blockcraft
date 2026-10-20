@@ -114,6 +114,55 @@ await shot('07-matin');
   await p2.screenshot({ path: join(OUT, '11-amenager.png') });
   await ctx2.close();
 }
+// Pleine Lune (build de test : on avance l'horloge du jeu avec window.__FB_TEST__).
+{
+  const s = defaultSave({ seed: 12, now: 0, lang: 'fr' });
+  s.progress.flags.introDone = true;
+  s.progress.flags.firstChestDone = true;
+  s.progress.flags.editorSeen = true;
+  Object.assign(s.stats, { cycles: 6, nights: 6 });
+  Object.assign(s.player, { level: 6, coins: 400 });
+  const shop = s.shops.q1;
+  Object.assign(shop, { day: 7, night: 7, bossAssist: 1 });
+  Object.assign(shop.phase, { name: 'morning', dawnClaimed: true });
+  shop.pads.done = districtDef('q1').pads.map((p) => p.id);
+  const ctx3 = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true, locale: 'fr-FR' });
+  await ctx3.addInitScript(([k, v]) => { if (!localStorage.getItem(k)) localStorage.setItem(k, v); }, [SAVE_KEY, serialize(s)]);
+  const p3 = await ctx3.newPage();
+  p3.on('pageerror', (e) => errors.push(e.message));
+  await p3.goto(`file://${join(ROOT, 'dist-test/index.html')}`);
+  await p3.waitForTimeout(800);
+  await p3.touchscreen.tap(180, 320);
+  await p3.waitForTimeout(900);
+  await p3.tap('.hub-moon');
+  await p3.waitForTimeout(500);
+  await p3.screenshot({ path: join(OUT, '12-pleine-lune.png') });
+  await p3.tap('.overlay');
+  await p3.waitForTimeout(700);
+  await p3.tap('.hub-map');
+  await p3.waitForTimeout(600);
+  await p3.screenshot({ path: join(OUT, '13-carte.png') });
+  await p3.tap('.panel-back');
+  await p3.waitForTimeout(600);
+  await p3.tap('#hub-open');
+  // Avance jusqu'à l'entrée du boss (le marchand reste près de la caisse).
+  const found = await p3.evaluate(() => {
+    const h = window.__FB_TEST__;
+    for (let i = 0; i < 600; i++) {
+      h.advance(500);
+      const sc = h.getState().scene;
+      if (sc && sc.night && sc.night.monsters.some((m) => m.type === 'roi_raton')) {
+        h.advance(700);
+        return true;
+      }
+    }
+    return false;
+  });
+  if (!found) checks.push('le Roi Raton n’est pas entré');
+  await p3.waitForTimeout(100);
+  await p3.screenshot({ path: join(OUT, '14-roi-raton.png') });
+  await ctx3.close();
+}
 await browser.close();
 process.stdout.write(`captures dans ${OUT}${errors.length ? ` — erreurs : ${errors.join(' | ')}` : ''}\n`);
 if (checks.length) {

@@ -39,7 +39,6 @@ function mount(app, p, d) {
   top.appendChild(gear);
   // Nuits jusqu'à la Pleine Lune comprise (G19 3:02 : « 6 » au premier Matin).
   const nightsLeft = Math.max(1, 8 - g.shop.night);
-  const moon = h('div.hub-moon', { title: t('hub.fullMoon') }, [h('span.moon-ico', { html: SVG.moon }), h('span.moon-n', { text: String(nightsLeft) })]);
   const ready = p.ready || new Set();
   const nope = (btn) => {
     if (app.services.audio) app.services.audio.play('error');
@@ -48,6 +47,8 @@ function mount(app, p, d) {
     btn.classList.add('nope');
     if (btn.classList.contains('soon') && app.services.toast) app.services.toast(t('hub.soon'), SVG.lock);
   };
+  const moon = h('button.hub-moon', { type: 'button', 'aria-label': t('hub.fullMoon') }, [h('span.moon-ico', { html: SVG.moon }), h('span.moon-n', { text: String(nightsLeft) })]);
+  onTap(moon, () => (ready.has('moon') ? p.onButton('moon') : nope(moon)), d);
   const mapBtn = h('button.hub-map', { type: 'button', 'aria-label': t('hub.map'), html: SVG.map });
   if (!ready.has('map')) mapBtn.classList.add('locked', 'soon');
   onTap(mapBtn, () => (ready.has('map') ? p.onButton('map') : nope(mapBtn)), d);

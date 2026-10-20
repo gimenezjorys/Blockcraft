@@ -87,7 +87,7 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
     },
     shops: { q1: defaultShop('q1') },
     currentShop: 'q1',
-    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, pendingUnlocks: [] },
+    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, pendingUnlocks: [], pendingDistricts: [] },
     daily: {
       calendarIndex: 0,
       lastCalendarDay: -1,

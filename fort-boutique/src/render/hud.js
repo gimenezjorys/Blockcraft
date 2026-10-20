@@ -321,3 +321,60 @@ export function drawBanner(ctx, text, t, life, color = P.craieJaune) {
   stickerText(ctx, text, 180, 250, 30 * pop, color);
   ctx.globalAlpha = 1;
 }
+
+/**
+ * Barre de PV du boss en haut de l'écran (G10.3), sous les pastilles de vagues.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} k PV restants (0 à 1)
+ * @param {number} hit secousse quand il est touché (0 à 1)
+ */
+export function drawBossBar(ctx, k, hit = 0) {
+  const x = 70;
+  const y = 50 + (hit > 0 ? Math.sin(hit * 40) * 1.5 : 0);
+  const w = 220;
+  rr(ctx, x, y, w, 14, 7);
+  fillInk(ctx, 'rgba(26,20,70,.85)', 2.4);
+  if (k > 0) {
+    rr(ctx, x + 3, y + 3, Math.max(4, (w - 6) * Math.min(1, k)), 8, 4);
+    ctx.fillStyle = P.danger;
+    ctx.fill();
+  }
+  // Petite couronne à gauche.
+  ctx.beginPath();
+  ctx.moveTo(x - 16, y + 12);
+  ctx.lineTo(x - 18, y + 1);
+  ctx.lineTo(x - 12, y + 6);
+  ctx.lineTo(x - 8, y - 1);
+  ctx.lineTo(x - 4, y + 6);
+  ctx.lineTo(x + 2, y + 1);
+  ctx.lineTo(x, y + 12);
+  ctx.closePath();
+  fillInk(ctx, P.or, 1.8);
+}
+
+/**
+ * Carte de présentation du boss (G10.3) : silhouette + nom, et le Courage de Mamie s'il y en a (G8.9).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {(ctx: CanvasRenderingContext2D) => void} silhouette dessine le boss centré en (0, 0)
+ * @param {string} name
+ * @param {number} t secondes depuis l'entrée
+ * @param {string | null} courage ex. « Courage de Mamie +15 % »
+ */
+export function drawBossCard(ctx, silhouette, name, t, courage) {
+  const life = 2.2;
+  const k = t / life;
+  const a = k < 0.1 ? k / 0.1 : k > 0.85 ? (1 - k) / 0.15 : 1;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, a);
+  ctx.translate(180, 230 - (1 - Math.min(1, k / 0.1)) * 30);
+  rr(ctx, -120, -70, 240, courage ? 150 : 128, 16);
+  fillInk(ctx, 'rgba(26,20,70,.92)', 3);
+  ctx.save();
+  ctx.translate(0, 0);
+  ctx.scale(1.6, 1.6);
+  silhouette(ctx);
+  ctx.restore();
+  stickerText(ctx, name, 0, 36, 20, P.orReflet);
+  if (courage) stickerText(ctx, courage, 0, 64, 13, P.yeuxGrignotins);
+  ctx.restore();
+}

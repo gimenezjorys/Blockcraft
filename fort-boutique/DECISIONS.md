@@ -241,3 +241,13 @@ Raison : G6.5 « plein écran » ; capture : le hub restait visible sous l'édit
 Décision : l'ampoule apparaît si la dernière nuit a donné une étoile ou moins ; la première ouverture de l'éditeur montre la main fantôme d'un déplacement qui allonge le trajet des Grignotins d'au moins 2 cases (G19 6:50), sinon rien. Le conseil n'est qu'une proposition : le joueur peut encore Annuler.
 Alternatives : l'ampoule toujours visible.
 Raison : G6.5 (« si la dernière nuit était ★ ») et G19.
+
+## 2026-10-20 — M9 — Pleine Lune : affichage et quartier suivant
+Décision : la nuit 7 branche les capacités des boss (`bossStep`) ; barre de PV en haut avec couronne, carte de présentation 2,2 s (silhouette, nom, « Courage de Mamie +N % » s'il y en a) ; victoire : bannière « Victoire ! », fanfare et confettis. Le quartier suivant ne se fête (carte au Matin, `progress.pendingDistricts`) que s'il est vraiment ouvert : boss vaincu ET niveau ; si le niveau manque, sa carte arrivera avec le niveau. La carte des quartiers montre pour chaque façade : « Tu es ici », « Y aller », « Bientôt » (contenu prévu en M16 à M19, liste `PLAYABLE_DISTRICTS`), « Niveau N requis » avec la barre d'XP, ou le boss à vaincre et le niveau. Toucher la lune du Matin montre le boss, les nuits restantes et le Courage de Mamie (P1, Hugo). L'option pub « Rejouer tout de suite (+25 %) » arrive avec les pubs (M15).
+Alternatives : carte de quartier dès le niveau 7 même sans boss vaincu ; pas d'aperçu de la lune.
+Raison : G8.9, G10.3, G12.4, G13.1.
+
+## 2026-10-20 — M9 — Correction d'un test (bouton de la carte)
+Décision : le test d'interface « aucun bouton muet » attendait « Bientôt » sur le bouton carte (M6) ; il accepte désormais l'ouverture de la carte des quartiers ou « Bientôt ». L'intention (le bouton répond toujours) est inchangée.
+Alternatives : garder la carte fermée.
+Raison : A0.5 : l'écran existe depuis M9, l'ancienne attente était devenue fausse.

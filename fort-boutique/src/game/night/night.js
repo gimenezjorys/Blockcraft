@@ -5,6 +5,7 @@ import { NIGHT } from '../../data/night.js';
 import { XP_GAINS } from '../../data/xp.js';
 import { districtNumber } from '../../data/balance.js';
 import { generateNight } from './waves.js';
+import { bossStep } from './boss.js';
 import { createMonsterPool, spawnMonster, stepMonsters, aliveCount } from './monsters.js';
 import { createProjectilePool, stepProjectiles } from './projectiles.js';
 import { initTowers, stepTowers } from './towers.js';
@@ -108,6 +109,8 @@ export function startNight(g, opts = {}) {
     speedMult: mods.speedMult || 1,
     groupGap: Q >= 3 ? WAVES.groupGapLateS : WAVES.groupGapS,
     scripted: null,
+    // Capacités des boss (G10.3), appelées par stepMonsters.
+    bossStep,
   };
   initTowers(g);
   computeFields(g);

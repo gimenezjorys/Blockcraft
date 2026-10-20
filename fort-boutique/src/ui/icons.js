@@ -3,6 +3,7 @@ import { drawFurniture } from '../render/sprites/furniture.js';
 import { drawProduct } from '../render/sprites/products.js';
 import { drawMonster } from '../render/sprites/monsters.js';
 import { FURNITURE } from '../data/furniture.js';
+import { BOSSES } from '../data/monsters.js';
 
 function canvasIcon(w, h, draw, cls = 'icon-canvas') {
   const c = document.createElement('canvas');
@@ -40,11 +41,12 @@ export function productIcon(id, size = 24) {
   });
 }
 
-/** Grignotin. */
+/** Grignotin (les boss, plus grands, sont réduits pour tenir dans l'icône avec leur couronne). */
 export function monsterIcon(type, size = 40) {
+  const k = BOSSES[type] ? 0.55 : 1;
   return canvasIcon(size, size, (ctx) => {
-    ctx.translate(size / 2, size * 0.92);
-    ctx.scale(size / 48, size / 48);
+    ctx.translate(size / 2, size * 0.94);
+    ctx.scale((size / 48) * k, (size / 48) * k);
     drawMonster(ctx, type, 0, {});
   });
 }

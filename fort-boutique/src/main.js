@@ -18,6 +18,8 @@ import catalog from './ui/screens/catalog.js';
 import upgrades from './ui/screens/upgrades.js';
 import unlocks from './ui/screens/unlocks.js';
 import editor from './ui/screens/editor.js';
+import map from './ui/screens/map.js';
+import moon from './ui/screens/moon.js';
 
 const VERSION = typeof __FB_VERSION__ !== 'undefined' ? __FB_VERSION__ : { version: 'dev', hash: '', date: '' };
 
@@ -107,7 +109,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud: blank, morning, dawn, pause, catalog, upgrades, unlocks, editor });
+  app.router.register({ title, blank, hud: blank, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon });
   app.router.goto('title');
   app.loop.start();
 }

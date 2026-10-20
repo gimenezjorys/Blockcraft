@@ -6,10 +6,11 @@ import { Floaters } from '../render/floaters.js';
 import { Camera, shopZoom } from '../render/camera.js';
 import { PALETTE as P, NIGHT_VEIL } from '../data/palette.js';
 import { lightSources } from '../game/night/light.js';
+import { bossOf } from '../game/night/boss.js';
 import { WAVES } from '../data/waves.js';
 import {
   drawJoystick, drawSunBar, drawCoinCounter, drawPauseButton, drawPadLabel, drawCoinPile, drawDoorSign,
-  hudHit, heart, drawWavePips, drawJarGauge, drawBellButton, drawTelegraph, drawBanner,
+  hudHit, heart, drawWavePips, drawJarGauge, drawBellButton, drawTelegraph, drawBanner, drawBossBar, drawBossCard,
 } from '../render/hud.js';
 import { drawWantBubble } from '../render/sprites/products.js';
 import { drawMonster } from '../render/sprites/monsters.js';
@@ -279,6 +280,13 @@ function drawHud(ctx, g, view, app) {
     const n = g.night;
     drawWavePips(ctx, n.waveIndex, n.waves.length, view.cleared);
     drawJarGauge(ctx, n.jar / Math.max(1, n.jarInitial), Math.round(n.jar), view.jarBlink);
+    const boss = bossOf(g);
+    if (boss) drawBossBar(ctx, boss.hp / Math.max(1, boss.maxHp), boss.hitT || 0);
+    if (view.bossIntro && name === 'night') {
+      const type = view.bossIntro.type;
+      const courage = n.assist > 0 ? t('night.courage', { n: Math.round(n.assist * 100) }) : null;
+      drawBossCard(ctx, (c) => drawMonster(c, type, 0, {}), t(`mon.${type}`), view.bossIntro.t, courage);
+    }
     // Nuit du tutoriel : la Cloche ne peut pas se charger (7 Grignotins pour 14), on ne la montre pas (Hugo, P1).
     if (name === 'night' && !n.tutorial) drawBellButton(ctx, n.bellCharge, n.bellNeed, g.t, !!(app.services.settings && app.services.settings.leftHanded));
   } else {

@@ -204,9 +204,14 @@ test('aube : ruban de niveau après le coffre ; Matin : aucun bouton muet (P1)',
       if (st.screen !== 'morning') break;
       assert.ok(b.classList.contains('nope'), `${b.id} répond`);
     }
+    // La carte répond aussi (M9 : elle ouvre la carte des quartiers ; avant M9 elle disait « Bientôt »).
+    if (g.$('.panel-back')) bot.tapEl('.panel-back');
+    g.hooks.advance(300);
+    assert.equal(g.hooks.getState().screen, 'morning');
     bot.tapEl(g.$('.hub-map'));
     g.hooks.advance(50);
-    assert.ok(g.hooks.getState().toasts.some((x) => /Bientôt/.test(x)), 'la carte annonce « Bientôt »');
+    const answered = g.hooks.getState().screen === 'map' || g.hooks.getState().toasts.some((x) => /Bientôt/.test(x));
+    assert.ok(answered, 'la carte répond (écran ou « Bientôt »)');
     assert.deepEqual(g.errors, []);
   } finally {
     g.close();

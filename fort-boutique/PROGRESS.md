@@ -13,7 +13,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M6 — Cycle complet + Playtest P1 | ✅ | 2026-10-20 | Cycle Matin → Jour → Nuit → Aube → Matin sauvegardé et repris à l'identique ; ticket, coffre, plans, amélioration ; P1 : 1 bloquant et 8 majeurs corrigés (coffre perdu, pub trop tôt, boutons muets, niveau invisible, boutique trop petite, pause auto, pièces et compteurs au rechargement). |
 | M7 — Données et progression | ✅ | 2026-10-20 | Catalogue (prix × 1,6 par exemplaire, plafonds, pose automatique), Améliorer (meubles avec gains chiffrés, marchand, recettes, agrandissement E1), cartes de déblocage au Matin ; 11 tests nouveaux. |
 | M8 — Aménagement | ✅ | 2026-10-20 | Éditeur plein écran : glisser au doigt (fantôme vert/rouge), tourner, ranger, Réserve, trajets et longueurs, Conseil de Mamie, Valider/Annuler ; 8 tests (dont 3 aux vrais gestes). |
-| M9 — La semaine et la Pleine Lune | ⬜ | | |
+| M9 — La semaine et la Pleine Lune | ✅ | 2026-10-20 | Pleine Lune : Roi Raton (invocations, vol 35 %, fuite), barre de PV, carte d'intro, victoire/échec, Courage de Mamie, Coffre de Lune, semaine 2 ; carte des quartiers (boss ET niveau) ; aperçu de la lune ; 8 tests. |
 | M10 — Simulateur d'équilibrage (Q1) | ⬜ | | |
 | M11 — Les 10 premières minutes + P2 | ⬜ | | |
 | M12 — Quêtes, calendrier, série, succès, bestiaire | ⬜ | | |
@@ -100,7 +100,7 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Tests d'interface (jsdom, vrais gestes) : glisser un meuble au doigt le déplace ; placement invalide refusé avec retour visuel ; longueurs mises à jour ; Annuler restaure l'état initial.
 
 **M9 — La semaine et la Pleine Lune**
-- [ ] Semaine de 7 nuits, ouverture progressive des entrées, introduction des nouveaux monstres (étiquette « NOUVEAU »), Roi Raton (invocations, fuite avec le sac), victoire ou échec, Courage de Mamie, Coffre de Lune, semaine 2 et suivantes (G8.9, G13.1).
+- [x] Semaine de 7 nuits, ouverture progressive des entrées, introduction des nouveaux monstres (étiquette « NOUVEAU »), Roi Raton (invocations, fuite avec le sac), victoire ou échec, Courage de Mamie, Coffre de Lune, semaine 2 et suivantes (G8.9, G13.1).
 - Tests : comportements du boss ; cumul de l'aide ; progression des semaines ; quartier suivant débloqué seulement si boss vaincu ET niveau requis.
 
 **M10 — Simulateur d'équilibrage (Quartier 1)**
@@ -165,7 +165,7 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - [ ] P1 — L'amélioration ne fait bouger que la carte, pas le meuble ; aucun chiffre ne monte → M22 (et stats sur les cartes en M7).
 - [ ] P1 — Écran titre plat (pas de façade de nuit, pas de musique) → M21, M23.
 - [ ] P1 — Aucun vrai choix pendant les 4:41 du début (ordre des emplacements fixe) → M8 (Aménager), M11.
-- [ ] P1 — Pastille de la Pleine Lune non tappable, sans silhouette du boss → M9.
+- [x] P1 — Pastille de la Pleine Lune non tappable, sans silhouette du boss → M9 (fait : aperçu du boss au toucher).
 - [ ] P1 — La nuit, ni portée des meubles ni vie des Grignotins visibles → M21.
 - [ ] P1 — Le premier Matin ne donne pas de raison de revenir le lendemain → M12 (calendrier), M7 (cartes de déblocage).
 - [ ] P1 — Les libellés du hub sont des mots (pictogrammes par bouton) → M21.
@@ -183,3 +183,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M6 fait : cycle complet, playtest P1 (docs/playtests/P1.md) et corrections. Reste : M7 données et progression. Prochaine étape : brancher Catalogue/Améliorer/cartes de déblocage (fichiers déjà préparés).
 - 2026-10-20 — M7 fait : progression du Quartier 1 jouable depuis le Matin. Reste : M8 aménagement. Prochaine étape : routage des gestes vers la scène de l'éditeur (onPointer), écran Aménager déjà préparé.
 - 2026-10-20 — M8 fait : aménagement. Reste : M9 semaine et Pleine Lune. Prochaine étape : brancher boss.js dans la nuit (bossStep), carte d'intro et barre de PV, Courage de Mamie.
+- 2026-10-20 — M9 fait : semaine complète jusqu'au boss. Reste : M10 simulateur d'équilibrage Q1. Prochaine étape : scripts/sim.mjs avec scripts/lib/bots.mjs et strategy.mjs, 300 parties, seuils D2.4.

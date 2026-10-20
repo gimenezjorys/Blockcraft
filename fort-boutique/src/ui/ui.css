@@ -445,3 +445,31 @@ button { font: inherit; color: inherit; }
 .tag.icon-only .tag-icon { width: 26px; height: 26px; }
 .ed-actions .tag { min-height: 44px; padding: 2px 12px; font-size: 14px; }
 .ed-actions .tag .tag-hole { display: none; }
+
+/* ---------- Carte des quartiers (G13.1) ---------- */
+.map-street { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px 10px; touch-action: pan-y; }
+.map-facade { display: flex; flex-direction: column; border: 3px solid var(--encre); border-radius: 10px; overflow: hidden; background: var(--ticket); color: var(--encre); box-shadow: 0 4px 0 var(--encre); }
+.map-awning { height: 16px; background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 14px, transparent 14px 28px); border-bottom: 3px solid var(--encre); }
+.map-body { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; min-height: 56px; }
+.map-name { font: 900 15px/1.15 var(--f-title); }
+.map-status { display: flex; align-items: center; gap: 4px; font-weight: 800; font-size: 12px; }
+.map-status.here { color: #1E8A5A; }
+.map-ico { display: inline-flex; width: 18px; height: 18px; }
+.map-ico svg { width: 100%; height: 100%; }
+.map-boss canvas { width: 28px; height: 28px; filter: brightness(0) opacity(.6); }
+.map-facade.locked { filter: saturate(.35); }
+.map-facade .tag .tag-hole { display: none; }
+.hub-moon { cursor: pointer; }
+.hub-moon.nope { animation: nope 240ms both; }
+
+/* ---------- Aperçu de la Pleine Lune ---------- */
+.moon-panel { width: 260px; padding: 16px 14px 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; animation: slide-in 180ms ease-out both; background: #1A1446; }
+.moon-big { width: 56px; height: 56px; }
+.moon-big svg { width: 100%; height: 100%; }
+.moon-boss canvas { width: 110px; height: 110px; }
+.moon-name { margin: 0; font-size: 22px; }
+.moon-when { font-weight: 800; color: var(--craie-jaune); }
+.moon-dots { display: flex; gap: 6px; }
+.moon-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--craie); }
+.moon-dot[data-on="1"] { background: var(--craie-jaune); }
+.moon-courage { font-weight: 800; color: #C8FF2E; }

@@ -7,6 +7,9 @@ import { startDay } from './day/day.js';
 import { claimNight } from './night/night.js';
 import { rollChest, applyChest, upgradeChestRank } from './chests.js';
 import { fillAllProducers } from './day/producers.js';
+import { DISTRICTS, DISTRICT_IDS } from '../data/districts.js';
+import { districtOpen } from './progression.js';
+import { defaultShop } from '../save/schema.js';
 
 /**
  * Où reprendre une partie chargée (G5.2) : jour avec le temps restant, nuit depuis le début, aube, matin.
@@ -128,6 +131,13 @@ export function leaveDawn(g) {
     if (r.bossWin) {
       shop.bossBeatenCount++;
       shop.week++;
+      // Quartier suivant : sa carte se fête au Matin s'il est vraiment ouvert (boss vaincu ET niveau, G12.4).
+      const next = DISTRICT_IDS.find((id) => DISTRICTS[id].previousBoss === g.shopId);
+      if (next && shop.bossBeatenCount === 1 && districtOpen(g.save, next)) {
+        if (!g.save.shops[next]) g.save.shops[next] = defaultShop(next);
+        g.save.shops[next].unlocked = true;
+        if (!g.save.progress.pendingDistricts.includes(next)) g.save.progress.pendingDistricts.push(next);
+      }
       shop.night = 1;
       shop.bossAssist = 0;
       const bk = g.save.stats.bossKills;

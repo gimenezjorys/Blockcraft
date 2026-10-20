@@ -8,13 +8,17 @@ import { rebuildShop } from '../game/state.js';
 import { unlockCards } from './screens/unlocks.js';
 import { openEditor, commitEditor } from '../game/editor.js';
 import { createEditorScene } from './editor-scene.js';
+import { NIGHT } from '../data/night.js';
 
 /** Écrans du hub déjà branchés (les autres boutons disent « Bientôt »). */
-export const HUB_SCREENS = ['catalog', 'upgrades', 'editor'];
+export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon'];
+
+/** Quartiers dont le contenu est prêt (M16 à M19 ajoutent les suivants). */
+export const PLAYABLE_DISTRICTS = ['q1'];
 
 /**
  * @param {any} app
- * @param {{ game: () => any, save: (force?: boolean) => void, refresh: () => void }} o
+ * @param {{ game: () => any, save: (force?: boolean) => void, refresh: () => void, switchShop?: (id: string) => void }} o
  */
 export function createHub(app, o) {
   const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
@@ -31,6 +35,28 @@ export function createHub(app, o) {
   }
 
   const screens = {
+    /** Carte des quartiers (G13.1). */
+    map(g) {
+      app.router.push('map', {
+        save: g.save,
+        current: g.shopId,
+        playable: PLAYABLE_DISTRICTS,
+        onGo: (id) => {
+          app.router.pop();
+          if (o.switchShop) o.switchShop(id);
+        },
+        onClose: close,
+      });
+    },
+    /** Aperçu de la Pleine Lune (G8.9) en touchant la lune du Matin. */
+    moon(g) {
+      app.router.push('moon', {
+        boss: g.district.boss,
+        nightsLeft: Math.max(1, 8 - g.shop.night),
+        courage: Math.min(NIGHT.assistMax, NIGHT.assistPerFail * (g.shop.bossAssist || 0)),
+        onClose: () => app.router.pop(),
+      });
+    },
     /** Aménager (G6.5) : la scène canvas remplace la boutique le temps de l'édition. */
     editor(g) {
       const ed = openEditor(g.shop, g.shopId);
@@ -149,20 +175,26 @@ export function createHub(app, o) {
      */
     showUnlocks(onDone) {
       const g = o.game();
-      const pending = g.save.progress.pendingUnlocks;
-      if (!pending.length) return false;
+      const prog = g.save.progress;
+      const pending = prog.pendingUnlocks;
+      const pendingD = prog.pendingDistricts;
+      if (!pending.length && !pendingD.length) return false;
       const levels = pending.slice();
+      const districts = pendingD.slice();
       const clear = () => {
-        for (const l of levels) if (!g.save.progress.unlocksSeen.includes(l)) g.save.progress.unlocksSeen.push(l);
-        g.save.progress.pendingUnlocks = pending.filter((l) => !levels.includes(l));
+        for (const l of levels) if (!prog.unlocksSeen.includes(l)) prog.unlocksSeen.push(l);
+        prog.pendingUnlocks = prog.pendingUnlocks.filter((l) => !levels.includes(l));
+        prog.pendingDistricts = prog.pendingDistricts.filter((id) => !districts.includes(id));
         o.save(true);
       };
-      if (!unlockCards(levels).length) {
+      if (!unlockCards(levels, { save: g.save, districts }).length) {
         clear();
         return false;
       }
       app.router.push('unlocks', {
         levels,
+        districts,
+        save: g.save,
         onDone: () => {
           clear();
           app.router.pop();
