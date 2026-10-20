@@ -91,3 +91,33 @@ Raison : un seul champ dans la sauvegarde (G23 `rot`), et le bouton Tourner fait
 Décision : la scène du rond de M1 reste accessible avec `?demo=1` ; les tests d'entrées de M1 l'utilisent toujours.
 Alternatives : réécrire ces tests sur la boutique.
 Raison : ne jamais affaiblir un test (A0.5) ; la Cloche, que ces tests touchent avec un second doigt, n'existe dans la boutique que la nuit.
+
+## 2026-10-20 — M4 — Valeurs que G7 ne fixe pas
+Décision : clients à 1,8 case/s ; 0,35 s pour prendre un article ; la patience repart à plein à chaque nouvelle attente (étagère vide, puis file de caisse) et ne décompte que pendant l'attente ; un client dont l'étagère se vide va vers une autre étagère garnie du même produit ; un produit qui n'est plus exposé est rayé de son panier.
+Alternatives : patience globale depuis l'entrée ; vitesse égale à celle du marchand.
+Raison : plus lisible et moins punitif (G7.3) ; le marchand (3 cases/s) doit rester nettement plus rapide que les clients.
+
+## 2026-10-20 — M4 — Pourboire minimal et arrondis
+Décision : le montant payé est arrondi à la pièce ; un pourboire mérité vaut au moins 1 pièce.
+Alternatives : pourboire de 0 pièce sur un panier d'une pomme (10 % de 4).
+Raison : un pourboire invisible ne récompense rien ; la règle « servi vite » doit toujours se sentir.
+
+## 2026-10-20 — M4 — Débit des emplacements d'achat
+Décision : un emplacement se remplit en prix ÷ 40 secondes, entre 1,0 et 2,5 s (P1 : 1 s, P3 : 2,5 s) ; 6 pièces/s volent visiblement dans le carré ; un paiement partiel est gardé (sauvegardé) si le marchand sort du carré ou manque de pièces.
+Alternatives : 6 pièces/s réelles (P3 durerait 25 s).
+Raison : G20.6 décrit l'animation ; G19 place le premier achat 15 s après l'apparition de P1, donc le paiement doit être bref.
+
+## 2026-10-20 — M4 — Premier client et journées courtes
+Décision : lors de la toute première journée du jeu, le premier client entre dès qu'un article est posé sur une étagère (au plus tard 10 s après l'ouverture, s'il y a un produit exposé) ; les journées de 90 s et 120 s ne concernent que l'Épicerie (jours 1 et 2) ; les autres boutiques commencent à 150 s.
+Alternatives : un client toutes les 4,2 s dès l'ouverture.
+Raison : G19 0:16 montre le premier client juste après la première dépose ; les journées courtes servent l'apprentissage, déjà acquis au Q2.
+
+## 2026-10-20 — M4 — Le « jour » des formules
+Décision : dans l'intervalle d'arrivée (G7.1), « jour » est le numéro de nuit de la semaine (1 à 7) ; les types de clients (G7.2) et les journées courtes utilisent le nombre de jours joués dans la boutique (`shops.*.day`).
+Alternatives : nombre total de jours joués.
+Raison : le facteur 0,97^(semaine − 1) n'a de sens que si 0,95^(jour − 1) repart chaque semaine.
+
+## 2026-10-20 — M4 — Déblocage de l'audio
+Décision : l'AudioContext est créé au premier `pointerup`, `touchend`, `click`, `keydown` ou `mousedown`.
+Alternatives : `pointerdown` / `touchstart`.
+Raison : Chrome et Safari ne comptent pas `touchstart` comme une activation : le contexte resterait muet (avertissement constaté en test).

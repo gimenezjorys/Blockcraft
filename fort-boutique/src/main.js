@@ -11,6 +11,8 @@ import { seedFrom } from './core/rng.js';
 import title from './ui/screens/title.js';
 import blank from './ui/screens/blank.js';
 import { installTestHooks } from './debug/test-hooks.js';
+import { createAudio } from './audio/audio.js';
+import { startDay } from './game/day/day.js';
 
 const VERSION = typeof __FB_VERSION__ !== 'undefined' ? __FB_VERSION__ : { version: 'dev', hash: '', date: '' };
 
@@ -21,6 +23,9 @@ function boot() {
   // Constante de compilation : ce bloc disparaît de dist/index.html.
   if (__FB_TEST_BUILD__) installTestHooks(app);
   const storage = createStorage(window);
+  const audio = createAudio(window);
+  audio.attach();
+  app.services.audio = audio;
   const demo = /[?&]demo=1(?:&|$)/.test(window.location.search);
   app.onTitleTap = () => {
     if (demo) {
@@ -32,6 +37,7 @@ function boot() {
     const t = now();
     const loaded = loadSave(storage, { seed: seedFrom(t, 'nouvelle partie'), now: t, lang });
     const g = createGame({ save: loaded.data });
+    startDay(g);
     app.router.goto('blank');
     app.setScene(createPlay(app, g));
   };

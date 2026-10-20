@@ -8,8 +8,8 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M1 — Moteur | ✅ | 2026-10-20 | Boucle à pas fixe, sfc32 + fork, temps UTC, pools, entrées unifiées, joystick, debug, hooks de test. |
 | M2 — Sauvegarde | ✅ | 2026-10-20 | CRC32, stockage avec repli mémoire, schéma G23, 2 copies + .corrupt, migrations testées, export FB1 ; 17 tests. |
 | M3 — La boutique et le marchand | ✅ | 2026-10-20 | Grille E0–E3, cases réservées, validation G6.4, BFS, marchand qui glisse, rendu palette finale. |
-| M4 — Le jour | 🔄 |  |  |
-| M5 — La nuit | ⬜ | | |
+| M4 — Le jour | ✅ | 2026-10-20 | Producteurs, pile, étagères, clients (types, file, patience), caisse, tas de pièces, 6 emplacements, soleil, fermeture, sons de base. |
+| M5 — La nuit | 🔄 |  |  |
 | M6 — Cycle complet + Playtest P1 | ⬜ | | |
 | M7 — Données et progression | ⬜ | | |
 | M8 — Aménagement | ⬜ | | |
@@ -73,8 +73,8 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Tests : collisions et glissement ; BFS ; validation (chemin bloqué refusé, case réservée refusée).
 
 **M4 — Le jour**
-- [ ] Cagette (production, réserve), étagères (capacité, produit), pile du marchand (prise et dépose par proximité), clients (G7 : arrivée, chemin, choix, attente, patience, file, caisse), encaissement en présence du marchand, tas de pièces et ramassage, emplacements d'achat (pads) de l'Épicerie (G6.7), barre de soleil, fermeture avec 6 s de grâce.
-- [ ] Sons de base (version simple de G21) : tap, prise, pièce, « ding » de porte.
+- [x] Cagette (production, réserve), étagères (capacité, produit), pile du marchand (prise et dépose par proximité), clients (G7 : arrivée, chemin, choix, attente, patience, file, caisse), encaissement en présence du marchand, tas de pièces et ramassage, emplacements d'achat (pads) de l'Épicerie (G6.7), barre de soleil, fermeture avec 6 s de grâce.
+- [x] Sons de base (version simple de G21) : tap, prise, pièce, « ding » de porte.
 - Tests : cycle de vie d'un client ; patience écoulée → départ sans vente ; pas d'encaissement si le marchand est loin ; pad payé au bon débit ; fin de journée ; recette = ventes + pourboires.
 
 **M5 — La nuit**
@@ -166,3 +166,4 @@ _(aucun pour l'instant)_
 - 2026-10-20 — M1 fait : moteur, entrées, debug, hooks. Reste : M2 sauvegarde. Prochaine étape : save/crc32.js, storage.js, schema.js.
 - 2026-10-20 — M2 fait : sauvegarde complète et testée. Reste : M3 boutique. Prochaine étape : data/balance.js, game/shop.js (grille, placement), pathfinding.js.
 - 2026-10-20 — M3 fait : boutique, validation, marchand. Reste : M4 le jour. Prochaine étape : day/producers, shelves, carry, customers, register, pads, barre de soleil.
+- 2026-10-20 — M4 fait : la journée complète, testée au doigt. Reste : M5 la nuit. Prochaine étape : night/waves.js (générateur à graine), monsters.js, towers.js.

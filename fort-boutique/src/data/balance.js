@@ -117,3 +117,19 @@ export const districtNumber = (id) => Number(String(id).slice(1)) || 1;
 export const mQ = (id) => 1 + 0.75 * (districtNumber(id) - 1);
 /** p_Q = 1 + 0,25 × (Q − 1) (G12.7). */
 export const pQ = (id) => 1 + 0.25 * (districtNumber(id) - 1);
+
+/** Types de clients (G7.2). share = part des arrivées ; fromDay = jour de la boutique où ils apparaissent. */
+export const CUSTOMER_TYPES = {
+  villager: { patience: 10, basket: 0, tip: 0.1, payMult: 1 },
+  hurried: { patience: 6, basket: 1, tip: 0.5, payMult: 1, share: 0.15, fromDay: 3 },
+  greedy: { patience: 12, basket: 3, tip: 0.1, payMult: 1, share: 0.1, fromDay: 2 },
+  vip: { patience: 7, basket: 2, tip: 0.1, payMult: 3, priciest: true, perDayQ1: 1, perDay: 2, fromDay: 2 },
+};
+
+/** Effets de jour des meubles sur les clients (G9.3). */
+export const DAY_AURAS = {
+  coffeeSpeed: 0.2,
+  coffeeRadius: 2,
+  fanPatience: 0.15,
+  fanRadius: 2,
+};
