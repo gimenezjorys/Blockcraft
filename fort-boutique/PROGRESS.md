@@ -1,0 +1,165 @@
+# Fort Boutique — avancement
+
+Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de reprise : docs/PROMPT.md, A1 à A4.
+
+| Mission | Statut | Date | Résumé |
+|---|---|---|---|
+| M0 — Démarrage du dépôt | ✅ | 2026-10-20 | Arborescence, build autonome (12 Ko), icônes, titre, helpers jsdom, test de fumée. |
+| M1 — Moteur | 🔄 |  |  |
+| M2 — Sauvegarde | ⬜ | | |
+| M3 — La boutique et le marchand | ⬜ | | |
+| M4 — Le jour | ⬜ | | |
+| M5 — La nuit | ⬜ | | |
+| M6 — Cycle complet + Playtest P1 | ⬜ | | |
+| M7 — Données et progression | ⬜ | | |
+| M8 — Aménagement | ⬜ | | |
+| M9 — La semaine et la Pleine Lune | ⬜ | | |
+| M10 — Simulateur d'équilibrage (Q1) | ⬜ | | |
+| M11 — Les 10 premières minutes + P2 | ⬜ | | |
+| M12 — Quêtes, calendrier, série, succès, bestiaire | ⬜ | | |
+| M13 — Hors ligne, Moka, personnel | ⬜ | | |
+| M14 — Défi du jour, Rivaux, partage, événements | ⬜ | | |
+| M15 — Pubs, rubis, Garde-robe + P3 | ⬜ | | |
+| M16 — Quartier 2 : la Boulangerie | ⬜ | | |
+| M17 — Quartier 3 : la Pharmacie | ⬜ | | |
+| M18 — Quartier 4 : la Quincaillerie | ⬜ | | |
+| M19 — Quartier 5 : l'Emporium | ⬜ | | |
+| M20 — Équilibrage global + P4 | ⬜ | | |
+| M21 — Direction artistique complète | ⬜ | | |
+| M22 — Juice et options | ⬜ | | |
+| M23 — Audio complet | ⬜ | | |
+| M24 — Performances et mémoire | ⬜ | | |
+| M25 — Anglais, Paramètres, crédits, iOS, icônes | ⬜ | | |
+| M26 — Robustesse + P5 | ⬜ | | |
+| M27 — Publication | ⬜ | | |
+
+---
+
+## C. PLAN DES MISSIONS (à recopier tel quel dans PROGRESS.md)
+
+Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC). Les critères de « fini » communs sont en A4 ; ci-dessous, les critères propres à chaque mission.
+
+### Jalon A — Fondations
+
+**M0 — Démarrage du dépôt**
+- [x] Audit d'environnement (A1). Dossier du projet : le dossier courant s'il est vide ou ne contient que ce prompt (cas normal), sinon créer `fort-boutique/`. Déplacer ce prompt dans `docs/PROMPT.md`. `git init`, branche `main`, `.gitignore` (`node_modules/`, `dist-test/`, `.DS_Store`, `coverage/`, `*.log`).
+- [x] `package.json` : nom `fort-boutique`, version 0.1.0, `"type": "module"`, scripts `build`, `test`, `sim`, `playtest`, `bench`, `check`, `dev`. Installer `jsdom` et `esbuild` en versions exactes.
+- [x] Créer `README.md`, `GAME_DESIGN.md` (copie **intégrale et fidèle** de l'Annexe G), `PROGRESS.md` (cette section C + journal de session), `DECISIONS.md`, `docs/PROMPT.md` (copie intégrale de ce prompt), `LICENSE` (MIT).
+- [x] Arborescence B3 (fichiers vides commentés autorisés).
+- [x] Build minimal : écran titre (fond ardoise, « Fort Boutique », doigt qui tape) ; un tap passe à un écran vide.
+- [x] Helpers de test : environnement jsdom, polyfill tactile (D1.3), canvas simulé, audio simulé, horloge simulée.
+- [x] Test de fumée : charger `dist/index.html` dans jsdom → aucune erreur, un canvas existe, `touchstart` + `touchend` changent l'écran.
+- [x] GitHub : E1.
+- Fini quand : `dist/index.html` s'ouvre par double-clic et affiche l'écran titre ; commit `M0: fondations`.
+
+**M1 — Moteur**
+- [ ] Boucle à pas fixe + rAF + pause onglet caché (B5), `timeScale`.
+- [ ] Générateur aléatoire à graine (sfc32 ou mulberry32) avec `fork(label)` pour des sous-générateurs indépendants.
+- [ ] `core/time.js` (B7), bus d'événements, réserves d'objets.
+- [ ] Entrées unifiées + joystick + clavier (B6), redimensionnement et bandes latérales.
+- [ ] Overlay debug (B14).
+- Tests : même graine → même suite (1 000 tirages) ; frontières UTC (23:59:59.999 / 00:00:00.000) ; semaine UTC commençant le lundi ; joystick piloté par de vrais `touchstart/touchmove/touchend` ; même vecteur à la souris ; ZQSD et flèches ; second doigt ; pause sur `visibilitychange`.
+- Fini quand : dans le build, un rond se déplace au joystick.
+
+**M2 — Sauvegarde**
+- [ ] `storage.js` (repli mémoire), `schema.js` (G23 + valeurs par défaut), `save.js` (checksum, copies de secours, écritures regroupées), `migrations.js` (registre), `export.js` (code FB1), `crc32.js`.
+- Tests (au moins 12) : aller-retour ; checksum faux → bak1 ; bak1 faux → bak2 ; tout faux → nouvelle partie + copie `.corrupt` ; migration d'une fixture v0 synthétique vers v1 ; champs inconnus conservés ; achats et cosmétiques conservés ; export/import identique ; code invalide refusé ; `localStorage` qui lève une exception → repli mémoire ; quota plein → aucun plantage.
+
+### Jalon B — Version jouable minimale (Épicerie : jour + nuit)
+
+**M3 — La boutique et le marchand**
+- [ ] Grille (G6.1), tailles E0 à E3, cases réservées (G6.2), disposition initiale de l'Épicerie (G6.7), validation des chemins (G6.4), rendu simple avec la **palette finale** (G20.2) et des formes basiques.
+- [ ] Marchand : déplacement au joystick (3,0 cases/s), collisions avec glissement le long des obstacles.
+- Tests : collisions et glissement ; BFS ; validation (chemin bloqué refusé, case réservée refusée).
+
+**M4 — Le jour**
+- [ ] Cagette (production, réserve), étagères (capacité, produit), pile du marchand (prise et dépose par proximité), clients (G7 : arrivée, chemin, choix, attente, patience, file, caisse), encaissement en présence du marchand, tas de pièces et ramassage, emplacements d'achat (pads) de l'Épicerie (G6.7), barre de soleil, fermeture avec 6 s de grâce.
+- [ ] Sons de base (version simple de G21) : tap, prise, pièce, « ding » de porte.
+- Tests : cycle de vie d'un client ; patience écoulée → départ sans vente ; pas d'encaissement si le marchand est loin ; pad payé au bon débit ; fin de journée ; recette = ventes + pourboires.
+
+**M5 — La nuit**
+- [ ] Transformation des meubles (étagère, caisse, cagette), Raton et Souris, entrées, champ de flux, générateur de vagues à graine (G8.3), projectiles et zones, dégâts et armure (G9.2), mort, butin, vol, fuite, récupération, Bocal, fin de nuit, étoiles (G8).
+- [ ] Marchand la nuit : aura d'encouragement, coup de balai automatique, réparation, Cloche (G8.7, G11.1).
+- Tests : vagues identiques à graine égale ; calcul du vol et de son plafond ; récupération +10 % ; seuils d'étoiles ; champ de flux avec obstacles ; formule d'armure ; ralentissements non cumulables (le plus fort s'applique).
+
+**M6 — Cycle complet + Playtest P1**
+- [ ] Machine à états Matin → Jour → Crépuscule → Nuit → Aube → Matin ; sauvegarde à chaque transition ; reprise exacte après rechargement (G5.2).
+- [ ] Matin minimal, Aube minimale (ticket), coffre en bois, plans, amélioration d'un meuble.
+- [ ] Workflow GitHub Pages (E2).
+- [ ] Playtest P1 « premier lancement » (D3).
+- Fini quand : deux cycles complets jouables depuis `dist/index.html` ; problèmes bloquants et majeurs de P1 corrigés.
+
+### Jalon C — Progression, économie, Quartier 1 complet
+
+**M7 — Données et progression**
+- [ ] Toutes les données du Quartier 1 : meubles (étagère, caisse, comptoir, plante carnivore, cagette, frigo, chaudron), monstres (raton, souris, gloubi, termite, raton doré), Roi Raton ; niveau de marchand et déblocages (G12.3, G12.4) ; catalogue (acheter puis placer) ; recettes (prix des produits) ; agrandissement E1 ; plafond de niveau des meubles ; prix croissant par exemplaire.
+- Tests : courbe d'XP ; déblocages ; prix par exemplaire ; plafonds ; coûts en plans et en pièces.
+
+**M8 — Aménagement**
+- [ ] Éditeur G6.5 : sélectionner, glisser, tourner, ranger, fantôme vert/rouge, aperçu des trajets (clients en bleu, Grignotins en vert acide) avec leurs longueurs, validation, annulation, Conseil de Mamie.
+- Tests d'interface (jsdom, vrais gestes) : glisser un meuble au doigt le déplace ; placement invalide refusé avec retour visuel ; longueurs mises à jour ; Annuler restaure l'état initial.
+
+**M9 — La semaine et la Pleine Lune**
+- [ ] Semaine de 7 nuits, ouverture progressive des entrées, introduction des nouveaux monstres (étiquette « NOUVEAU »), Roi Raton (invocations, fuite avec le sac), victoire ou échec, Courage de Mamie, Coffre de Lune, semaine 2 et suivantes (G8.9, G13.1).
+- Tests : comportements du boss ; cumul de l'aide ; progression des semaines ; quartier suivant débloqué seulement si boss vaincu ET niveau requis.
+
+**M10 — Simulateur d'équilibrage (Quartier 1)**
+- [ ] `scripts/sim.mjs` (D2), bots faible/moyen/fort, 300 parties, rapport `docs/sim/SIM_Q1.md`, réglages dans les marges (D2.5), test `tests/sim/q1.test.js` (40 parties, mêmes seuils).
+- Fini quand : tous les seuils D2.4 du Quartier 1 sont tenus.
+
+**M11 — Les 10 premières minutes + Playtest P2**
+- [ ] Implémenter G19 à la seconde près : indices visuels sans texte, jours courts, ordre des pads, premier coffre, première amélioration, raisons de revenir.
+- [ ] Objectif toujours visible (G3.5).
+- [ ] Playtest P2 (D3) : chaque jalon de G19 atteint dans sa fenêtre (±20 %) ; jamais plus de 20 s sans objectif visible.
+
+### Jalon D — Rétention
+
+**M12 — Quêtes, calendrier, série, succès, bestiaire** (G14, G15)
+- Tests : tirage quotidien à graine UTC ; une seule réclamation par jour UTC ; gel de série consommé automatiquement ; récompenses exactes ; succès déclenchés une seule fois.
+
+**M13 — Hors ligne, Moka, personnel** (G11.2, G11.3, G16)
+- Tests : livraison du matin plafonnée à 8 h ; aucune perte pendant l'absence ; coffre de retour après 3 jours ; Moka suit et attaque ; commis et caissier fonctionnent et dorment la nuit.
+
+**M14 — Défi du jour, Rivaux, partage, événements** (G13.3, G13.5, G13.6)
+- Tests : défi identique pour une même date UTC ; calcul du score ; texte de partage ; une seule tentative récompensée par jour ; événement choisi selon la semaine UTC ; saisons selon la date UTC.
+
+**M15 — Pubs, rubis, Garde-robe + Playtest P3** (B10, G17, G18)
+- [ ] Adaptateurs, placements, plafonds, repli ; Garde-robe et application des cosmétiques.
+- [ ] Playtest P3 « retour le lendemain » (horloge +1 jour, +3 jours, +8 jours).
+- Tests : chaque règle de `ad-policy` ; aucune récompense si la pub est fermée avant la fin ; jeu en pause pendant la pub.
+
+### Jalon E — Contenu
+
+**M16 — Quartier 2 : la Boulangerie** — four, pétrin, vitrine, machine à café ; chauve-souris, hérisson, champiboum ; cheminée ; la Grande Pâte.
+**M17 — Quartier 3 : la Pharmacie** — obscurité et lumière (lanterne, herbier, pilulier, alambic) ; fantôme, lutin, gros gourmand ; trappe ; la Dame Blanche.
+**M18 — Quartier 4 : la Quincaillerie** — établi, enclume, mélangeur de peinture, ventilateur, aimant ; corbeau, golem ; le Ferrailleur.
+**M19 — Quartier 5 : l'Emporium** — distributeur de bonbons, boule de cristal, pupitre à grimoires, horloge de Mamie ; phalène ; la Reine Phalène ; + Nuit sans fin + Franchise de quartier.
+
+Pour chaque quartier : données, comportements, boss, tests unitaires de chaque comportement, simulation `docs/sim/SIM_Qn.md` aux seuils D2.4.
+
+**M20 — Équilibrage global + Playtest P4** — simulation complète des 5 quartiers (D2) ; Playtest P4 « joueur avancé ».
+
+### Jalon F — Beauté et son
+
+**M21 — Direction artistique complète** (G20) : tous les sprites, logo, chiffres-tampons, interface ardoise / kraft / ticket, éclairage, transitions.
+**M22 — Juice et options** : catalogue G20.6, options G22.
+**M23 — Audio complet** (G21) : musiques jour, nuit, boss, matin ; les 44 effets ; mixage.
+
+### Jalon G — Finition et publication
+
+**M24 — Performances et mémoire** : B5, `npm run bench`, tests de fuite, mode économie.
+**M25 — Anglais, Paramètres, crédits, carte « écran d'accueil » iOS, icônes et manifest.**
+**M26 — Robustesse + Playtest final P5** : 10 min d'entrées aléatoires sans erreur ; 500 sauvegardes altérées au hasard → jamais de plantage ni de perte silencieuse.
+**M27 — Publication** : Pages en ligne et vérifié, README final, tag `v1.0.0`, notes de version, récap final (F).
+
+
+---
+
+## Problèmes mineurs relevés en playtest (à traiter en finition)
+
+_(aucun pour l'instant)_
+
+---
+
+## Journal de session
+- 2026-10-20 — M0 fait : fondations, build, titre, tests de fumée. Reste : M1 moteur. Prochaine étape : core/loop.js + rng.js + entrées.

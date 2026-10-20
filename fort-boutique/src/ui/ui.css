@@ -1,0 +1,210 @@
+/* Fort Boutique — interface diégétique : ardoise, étiquettes kraft, ticket de caisse (G20). */
+:root {
+  --encre: #2B1A33;
+  --ardoise: #2E4B44;
+  --ardoise-clair: #3A5C54;
+  --craie: #F2F6EE;
+  --craie-rose: #FF8FB1;
+  --craie-jaune: #FFE066;
+  --craie-bleue: #7FD8FF;
+  --kraft: #DDB389;
+  --kraft-ombre: #B8895C;
+  --verte: #46D39A;
+  --doree: #FFD23F;
+  --corail: #FF6B6B;
+  --ticket: #FFFDF6;
+  --or: #FFD23F;
+  --or-reflet: #FFF6C8;
+  --bois: #B86B3C;
+  --bois-fonce: #8A4A26;
+  --nuit: #1A1446;
+  --pomme: #FF4F5E;
+  --accent: #FF4F5E;
+  --f-title: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Nunito", system-ui, sans-serif;
+  --f-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ui-scale: 1;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ardoise);
+  color: var(--craie);
+  font-family: var(--f-ui);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
+#app {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 360px;
+  height: 640px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: var(--ardoise);
+}
+
+#game {
+  position: absolute;
+  inset: 0;
+  width: 360px;
+  height: 640px;
+  touch-action: none;
+  display: block;
+}
+
+#ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+.screen.passthrough { pointer-events: none; }
+.screen.passthrough .interactive { pointer-events: auto; }
+
+button { font: inherit; color: inherit; }
+
+/* ---------- Lettrage « sticker » (G20.3) ---------- */
+.sticker {
+  font-family: var(--f-title);
+  font-weight: 900;
+  color: var(--or-reflet);
+  -webkit-text-stroke: 4px var(--encre);
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 var(--encre);
+  letter-spacing: .5px;
+}
+
+/* ---------- Étiquettes kraft (boutons, G20.1) ---------- */
+.tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 16px 8px 26px;
+  border: 3px solid var(--encre);
+  border-radius: 8px 14px 14px 8px;
+  background: var(--kraft);
+  color: var(--encre);
+  font-family: var(--f-title);
+  font-weight: 800;
+  font-size: calc(16px * var(--ui-scale));
+  box-shadow: 0 4px 0 var(--kraft-ombre), 0 4px 0 2px var(--encre);
+  cursor: pointer;
+  transition: transform 60ms ease-out, box-shadow 60ms ease-out;
+}
+.tag .tag-hole {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin-top: -4.5px;
+  border-radius: 50%;
+  background: var(--ardoise);
+  border: 2px solid var(--encre);
+}
+.tag .tag-icon { display: inline-flex; width: 22px; height: 22px; }
+.tag .tag-icon svg { width: 100%; height: 100%; }
+.tag.small { min-height: 44px; padding: 4px 10px 4px 22px; font-size: calc(14px * var(--ui-scale)); }
+.tag[data-variant="green"] { background: var(--verte); box-shadow: 0 4px 0 #2BA877, 0 4px 0 2px var(--encre); }
+.tag[data-variant="gold"] { background: var(--doree); box-shadow: 0 4px 0 #E59E1B, 0 4px 0 2px var(--encre); }
+.tag[data-variant="coral"] { background: var(--corail); box-shadow: 0 4px 0 #D94C4C, 0 4px 0 2px var(--encre); }
+.tag.pressed, .tag:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--kraft-ombre), 0 2px 0 2px var(--encre); }
+.tag[disabled], .tag.disabled { filter: grayscale(.85); opacity: .65; cursor: default; }
+.tag:focus-visible { outline: 3px solid var(--craie-jaune); outline-offset: 3px; }
+
+/* ---------- Ardoise ---------- */
+.slate {
+  background: var(--ardoise);
+  border: 4px solid var(--bois-fonce);
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 3px #24403A, 0 6px 0 var(--encre);
+  color: var(--craie);
+}
+
+/* ---------- Écran titre ---------- */
+.title-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--ardoise);
+  cursor: pointer;
+}
+.title-logo { width: 300px; margin-top: -40px; }
+.title-logo .logo { width: 100%; height: auto; overflow: visible; }
+.logo-text {
+  font-family: var(--f-title);
+  font-weight: 900;
+  fill: var(--or-reflet);
+  stroke: var(--encre);
+  stroke-width: 8px;
+  paint-order: stroke fill;
+  stroke-linejoin: round;
+}
+.logo .lid { transform-box: fill-box; transform-origin: 50% 0%; animation: lid-open 1.6s ease-in-out 0.6s both; }
+.logo .lid.open { transform: scaleY(0); animation: none; }
+@keyframes lid-open {
+  0% { transform: scaleY(1); }
+  40% { transform: scaleY(0.05); }
+  50% { transform: scaleY(0.6); }
+  60%, 100% { transform: scaleY(0); }
+}
+.title-tagline {
+  margin: 0;
+  font-family: var(--f-title);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--craie);
+  opacity: .9;
+}
+.title-tap {
+  position: absolute;
+  bottom: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--craie);
+}
+.title-finger { width: 56px; height: 70px; }
+.finger { width: 100%; height: 100%; overflow: visible; }
+.finger .hand { animation: finger-tap 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0; }
+.finger .ripple { opacity: 0; transform-box: fill-box; transform-origin: center; animation: ripple 1.2s ease-out infinite; }
+@keyframes finger-tap {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(6px) scale(.94); }
+  55% { transform: translateY(6px) scale(.94); }
+}
+@keyframes ripple {
+  0%, 44% { opacity: 0; transform: scale(.4); }
+  50% { opacity: .9; transform: scale(.6); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+.blank-screen { background: var(--ardoise); }
+
+@media (prefers-reduced-motion: reduce) {
+  .finger .hand, .finger .ripple { animation-duration: 2.4s; }
+}
