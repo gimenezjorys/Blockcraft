@@ -7,8 +7,8 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M0 — Démarrage du dépôt | ✅ | 2026-10-20 | Arborescence, build autonome (12 Ko), icônes, titre, helpers jsdom, test de fumée. |
 | M1 — Moteur | ✅ | 2026-10-20 | Boucle à pas fixe, sfc32 + fork, temps UTC, pools, entrées unifiées, joystick, debug, hooks de test. |
 | M2 — Sauvegarde | ✅ | 2026-10-20 | CRC32, stockage avec repli mémoire, schéma G23, 2 copies + .corrupt, migrations testées, export FB1 ; 17 tests. |
-| M3 — La boutique et le marchand | 🔄 |  |  |
-| M4 — Le jour | ⬜ | | |
+| M3 — La boutique et le marchand | ✅ | 2026-10-20 | Grille E0–E3, cases réservées, validation G6.4, BFS, marchand qui glisse, rendu palette finale. |
+| M4 — Le jour | 🔄 |  |  |
 | M5 — La nuit | ⬜ | | |
 | M6 — Cycle complet + Playtest P1 | ⬜ | | |
 | M7 — Données et progression | ⬜ | | |
@@ -68,8 +68,8 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 ### Jalon B — Version jouable minimale (Épicerie : jour + nuit)
 
 **M3 — La boutique et le marchand**
-- [ ] Grille (G6.1), tailles E0 à E3, cases réservées (G6.2), disposition initiale de l'Épicerie (G6.7), validation des chemins (G6.4), rendu simple avec la **palette finale** (G20.2) et des formes basiques.
-- [ ] Marchand : déplacement au joystick (3,0 cases/s), collisions avec glissement le long des obstacles.
+- [x] Grille (G6.1), tailles E0 à E3, cases réservées (G6.2), disposition initiale de l'Épicerie (G6.7), validation des chemins (G6.4), rendu simple avec la **palette finale** (G20.2) et des formes basiques.
+- [x] Marchand : déplacement au joystick (3,0 cases/s), collisions avec glissement le long des obstacles.
 - Tests : collisions et glissement ; BFS ; validation (chemin bloqué refusé, case réservée refusée).
 
 **M4 — Le jour**
@@ -165,3 +165,4 @@ _(aucun pour l'instant)_
 - 2026-10-20 — M0 fait : fondations, build, titre, tests de fumée. Reste : M1 moteur. Prochaine étape : core/loop.js + rng.js + entrées.
 - 2026-10-20 — M1 fait : moteur, entrées, debug, hooks. Reste : M2 sauvegarde. Prochaine étape : save/crc32.js, storage.js, schema.js.
 - 2026-10-20 — M2 fait : sauvegarde complète et testée. Reste : M3 boutique. Prochaine étape : data/balance.js, game/shop.js (grille, placement), pathfinding.js.
+- 2026-10-20 — M3 fait : boutique, validation, marchand. Reste : M4 le jour. Prochaine étape : day/producers, shelves, carry, customers, register, pads, barre de soleil.

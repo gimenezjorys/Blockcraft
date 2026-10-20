@@ -76,3 +76,18 @@ Raison : ne jamais perdre une partie pour un champ abîmé (A0.2, M26).
 Décision : en plus de G23, la v1 contient `shops.*.day` (jours joués dans la boutique), `shops.*.pads.paid`, `shops.*.lastNightStars`, `shops.*.phase.carried` et `firstSaleDone`, `progress.pendingUnlocks`, des compteurs de `stats`, `settings.weaknessIcons`, `daily.maxClaimDay` (anti-recul d'horloge), `ads.lastRewardedAt` et `ads.interstitialsToday`, `offline.pendingDelivery`, `collections.bestiaryTiers`. La boutique de départ contient la Caisse, la Cagette A et l'Étagère A (G6.7).
 Alternatives : version 2 dès maintenant.
 Raison : tous ces champs ont une valeur par défaut ; la fusion au chargement suffit, aucune migration n'est nécessaire.
+
+## 2026-10-20 — M3 — Cases réservées selon le quartier
+Décision : seules les entrées qui existent dans le quartier réservent une case : porte d'entrée, porte de derrière et fenêtres partout ; trappe (2, H−4) à partir du Q3 ; la cheminée ne réserve aucune case.
+Alternatives : réserver la case de la trappe dans toutes les boutiques.
+Raison : l'emplacement P5 de l'Épicerie (Plante en (2, 2)) tombe sur la case de la trappe en E0 : G6.7 suppose donc qu'elle n'est pas réservée au Q1.
+
+## 2026-10-20 — M3 — Rotation des meubles
+Décision : `rot` vaut 0 à 3 ; une valeur impaire tourne l'empreinte de 90° (un meuble 2 × 1 devient 1 × 2) ; pour les meubles orientables, `rot` donne aussi la direction de tir (0 bas, 1 gauche, 2 haut, 3 droite).
+Alternatives : deux champs séparés (empreinte et direction).
+Raison : un seul champ dans la sauvegarde (G23 `rot`), et le bouton Tourner fait simplement +1.
+
+## 2026-10-20 — M3 — Scène de démonstration conservée
+Décision : la scène du rond de M1 reste accessible avec `?demo=1` ; les tests d'entrées de M1 l'utilisent toujours.
+Alternatives : réécrire ces tests sur la boutique.
+Raison : ne jamais affaiblir un test (A0.5) ; la Cloche, que ces tests touchent avec un second doigt, n'existe dans la boutique que la nuit.

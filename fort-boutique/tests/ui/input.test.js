@@ -13,7 +13,7 @@ function toDemo(g) {
 }
 
 test('joystick piloté par de vrais touchstart/touchmove/touchend', () => {
-  const g = loadGame();
+  const g = loadGame({ query: '?demo=1' });
   try {
     const start = toDemo(g);
     const canvas = g.$('#game');
@@ -36,7 +36,7 @@ test('joystick piloté par de vrais touchstart/touchmove/touchend', () => {
 });
 
 test('même vecteur à la souris', () => {
-  const g = loadGame();
+  const g = loadGame({ query: '?demo=1' });
   try {
     toDemo(g);
     // Les événements souris qui suivent un toucher de moins de 800 ms sont des doublons : on attend.
@@ -59,7 +59,7 @@ test('même vecteur à la souris', () => {
 });
 
 test('ZQSD, WASD et flèches', () => {
-  const g = loadGame();
+  const g = loadGame({ query: '?demo=1' });
   try {
     toDemo(g);
     for (const [k, dx, dy] of [['z', 0, -1], ['q', -1, 0], ['s', 0, 1], ['d', 1, 0], ['w', 0, -1], ['a', -1, 0], ['ArrowUp', 0, -1], ['ArrowLeft', -1, 0], ['ArrowDown', 0, 1], ['ArrowRight', 1, 0]]) {
@@ -81,7 +81,7 @@ test('ZQSD, WASD et flèches', () => {
 });
 
 test('second doigt : la Cloche pendant que le premier tient le joystick', () => {
-  const g = loadGame();
+  const g = loadGame({ query: '?demo=1' });
   try {
     toDemo(g);
     const canvas = g.$('#game');
@@ -101,7 +101,7 @@ test('second doigt : la Cloche pendant que le premier tient le joystick', () => 
 });
 
 test('Pointer Events prioritaires : un geste n’est jamais traité deux fois', () => {
-  const g = loadGame();
+  const g = loadGame({ query: '?demo=1' });
   try {
     toDemo(g);
     const canvas = g.$('#game');
@@ -119,7 +119,7 @@ test('Pointer Events prioritaires : un geste n’est jamais traité deux fois', 
 });
 
 test('pause sur visibilitychange (onglet caché)', () => {
-  const g = loadGame();
+  const g = loadGame({ query: '?demo=1' });
   try {
     toDemo(g);
     const t0 = g.hooks.getState().simTime;
@@ -141,7 +141,7 @@ test('pause sur visibilitychange (onglet caché)', () => {
 });
 
 test('?debug=1 affiche l’overlay ; absent sinon', () => {
-  const g = loadGame({ query: '?debug=1' });
+  const g = loadGame({ query: '?debug=1&demo=1' });
   const g2 = loadGame();
   try {
     assert.ok(g.$('.debug-panel'));
