@@ -4,6 +4,9 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { defaultSave } from '../src/save/schema.js';
+import { serialize, SAVE_KEY } from '../src/save/save.js';
+import { districtDef } from '../src/data/districts.js';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const OUT = process.argv[2] || join(ROOT, 'docs/screens');
@@ -70,6 +73,42 @@ await shot('06-coffre');
 await page.tap('#dawn-continue');
 await page.waitForTimeout(800);
 await shot('07-matin');
+// Matin avancé (niveau 5, jour 3) : cartes de déblocage, Catalogue, Améliorer.
+{
+  const s = defaultSave({ seed: 7, now: 0, lang: 'fr' });
+  Object.assign(s.progress, { pendingUnlocks: [5] });
+  s.progress.flags.introDone = true;
+  s.progress.flags.firstChestDone = true;
+  Object.assign(s.stats, { cycles: 2, nights: 2 });
+  Object.assign(s.player, { level: 5, coins: 640 });
+  s.furniture.etagere = { level: 1, plans: 3 };
+  s.furniture.cagette = { level: 2, plans: 1 };
+  const shop = s.shops.q1;
+  Object.assign(shop, { day: 3, night: 3 });
+  Object.assign(shop.phase, { name: 'morning', dawnClaimed: true });
+  shop.pads.done = districtDef('q1').pads.map((p) => p.id);
+  const text = serialize(s);
+  const ctx2 = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true, locale: 'fr-FR' });
+  await ctx2.addInitScript(([k, v]) => { if (!localStorage.getItem(k)) localStorage.setItem(k, v); }, [SAVE_KEY, text]);
+  const p2 = await ctx2.newPage();
+  p2.on('pageerror', (e) => errors.push(e.message));
+  await p2.goto(`file://${join(ROOT, 'dist/index.html')}`);
+  await p2.waitForTimeout(1500);
+  await p2.touchscreen.tap(180, 320);
+  await p2.waitForTimeout(1600);
+  await p2.screenshot({ path: join(OUT, '08-deblocage.png') });
+  await p2.tap('#unlock-ok');
+  await p2.waitForTimeout(900);
+  await p2.tap('#hub-catalog');
+  await p2.waitForTimeout(700);
+  await p2.screenshot({ path: join(OUT, '09-catalogue.png') });
+  await p2.tap('.panel-back');
+  await p2.waitForTimeout(800);
+  await p2.tap('#hub-upgrades');
+  await p2.waitForTimeout(700);
+  await p2.screenshot({ path: join(OUT, '10-ameliorer.png') });
+  await ctx2.close();
+}
 await browser.close();
 process.stdout.write(`captures dans ${OUT}${errors.length ? ` — erreurs : ${errors.join(' | ')}` : ''}\n`);
 if (checks.length) {

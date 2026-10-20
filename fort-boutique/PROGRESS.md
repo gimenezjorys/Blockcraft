@@ -11,7 +11,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M4 — Le jour | ✅ | 2026-10-20 | Producteurs, pile, étagères, clients (types, file, patience), caisse, tas de pièces, 6 emplacements, soleil, fermeture, sons de base. |
 | M5 — La nuit | ✅ | 2026-10-20 | Vagues à graine, 15 comportements de meubles, effets, vol/fuite/récupération, Cloche, balai, réparation, éclairage, HUD de nuit. |
 | M6 — Cycle complet + Playtest P1 | ✅ | 2026-10-20 | Cycle Matin → Jour → Nuit → Aube → Matin sauvegardé et repris à l'identique ; ticket, coffre, plans, amélioration ; P1 : 1 bloquant et 8 majeurs corrigés (coffre perdu, pub trop tôt, boutons muets, niveau invisible, boutique trop petite, pause auto, pièces et compteurs au rechargement). |
-| M7 — Données et progression | ⬜ | | |
+| M7 — Données et progression | ✅ | 2026-10-20 | Catalogue (prix × 1,6 par exemplaire, plafonds, pose automatique), Améliorer (meubles avec gains chiffrés, marchand, recettes, agrandissement E1), cartes de déblocage au Matin ; 11 tests nouveaux. |
 | M8 — Aménagement | ⬜ | | |
 | M9 — La semaine et la Pleine Lune | ⬜ | | |
 | M10 — Simulateur d'équilibrage (Q1) | ⬜ | | |
@@ -92,7 +92,7 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 ### Jalon C — Progression, économie, Quartier 1 complet
 
 **M7 — Données et progression**
-- [ ] Toutes les données du Quartier 1 : meubles (étagère, caisse, comptoir, plante carnivore, cagette, frigo, chaudron), monstres (raton, souris, gloubi, termite, raton doré), Roi Raton ; niveau de marchand et déblocages (G12.3, G12.4) ; catalogue (acheter puis placer) ; recettes (prix des produits) ; agrandissement E1 ; plafond de niveau des meubles ; prix croissant par exemplaire.
+- [x] Toutes les données du Quartier 1 : meubles (étagère, caisse, comptoir, plante carnivore, cagette, frigo, chaudron), monstres (raton, souris, gloubi, termite, raton doré), Roi Raton ; niveau de marchand et déblocages (G12.3, G12.4) ; catalogue (acheter puis placer) ; recettes (prix des produits) ; agrandissement E1 ; plafond de niveau des meubles ; prix croissant par exemplaire.
 - Tests : courbe d'XP ; déblocages ; prix par exemplaire ; plafonds ; coûts en plans et en pièces.
 
 **M8 — Aménagement**
@@ -181,3 +181,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M4 fait : la journée complète, testée au doigt. Reste : M5 la nuit. Prochaine étape : night/waves.js (générateur à graine), monsters.js, towers.js.
 - 2026-10-20 — M5 fait : la nuit complète et testée. Reste : M6 cycle complet + P1. Prochaine étape : phases Matin/Aube, sauvegarde aux transitions, ticket, coffre, amélioration.
 - 2026-10-20 — M6 fait : cycle complet, playtest P1 (docs/playtests/P1.md) et corrections. Reste : M7 données et progression. Prochaine étape : brancher Catalogue/Améliorer/cartes de déblocage (fichiers déjà préparés).
+- 2026-10-20 — M7 fait : progression du Quartier 1 jouable depuis le Matin. Reste : M8 aménagement. Prochaine étape : routage des gestes vers la scène de l'éditeur (onPointer), écran Aménager déjà préparé.

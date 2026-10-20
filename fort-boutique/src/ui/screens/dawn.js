@@ -5,6 +5,7 @@ import { t, fmt } from '../i18n.js';
 import { SVG, chestSvg, furnitureIcon } from '../icons.js';
 import { canUpgrade } from '../../game/economy.js';
 import { levelProgress } from '../../game/progression.js';
+import { upgradeStatsEl } from '../upgrade-preview.js';
 import { CHEST_TAPS } from '../../data/chests.js';
 
 const LINE_GAP = 0.35;
@@ -76,12 +77,17 @@ function mount(app, p, d) {
     const c = h('div.card.card-plan', { 'data-furniture': id });
     const info = h('div.card-info');
     const up = h('button.card-up', { type: 'button', 'aria-label': t('dawn.upgrade'), html: SVG.arrowUp });
+    const cost = h('span.card-cost', [h('span.money-ico', { html: SVG.coin }), h('span', { text: '' })]);
     const render = () => {
       const u = canUpgrade(p.save, id);
       const need = u.cost ? u.cost.plans : 0;
       info.innerHTML = '';
       info.append(h('span.card-n', { text: `×${n}` }), h('span.card-prog', { text: need ? `${u.plans}/${need}` : 'MAX' }), h('span.card-lvl', { text: `${t('common.lvl')} ${u.level}` }));
+      // Ce que l'on gagne et ce que l'on paie (Hugo, P1) : « ⚔ 6→7 » et le prix en pièces sous la flèche.
+      if (u.cost) info.append(upgradeStatsEl(id, u.level, 1));
       up.hidden = !u.ok;
+      cost.hidden = !u.ok;
+      if (u.cost) cost.lastChild.textContent = fmt(u.cost.coins);
       c.classList.toggle('can-up', u.ok);
     };
     onTap(up, () => {
@@ -95,7 +101,7 @@ function mount(app, p, d) {
       }
     }, d);
     c._render = render;
-    c.append(furnitureIcon(id, 44), info, up);
+    c.append(furnitureIcon(id, 44), info, up, cost);
     render();
     return c;
   }

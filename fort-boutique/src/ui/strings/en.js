@@ -158,6 +158,7 @@ export default {
   'upgrades.recipes': "Recipes",
   'upgrades.shop': "Shop",
   'upgrades.cap': "Max furniture level: {n}",
+  'upgrades.capReached': "Cap {n} reached: level up first!",
   'upgrades.plans': "blueprints",
   'upgrades.lockedAt': "Unlocks at level {n}",
   'upgrades.effect.shoes': "Speed +0.15 tile/s",

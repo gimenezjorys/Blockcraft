@@ -11,6 +11,7 @@ import { createPlay } from './play.js';
 import { ADS } from '../data/balance.js';
 import { t } from './i18n.js';
 import { SVG } from './icons.js';
+import { createHub, HUB_SCREENS } from './hub.js';
 
 /** Sauvegarde automatique pendant le jeu (B9). */
 const AUTOSAVE_S = 10;
@@ -57,6 +58,13 @@ export function createSession(app, o) {
   function showMorning() {
     enterMorning(g);
     rebuildShop(g);
+    renderMorning();
+    // Les déblocages se fêtent au Matin suivant (G12.4).
+    hub.showUnlocks();
+  }
+
+  /** (Re)dessine le hub du Matin, par exemple au retour du Catalogue. */
+  function renderMorning() {
     app.router.goto('morning', {
       g,
       onOpen: () => {
@@ -64,11 +72,16 @@ export function createSession(app, o) {
         save(true);
         showHud();
       },
-      onButton: (id) => (session.onHubButton ? session.onHubButton(id) : null),
+      onButton: (id) => {
+        if (session.onHubButton) session.onHubButton(id);
+        else hub.open(id);
+      },
       ready: session.hubScreens,
       onSettings: () => pause(),
     });
   }
+
+  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning() });
 
   function showDawn() {
     app.router.goto('dawn', {
@@ -182,9 +195,10 @@ export function createSession(app, o) {
 
   const session = {
     /** Écrans du hub déjà branchés (les autres boutons affichent « Bientôt »). */
-    hubScreens: new Set(),
-    /** @type {((id: string) => void) | null} */
+    hubScreens: new Set(HUB_SCREENS),
+    /** Remplace l'ouverture des écrans du hub (tests, debug). @type {((id: string) => void) | null} */
     onHubButton: null,
+    hub: () => hub,
     game: () => g,
     saver: () => saver,
     save,

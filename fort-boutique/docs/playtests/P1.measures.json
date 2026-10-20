@@ -1,6 +1,6 @@
 {
   "playtest": "P1",
-  "durationS": 281,
+  "durationS": 281.1,
   "milestones": [
     {
       "id": "firstPurchase",
@@ -70,7 +70,7 @@
       "id": "day2",
       "label": "Jour 2",
       "targetS": 195,
-      "atS": 122.1,
+      "atS": 122.2,
       "gapPct": -37,
       "ok": false
     },
@@ -78,7 +78,7 @@
       "id": "thirdPurchase",
       "label": "Troisième achat (P3, Frigo)",
       "targetS": 220,
-      "atS": 136.1,
+      "atS": 136.2,
       "gapPct": -38,
       "ok": false
     },
@@ -86,7 +86,7 @@
       "id": "secondNight",
       "label": "Deuxième nuit",
       "targetS": 325,
-      "atS": 252.1,
+      "atS": 252.2,
       "gapPct": -22,
       "ok": false
     },
@@ -102,7 +102,7 @@
       "id": "secondMorning",
       "label": "Deuxième Matin",
       "targetS": 410,
-      "atS": 281,
+      "atS": 281.1,
       "gapPct": -31,
       "ok": false
     }
@@ -118,7 +118,7 @@
     },
     {
       "id": "hub-upgrades",
-      "response": "message"
+      "response": "écran upgrades"
     },
     {
       "id": "hub-quests",
@@ -133,7 +133,7 @@
       "response": "secousse"
     },
     {
-      "id": "hub-map locked soon nope",
+      "id": ".hub-map",
       "response": "message"
     }
   ],
@@ -161,31 +161,37 @@
       "exitAfter": 4.5
     },
     {
-      "screen": "morning",
+      "screen": "unlocks",
       "from": 121.9,
-      "to": 122.1,
+      "to": 122,
+      "exitAfter": 0
+    },
+    {
+      "screen": "morning",
+      "from": 122,
+      "to": 122.2,
       "exitAfter": 0
     },
     {
       "screen": "hud",
-      "from": 122.1,
-      "to": 276.3,
+      "from": 122.2,
+      "to": 276.4,
       "exitAfter": 0
     },
     {
       "screen": "dawn",
-      "from": 276.3,
-      "to": 281,
+      "from": 276.4,
+      "to": 281.1,
       "exitAfter": 4.5
     },
     {
       "screen": "morning",
-      "from": 281,
-      "to": 281,
+      "from": 281.1,
+      "to": 281.1,
       "exitAfter": 0
     }
   ],
-  "taps": 20,
+  "taps": 22,
   "inertTaps": 0,
   "adOffersFirst10min": 0,
   "nightStars": [
@@ -217,13 +223,13 @@
         "level": 1,
         "plans": 0
       },
-      "frigo": {
-        "level": 2,
-        "plans": 6
-      },
       "comptoir": {
         "level": 1,
         "plans": 8
+      },
+      "frigo": {
+        "level": 2,
+        "plans": 6
       }
     }
   }

@@ -8,6 +8,9 @@ import { districtDef } from '../../data/districts.js';
 import { canUpgrade, furnitureLevelCap } from '../../game/economy.js';
 import { unlockedFurniture, isUnlocked } from '../../game/progression.js';
 import { merchantUpgradeInfo, recipeInfo, expansionInfo } from '../../game/upgrades.js';
+import { upgradeStatsEl } from '../upgrade-preview.js';
+import { FEATURE_LEVELS } from '../../data/unlocks.js';
+import { RECIPES } from '../../data/balance.js';
 
 const TABS = ['furniture', 'merchant', 'recipes', 'shop'];
 
@@ -39,13 +42,18 @@ function mount(app, p, d) {
     tabs.appendChild(b);
   }
 
-  function row(icon, title, detail, cost, ok, onBuy, id) {
+  function row(icon, title, detail, cost, ok, onBuy, id, extra) {
     const btn = tagButton({ label: cost === null ? t('catalog.max') : fmt(cost), variant: ok ? 'green' : 'kraft', small: true, icon: cost === null ? undefined : SVG.coin });
     if (!ok) btn.classList.add('disabled');
-    const r = h('div.up-row', { 'data-id': id }, [h('div.up-ico', [icon]), h('div.up-text', [h('div.up-title', { text: title }), h('div.up-detail', { text: detail })]), btn]);
+    const text = h('div.up-text', [h('div.up-title', { text: title }), h('div.up-detail', { text: detail })]);
+    if (extra) text.appendChild(extra);
+    const r = h('div.up-row', { 'data-id': id }, [h('div.up-ico', [icon]), text, btn]);
     onTap(btn, () => {
       if (!ok || !onBuy()) {
         sfx('error');
+        btn.classList.remove('nope');
+        void btn.offsetWidth;
+        btn.classList.add('nope');
         return;
       }
       sfx('upgrade');
@@ -63,19 +71,21 @@ function mount(app, p, d) {
       for (const id of unlockedFurniture(save)) {
         const u = canUpgrade(save, id);
         const need = u.cost ? `${u.plans}/${u.cost.plans}` : t('catalog.max');
-        list.appendChild(row(furnitureIcon(id, 40), `${t(`furn.${id}`)} · ${t('common.lvl')} ${u.level}`, `${need} ${t('upgrades.plans')}`, u.cost ? u.cost.coins : null, u.ok, () => p.onUpgradeFurniture(id), id));
+        const detail = u.reason === 'cap' ? t('upgrades.capReached', { n: cap }) : `${need} ${t('upgrades.plans')}`;
+        list.appendChild(row(furnitureIcon(id, 40), `${t(`furn.${id}`)} · ${t('common.lvl')} ${u.level}`, detail, u.cost ? u.cost.coins : null, u.ok, () => p.onUpgradeFurniture(id), id, u.cost ? upgradeStatsEl(id, u.level) : null));
       }
     } else if (tab === 'merchant') {
-      if (!isUnlocked(save, 'merchantUpgrades')) list.appendChild(h('div.up-note', { text: t('upgrades.lockedAt', { n: 2 }) }));
+      if (!isUnlocked(save, 'merchantUpgrades')) list.appendChild(h('div.up-note', { text: t('upgrades.lockedAt', { n: FEATURE_LEVELS.merchantUpgrades }) }));
       for (const id of MERCHANT_UPGRADE_IDS) {
         const info = merchantUpgradeInfo(save, id);
         list.appendChild(row(h('span.up-emoji', { html: SVG.star }), `${t(`up.${id}`)} · ${t('common.lvl')} ${info.level}/${info.max}`, t(`upgrades.effect.${id}`), info.cost, info.ok, () => p.onMerchant(id), id));
       }
     } else if (tab === 'recipes') {
-      if (save.player.level < 5) list.appendChild(h('div.up-note', { text: t('upgrades.lockedAt', { n: 5 }) }));
+      if (save.player.level < RECIPES.unlockLevel) list.appendChild(h('div.up-note', { text: t('upgrades.lockedAt', { n: RECIPES.unlockLevel }) }));
       for (const prod of districtDef(g.shopId).products) {
         const info = recipeInfo(save, g.shopId, prod);
-        list.appendChild(row(productIcon(prod, 32), `${t(`prod.${prod}`)} · ${t('common.lvl')} ${info.level}/5`, t('upgrades.recipeDetail', { n: Math.round(15 * (info.level - 1)) }), info.cost, info.ok, () => p.onRecipe(prod), prod));
+        const bonus = Math.round(RECIPES.bonusPerLevel * 100 * (info.level - 1));
+        list.appendChild(row(productIcon(prod, 32), `${t(`prod.${prod}`)} · ${t('common.lvl')} ${info.level}/${RECIPES.maxLevel}`, t('upgrades.recipeDetail', { n: bonus }), info.cost, info.ok, () => p.onRecipe(prod), prod));
       }
     } else {
       const info = expansionInfo(save, g.shopId);

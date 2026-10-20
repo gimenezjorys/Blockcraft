@@ -86,6 +86,7 @@ export class TouchBot {
     const sc = st.scene;
     if (screen === 'title') this.tapEl('.screen-title');
     else if (screen === 'dawn') this.dawn();
+    else if (screen === 'unlocks') this.tapEl('#unlock-ok');
     else if (screen === 'morning') this.morning(st);
     else if (sc && (sc.phase === 'day' || sc.phase === 'closing')) this.day(sc);
     else if (sc && sc.phase === 'night') this.night(sc);

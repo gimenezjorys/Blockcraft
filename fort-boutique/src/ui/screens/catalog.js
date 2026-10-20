@@ -48,7 +48,7 @@ function mount(app, p, d) {
     else price = h('div.cat-price', [h('span.money-ico', { html: SVG.coin }), h('span', { text: fmt(c.price) })]);
     if (!c.ok && c.reason === 'coins') price.classList.add('short');
     const owned = h('div.cat-owned', { text: locked ? '' : `${c.owned}/${c.max}` });
-    el.append(icons, name, price, owned);
+    el.append(icons, name, h('div.cat-foot', [price, owned]));
     onTap(el, () => {
       const audio = app.services.audio;
       if (!canBuy(save, shopId, id).ok) {

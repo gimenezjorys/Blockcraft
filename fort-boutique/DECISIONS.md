@@ -216,3 +216,18 @@ Raison : Sam (P1, majeur) : les Grignotins avançaient pendant qu'il rallumait s
 Décision : ruban de niveau à l'aube (après le coffre) ; flèche du voleur dessinée au-dessus du voile ; silhouette du meuble dans l'emplacement d'achat ; Cloche cachée pendant la nuit du tutoriel (elle ne peut pas s'y charger) ; lune du Matin en croissant ; ligne « Pièces sauvées » au lieu d'un second « Bocal » sur le ticket.
 Alternatives : attendre M11, M21 et M22.
 Raison : critiques de P1, corrections courtes et sans risque.
+
+## 2026-10-20 — M7 — Acheter puis placer
+Décision : un meuble acheté au Catalogue se pose aussitôt à la meilleure place valide (`findPlacement` : trajet des Grignotins le plus long, trajet des clients allongé de 30 % au plus, comme le Conseil de Mamie) ; s'il n'y a aucune place, il attend dans la Réserve et un message le dit. L'éditeur (M8) permet ensuite de tout déplacer.
+Alternatives : envoyer tout achat dans la Réserve ; ouvrir l'éditeur après chaque achat.
+Raison : G20.8 ne précise pas ; Léa ne doit jamais acheter un meuble qui « disparaît », et un placement automatique utile est le meilleur point de départ avant l'aménagement.
+
+## 2026-10-20 — M7 — Cartes de déblocage et ruban de niveau
+Décision : le ruban de l'aube fête le niveau ; les cartes du Matin suivant présentent les déblocages (3 au plus, quartiers puis fonctions, `UNLOCK_CARD_ORDER`). La liste `progress.pendingUnlocks` n'est vidée qu'une fois les cartes fermées (si l'onglet se ferme avant, elles reviennent). Un niveau sans déblocage n'ouvre aucune carte.
+Alternatives : tout montrer à l'aube.
+Raison : G12.4 (« au Matin suivant ») ; P1 (Léa) demandait un moment visible dès l'aube.
+
+## 2026-10-20 — M7 — Ce que rapporte une amélioration
+Décision : les cartes de plans de l'aube et les lignes de l'onglet Meubles montrent le gain en chiffres (« ⚔ 6→7,2 », « ♥ 60→69 », capacité ou cadence de production) et le prix en pièces ; quand le plafond de niveau bloque, la ligne le dit (« Plafond 3 atteint : monte de niveau ! »).
+Alternatives : attendre M22.
+Raison : P1 (Hugo, majeur) ; les valeurs viennent de `game/stats.js`, aucun chiffre écrit en dur.

@@ -360,3 +360,65 @@ button { font: inherit; color: inherit; }
 .req-badge { display: inline-flex; align-items: center; gap: 2px; }
 .req-badge .req-ico { display: inline-flex; width: 11px; height: 11px; }
 .req-badge .req-ico svg { width: 100%; height: 100%; }
+
+/* ---------- Fenêtres plein écran du hub : Catalogue, Améliorer (G20.8) ---------- */
+.panel.slate-full { display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 14px; background: var(--ardoise);
+  border: 4px solid var(--bois-fonce); box-shadow: inset 0 0 0 3px #24403A; animation: slide-in 180ms ease-out both; }
+.panel-head { display: flex; align-items: center; gap: 8px; }
+.panel-back { width: 44px; height: 44px; flex: 0 0 44px; padding: 8px; border: 3px solid var(--encre); border-radius: 50%; background: var(--kraft); box-shadow: 0 3px 0 var(--encre); }
+.panel-back svg { width: 100%; height: 100%; }
+.panel-title { flex: 1; margin: 0; font-size: 24px; text-align: center; }
+.panel-filters { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.panel-filters .tag { min-height: 40px; padding: 2px 8px; font-size: 12px; }
+.panel-filters .tag .tag-hole { display: none; }
+.catalog-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 8px; align-content: start; padding: 6px 2px 8px; touch-action: pan-y; }
+.cat-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 124px; padding: 6px 4px;
+  border: 3px solid var(--encre); border-radius: 10px; background: var(--kraft); color: var(--encre); box-shadow: 0 4px 0 var(--kraft-ombre), 0 4px 0 2px var(--encre); font-family: var(--f-title); }
+.cat-icons { display: flex; gap: 2px; }
+.cat-icons canvas { width: 40px; height: 40px; }
+.cat-card.locked .cat-icons canvas { filter: brightness(0) opacity(.45); }
+.cat-card.locked { background: #CDB28F; }
+.cat-name { font-weight: 800; font-size: 12px; line-height: 1.1; text-align: center; min-height: 26px; display: flex; align-items: center; }
+.cat-price { display: flex; align-items: center; gap: 3px; font-weight: 900; font-size: 15px; }
+.cat-price .money-ico { width: 16px; height: 16px; }
+.cat-price.short { color: #B23A3A; }
+.cat-lock { display: flex; align-items: center; gap: 3px; font-weight: 900; font-size: 13px; }
+.cat-lock .lock-ico { display: inline-flex; width: 14px; height: 14px; }
+.cat-lock .lock-ico svg { width: 100%; height: 100%; }
+.cat-foot { display: flex; align-items: center; gap: 6px; }
+.cat-owned { font-size: 10px; font-weight: 800; opacity: .7; }
+.cat-owned:empty { display: none; }
+.cat-card.maxed { opacity: .7; }
+.cat-card.nope, .up-row .tag.nope { animation: nope 240ms both; }
+.up-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 4px 2px 8px; touch-action: pan-y; }
+.up-note { text-align: center; font-size: 13px; font-weight: 700; color: var(--craie-jaune); }
+.up-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 3px solid var(--encre); border-radius: 10px; background: var(--kraft); color: var(--encre); box-shadow: 0 3px 0 var(--encre); }
+.up-ico { flex: 0 0 44px; display: flex; justify-content: center; }
+.up-ico canvas { width: 40px; height: 40px; }
+.up-emoji { display: inline-flex; width: 30px; height: 30px; }
+.up-emoji svg { width: 100%; height: 100%; }
+.up-text { flex: 1; min-width: 0; }
+.up-title { font: 800 14px/1.15 var(--f-title); }
+.up-detail { font-size: 12px; opacity: .85; }
+.up-stats { display: flex; gap: 8px; font: 800 12px/1.2 var(--f-mono); color: #1E5A44; }
+.up-row .tag { min-height: 44px; padding: 2px 10px; font-size: 14px; }
+.up-row .tag .tag-hole { display: none; }
+
+/* ---------- Cartes de déblocage (Matin, G12.4) ---------- */
+.unlock-panel { width: 316px; padding: 16px 12px 18px; display: flex; flex-direction: column; align-items: center; gap: 14px; animation: slide-in 180ms ease-out both; }
+.unlock-title { margin: 0; font-size: 30px; }
+.unlock-row { display: flex; justify-content: center; gap: 8px; }
+.unlock-card { width: 92px; min-height: 118px; animation: unlock-in 600ms ease-out both; }
+.unlock-card .unlock-icon canvas { animation: reveal 900ms ease-out both; animation-delay: inherit; }
+.unlock-name { font-weight: 800; font-size: 11px; text-align: center; line-height: 1.1; overflow-wrap: anywhere; hyphens: auto; max-width: 100%; }
+.unlock-feat { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; font-size: 34px; color: var(--doree); -webkit-text-stroke: 2px var(--encre); }
+.unlock-more { width: 52px; font: 900 22px var(--f-title); }
+@keyframes unlock-in { from { transform: translateY(-40px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes reveal { from { filter: brightness(0) opacity(.5); } to { filter: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .unlock-card, .unlock-card .unlock-icon canvas { animation: none; }
+}
+.card-cost { position: absolute; top: 28px; right: -14px; display: inline-flex; align-items: center; gap: 1px; padding: 0 4px; border: 2px solid var(--encre);
+  border-radius: 8px; background: var(--ticket); font: 900 11px/16px var(--f-title); color: var(--encre); pointer-events: none; }
+.card-cost .money-ico { width: 11px; height: 11px; }
+.card .up-stats { font-size: 10px; color: #1E5A44; }

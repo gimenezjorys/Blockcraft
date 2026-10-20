@@ -14,6 +14,9 @@ import blank from './ui/screens/blank.js';
 import morning from './ui/screens/morning.js';
 import dawn from './ui/screens/dawn.js';
 import pause from './ui/screens/pause.js';
+import catalog from './ui/screens/catalog.js';
+import upgrades from './ui/screens/upgrades.js';
+import unlocks from './ui/screens/unlocks.js';
 
 const VERSION = typeof __FB_VERSION__ !== 'undefined' ? __FB_VERSION__ : { version: 'dev', hash: '', date: '' };
 
@@ -103,7 +106,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud: blank, morning, dawn, pause });
+  app.router.register({ title, blank, hud: blank, morning, dawn, pause, catalog, upgrades, unlocks });
   app.router.goto('title');
   app.loop.start();
 }

@@ -34,8 +34,11 @@ const fmtT = (sec) => (sec == null ? '—' : `${Math.floor(sec / 60)}:${String(M
  */
 function auditHub(g, bot) {
   const out = [];
-  const els = [...g.$$('.hub-grid .tag'), g.$('.hub-map')].filter(Boolean);
-  for (const el of els) {
+  // Le hub est redessiné au retour d'un écran : on relit chaque bouton par son sélecteur.
+  const sels = [...g.$$('.hub-grid .tag').map((b) => `#${b.id}`), '.hub-map'];
+  for (const sel of sels) {
+    const el = g.$(sel);
+    if (!el) continue;
     const toasts0 = (g.hooks.getState().toasts || []).length;
     el.classList.remove('nope');
     bot.tapEl(el);
@@ -45,7 +48,7 @@ function auditHub(g, bot) {
     if (st.screen !== 'morning') response = `écran ${st.screen}`;
     else if ((st.toasts || []).length > toasts0) response = 'message';
     else if (el.classList.contains('nope')) response = 'secousse';
-    out.push({ id: el.id || el.className, response });
+    out.push({ id: el.id || sel, response });
     if (st.screen !== 'morning') {
       const back = g.$('.panel-back');
       if (back) bot.tapEl(back);

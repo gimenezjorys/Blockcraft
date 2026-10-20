@@ -158,6 +158,7 @@ export default {
   'upgrades.recipes': "Recettes",
   'upgrades.shop': "Boutique",
   'upgrades.cap': "Niveau maximal des meubles : {n}",
+  'upgrades.capReached': "Plafond {n} atteint : monte de niveau !",
   'upgrades.plans': "plans",
   'upgrades.lockedAt': "Débloqué au niveau {n}",
   'upgrades.effect.shoes': "Vitesse +0,15 case/s",
