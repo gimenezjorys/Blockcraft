@@ -106,16 +106,17 @@ test('corbeau : vole et arrive en V de 3', () => {
   assert.equal(MONSTERS.corbeau.formation, 'V');
 });
 
-test('golem : 360 PV, armure 8, métal ; ralentissements de froid × 0,5', () => {
+test('golem : blindé, métal ; ralentissements de froid × 0,5', () => {
   const g = q4Night([]);
   const m = dummy(g, 'golem', 2.5, 1.5);
-  assert.equal(m.armor, 8);
+  assert.equal(m.armor, MONSTERS.golem.armor);
+  assert.ok(m.armor > 0 && m.def.metal);
   m.stunT = 0;
   applySlow(m, 0.5, 2, 'cold');
   assert.ok(Math.abs(effectiveSlow(m) - 0.25) < 1e-6, `froid divisé par 2 (${effectiveSlow(m)})`);
 });
 
-test('le Ferrailleur : frappe les meubles voisins (30/s), immunisé au recul et à l’étourdissement, métal', () => {
+test('le Ferrailleur : frappe les meubles voisins, immunisé au recul et à l’étourdissement, métal', () => {
   const g = q4Night([{ id: 'comptoir', x: 1, y: 1, rot: 0 }]);
   const wall = g.furn.find((f) => f.id === 'comptoir');
   const b = spawnMonster(g, 'ferrailleur', 'backdoor', { x: wall.cx + 1, y: wall.cy });
@@ -126,5 +127,5 @@ test('le Ferrailleur : frappe les meubles voisins (30/s), immunisé au recul et 
   const hp0 = wall.hp;
   b.speedBoost = 0;
   run(g, 1, (gg) => { far(gg); b.x = wall.cx + 1; b.y = wall.cy; });
-  assert.ok(hp0 - wall.hp >= 25 || wall.broken, `meuble frappé (${hp0 - wall.hp})`);
+  assert.ok(hp0 - wall.hp >= 0.8 * BOSSES.ferrailleur.smash.dps || wall.broken, `meuble frappé (${hp0 - wall.hp})`);
 });

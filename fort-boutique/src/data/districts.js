@@ -44,7 +44,8 @@ export const DISTRICTS = {
     products: ['clous', 'peinture', 'marteau'],
     furniture: ['etabli', 'enclume', 'peinture', 'ventilo', 'aimant'],
     intro: { gourmand: 0, herisson: 0, champiboum: 0, lutin: 0, corbeau: 1, golem: 3 },
-    weights: { corbeau: 20, golem: 10, gourmand: 15, herisson: 20, champiboum: 15, lutin: 20 },
+    // M18 (D2.5) : gros gourmands 15 -> 11,25 et hérissons 20 -> 15 (les plus voleurs des quartiers d'avant).
+    weights: { corbeau: 20, golem: 10, gourmand: 11.25, herisson: 15, champiboum: 15, lutin: 20 },
     entrances: { backdoor: 1, windowLeft: 1, windowRight: 1, chimney: 1, trapdoor: 1 },
     dark: false,
   },

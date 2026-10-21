@@ -20,8 +20,9 @@ export const MONSTERS = {
   fantome: { id: 'fantome', hp: 26, armor: 0, speed: 0.9, steal: 0.0375, loot: 4, threat: 2, group: [2, 5], ghost: true, weak: { light: 2 } },
   lutin: { id: 'lutin', hp: 30, armor: 0, speed: 1.0, steal: 0.045, loot: 4, threat: 2, group: [2, 5], teleport: { every: 4, cells: 2, warn: 0.5 } },
   gourmand: { id: 'gourmand', hp: 200, armor: 4, speed: 0.5, steal: 0.1125, loot: 15, threat: 6, group: [2, 5], noKnockback: true },
-  corbeau: { id: 'corbeau', hp: 20, armor: 0, speed: 1.7, steal: 0.05, loot: 3, threat: 1.5, group: [3, 3], flying: true, formation: 'V' },
-  golem: { id: 'golem', hp: 360, armor: 8, speed: 0.45, steal: 0.2, loot: 25, threat: 10, group: [2, 5], metal: true, coldResist: 0.5 },
+  // M18 (D2.5) : vol du corbeau 5 -> 3,75 % ; golem : armure 8 -> 6, vol 20 -> 15 %.
+  corbeau: { id: 'corbeau', hp: 20, armor: 0, speed: 1.7, steal: 0.0375, loot: 3, threat: 1.5, group: [3, 3], flying: true, formation: 'V' },
+  golem: { id: 'golem', hp: 360, armor: 6, speed: 0.45, steal: 0.15, loot: 25, threat: 10, group: [2, 5], metal: true, coldResist: 0.5 },
   phalene: { id: 'phalene', hp: 24, armor: 0, speed: 1.2, steal: 0.04, loot: 3, threat: 1.5, group: [2, 5], flying: true, lampDps: 6 },
   raton_dore: { id: 'raton_dore', hp: 50, armor: 0, speed: 1.5, steal: 0.04, loot: 20, threat: 0, golden: true },
 };
@@ -42,8 +43,10 @@ export const BOSSES = {
     ghost: true, weak: { light: 2 }, vanish: { every: 7, dur: 3 }, summon: { type: 'fantome', count: 2, every: 10 },
   },
   ferrailleur: {
-    id: 'ferrailleur', district: 'q4', hp: 3400, armor: 10, speed: 0.4, steal: 0.4, loot: 500, boss: true,
-    metal: true, noKnockback: true, noStun: true, smash: { dps: 30, radius: 1 },
+    // M18 (D2.5) : PV 3 400 -> 2 550, armure 10 -> 7,5, vitesse 0,4 -> 0,3, vol 40 -> 30 %, écrasement 30 -> 22,5 /s
+    // sur 1 -> 0,75 case (−25 % partout).
+    id: 'ferrailleur', district: 'q4', hp: 2550, armor: 7.5, speed: 0.3, steal: 0.3, loot: 500, boss: true,
+    metal: true, noKnockback: true, noStun: true, smash: { dps: 22.5, radius: 0.75 },
   },
   reine_phalene: {
     id: 'reine_phalene', district: 'q5', hp: 4800, armor: 2, speed: 0.6, steal: 0.4, loot: 800, boss: true,

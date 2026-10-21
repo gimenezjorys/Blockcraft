@@ -9,7 +9,7 @@ export const DAILY = {
   waves: 5,
   /** Budget de menace des vagues : budget × (0,7 + 0,15 (i − 1)) ; PV × hpMult. Réglés par la simulation (D2.4.8). */
   budget: 24,
-  hpMult: 1.5,
+  hpMult: 1.65, // M18 : 1,5 -> 1,65 (golems et corbeaux allégés au Q4, le défi les tire aussi)
   /** Nuit jouée (6, semaine 1 : toutes les entrées ouvertes, sans Pleine Lune) et valeur du Bocal. */
   night: 6,
   jar: 300,

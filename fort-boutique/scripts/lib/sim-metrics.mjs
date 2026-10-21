@@ -99,7 +99,7 @@ export function evaluateQ2(r, maxCycles) {
 
 /** Fenêtre du boss du Moyen (D2.4.1, cycles depuis le début), boss et niveau du quartier suivant. */
 const WINDOWS = { q2: [15, 20], q3: [24, 32], q4: [35, 46], q5: [48, 62] };
-const BOSS_NAME = { q2: 'Grande Pâte', q3: 'Dame Blanche', q4: 'Ferrailleur', q5: 'Reine Phalène' };
+const BOSS_NAME = { q2: 'Grande Pâte battue', q3: 'Dame Blanche battue', q4: 'Ferrailleur battu', q5: 'Reine Phalène battue' };
 const NEXT_LEVEL = { q2: 12, q3: 18, q4: 24 };
 
 /**
@@ -132,7 +132,7 @@ export function evaluateDistrict(r, id, maxCycles) {
   const attemptsW = median(r.weak.map((g) => (dd(g) ? dd(g).attempts : NaN)));
   const [lo, hi] = WINDOWS[id];
   const rows = [
-    { id: 'D2.4.1', label: `Moyen : ${BOSS_NAME[id]} battue entre les cycles ${lo} et ${hi} (médiane, depuis le début)`, value: `cycle ${M}`, ok: M >= lo && M <= hi },
+    { id: 'D2.4.1', label: `Moyen : ${BOSS_NAME[id]} entre les cycles ${lo} et ${hi} (médiane, depuis le début)`, value: `cycle ${M}`, ok: M >= lo && M <= hi },
     { id: 'D2.4.2a', label: 'Faible : boss battu en 4 tentatives au plus (médiane)', value: `${attemptsW} tentative(s)`, ok: attemptsW <= 4 && share(r.weak, (g) => dd(g) && dd(g).bossWonAt !== null) >= 0.5 },
     { id: 'D2.4.2b', label: 'Faible : durée du quartier ≤ 1,6 × celle du Moyen', value: `${(Wd / Md).toFixed(2)} ×`, ok: Wd / Md <= 1.6 },
     { id: 'D2.4.3a', label: 'Fort : pas plus de 1,35 × plus rapide que le Moyen (durée du quartier)', value: `${(Md / Sd).toFixed(2)} ×`, ok: Md / Sd <= 1.35 },

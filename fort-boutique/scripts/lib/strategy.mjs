@@ -1,6 +1,7 @@
 // Fort Boutique — stratégies du Matin pour les simulations (D2.2) : achats, améliorations, aménagement.
 import { Rng, seedFrom } from '../../src/core/rng.js';
 import { FURNITURE } from '../../src/data/furniture.js';
+import { MONSTERS } from '../../src/data/monsters.js';
 import { districtDef } from '../../src/data/districts.js';
 import { catalogIds, canBuy, buyFurniture, findPlacement } from '../../src/game/catalog.js';
 import { canUpgrade, upgradeFurniture } from '../../src/game/economy.js';
@@ -129,7 +130,9 @@ export function morningActions(g, profile, o) {
         const air = hasFlyers(g.shopId);
         const dark = districtDef(g.shopId).dark;
         const lit = (x) => (dark && FURNITURE[x].night.behavior === 'light' && countOf(shop, x) < 3 ? 3 : 1);
-        const val = (x) => defenseValue(x) * (air && FURNITURE[x].air ? 2 : 1) * lit(x) / canBuy(save, g.shopId, x).price;
+        // Grignotins blindés (golems) : ce qui ignore l'armure (lumière, feu, poison) compte double.
+        const pierce = (x) => (hasArmored(g.shopId) && PIERCING.includes(FURNITURE[x].night.element) ? 2 : 1);
+        const val = (x) => defenseValue(x) * (air && FURNITURE[x].air ? 2 : 1) * lit(x) * pierce(x) / canBuy(save, g.shopId, x).price;
         id = buyable.sort((a, b) => val(b) - val(a))[0];
         const sellNeed = needsSelling(shop);
         if (sellNeed && buyable.includes(sellNeed)) id = sellNeed;
@@ -198,19 +201,23 @@ const PRIORITIES = {
     ['lanterne', 1], ['etagere', 3], ['pilulier', 1], ['herbier', 1], ['lanterne', 2], ['plante', 1], ['comptoir', 2],
     ['pilulier', 2], ['alambic', 1], ['etagere', 5], ['lanterne', 3], ['herbier', 2], ['cafe', 1], ['comptoir', 4],
   ],
-  // Corbeaux (volants) et golems (métal) : établi et pistolet à peinture contre les volants, aimant contre le métal.
+  // Corbeaux (volants) et golems (blindés, métal) : des lanternes (la lumière ignore l'armure), l'établi et l'enclume
+  // qui frappent fort, l'aimant contre le métal, le pistolet à peinture contre les volants.
   q4: [
-    ['etagere', 3], ['etabli', 1], ['aimant', 1], ['plante', 1], ['peinture', 1], ['comptoir', 2], ['enclume', 1],
-    ['ventilo', 1], ['etabli', 2], ['etagere', 5], ['peinture', 2], ['aimant', 2], ['enclume', 2], ['comptoir', 4],
+    ['etagere', 3], ['lanterne', 2], ['etabli', 1], ['plante', 1], ['aimant', 1], ['comptoir', 2], ['enclume', 1],
+    ['lanterne', 4], ['peinture', 1], ['etabli', 2], ['plante', 2], ['ventilo', 1], ['etagere', 5], ['aimant', 2], ['comptoir', 4],
   ],
   // Phalènes (volants, attirées par les lampes) et tout le bestiaire : bonbons (plusieurs cibles), une lanterne-appât.
   q5: [
-    ['etagere', 3], ['bonbons', 1], ['plante', 1], ['lanterne', 1], ['comptoir', 2], ['bonbons', 2], ['aimant', 1],
-    ['etabli', 1], ['cristal', 1], ['horloge', 1], ['etagere', 5], ['pupitre', 1], ['peinture', 1], ['comptoir', 4],
+    ['etagere', 3], ['bonbons', 1], ['lanterne', 2], ['plante', 1], ['comptoir', 2], ['bonbons', 2], ['aimant', 1],
+    ['cristal', 1], ['lanterne', 3], ['horloge', 1], ['plante', 2], ['etagere', 5], ['pupitre', 1], ['comptoir', 4],
   ],
 };
 
 /** Le quartier fait-il venir des volants ? (leur valeur contre les volants compte alors double) */
+/** Le quartier fait-il venir des Grignotins blindés (armure 6 et plus) ? */
+const PIERCING = ['light', 'fire', 'poison'];
+const hasArmored = (districtId) => Object.keys(districtDef(districtId).weights || {}).some((t) => MONSTERS[t] && MONSTERS[t].armor >= 6);
 const hasFlyers = (districtId) => Object.keys(districtDef(districtId).weights || {}).some((t) => ['chauvesouris', 'corbeau', 'phalene'].includes(t));
 
 /** Liste de priorités « raisonnable » du profil moyen. */

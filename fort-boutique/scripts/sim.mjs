@@ -45,6 +45,15 @@ const DISTRICT_CHANGES = {
     ['Vol : fantôme / lutin / gros gourmand (G10.1)', '5 / 6 / 15 %', '3,75 / 4,5 / 11,25 %', '−25 %'],
     ['Dame Blanche : PV / vol (G10.3)', '1 500 / 35 %', '1 125 / 26,25 %', '−25 %'],
   ],
+  q4: [
+    ['PV des Grignotins au Q4 (M_Q, G10.2)', '× 6,2', '× 4,65', '−25 %'],
+    ['Budget de menace du Q4 (F_Q, G8.3)', '× 1,45', '× 1,0875', '−25 %'],
+    ['Poids au Q4 : gros gourmand / hérisson (G8.3)', '15 / 20', '11,25 / 15', '−25 %'],
+    ['Vol du corbeau (G10.1)', '5 %', '3,75 %', '−25 %'],
+    ['Golem : armure / vol (G10.1)', '8 / 20 %', '6 / 15 %', '−25 %'],
+    ['Ferrailleur : PV / armure / vitesse / vol (G10.3)', '3 400 / 10 / 0,4 / 40 %', '2 550 / 7,5 / 0,3 / 30 %', '−25 %'],
+    ['Ferrailleur : écrasement (dégâts par s / rayon)', '30 / 1 case', '22,5 / 0,75 case', '−25 %'],
+  ],
 };
 
 /** Résultat allégé (sans le détail des meubles), pour les messages entre workers. */

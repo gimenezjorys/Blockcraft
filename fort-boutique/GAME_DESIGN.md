@@ -272,7 +272,7 @@ Valeur au début de la nuit = max(20 × Q, arrondi(0,5 × recette du jour)), Q �
 
 ### G8.3 Vagues
 - Nombre de vagues selon la nuit k de la semaine : N1 2 ; N2 3 ; N3 3 ; N4 4 ; N5 4 ; N6 4 ; N7 5 (la dernière contient le boss). Semaine 2 et suivantes : 5 (N7 : 6).
-- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 0,8625 / 0,975 / 1,45 / 1,6 pour Q1 à Q5 (M16 : Q2 1,15 au départ ; M17 : Q3 1,3 au départ ; −25 %, D2.5) et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
+- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 0,8625 / 0,975 / 1,0875 / 1,6 pour Q1 à Q5 (M16 : Q2 1,15 au départ ; M17 : Q3 1,3 ; M18 : Q4 1,45 ; −25 %, D2.5) et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
 - Chaque monstre coûte son « coût de menace » (G10). Le générateur, à graine (graine de partie, quartier, semaine, nuit), tire des groupes de 2 à 5 du même type parmi ceux autorisés à cette nuit, avec les pondérations de `data/waves.js`, et les répartit entre les entrées actives.
 - Un type nouveau apparaît d'abord **seul**, en petit groupe, dans la vague 1 de sa nuit d'introduction.
 - **Télégraphe** : 2,5 s avant chaque vague, chaque entrée active montre une bulle pulsante avec les icônes des types qui vont sortir (et une étiquette « NOUVEAU » pour un type jamais vu).
@@ -391,15 +391,15 @@ Chaque forme de nuit est un **comportement** paramétré par les données : `pro
 | fantome | Fantôme | 26 | 0 | 0,9 | 3,75 % (M17 : 5 %) | 4 | 2 | invisible et non ciblable hors lumière ; traverse les meubles ; lumière ×2 | Q3 N1 |
 | lutin | Lutin farceur | 30 | 0 | 1,0 | 4,5 % (M17 : 6 %) | 4 | 2 | toutes les 4 s, se téléporte 2 cases plus loin sur son chemin (signalé 0,5 s avant) | Q3 N3 |
 | gourmand | Gros Gourmand | 200 | 4 | 0,5 | 11,25 % (M17 : 15 %) | 15 | 6 | lent et costaud ; immunisé au recul | Q3 N5 |
-| corbeau | Corbeau voleur | 20 | 0 | 1,7 | 5 % | 3 | 1,5 | vole ; arrive en V de 3 | Q4 N1 |
-| golem | Golem de ferraille | 360 | 8 | 0,45 | 20 % | 25 | 10 | métal (l'aimant le ralentit) ; ralentissements de froid ×0,5 | Q4 N3 |
+| corbeau | Corbeau voleur | 20 | 0 | 1,7 | 3,75 % (M18 : 5 %) | 3 | 1,5 | vole ; arrive en V de 3 | Q4 N1 |
+| golem | Golem de ferraille | 360 | 6 (M18 : 8) | 0,45 | 15 % (M18 : 20 %) | 25 | 10 | métal (l'aimant le ralentit) ; ralentissements de froid ×0,5 | Q4 N3 |
 | phalene | Phalène | 24 | 0 | 1,2 | 4 % | 3 | 1,5 | vole ; attirée par les lanternes, qu'elle attaque (6 dégâts/s) | Q5 N1 |
 | raton_dore | Raton doré | 50 (M10 : 40) | 0 | 1,5 | 4 % | 20 | 0 | rare (G8.8) ; traînée d'étincelles | tous |
 
 Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus de la tête quand il est visé pour la première fois (flamme pour le gloubi et le hérisson, soleil pour le fantôme).
 
 ### G10.2 Mise à l'échelle
-- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 1,5 / 2,7 / 6,2 / 10,0 pour Q1 à Q5 (M16 : Q2 2,0 au départ ; M17 : Q3 3,6 au départ ; −25 %, D2.5), k la nuit de la semaine, s la semaine.
+- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 1,5 / 2,7 / 4,65 / 10,0 pour Q1 à Q5 (M16 : Q2 2,0 au départ ; M17 : Q3 3,6 ; M18 : Q4 6,2 ; −25 %, D2.5), k la nuit de la semaine, s la semaine.
 - Butin = butin de base × (1 + 0,6 × (Q − 1)) × (1 + 0,1 × (s − 1)).
 - Vitesse, armure et % de vol ne changent jamais. *M13 (D2.5) :* toutes les vitesses du tableau sont × 1,25 en jeu (hors boss), sauf pendant la nuit 1 scénarisée qui garde les vitesses ci-dessus (G19 « première victoire »).
 
@@ -410,7 +410,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 | Le Roi Raton | Q1 | 1 125 (M10 : 900) | 2 | 0,55 | 35 % | 150 | toutes les 4,8 s (M10 : 6 s), invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
 | La Grande Pâte | Q2 | 1 275 | 0 | 0,375 | 26,25 % | 250 | à 66 % et 33 % de PV, se scinde et lâche 3 gloubis ; feu ×1,5 ; ralentissements ×0,5 (M16 : 1 700 / 0,5 / 35 % / 4 au départ, −25 %, D2.5) |
 | La Dame Blanche | Q3 | 1 125 (M17 : 1 500) | 0 | 0,6 | 26,25 % (M17 : 35 %) | 350 | traverse les meubles ; disparaît 3 s toutes les 7 s hors lumière ; invoque 2 fantômes toutes les 10 s ; lumière ×2 |
-| Le Ferrailleur | Q4 | 3 400 | 10 | 0,4 | 40 % | 500 | frappe les meubles voisins (30 dégâts/s) ; immunisé au recul et à l'étourdissement ; métal |
+| Le Ferrailleur | Q4 | 2 550 (M18 : 3 400) | 7,5 (M18 : 10) | 0,3 (M18 : 0,4) | 30 % (M18 : 40 %) | 500 | frappe les meubles voisins (22,5 dégâts/s à 0,75 case ; M18 : 30 à 1 case) ; immunisé au recul et à l'étourdissement ; métal |
 | La Reine Phalène | Q5 | 4 800 | 2 | 0,6 | 40 % | 800 | vole ; éteint les lanternes à ≤ 2 cases pendant 4 s toutes les 9 s ; invoque 4 chauves-souris toutes les 8 s |
 
 - Les PV des boss sont ceux de la semaine 1, × 1,35^(s − 1) ensuite (pas de multiplicateur de nuit).
@@ -434,7 +434,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 | Q1 | raton 40, souris 25, gloubi 20, termite 15 |
 | Q2 | raton 15, souris 15, chauve-souris 20, hérisson 20, champiboum 15, gloubi 15 |
 | Q3 | fantôme 25, lutin 20, gros gourmand 10, chauve-souris 15, hérisson 15, termite 15 |
-| Q4 | corbeau 20, golem 10, gros gourmand 15, hérisson 20, champiboum 15, lutin 20 |
+| Q4 | corbeau 20, golem 10, gros gourmand 11,25 (M18 : 15), hérisson 15 (M18 : 20), champiboum 15, lutin 20 |
 | Q5 | phalène 25, corbeau 15, fantôme 15, golem 10, lutin 15, gloubi 10, champiboum 10 |
 
 ## G11. Le marchand, Moka et le personnel
