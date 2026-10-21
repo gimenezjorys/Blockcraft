@@ -19,7 +19,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M12 — Quêtes, calendrier, série, succès, bestiaire | ✅ | 2026-10-21 | 3 quêtes du jour à graine UTC (+ relance), 4-5 de la semaine, calendrier de 7 jours (s'ouvre seul au premier Matin), flamme de la boutique (+2 %/jour, gels, rallumage 48 h), 52 succès et paliers du bestiaire, écrans Quêtes et Calendrier. |
 | M13 — Hors ligne, Moka, personnel | ✅ | 2026-10-21 | Retour après absence (réserves pleines, gains du personnel plafonnés à 8 h, Coffre de Bienvenue après 3 jours, ticket du Matin), Moka (suit, rapporte, bondit ; croquettes), commis et caissier (dorment la nuit) ; équilibrage Q1 refait avec Moka (D2.5). |
 | M14 — Défi du jour, Rivaux, partage, événements | ✅ | 2026-10-21 | Défi du jour (même boutique et mêmes vagues pour tous, aménagement libre, score, première tentative récompensée, Entraînement, Rivaux, Partager), événements de la semaine (bannière, effets, défi), saisons (XP +10 %, décor) ; D2.4.8 simulé. |
-| M15 — Pubs, rubis, Garde-robe + P3 | ⬜ | | |
+| M15 — Pubs, rubis, Garde-robe + P3 | ✅ | 2026-10-21 | Adaptateurs (none, sim, squelettes Poki et CrazyGames), règles et plafonds (ad-policy testé règle par règle), 7 placements récompensés + interstitielle it_dawn, Garde-robe (6 catégories, rubis, saisons) et rendu des cosmétiques ; D2.4.7 tenu ; P3 : 1 majeur corrigé. |
 | M16 — Quartier 2 : la Boulangerie | ⬜ | | |
 | M17 — Quartier 3 : la Pharmacie | ⬜ | | |
 | M18 — Quartier 4 : la Quincaillerie | ⬜ | | |
@@ -175,6 +175,8 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
 
+- [ ] P3 — Flamme éteinte impossible à rallumer sans pub avec les rubis d'un joueur récent → M20 (économie des rubis).
+- [ ] P3 — Deux fenêtres de gains à la suite au retour (ticket puis calendrier) → M22.
 - [ ] P2 — 4e emplacement en avance sur G19 (revenus du jour 2) ; revu en M12 : toujours 6/7 repères avec les 150 pièces du calendrier → M20 (équilibrage global).
 - [ ] P2 — Jour 3 sans achat après P5 et P6 ; les quêtes n'ouvrent qu'au niveau 4 (fin du cycle 3, G12.4) → M20.
 - [ ] P2 — Commande spéciale facile (client près de la caisse, G7.7) ; appeler la vague suivante plus tôt (Hugo) → M22.
@@ -209,3 +211,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-21 — M12 fait (mode rapide demandé : tests essentiels de la mission seulement). P2 rejoué : 15/15 jalons, calendrier réclamé à 2:41. Prochaine étape : M13 hors ligne, Moka, personnel.
 - 2026-10-21 — M13 fait (tests essentiels). Q1 rééquilibré avec Moka dans les marges D2.5 (docs/sim/SIM_Q1.md). Prochaine étape : M14 Défi du jour, Rivaux, partage, événements.
 - 2026-10-21 — M14 fait (tests essentiels ; D2.4.8 tenu). Prochaine étape : M15 pubs, rubis, Garde-robe + Playtest P3.
+- 2026-10-21 — M15 fait : pubs (B10, G18), Garde-robe (G17), P3 (docs/playtests/P3.md). Jalon D terminé. Prochaine étape : M16 Quartier 2, la Boulangerie.

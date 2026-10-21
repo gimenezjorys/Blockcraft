@@ -18,7 +18,8 @@ export function flameSvg(color) {
 
 /**
  * @param {any} app
- * @param {{ save: any, onClaim: (choiceId?: string) => any, onRelight: () => boolean, onClose: () => void }} p
+ * @param {{ save: any, onClaim: (choiceId?: string) => any, onRelight: () => boolean, onClose: () => void,
+ *   adRelight?: { visible: () => boolean, ready: () => boolean, watch: (done: () => void) => void } | null }} p
  */
 function mount(app, p, d) {
   const save = p.save;
@@ -38,19 +39,34 @@ function mount(app, p, d) {
     flame.append(
       h('span.flame-ico', { html: flameSvg(flameColor(s.count)) }),
       h('div.up-text', [
-        h('div.up-title', { text: t('streak.days', { n: fmt(s.count) }) }),
+        h('div.up-title', { text: t(s.count > 1 ? 'streak.days' : 'streak.day', { n: fmt(s.count) }) }),
         h('div.up-detail', { text: `${t('streak.bonus', { n: bonus })} · ${t('streak.freezes', { n: s.freezes })}` }),
       ]),
     );
     const info = relightInfo(save, now());
     if (info.open && s.count < info.count) {
       const b = tagButton({ label: t('streak.relight', { n: info.rubies }), small: true, variant: 'coral', icon: SVG.ruby, id: 'streak-relight' });
+      if (save.player.rubies < info.rubies) b.classList.add('disabled');
       onTap(b, () => {
         if (!p.onRelight()) return sfx('error');
         sfx('upgrade');
         renderFlame();
       }, d);
       flame.appendChild(b);
+      const a = p.adRelight;
+      if (info.ad && a && a.visible()) {
+        const ready = a.ready();
+        const ab = tagButton({ label: t('streak.relightAd'), small: true, variant: 'gold', icon: ready ? SVG.tv : SVG.tvOff, id: 'streak-relight-ad' });
+        if (!ready) ab.classList.add('disabled');
+        onTap(ab, () => {
+          if (!ready) {
+            if (app.services.toast) app.services.toast(t('ad.unavailable'), SVG.tvOff);
+            return;
+          }
+          a.watch(() => renderFlame());
+        }, d);
+        flame.appendChild(ab);
+      }
     }
   }
 

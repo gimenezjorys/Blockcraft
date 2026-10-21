@@ -1,6 +1,6 @@
 # Simulation d'équilibrage — Quartier 1 (L'Épicerie de Mamie)
 
-300 parties par profil (Faible, Moyen, Fort), 30 cycles au plus, 3 workers, 286 s. Graine par partie : 1000 + i. Commande : `npm run sim -- --runs 300 --district q1`.
+300 parties par profil (Faible, Moyen, Fort), 30 cycles au plus, 3 workers, 292 s. Graine par partie : 1000 + i. Commande : `npm run sim -- --runs 300 --district q1`.
 
 ## Seuils (D2.4, G12.5)
 
@@ -18,9 +18,10 @@
 | G12.5a — Moyen : niveau 3 à la fin du cycle 2 (médiane) | niveau 3 | tenu |
 | G12.5b — Moyen : niveau 4 à la fin du cycle 3 (médiane) | niveau 4 | tenu |
 | G12.5c — Moyen : niveau 5 au cycle 4 ou 5 (médiane) | niveau 7 au cycle 5, 6 au cycle 4 | tenu |
+| D2.4.7 — Moyen avec toutes les pubs : au plus 1,3 × plus rapide | 1.25 × (cycle 8) | tenu |
 | D2.4.8 — Défi du jour : score moyen Faible ≥ 500, Moyen 800 à 1 000, Fort ≤ 1 250 | 888 / 954 / 942 | tenu |
 
-Non applicable avant sa mission : D2.4.7 (pubs récompensées, M15). Le Défi du jour (D2.4.8) est joué sans aménagement par les bots (disposition imposée). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).
+Les pubs (D2.4.7) : le Moyen regarde × 2, le coffre bonus et la revanche à chaque occasion (un cycle = un jour). Le Défi du jour (D2.4.8) est joué sans aménagement par les bots (disposition imposée). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).
 
 ## Repères
 
@@ -46,7 +47,7 @@ Non applicable avant sa mission : D2.4.7 (pubs récompensées, M15). Le Défi du
 | 11 | 9 | 10 | 9 |
 | 12 | 9 | 10 | 10 |
 
-## Changements faits (M10 et M13, marges D2.5)
+## Changements faits (M10, M13 et M15, marges D2.5)
 
 | Valeur | Avant | Après | Écart |
 |---|---|---|---|
@@ -60,6 +61,7 @@ Non applicable avant sa mission : D2.4.7 (pubs récompensées, M15). Le Défi du
 | M13 — Moka : dégâts / bonds par seconde (G11.2) | 9 / 1,0 | 3,375 / 0,75 | −62,5 % (justifié) / −25 % |
 | M13 — Vitesse des Grignotins hors boss, hors nuit 1 (G10.1) | × 1 | × 1,25 | +25 % |
 | M13 — Écarts dans les vagues : membres / groupes (G8.3) | 0,35 / 0,9 s | 0,2625 / 0,675 s | −25 % |
+| M15 — Revanche de la Pleine Lune (pub, G18.1) : dégâts | +25 % | +18,75 % | −25 % |
 
 Hors données : bots corrigés (itinéraire BFS, case d'accès de la caisse, dépenses du Matin), trois bugs de jeu corrigés (emplacement d'achat bloqué, pile bloquée par un produit sans étagère, produit d'étagère modifiable dans l'éditeur). Voir DECISIONS.md.
 

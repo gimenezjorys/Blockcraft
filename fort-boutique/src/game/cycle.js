@@ -98,6 +98,7 @@ export function enterDawn(g) {
     })),
   };
   ph.orderChests = 0;
+  ph.retryDmg = 0;
   // Fête de Mamie (G13.5) : un coffre d'argent en plus à la première aube du dimanche (une fois par dimanche).
   const ev = currentEvent();
   const today = utcDay();
@@ -205,4 +206,27 @@ export function leaveDawn(g) {
 /** Livraison du matin après une absence (G16) : réserves pleines. */
 export function morningDelivery(g) {
   fillAllProducers(g);
+}
+
+/**
+ * Revanche tout de suite après une Pleine Lune perdue (pub rw_boss_retry, G18.1) : la même nuit recommence avec +25 %
+ * de dégâts et un Bocal vide (les pièces de la première tentative sont déjà gagnées). Le Courage de Mamie n'avance pas.
+ * @param {any} g
+ * @param {number} bonus 0,25
+ * @returns {boolean}
+ */
+export function retryBossNight(g, bonus) {
+  const ph = g.shop.phase;
+  const r = ph.dawn && ph.dawn.result;
+  if (!r || !r.bossNight || r.bossWin) return false;
+  if (ph.dawn.chest && !ph.dawn.chest.opened) openDawnChest(g);
+  ph.dawn = null;
+  ph.dawnClaimed = false;
+  ph.name = 'night';
+  ph.retryDmg = 1 + bonus;
+  for (const f of g.furn) {
+    f.broken = false;
+    f.eyes = 1;
+  }
+  return true;
 }

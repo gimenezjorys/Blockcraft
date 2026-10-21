@@ -74,7 +74,9 @@ export function startNight(g, opts = {}) {
     starThief: learning && L.starThief,
   });
   const takings = opts.dayTakings ?? shop.phase.dayTakings ?? 0;
-  const jar = opts.jar ?? jarValue(Q, takings);
+  // Revanche de la Pleine Lune (pub rw_boss_retry, G18.1) : Bocal vide (le premier a déjà été compté), dégâts +25 %.
+  const retry = shop.phase.retryDmg > 1 && isBoss;
+  const jar = opts.jar ?? (retry ? 0 : jarValue(Q, takings));
   const ms = merchantNightStats(g.save.player.upgrades);
   const bestiary = {};
   for (const [type, c] of Object.entries(g.save.collections.bestiary)) bestiary[type] = bestiaryBonus(c);
@@ -133,6 +135,7 @@ export function startNight(g, opts = {}) {
     hpMult: redMoon * (mods.hpMult || 1) * (tutorial ? WAVES.tutorialHpMult : 1),
     lootMult: (mods.lootMult || 1) * (1 + 0.1 * shop.franchiseStars),
     speedMult: mods.speedMult || 1,
+    dmgMult: (mods.dmgMult || 1) * (retry ? shop.phase.retryDmg : 1),
     lootType: mods.lootType || null,
     xpMult: mods.xpMult || 1,
     monsterSpeed: tutorial ? 1 : SCALING.monsterSpeed,

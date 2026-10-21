@@ -82,6 +82,7 @@ export function createApp({ testBuild, version }) {
         move: { x: app.input.move.x, y: app.input.move.y },
         joystick: { active: app.input.joystick.active, x: app.input.joystick.ox, y: app.input.joystick.oy },
         bellPresses: app.input.bellPresses,
+        audioMuted: !!(app.services.audio && app.services.audio.muted),
         scene: scene && scene.snapshot ? scene.snapshot() : null,
       };
     },

@@ -404,4 +404,8 @@ export default {
   'ad.test': "TEST AD",
   'ad.unavailable': "Ad unavailable",
   'hub.wardrobe': "Wardrobe",
+  'ads.bonusChest': "+1 chest",
+  'ads.bossRetry': "Rematch +19%",
+  'streak.relightAd': "Relight",
+  'streak.day': "Flame: {n} day",
 };

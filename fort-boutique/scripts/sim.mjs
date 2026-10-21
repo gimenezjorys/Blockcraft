@@ -25,6 +25,7 @@ const TUNING = [
   ['M13 — Moka : dégâts / bonds par seconde (G11.2)', '9 / 1,0', '3,375 / 0,75', '−62,5 % (justifié) / −25 %'],
   ['M13 — Vitesse des Grignotins hors boss, hors nuit 1 (G10.1)', '× 1', '× 1,25', '+25 %'],
   ['M13 — Écarts dans les vagues : membres / groupes (G8.3)', '0,35 / 0,9 s', '0,2625 / 0,675 s', '−25 %'],
+  ['M15 — Revanche de la Pleine Lune (pub, G18.1) : dégâts', '+25 %', '+18,75 %', '−25 %'],
 ];
 
 /** Résultat allégé (sans le détail des meubles), pour les messages entre workers. */
@@ -76,6 +77,17 @@ export async function runSims(o) {
   const all = parts.flat();
   const byProfile = Object.fromEntries(PROFILE_IDS.map((p) => [p, all.filter((g) => g.profile === p)]));
   const evaluation = evaluateQ1(byProfile, o.maxCycles);
+  // D2.4.7 : le Moyen qui regarde toutes les pubs récompensées progresse au plus 1,3 × plus vite.
+  const adRuns = await Promise.all(chunks.map((c) => new Promise((resolve, reject) => {
+    const jobsAds = c.filter((j) => j.profile === 'medium').map((j) => ({ ...j, ads: true }));
+    const w = new Worker(fileURLToPath(import.meta.url), { workerData: { jobs: jobsAds, overrides: o.overrides || null } });
+    w.once('message', resolve);
+    w.once('error', reject);
+  })));
+  const bossAt = (list) => median(list.map((x) => x.bossWonAt ?? (o.maxCycles + 1)));
+  const withAds = bossAt(adRuns.flat());
+  const ratio = bossAt(byProfile.medium) / Math.max(1, withAds);
+  evaluation.rows.push({ id: 'D2.4.7', label: 'Moyen avec toutes les pubs : au plus 1,3 × plus rapide', value: `${ratio.toFixed(2)} × (cycle ${withAds})`, ok: ratio <= 1.3 });
   // D2.4.8 : Défi du jour, un défi par partie simulée (jours UTC consécutifs), score moyen par profil.
   const d = dailyThreshold(runDailySims({ days: o.runs }));
   evaluation.rows.push({ id: 'D2.4.8', label: 'Défi du jour : score moyen Faible ≥ 500, Moyen 800 à 1 000, Fort ≤ 1 250', value: `${d.weak} / ${d.medium} / ${d.strong}`, ok: d.ok });
@@ -89,7 +101,7 @@ function report(res, o) {
   L.push(`${o.runs} parties par profil (Faible, Moyen, Fort), ${o.maxCycles} cycles au plus, ${res.workers} workers, ${res.seconds.toFixed(0)} s. Graine par partie : 1000 + i. Commande : \`npm run sim -- --runs ${o.runs} --district q1\`.`, '');
   L.push('## Seuils (D2.4, G12.5)', '', '| Seuil | Mesure | Résultat |', '|---|---|---|');
   for (const r of ev.rows) L.push(`| ${r.id} — ${r.label} | ${r.value} | ${r.ok ? 'tenu' : '**NON TENU**'} |`);
-  L.push('', 'Non applicable avant sa mission : D2.4.7 (pubs récompensées, M15). Le Défi du jour (D2.4.8) est joué sans aménagement par les bots (disposition imposée). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).', '');
+  L.push('', 'Les pubs (D2.4.7) : le Moyen regarde × 2, le coffre bonus et la revanche à chaque occasion (un cycle = un jour). Le Défi du jour (D2.4.8) est joué sans aménagement par les bots (disposition imposée). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).', '');
   L.push('## Repères', '');
   const i = ev.info;
   L.push(`- Roi Raton battu (médiane) : Faible cycle ${i.bossCycles.weak}, Moyen cycle ${i.bossCycles.medium}, Fort cycle ${i.bossCycles.strong}.`);
@@ -101,7 +113,7 @@ function report(res, o) {
     const lv = (p) => median(res.byProfile[p].map((g) => (g.cycles[c - 1] ? g.cycles[c - 1].level : NaN)));
     L.push(`| ${c} | ${lv('weak')} | ${lv('medium')} | ${lv('strong')} |`);
   }
-  L.push('', '## Changements faits (M10 et M13, marges D2.5)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
+  L.push('', '## Changements faits (M10, M13 et M15, marges D2.5)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
   for (const c of TUNING) L.push(`| ${c[0]} | ${c[1]} | ${c[2]} | ${c[3]} |`);
   L.push('', 'Hors données : bots corrigés (itinéraire BFS, case d\'accès de la caisse, dépenses du Matin), trois bugs de jeu corrigés (emplacement d\'achat bloqué, pile bloquée par un produit sans étagère, produit d\'étagère modifiable dans l\'éditeur). Voir DECISIONS.md.');
   L.push('', '## Limites connues', '');

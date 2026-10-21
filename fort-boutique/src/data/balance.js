@@ -148,7 +148,8 @@ export const ADS = {
     rw_daily_rubies: { cap: 1, per: 'day', rubies: 3 },
     rw_quest_reroll: { cap: 1, per: 'day' },
     rw_streak_restore: { cap: 1, per: 'week' },
-    rw_boss_retry: { cap: 2, per: 'day', dmgBonus: 0.25 },
+    // M15 (D2.5) : +25 % -> +18,75 % de dégâts pour la revanche, pour tenir D2.4.7 (1,25 × au lieu de 1,43 ×).
+    rw_boss_retry: { cap: 2, per: 'day', dmgBonus: 0.1875 },
   },
   /** Plafond global : 12 pubs récompensées par jour UTC. */
   rewardedPerDay: 12,

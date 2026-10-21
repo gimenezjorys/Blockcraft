@@ -1,5 +1,5 @@
 // Fort Boutique — petite fenêtre de récompense (quêtes, calendrier) : les gains en pastilles, un tap ferme.
-import { h, onTap } from '../widgets.js';
+import { h, onTap, tagButton } from '../widgets.js';
 import { t, fmt } from '../i18n.js';
 import { SVG, furnitureIcon, chestSvg } from '../icons.js';
 
@@ -35,7 +35,8 @@ export function rewardChips(r) {
 
 /**
  * @param {any} app
- * @param {{ title: string, subtitle?: string, lines?: string[], rewards: any[], onClose: () => void }} p
+ * @param {{ title: string, subtitle?: string, lines?: string[], rewards: any[], onClose: () => void,
+ *   action?: { label: string, ready: boolean, watch: (done: () => void) => void } | null }} p
  */
 function mount(app, p, d) {
   const chips = p.rewards.flatMap((r) => rewardChips(r));
@@ -46,6 +47,18 @@ function mount(app, p, d) {
     h('div.rw-chips', chips),
     h('div.reward-tap', { text: t('reward.tap') }),
   ]);
+  if (p.action) {
+    const b = tagButton({ label: p.action.label, variant: 'gold', icon: p.action.ready ? SVG.tv : SVG.tvOff, small: true, id: 'reward-ad' });
+    if (!p.action.ready) b.classList.add('disabled');
+    onTap(b, () => {
+      if (!p.action.ready) {
+        if (app.services.toast) app.services.toast(t('ad.unavailable'), SVG.tvOff);
+        return;
+      }
+      p.action.watch(() => b.remove());
+    }, d);
+    panel.insertBefore(b, panel.lastChild);
+  }
   const el = h('div.overlay.reward', [panel]);
   if (app.services.audio) app.services.audio.play('quest');
   onTap(el, () => p.onClose(), d);

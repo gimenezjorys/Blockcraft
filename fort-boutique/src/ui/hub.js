@@ -9,16 +9,19 @@ import { unlockCards } from './screens/unlocks.js';
 import { openEditor, commitEditor } from '../game/editor.js';
 import { createEditorScene } from './editor-scene.js';
 import { NIGHT } from '../data/night.js';
+import { countdown } from './screens/quests.js';
 import { refreshQuests, claimQuest, claimWeekly, rerollQuest } from '../game/quests.js';
 import { calendarState, claimCalendar } from '../game/calendar.js';
 import { relightStreak } from '../game/streak.js';
 import { levelUpCat } from '../game/cat.js';
 import { hireStaff, upgradeStaff } from '../game/staff.js';
+import { buyCosmetic, equipCosmetic } from '../game/cosmetics.js';
+import { ADS } from '../data/balance.js';
 import { now, utcDay } from '../core/time.js';
 import { trackQuest } from '../game/quest-track.js';
 
 /** Écrans du hub déjà branchés (les autres boutons disent « Bientôt »). */
-export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily'];
+export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily', 'wardrobe'];
 
 /** Quartiers dont le contenu est prêt (M16 à M19 ajoutent les suivants). */
 export const PLAYABLE_DISTRICTS = ['q1'];
@@ -26,7 +29,7 @@ export const PLAYABLE_DISTRICTS = ['q1'];
 /**
  * @param {any} app
  * @param {{ game: () => any, save: (force?: boolean) => void, refresh: () => void, switchShop?: (id: string) => void,
- *   daily?: () => any }} o
+ *   daily?: () => any, ads?: () => any }} o
  */
 export function createHub(app, o) {
   const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
@@ -42,12 +45,48 @@ export function createHub(app, o) {
     o.refresh();
   }
 
+  /** Pubs récompensées (ad-flow.js) ; sans elles, rien n'est proposé. */
+  const ads = () => (o.ads ? o.ads() : null);
+  function adOption(id, onReward) {
+    const a = ads();
+    if (!a) return null;
+    return { visible: () => a.visible(id), ready: () => a.ready(id), watch: (done) => a.watch(id, {}, () => { onReward(); if (done) done(); }) };
+  }
+
   /** Fenêtre de gains par-dessus l'écran courant (un tap ferme). */
   function showReward(title, rewards) {
     app.router.push('reward', { title, rewards, onClose: () => app.router.pop() });
   }
 
   const screens = {
+    /** Garde-robe (G17) : acheter avec des rubis, porter ; +3 rubis avec une pub (masqué sans régie). */
+    wardrobe(g, tab) {
+      let inst = null;
+      const a = ads();
+      inst = app.router.push('wardrobe', {
+        save: g.save,
+        tab,
+        onBuy: (id) => {
+          const ok = buyCosmetic(g.save, id, now());
+          if (ok) o.save(true);
+          return ok;
+        },
+        onEquip: (id) => {
+          const ok = equipCosmetic(g.save, id);
+          if (ok) o.save(true);
+          return ok;
+        },
+        adRubies: a ? {
+          visible: a.visible('rw_daily_rubies') && a.ready('rw_daily_rubies'),
+          ready: true,
+          onWatch: () => a.watch('rw_daily_rubies', {}, () => {
+            g.save.player.rubies += ADS.rewarded.rw_daily_rubies.rubies;
+            if (inst && inst.refresh) inst.refresh();
+          }),
+        } : null,
+        onClose: close,
+      });
+    },
     /** Défi du jour (G13.3) : déroulé dans daily-flow.js. */
     daily() {
       if (o.daily) o.daily().open();
@@ -77,6 +116,9 @@ export function createHub(app, o) {
           if (ok) o.save(true);
           return ok;
         },
+        // Relance par pub (rw_quest_reroll, 1 par jour) une fois la relance gratuite utilisée.
+        adReroll: ads() ? { visible: () => ads().visible('rw_quest_reroll'), ready: () => ads().ready('rw_quest_reroll'),
+          watch: (i, done) => ads().watch('rw_quest_reroll', {}, () => { if (rerollQuest(g.save, i, { ad: true })) done(); }) } : null,
         onClose: close,
       });
     },
@@ -96,6 +138,8 @@ export function createHub(app, o) {
           if (ok) o.save(true);
           return ok;
         },
+        // Rallumer avec une pub (rw_streak_restore, une fois par semaine).
+        adRelight: adOption('rw_streak_restore', () => relightStreak(g.save, now(), { ad: true })),
         onClose: close,
       });
     },
@@ -242,9 +286,14 @@ export function createHub(app, o) {
       if (!pd) return false;
       g.save.offline.pendingDelivery = null;
       o.save(true);
+      // ×2 avec une pub (rw_morning_delivery, une fois par retour) quand le personnel a rapporté des pièces.
+      const double = pd.coins > 0 ? adOption('rw_morning_delivery', () => {
+        g.save.player.coins += pd.coins;
+      }) : null;
       app.router.push('reward', {
         title: t('offline.title'),
-        subtitle: t('offline.minutes', { h: Math.floor(pd.minutes / 60), m: Math.round(pd.minutes % 60) }),
+        action: double && double.visible() ? { label: t('ads.double'), ready: double.ready(), watch: double.watch } : null,
+        subtitle: countdown(pd.minutes * 60000),
         lines: [t('offline.stock'), pd.welcome ? t('offline.letter') : null].filter(Boolean),
         rewards: [pd.coins ? { coins: pd.coins } : null, pd.welcome ? { chest: pd.welcome } : null].filter(Boolean),
         onClose: () => {

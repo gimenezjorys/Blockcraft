@@ -404,4 +404,8 @@ export default {
   'ad.test': "PUB DE TEST",
   'ad.unavailable': "Pub indisponible",
   'hub.wardrobe': "Garde-robe",
+  'ads.bonusChest': "+1 coffre",
+  'ads.bossRetry': "Revanche +19 %",
+  'streak.relightAd': "Rallumer",
+  'streak.day': "Flamme : {n} jour",
 };

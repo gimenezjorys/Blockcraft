@@ -44,11 +44,16 @@ function mount(app, p, d) {
   // Flamme de la boutique (G15.2) : jours de série ; un tap ouvre le Calendrier.
   const s = save.daily.streak;
   if (isUnlocked(save, 'calendar') && (s.count > 0 || s.best > 0)) {
-    const flame = h('button.hub-flame', { type: 'button', 'aria-label': t('streak.days', { n: s.count }), id: 'hub-flame' }, [
+    const flame = h('button.hub-flame', { type: 'button', 'aria-label': t(s.count > 1 ? 'streak.days' : 'streak.day', { n: s.count }), id: 'hub-flame' }, [
       h('span.flame-ico', { html: flameSvg(flameColor(s.count)) }), h('span.flame-n', { text: String(s.count) }),
     ]);
     onTap(flame, () => (ready.has('calendar') ? p.onButton('calendar') : null), d);
     top.appendChild(flame);
+  }
+  if (isUnlocked(save, 'wardrobe')) {
+    const wb = h('button.hub-wardrobe', { type: 'button', 'aria-label': t('hub.wardrobe'), id: 'hub-wardrobe', html: SVG.star });
+    onTap(wb, () => (ready.has('wardrobe') ? p.onButton('wardrobe') : null), d);
+    top.appendChild(wb);
   }
   const gear = h('button.hub-gear', { type: 'button', 'aria-label': t('hub.settings'), html: SVG.gear });
   onTap(gear, () => p.onSettings(), d);

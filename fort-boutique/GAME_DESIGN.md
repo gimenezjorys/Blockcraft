@@ -716,7 +716,7 @@ Les achats sont enregistrés dans `purchases` et `cosmetics` (G23) et ne sont ja
 | rw_daily_rubies | Garde-robe | +3 rubis | 1 par jour |
 | rw_quest_reroll | Quêtes | relancer une quête | 1 par jour |
 | rw_streak_restore | Série | rallumer la flamme | 1 par semaine |
-| rw_boss_retry | Échec de Pleine Lune | rejouer tout de suite avec +25 % de dégâts | 2 par jour |
+| rw_boss_retry | Échec de Pleine Lune | rejouer tout de suite avec +18,75 % de dégâts (M15 : +25 % au départ, D2.5) | 2 par jour |
 
 Plafond global : 12 pubs récompensées par jour UTC. Bouton : étiquette dorée avec une petite télé et la récompense (« ×2 »).
 

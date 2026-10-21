@@ -37,7 +37,8 @@ function achievementLabel(a) {
 /**
  * @param {any} app
  * @param {{ save: any, tab?: string, onClaim: (i: number) => any, onClaimWeekly: (i: number) => any,
- *   onReroll: (i: number) => boolean, onClose: () => void }} p
+ *   onReroll: (i: number) => boolean, onClose: () => void,
+ *   adReroll?: { visible: () => boolean, ready: () => boolean, watch: (i: number, done: () => void) => void } | null }} p
  */
 function mount(app, p, d) {
   const save = p.save;
@@ -95,6 +96,18 @@ function mount(app, p, d) {
         if (!res) return sfx('error');
         rubies.textContent = fmt(save.player.rubies);
         render();
+      }, d);
+      r.appendChild(b);
+    } else if (!weekly && rerollsLeft(save).free <= 0 && rerollsLeft(save).ad > 0 && p.adReroll && p.adReroll.visible()) {
+      const ready = p.adReroll.ready();
+      const b = h('button.q-reroll.q-reroll-ad', { type: 'button', 'aria-label': t('quests.reroll'), html: ready ? SVG.tv : SVG.tvOff, id: `quest-reroll-ad-${i}` });
+      onTap(b, () => {
+        if (!ready) {
+          sfx('error');
+          if (app.services.toast) app.services.toast(t('ad.unavailable'), SVG.tvOff);
+          return;
+        }
+        p.adReroll.watch(i, () => render());
       }, d);
       r.appendChild(b);
     } else if (!weekly && rerollsLeft(save).free > 0) {

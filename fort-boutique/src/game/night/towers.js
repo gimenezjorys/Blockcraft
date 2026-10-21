@@ -86,7 +86,7 @@ export function dealDamage(g, m, base, element, source) {
   if (!m.alive || base <= 0) return 0;
   const n = g.night;
   const bonus = { bestiary: n.bestiaryBonus[m.type] || 0, assist: source && source.def ? n.assist : 0 };
-  const dmg = armorReduce(base * damageMultiplier(m, element, bonus), m.armor, element);
+  const dmg = armorReduce(base * (n.dmgMult || 1) * damageMultiplier(m, element, bonus), m.armor, element);
   const done = hurtRaw(g, m, dmg, element, source);
   if (done > 0) {
     g.events.push(m.armor > 0 && !['fire', 'burn', 'poison', 'light'].includes(element) ? 'hit_armor' : 'hit', m.x, m.y, Math.round(done), done > m.maxHp * NIGHT.bigHitRatio ? 1 : 0);

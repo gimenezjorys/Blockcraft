@@ -59,7 +59,8 @@ export function collectOffline(save, t) {
   const prev = save.offline.pendingDelivery;
   // Deux retours avant un Matin : les tickets s'additionnent (rien ne disparaît de l'affichage).
   save.offline.pendingDelivery = {
-    minutes: Math.round(minutes) + (prev ? prev.minutes || 0 : 0),
+    // Durée réelle de l'absence (les gains, eux, sont plafonnés à 8 h).
+    minutes: Math.round(away / MIN) + (prev ? prev.minutes || 0 : 0),
     coins: coins + (prev ? prev.coins || 0 : 0),
     welcome: welcome || (prev ? prev.welcome || null : null),
   };

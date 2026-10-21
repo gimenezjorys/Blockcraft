@@ -24,6 +24,9 @@ import quests from './ui/screens/quests.js';
 import calendar from './ui/screens/calendar.js';
 import reward from './ui/screens/reward.js';
 import daily from './ui/screens/daily.js';
+import ad from './ui/screens/ad.js';
+import wardrobe from './ui/screens/wardrobe.js';
+import { createAds } from './ads/ads.js';
 import hud from './ui/screens/hud.js';
 import intro from './ui/screens/intro.js';
 import settings from './ui/screens/settings.js';
@@ -110,6 +113,10 @@ function boot() {
     snap.storageKind = storage.kind;
     return snap;
   };
+  // Pubs (B10) : sans régie par défaut ; `?ads=sim` active l'adaptateur de test.
+  app.services.ads = createAds(app);
+  const adsParam = /[?&]ads=(none|sim|poki|crazygames)(?:&|$)/.exec(window.location.search);
+  if (adsParam) app.services.ads.setAdapter(adsParam[1]);
   const demo = /[?&]demo=1(?:&|$)/.test(window.location.search);
   app.onTitleTap = () => {
     if (demo) {
@@ -120,7 +127,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon, quests, calendar, reward, daily });
+  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon, quests, calendar, reward, daily, ad, wardrobe });
   app.router.goto('title');
   app.loop.start();
 }

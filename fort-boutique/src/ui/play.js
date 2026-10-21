@@ -50,6 +50,29 @@ export function createPlay(app, g, hooks = {}) {
   };
   const onFx = createFxHandler({ app, g, fx, floaters, camera, view });
 
+  /** Effets de la Garde-robe (G17) : pièces-étoiles/cœurs/feuilles, traînée de pas, confettis de victoire. */
+  const COIN_STYLES = new Set(['coins_stars', 'coins_hearts', 'cal_coins_hearts', 'evt_coins_leaves', 'week_coins_leaves']);
+  let trailT = 0;
+  function cosmeticFx(dt) {
+    const eq = g.save.cosmetics.equipped.coinFx;
+    fx.coinStyle = COIN_STYLES.has(eq) ? eq : null;
+    if (eq === 'fx_trail' && (Math.abs(g.input.x) + Math.abs(g.input.y) > 0.2)) {
+      trailT -= dt;
+      if (trailT <= 0) {
+        trailT = 0.12;
+        const ox = g.grid.origin.x;
+        const oy = g.grid.origin.y;
+        fx.burst('dust', ox + g.player.x * 48, oy + g.player.y * 48 + 10, 1, '#FFE066', 10, 0.5, 2);
+      }
+    }
+    if (eq === 'fx_confetti') {
+      for (let i = 0; i < g.events.length; i++) {
+        const e = g.events.items[i];
+        if (e.type === 'night_end' && e.a === 3) for (const c of ['#FF4F5E', '#FFD23F', '#46D39A', '#7FD8FF']) fx.burst('spark', 180, 200, 10, c, 160, 1.2, 3);
+      }
+    }
+  }
+
   const scene = {
     /** Le joystick n'est actif que lorsque le marchand peut marcher. */
     get joystick() {
@@ -70,6 +93,7 @@ export function createPlay(app, g, hooks = {}) {
         if (g.phase.name === 'night') g.input.bell = 1;
       }
       stepGame(g, dt);
+      cosmeticFx(dt);
       // Indices des 10 premières minutes (G19) : ils lisent les événements de ce pas, avant qu'on vide la file.
       stepHints(g, dt);
       for (let i = 0; i < g.events.length; i++) {

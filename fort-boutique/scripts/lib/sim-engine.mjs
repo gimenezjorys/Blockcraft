@@ -3,7 +3,10 @@
 import { defaultSave } from '../../src/save/schema.js';
 import { createGame, rebuildShop } from '../../src/game/state.js';
 import { stepGame } from '../../src/game/phases.js';
-import { openShop, markNightPending, enterDawn, openDawnChest, leaveDawn } from '../../src/game/cycle.js';
+import { openShop, markNightPending, enterDawn, openDawnChest, leaveDawn, retryBossNight } from '../../src/game/cycle.js';
+import { startNight } from '../../src/game/night/night.js';
+import { grantReward } from '../../src/game/rewards.js';
+import { ADS } from '../../src/data/balance.js';
 import { catalogIds, canBuy } from '../../src/game/catalog.js';
 import { canUpgrade } from '../../src/game/economy.js';
 import { unlockedFurniture, districtOpen } from '../../src/game/progression.js';
@@ -33,7 +36,7 @@ const REGISTRY = {
   WAVES: WAVES_DATA.WAVES, SCALING: WAVES_DATA.SCALING, MONSTERS: MONSTER_DATA.MONSTERS, BOSSES: MONSTER_DATA.BOSSES,
   CUSTOMERS: BALANCE.CUSTOMERS, ECONOMY: BALANCE.ECONOMY, DAY: BALANCE.DAY, NIGHT: NIGHT_DATA.NIGHT, XP_GAINS: XP_DATA.XP_GAINS,
   FURNITURE: FURN_DATA.FURNITURE, FURNITURE_LEVEL: BALANCE.FURNITURE_LEVEL, CHESTS: CHEST_DATA.CHESTS,
-  RUSH: TUTO_DATA.RUSH, SPECIAL_ORDER: TUTO_DATA.SPECIAL_ORDER, XP_TABLE: XP_DATA.XP_TABLE, CAT: MERCHANT_DATA.CAT,
+  RUSH: TUTO_DATA.RUSH, SPECIAL_ORDER: TUTO_DATA.SPECIAL_ORDER, XP_TABLE: XP_DATA.XP_TABLE, CAT: MERCHANT_DATA.CAT, ADS: BALANCE.ADS,
 };
 
 /**
@@ -80,7 +83,9 @@ export function cheapestUseful(save, shopId) {
 
 /**
  * Joue une partie.
- * @param {{ seed: number, profile: string, maxCycles?: number, stopAfterBoss?: boolean }} o
+ * @param {{ seed: number, profile: string, maxCycles?: number, stopAfterBoss?: boolean, ads?: boolean }} o
+ *   ads : le bot regarde toutes les pubs récompensées utiles (D2.4.7) : × 2 de la nuit, coffre bonus après ★★★,
+ *   revanche d'une Pleine Lune perdue (au plus 2) ; un cycle compte comme un jour.
  */
 export function simulateGame(o) {
   const profile = PROFILES[o.profile];
@@ -98,6 +103,20 @@ export function simulateGame(o) {
     let dayS = 0;
     let nightS = 0;
     let guard = 0;
+    const runNight = () => {
+      let gd = 0;
+      for (;;) {
+        pilot.tick(g, SIM_DT);
+        stepGame(g, SIM_DT);
+        out.steps++;
+        nightS += SIM_DT;
+        let dawn = false;
+        for (let i = 0; i < g.events.length; i++) if (g.events.items[i].type === 'dawn') dawn = true;
+        g.events.clear();
+        if (dawn) return;
+        if (++gd > 60 * 60 * 10) throw new Error(`revanche bloquée (cycle ${c})`);
+      }
+    };
     for (;;) {
       pilot.tick(g, SIM_DT);
       if (o.trace) o.trace(g, c, pilot);
@@ -124,6 +143,22 @@ export function simulateGame(o) {
     enterDawn(g);
     openDawnChest(g);
     if (r.bossNight) out.bossAttempts++;
+    let rr = r;
+    if (o.ads) {
+      save.player.coins += r.coins;
+      if (r.stars === 3 && !r.bossNight) grantReward(save, { chest: 'wood' }, { seed: o.seed * 31 + c });
+      for (let k = 0; k < ADS.rewarded.rw_boss_retry.cap && rr.bossNight && !rr.bossWin; k++) {
+        retryBossNight(g, ADS.rewarded.rw_boss_retry.dmgBonus);
+        startNight(g, { dayTakings: g.shop.phase.dayTakings || 0 });
+        runNight();
+        g.nightResult = g.night.result;
+        rr = g.nightResult;
+        enterDawn(g);
+        openDawnChest(g);
+        out.bossAttempts++;
+        save.player.coins += rr.coins;
+      }
+    }
     leaveDawn(g);
     rebuildShop(g);
     const quests = o.quests === false ? 0 : applyQuestModel(g, o.profile, c);
@@ -141,7 +176,7 @@ export function simulateGame(o) {
       stars: r.stars,
       kept: r.kept,
       bossNight: !!r.bossNight,
-      bossWin: !!r.bossWin,
+      bossWin: !!rr.bossWin,
       dayS,
       nightS,
       kills: r.kills,
@@ -164,7 +199,7 @@ export function simulateGame(o) {
       furniture: Object.fromEntries(Object.entries(save.furniture).map(([k, v]) => [k, v.level])),
       layout: g.shop.layout.length,
     });
-    if (r.bossWin && out.bossWonAt === null) out.bossWonAt = c;
+    if (rr.bossWin && out.bossWonAt === null) out.bossWonAt = c;
     if (out.bossWonAt !== null && out.nextLevelAt === null && districtOpen(save, nextDistrict)) out.nextLevelAt = c;
     if (o.stopAfterBoss !== false && out.bossWonAt !== null && (out.nextLevelAt !== null || c >= out.bossWonAt + 4)) break;
   }

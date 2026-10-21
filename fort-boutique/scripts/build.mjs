@@ -103,7 +103,8 @@ export async function buildGame({ test = TEST, quiet = QUIET } = {}) {
 </html>
 `;
   const bytes = Buffer.byteLength(html);
-  if (bytes > BUDGET) {
+  // Budget B5 : le fichier publié (minifié). Le build de test, lisible, n'est pas minifié et peut le dépasser.
+  if (!test && bytes > BUDGET) {
     throw new Error(`dist/index.html dépasse le budget : ${(bytes / 1024).toFixed(1)} Ko > 600 Ko`);
   }
   mkdirSync(join(out, 'icons'), { recursive: true });

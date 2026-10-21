@@ -25,6 +25,10 @@ import { collectOffline } from '../game/offline.js';
 import { dailyFirstAttempt } from '../game/daily.js';
 import { checkEvent, eventState } from '../game/weekly-events.js';
 import { createDailyFlow } from './daily-flow.js';
+import { createAdFlow } from './ad-flow.js';
+import { canShowInterstitial, noteInterstitial, noteCycle } from '../ads/ad-policy.js';
+import { retryBossNight } from '../game/cycle.js';
+import { grantReward } from '../game/rewards.js';
 import { utcDay } from '../core/time.js';
 
 /** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime (plus courte ensuite ; un tap l'abrège). */
@@ -171,7 +175,8 @@ export function createSession(app, o) {
     });
   }
 
-  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily });
+  const adFlow = createAdFlow(app, { game: () => g, save });
+  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily, ads: () => adFlow });
   const daily = createDailyFlow(app, { game: () => g, play: () => play, save, renderMorning: () => renderMorning() });
 
   function showDawn(resumed = false) {
@@ -203,12 +208,72 @@ export function createSession(app, o) {
         return ok;
       },
       onContinue: () => {
+        const r = g.shop.phase.dawn && g.shop.phase.dawn.result;
+        const bossWin = !!(r && r.bossWin);
         leaveDawn(g);
+        noteCycle(g.save);
         save(true);
-        showMorning();
+        const ad = afterDawnAd(bossWin);
+        if (ad) ad.then(() => showMorning());
+        else showMorning();
       },
-      adReady: () => !!(app.services.ads && app.services.ads.isRewardedReady('rw_double_night')),
-      adOffer: () => g.save.stats.playtimeMs >= ADS.quietPlaytimeMs,
+      // Pubs récompensées de l'aube (G18.1), toujours au choix du joueur.
+      adReady: () => adFlow.ready('rw_double_night'),
+      adOffer: () => adFlow.visible('rw_double_night', { night: g.save.stats.nights }),
+      onDouble: () => adFlow.watch('rw_double_night', { night: g.save.stats.nights }, () => {
+        const dw = g.shop.phase.dawn;
+        if (!dw || dw.adDoubled) return;
+        g.save.player.coins += dw.result.coins;
+        dw.adDoubled = true;
+      }),
+      extraAds: dawnAds(),
+    });
+  }
+
+  /** Pubs en plus à l'aube : +1 coffre en bois après ★★★ (3 par jour), revanche d'une Pleine Lune perdue (2 par jour). */
+  function dawnAds() {
+    const dw = () => g.shop.phase.dawn;
+    return [
+      {
+        id: 'bonus-chest',
+        label: t('ads.bonusChest'),
+        visible: () => !!dw() && dw().result.stars === 3 && !dw().result.bossNight && !dw().bonusChest && adFlow.visible('rw_bonus_chest'),
+        ready: () => adFlow.ready('rw_bonus_chest'),
+        onWatch: () => adFlow.watch('rw_bonus_chest', {}, () => {
+          const d = dw();
+          if (!d || d.bonusChest) return;
+          d.bonusChest = true;
+          const r = grantReward(g.save, { chest: 'wood' }, { seed: seedFrom(g.save.seed, 'pub coffre', g.save.stats.nights) });
+          app.router.push('reward', { title: t('ads.bonusChest'), rewards: [r], onClose: () => app.router.pop() });
+        }),
+      },
+      {
+        id: 'boss-retry',
+        label: t('ads.bossRetry'),
+        visible: () => !!dw() && !!dw().result.bossNight && !dw().result.bossWin && adFlow.visible('rw_boss_retry'),
+        ready: () => adFlow.ready('rw_boss_retry'),
+        onWatch: () => adFlow.watch('rw_boss_retry', {}, () => {
+          if (!retryBossNight(g, ADS.rewarded.rw_boss_retry.dmgBonus)) return;
+          startNight(g, { dayTakings: g.shop.phase.dayTakings || 0 });
+          showHud();
+        }),
+      },
+    ];
+  }
+
+  /**
+   * Interstitielle it_dawn (G18.2) au passage Aube -> Matin, seulement si toutes les conditions sont vraies.
+   * @returns {Promise<void> | null} null si aucune pub n'est montrée (le Matin s'ouvre tout de suite)
+   */
+  function afterDawnAd(bossWin) {
+    const ads = app.services.ads;
+    const unlocked = g.save.progress.pendingUnlocks.length > 0 || g.save.progress.pendingDistricts.length > 0;
+    if (!ads || ads.adapter === 'none' || !canShowInterstitial(g.save, now(), { bossWin, unlocked }).ok) return null;
+    return ads.showInterstitial('it_dawn').then((r) => {
+      if (r && r.shown) {
+        noteInterstitial(g.save, now());
+        save(true);
+      }
     });
   }
 

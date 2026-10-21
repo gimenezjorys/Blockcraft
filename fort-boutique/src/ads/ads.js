@@ -41,9 +41,14 @@ export function createAds(app) {
         }
       };
       app.stepHooks.push(tick);
-      Promise.resolve()
-        .then(start)
-        .then((r) => finish(r || fallback), () => finish(fallback));
+      // L'écran de la pub s'ouvre tout de suite (pas d'attente d'une micro-tâche).
+      let p;
+      try {
+        p = Promise.resolve(start());
+      } catch {
+        p = Promise.resolve(fallback);
+      }
+      p.then((r) => finish(r || fallback), () => finish(fallback));
     });
   }
 
