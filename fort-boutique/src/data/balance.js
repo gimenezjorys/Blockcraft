@@ -138,7 +138,27 @@ export const DAY_AURAS = {
 
 /** Publicités (G18) : aucune proposition pendant les 10 premières minutes de jeu cumulé. */
 export const ADS = {
+  /** Aucune pub pendant les 10 premières minutes de jeu (G18.3). */
   quietPlaytimeMs: 10 * 60 * 1000,
+  /** Placements récompensés (G18.1) : plafond et période (night = par nuit, day = par jour UTC, week, return = par retour). */
+  rewarded: {
+    rw_double_night: { cap: 1, per: 'night' },
+    rw_bonus_chest: { cap: 3, per: 'day' },
+    rw_morning_delivery: { cap: 1, per: 'return' },
+    rw_daily_rubies: { cap: 1, per: 'day', rubies: 3 },
+    rw_quest_reroll: { cap: 1, per: 'day' },
+    rw_streak_restore: { cap: 1, per: 'week' },
+    rw_boss_retry: { cap: 2, per: 'day', dmgBonus: 0.25 },
+  },
+  /** Plafond global : 12 pubs récompensées par jour UTC. */
+  rewardedPerDay: 12,
+  /** Interstitielle it_dawn (G18.2). */
+  interstitial: { minLevel: 5, minPlaytimeMs: 15 * 60 * 1000, minCycles: 3, minGapMs: 4 * 60 * 1000, quietAfterRewardedMs: 3 * 60 * 1000, perDay: 6 },
+  /** Délais maximum avant un échec propre (B10). */
+  rewardedTimeoutMs: 45000,
+  interstitialTimeoutMs: 20000,
+  /** Adaptateur « sim » : écran de 3 s. */
+  simDurationS: 3,
 };
 
 /** Hors ligne et retour (G16). */

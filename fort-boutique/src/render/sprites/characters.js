@@ -74,6 +74,12 @@ function outfitColor(id) {
     case 'wizard_cape': return '#6A4C93';
     case 'cardboard_armor': return '#C9A16B';
     case 'moon_suit': return '#1A1446';
+    case 'evt_apron_apple': return '#FF4F5E';
+    case 'evt_apron_mamie': return '#FF8FB1';
+    case 'cal_apron_stars': return '#5B7CFA';
+    case 'cal_outfit_baker': return '#FFFDF6';
+    case 'week_apron_moon': return '#3A2E6E';
+    case 'week_outfit_knight': return '#BDC6CF';
     default: return P.ciel;
   }
 }
@@ -84,6 +90,9 @@ function hairColor(id) {
     case 'chef_hat': return '#FFFFFF';
     case 'wool_beanie': return '#FF4F5E';
     case 'pumpkin_hat': return '#FF9F43';
+    case 'flower_crown': return '#FF8FB1';
+    case 'sun_hat': return '#FFD23F';
+    case 'evt_crown_raton': return '#FFD23F';
     default: return '#8A4A26';
   }
 }

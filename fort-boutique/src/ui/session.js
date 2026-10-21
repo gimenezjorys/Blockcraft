@@ -22,6 +22,10 @@ import { streakCheck } from '../game/streak.js';
 import { checkAchievements } from '../game/achievements.js';
 import { checkBestiary } from '../game/bestiary.js';
 import { collectOffline } from '../game/offline.js';
+import { dailyFirstAttempt } from '../game/daily.js';
+import { checkEvent, eventState } from '../game/weekly-events.js';
+import { createDailyFlow } from './daily-flow.js';
+import { utcDay } from '../core/time.js';
 
 /** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime (plus courte ensuite ; un tap l'abrège). */
 const DAWN_DELAY_S = 2.5;
@@ -117,11 +121,13 @@ export function createSession(app, o) {
     refreshQuests(g.save, t0);
     const achieved = checkAchievements(g.save, t0);
     const tiers = checkBestiary(g.save);
-    if (achieved.length || tiers.length) save(true);
+    const evWin = checkEvent(g.save, t0);
+    if (achieved.length || tiers.length || evWin) save(true);
     renderMorning();
     const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
     for (const a of achieved) toast(t('ach.unlocked', { n: a.rubies }), SVG.star);
     for (const b of tiers) toast(t('best.tier', { name: t(`mon.${b.type}`), n: b.rubies }), SVG.ruby);
+    if (evWin) toast(evWin.cosmetic ? t('event.won') : t('event.wonRubies', { n: evWin.rubies }), SVG.star);
     // Les déblocages se fêtent au Matin suivant (G12.4), puis le ticket « Pendant ton absence » (G16), puis le
     // calendrier s'ouvre seul s'il attend (G19 3:02).
     const calendar = () => session.hubScreens.has('calendar') && isUnlocked(g.save, 'calendar') && hub.autoCalendar();
@@ -138,6 +144,7 @@ export function createSession(app, o) {
       editor: isUnlocked(save, 'editor') && !save.progress.flags.editorSeen,
       upgrades: unlockedFurniture(save).some((id) => canUpgrade(save, id).ok),
       quests: isUnlocked(save, 'quests') && questsClaimable(save, now()),
+      daily: isUnlocked(save, 'daily') && dailyFirstAttempt(save, utcDay(now())),
       calendar: calendarState(save, now()).canClaim,
     };
   }
@@ -159,11 +166,13 @@ export function createSession(app, o) {
       badges: hubBadges(g),
       onSettings: () => openSettings(),
       objective: (d) => createObjective(() => g, morningObjective, d),
+      event: eventState(g.save, now()),
       hintOpen: g.save.stats.cycles < 3,
     });
   }
 
-  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning() });
+  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily });
+  const daily = createDailyFlow(app, { game: () => g, play: () => play, save, renderMorning: () => renderMorning() });
 
   function showDawn(resumed = false) {
     dawnDelay = -1;
@@ -410,6 +419,7 @@ export function createSession(app, o) {
     /** À chaque pas : sauvegarde automatique et temps de jeu. */
     step(dt) {
       if (!g || !saver) return;
+      daily.step();
       if (dawnDelay >= 0) {
         dawnDelay -= dt;
         if (dawnDelay < 0 && app.router.baseId() === 'hud') showDawn();
@@ -435,6 +445,10 @@ export function createSession(app, o) {
      */
     autoPause() {
       if (!g || !play || app.router.currentId() === 'title') return;
+      if (daily.active()) {
+        daily.pause();
+        return;
+      }
       const n = g.phase.name;
       if (n === 'day' || n === 'closing' || n === 'dusk' || n === 'night') pause();
     },

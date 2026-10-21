@@ -53,3 +53,17 @@
 @media (prefers-reduced-motion: reduce) { .cal-today { animation: none; } }
 .reward-sub { font: 800 16px/1 var(--f-mono); color: var(--craie-jaune); }
 .reward-line { max-width: 260px; font-size: 13px; text-align: center; }
+/* M14 — Défi du jour, bannière d'événement. */
+.daily-card { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 3px solid var(--encre); border-radius: 10px; background: var(--kraft); color: var(--encre); }
+.daily-icons { display: flex; flex-wrap: wrap; gap: 4px; }
+.daily-ico { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(255, 255, 255, .35); }
+.daily-ico canvas { width: 36px; height: 36px; }
+.new-tag { position: absolute; top: -6px; right: -6px; padding: 0 3px; border: 2px solid var(--encre); border-radius: 6px; background: var(--craie-jaune); font: 900 8px/1.3 var(--f-title); }
+.daily-result { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; }
+.daily-score { font: 900 22px/1.1 var(--f-title); color: var(--craie-jaune); }
+.daily-marks { font-size: 22px; letter-spacing: 2px; }
+.daily-rivals { display: flex; flex-direction: column; gap: 2px; font: 700 13px/1.3 var(--f-mono); }
+.daily-rival { display: grid; grid-template-columns: 36px 1fr auto; padding: 2px 8px; border-radius: 6px; }
+.daily-rival.me { background: var(--craie-jaune); color: var(--encre); font-weight: 900; }
+.hub-event { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; margin: 6px auto 0; padding: 4px 10px; border: 3px solid var(--encre); border-radius: 12px; background: var(--ticket, #FFF6E5); color: var(--encre); font: 800 12px/1.2 var(--f-title); }
+.hub-season { padding: 0 6px; border-radius: 8px; background: #FF8A3D; color: var(--encre); }

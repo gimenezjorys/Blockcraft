@@ -18,14 +18,15 @@ import { now, utcDay } from '../core/time.js';
 import { trackQuest } from '../game/quest-track.js';
 
 /** Écrans du hub déjà branchés (les autres boutons disent « Bientôt »). */
-export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar'];
+export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily'];
 
 /** Quartiers dont le contenu est prêt (M16 à M19 ajoutent les suivants). */
 export const PLAYABLE_DISTRICTS = ['q1'];
 
 /**
  * @param {any} app
- * @param {{ game: () => any, save: (force?: boolean) => void, refresh: () => void, switchShop?: (id: string) => void }} o
+ * @param {{ game: () => any, save: (force?: boolean) => void, refresh: () => void, switchShop?: (id: string) => void,
+ *   daily?: () => any }} o
  */
 export function createHub(app, o) {
   const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
@@ -47,6 +48,10 @@ export function createHub(app, o) {
   }
 
   const screens = {
+    /** Défi du jour (G13.3) : déroulé dans daily-flow.js. */
+    daily() {
+      if (o.daily) o.daily().open();
+    },
     /** Quêtes du jour et de la semaine, succès, bestiaire (G14). */
     quests(g, tab) {
       refreshQuests(g.save, now());

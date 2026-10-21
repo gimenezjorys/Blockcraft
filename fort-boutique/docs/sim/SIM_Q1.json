@@ -73,6 +73,12 @@
       "label": "Moyen : niveau 5 au cycle 4 ou 5 (médiane)",
       "value": "niveau 7 au cycle 5, 6 au cycle 4",
       "ok": true
+    },
+    {
+      "id": "D2.4.8",
+      "label": "Défi du jour : score moyen Faible ≥ 500, Moyen 800 à 1 000, Fort ≤ 1 250",
+      "value": "888 / 954 / 942",
+      "ok": true
     }
   ],
   "info": {

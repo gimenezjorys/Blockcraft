@@ -8,16 +8,17 @@ export const DAILY = {
   furnitureLevel: 5,
   waves: 5,
   /** Budget de menace des vagues : budget × (0,7 + 0,15 (i − 1)) ; PV × hpMult. Réglés par la simulation (D2.4.8). */
-  budget: 16,
-  hpMult: 1,
+  budget: 24,
+  hpMult: 1.5,
+  /** Nuit jouée (6, semaine 1 : toutes les entrées ouvertes, sans Pleine Lune) et valeur du Bocal. */
+  night: 6,
+  jar: 300,
   /** Score (G13.3). */
   score: { jar: 1000, thief: 25, noBroken: 100, cleanWave: 50 },
   /** Récompenses de la première tentative du jour. */
   rewards: { low: { rubies: 3, chest: 'wood' }, high: { rubies: 5, chest: 'silver' } },
   /** Rivaux simulés du jour (G13.3) : loi normale bornée, tirée de la graine du jour. */
   rivals: { count: 20, mean: 900, sd: 150, min: 300, max: 1400 },
-  /** Adresse partagée (E2). */
-  url: 'https://gimenezjorys.github.io/Blockcraft/fort-boutique/',
 };
 
 /** Événements de la semaine, dans l'ordre de `utcWeek mod 6`. */
@@ -35,9 +36,9 @@ export const EVENT_DUPLICATE_RUBIES = 20;
 
 /** Saisons (date UTC, bornes incluses) : [mois, jour]. Pendant une saison : XP +10 %. */
 export const SEASONS = [
-  { id: 'halloween', from: [10, 15], to: [11, 5], cosmetics: ['season_hat_pumpkin', 'season_cat_pumpkin', 'season_sign_spooky'] },
-  { id: 'winter', from: [12, 1], to: [12, 31], cosmetics: ['season_hat_wool', 'season_cat_scarf', 'season_theme_snow'] },
-  { id: 'spring', from: [3, 20], to: [4, 10], cosmetics: ['season_apron_flowers', 'season_theme_spring'] },
-  { id: 'summer', from: [7, 1], to: [7, 31], cosmetics: ['season_hat_straw', 'season_theme_summer'] },
+  { id: 'halloween', from: [10, 15], to: [11, 5], cosmetics: ['pumpkin_hat', 'cat_pumpkin', 'halloween'] },
+  { id: 'winter', from: [12, 1], to: [12, 31], cosmetics: ['wool_beanie', 'cat_scarf', 'hiver'] },
+  { id: 'spring', from: [3, 20], to: [4, 10], cosmetics: ['flower_crown', 'theme_spring'] },
+  { id: 'summer', from: [7, 1], to: [7, 31], cosmetics: ['sun_hat', 'theme_summer'] },
 ];
 export const SEASON_XP = 0.1;

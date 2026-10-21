@@ -9,6 +9,7 @@ import { drawCat, drawStaff } from './sprites/helpers.js';
 import { drawMonster, drawMonsterEyes, MONSTER_LOOK } from './sprites/monsters.js';
 import { drawProjectile } from './sprites/projectiles.js';
 import { Lighting } from './lighting.js';
+import { currentSeason } from '../game/weekly-events.js';
 
 const C = 48;
 
@@ -38,10 +39,13 @@ export function createRenderer(env) {
     drawList.push(o);
   }
   const byY = (a, b) => a.y - b.y;
+  /** Style des yeux des meubles (Garde-robe) pour l'image en cours. */
+  let eyesStyle = 'round';
 
   function ensureShell(g, night) {
     const ps = Math.min(3, env.pixelScale());
-    const key = `${g.layoutVersion}|${g.grid.w}x${g.grid.h}|${night ? 1 : 0}|${g.save.cosmetics.equipped.theme}|${ps}`;
+    const season = currentSeason();
+    const key = `${g.layoutVersion}|${g.grid.w}x${g.grid.h}|${night ? 1 : 0}|${g.save.cosmetics.equipped.theme}|${ps}|${season ? season.id : ''}`;
     if (key === shellKey && shell) return ps;
     if (Math.abs(ps - spriteScale) > 0.01) {
       spriteScale = ps;
@@ -52,7 +56,7 @@ export function createRenderer(env) {
     shell = env.makeCanvas(Math.ceil(360 * ps), Math.ceil(640 * ps));
     const c = shell.getContext('2d');
     c.setTransform(ps, 0, 0, ps, 0, 0);
-    drawShopShell(c, g.grid, { night, theme: g.save.cosmetics.equipped.theme });
+    drawShopShell(c, g.grid, { night, theme: g.save.cosmetics.equipped.theme, season: season ? season.id : null });
     return ps;
   }
 
@@ -61,7 +65,8 @@ export function createRenderer(env) {
     const h = f.h * C;
     const eyesQ = f.eyes > 0 ? Math.round(f.eyes * 4) : 0;
     const look = f.eyes > 0.4 ? Math.round(((Math.atan2(f.lookY, f.lookX) + Math.PI) / (Math.PI * 2)) * 8) % 8 : 0;
-    const key = `${f.id}|${f.w}${f.h}|${night ? 1 : 0}|${f.product || ''}|${f.count}|${Math.min(f.stock, 9)}|${eyesQ}|${look}|${f.broken ? 1 : 0}|${f.capacity || 0}|${f.jarQ ?? ''}`;
+    const eyeStyle = eyesStyle;
+    const key = `${f.id}|${f.w}${f.h}|${night ? 1 : 0}|${f.product || ''}|${f.count}|${Math.min(f.stock, 9)}|${eyesQ}|${look}|${f.broken ? 1 : 0}|${f.capacity || 0}|${f.jarQ ?? ''}|${eyeStyle}`;
     return sprites.get(key, w + 8, h + 30, 4, 26, (ctx) => {
       const a = (look / 8) * Math.PI * 2 - Math.PI;
       drawFurniture(ctx, f.id, 0, 0, w, h, {
@@ -75,6 +80,7 @@ export function createRenderer(env) {
         lookY: Math.sin(a),
         broken: f.broken,
         jar: f.jarQ === undefined ? 1 : f.jarQ / 6,
+        eyeStyle,
       });
     });
   }
@@ -95,6 +101,7 @@ export function createRenderer(env) {
    */
   function draw(ctx, g, o = {}) {
     const night = !!o.night;
+    eyesStyle = g.save.cosmetics.equipped.eyes || 'round';
     const ps = ensureShell(g, night);
     drawBackdrop(ctx);
     ctx.drawImage(shell, 0, 0, 360, 640);
@@ -148,7 +155,7 @@ export function createRenderer(env) {
         const r = d.ref;
         ctx.save();
         ctx.translate(ox + r.x * C, oy + r.y * C + 10);
-        if (d.kind === 'k') drawCat(ctx, r, g.t);
+        if (d.kind === 'k') drawCat(ctx, r, g.t, g.save.cosmetics.equipped.cat);
         else drawStaff(ctx, r, g.t);
         ctx.restore();
       } else if (d.kind === 'c') {

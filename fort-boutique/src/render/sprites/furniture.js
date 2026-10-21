@@ -52,7 +52,29 @@ function body(ctx, x, y, w, h, top, front, r = 8) {
 }
 
 /** Yeux de nuit : deux ovales blancs, pupilles qui suivent la cible (G20.4). */
-export function drawEyes(ctx, cx, cy, open, lookX, lookY, broken, size = 1) {
+/** Détails des yeux de la Garde-robe : paupières, lunettes, cils, sourcils. */
+function eyeExtra(ctx, x, cy, s, size, style) {
+  ctx.strokeStyle = P.encre;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (style === 'sleepy') {
+    ctx.moveTo(x - 5 * size, cy - 1 * size);
+    ctx.lineTo(x + 5 * size, cy - 1 * size);
+  } else if (style === 'glasses') {
+    ctx.arc(x, cy, 6.5 * size, 0, Math.PI * 2);
+  } else if (style === 'lashes') {
+    for (const k of [-3, 0, 3]) {
+      ctx.moveTo(x + k * size, cy - 6 * size);
+      ctx.lineTo(x + k * 1.3 * size, cy - 8.5 * size);
+    }
+  } else if (style === 'frown') {
+    ctx.moveTo(x - 5 * size * s, cy - 9 * size);
+    ctx.lineTo(x + 4 * size * s, cy - 6.5 * size);
+  }
+  ctx.stroke();
+}
+
+export function drawEyes(ctx, cx, cy, open, lookX, lookY, broken, size = 1, style = 'round') {
   if (open <= 0.02 && !broken) return;
   const ex = 7 * size;
   for (const s of [-1, 1]) {
@@ -79,9 +101,19 @@ export function drawEyes(ctx, cx, cy, open, lookX, lookY, broken, size = 1) {
       const l = Math.hypot(lookX, lookY) || 1;
       const px = x + (lookX / l) * 1.8 * size;
       const py = cy + (lookY / l) * 2.2 * size * open;
-      disc(ctx, px, py, 2.6 * size, P.encre, 0);
+      const pupil = style === 'cal_eyes_heart' ? '#FF4F6E' : style === 'week_eyes_star' ? '#FFB000' : P.encre;
+      disc(ctx, px, py, 2.6 * size, pupil, 0);
       disc(ctx, px + 0.9 * size, py - 1 * size, 0.9 * size, P.blanc, 0);
     }
+    if (open > 0.4 && style && style !== 'round') eyeExtra(ctx, x, cy, s, size, style);
+  }
+  if (open > 0.4 && style === 'glasses') {
+    ctx.strokeStyle = P.encre;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(cx - 2 * size, cy);
+    ctx.lineTo(cx + 2 * size, cy);
+    ctx.stroke();
   }
 }
 
@@ -256,7 +288,7 @@ export function drawFurniture(ctx, id, x, y, w, h, o = {}) {
     }
   }
   if (o.eyes !== undefined && (o.eyes > 0 || o.broken)) {
-    drawEyes(ctx, cx, y + h - 14, o.eyes, o.lookX || 0, o.lookY || 1, o.broken, w > 60 ? 1.1 : 1);
+    drawEyes(ctx, cx, y + h - 14, o.eyes, o.lookX || 0, o.lookY || 1, o.broken, w > 60 ? 1.1 : 1, o.eyeStyle);
   }
   ctx.restore();
 }

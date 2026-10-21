@@ -8,6 +8,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { simulateGame, applyOverrides } from './lib/sim-engine.mjs';
 import { evaluateQ1, median } from './lib/sim-metrics.mjs';
+import { runDailySims, dailyThreshold } from './lib/sim-daily.mjs';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const PROFILE_IDS = ['weak', 'medium', 'strong'];
@@ -74,7 +75,11 @@ export async function runSims(o) {
   })));
   const all = parts.flat();
   const byProfile = Object.fromEntries(PROFILE_IDS.map((p) => [p, all.filter((g) => g.profile === p)]));
-  return { byProfile, evaluation: evaluateQ1(byProfile, o.maxCycles), seconds: (performance.now() - t0) / 1000, workers: W };
+  const evaluation = evaluateQ1(byProfile, o.maxCycles);
+  // D2.4.8 : Défi du jour, un défi par partie simulée (jours UTC consécutifs), score moyen par profil.
+  const d = dailyThreshold(runDailySims({ days: o.runs }));
+  evaluation.rows.push({ id: 'D2.4.8', label: 'Défi du jour : score moyen Faible ≥ 500, Moyen 800 à 1 000, Fort ≤ 1 250', value: `${d.weak} / ${d.medium} / ${d.strong}`, ok: d.ok });
+  return { byProfile, evaluation, seconds: (performance.now() - t0) / 1000, workers: W };
 }
 
 function report(res, o) {
@@ -84,7 +89,7 @@ function report(res, o) {
   L.push(`${o.runs} parties par profil (Faible, Moyen, Fort), ${o.maxCycles} cycles au plus, ${res.workers} workers, ${res.seconds.toFixed(0)} s. Graine par partie : 1000 + i. Commande : \`npm run sim -- --runs ${o.runs} --district q1\`.`, '');
   L.push('## Seuils (D2.4, G12.5)', '', '| Seuil | Mesure | Résultat |', '|---|---|---|');
   for (const r of ev.rows) L.push(`| ${r.id} — ${r.label} | ${r.value} | ${r.ok ? 'tenu' : '**NON TENU**'} |`);
-  L.push('', 'Non applicables avant leurs missions : D2.4.7 (pubs récompensées, M15) et D2.4.8 (Défi du jour, M14). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).', '');
+  L.push('', 'Non applicable avant sa mission : D2.4.7 (pubs récompensées, M15). Le Défi du jour (D2.4.8) est joué sans aménagement par les bots (disposition imposée). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).', '');
   L.push('## Repères', '');
   const i = ev.info;
   L.push(`- Roi Raton battu (médiane) : Faible cycle ${i.bossCycles.weak}, Moyen cycle ${i.bossCycles.medium}, Fort cycle ${i.bossCycles.strong}.`);

@@ -94,7 +94,7 @@ export function createApp({ testBuild, version }) {
     step(dt) {
       app.input.update(dt);
       if (scene && scene.update) scene.update(dt);
-      for (const fn of app.stepHooks) fn(dt);
+      for (const fn of app.stepHooks.slice()) fn(dt);
       app.router.update(dt);
       if (app.debug) app.debug.update(dt);
     },

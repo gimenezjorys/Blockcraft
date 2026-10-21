@@ -9,6 +9,7 @@ import { HINTS } from '../../data/tutorial.js';
 import { listen } from '../../core/events.js';
 import { flameSvg } from './calendar.js';
 import { flameColor } from '../../game/streak.js';
+import { countdown } from './quests.js';
 
 /** Raccourcis du hub et leur condition d'ouverture. */
 export const HUB_BUTTONS = [
@@ -106,7 +107,15 @@ function mount(app, p, d) {
     if (app.services.audio) app.services.audio.play('ui_tap');
     p.onOpen();
   }, d);
-  const el = h('div.morning', [top, row2, h('div.hub-spacer'), grid, h('div.hub-open-wrap', [open])]);
+  // Événement de la semaine (G13.5) et saison (G13.6) : bannière avec compte à rebours et défi de la semaine.
+  const ev = p.event;
+  const banner = ev && ev.event.id !== 'none' ? h('div.hub-event', { id: 'hub-event' }, [
+    h('span.hub-event-name', { text: t(`event.${ev.event.id}`) }),
+    h('span.hub-event-goal', { text: ev.done ? '✓' : `${ev.value}/${ev.goal}` }),
+    h('span.hub-event-time', { text: countdown(ev.msLeft) }),
+    ev.season ? h('span.hub-season', { text: t(`season.${ev.season.id}`) }) : null,
+  ]) : null;
+  const el = h('div.morning', [top, row2, banner, h('div.hub-spacer'), grid, h('div.hub-open-wrap', [open])]);
   let idle = 0;
   const touched = () => {
     idle = 0;

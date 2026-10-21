@@ -1,6 +1,6 @@
 # Simulation d'équilibrage — Quartier 1 (L'Épicerie de Mamie)
 
-300 parties par profil (Faible, Moyen, Fort), 30 cycles au plus, 3 workers, 252 s. Graine par partie : 1000 + i. Commande : `npm run sim -- --runs 300 --district q1`.
+300 parties par profil (Faible, Moyen, Fort), 30 cycles au plus, 3 workers, 286 s. Graine par partie : 1000 + i. Commande : `npm run sim -- --runs 300 --district q1`.
 
 ## Seuils (D2.4, G12.5)
 
@@ -18,8 +18,9 @@
 | G12.5a — Moyen : niveau 3 à la fin du cycle 2 (médiane) | niveau 3 | tenu |
 | G12.5b — Moyen : niveau 4 à la fin du cycle 3 (médiane) | niveau 4 | tenu |
 | G12.5c — Moyen : niveau 5 au cycle 4 ou 5 (médiane) | niveau 7 au cycle 5, 6 au cycle 4 | tenu |
+| D2.4.8 — Défi du jour : score moyen Faible ≥ 500, Moyen 800 à 1 000, Fort ≤ 1 250 | 888 / 954 / 942 | tenu |
 
-Non applicables avant leurs missions : D2.4.7 (pubs récompensées, M15) et D2.4.8 (Défi du jour, M14). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).
+Non applicable avant sa mission : D2.4.7 (pubs récompensées, M15). Le Défi du jour (D2.4.8) est joué sans aménagement par les bots (disposition imposée). Les quêtes du jour (M12) sont simulées par un modèle provisoire (`scripts/lib/quests-model.mjs` : Faible 1, Moyen 2, Fort 3 quêtes par cycle dès le niveau 4).
 
 ## Repères
 
