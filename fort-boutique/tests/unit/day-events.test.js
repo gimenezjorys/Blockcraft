@@ -125,3 +125,17 @@ test('un coffre de commande resté fermé s’ouvre tout seul en quittant l’au
   leaveDawn(g);
   assert.equal(g.save.stats.chestsOpened, opened + 3, 'coffre de la nuit + 2 coffres de commande');
 });
+
+test('Commande spéciale : à portée du client, les articles vont au client avant l’étagère voisine (P2, Léa)', () => {
+  const g = dayGame(3);
+  run(g, g.day.orderAt + 0.1, () => teleport(g, 0.5, 0.5));
+  const o = g.day.order;
+  run(g, 8, () => teleport(g, 0.5, 0.5));
+  assert.equal(o.waiting, true);
+  // Une étagère de pommes à moitié vide juste à côté du client.
+  const shelf = g.furn.find((f) => f.id === 'etagere');
+  shelf.count = 0;
+  g.player.stack = Array(o.need).fill('pomme');
+  const ev = run(g, 2, () => teleport(g, o.c.x, o.c.y));
+  assert.equal(count(ev, 'order_give'), o.need, 'tout pour le client');
+});

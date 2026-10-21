@@ -3,6 +3,7 @@
 import { seedFrom } from '../core/rng.js';
 import { CHEST_BY_STARS } from '../data/chests.js';
 import { NIGHT } from '../data/night.js';
+import { xpToNext } from '../data/xp.js';
 import { startDay } from './day/day.js';
 import { claimNight } from './night/night.js';
 import { rollChest, applyChest, upgradeChestRank } from './chests.js';
@@ -96,6 +97,9 @@ export function enterDawn(g) {
   ph.name = 'dawn';
   const levelFrom = g.save.player.level;
   claimNight(g, result);
+  // G19 2:57 : la première aube fête toujours le niveau 2 ; il ne manque au plus que quelques XP à un joueur hésitant
+  // (P2, Léa), on les complète une seule fois.
+  if (result.tutorial && g.save.player.level === 1) g.save.player.xp = Math.max(g.save.player.xp, xpToNext(1));
   // L'XP du jour et de la nuit fait monter de niveau maintenant (G12.3) ; le ruban de l'aube le montre.
   applyLevelUps(g);
   // Le passage de niveau se montre sur l'écran de l'aube (ruban), même après un rechargement.

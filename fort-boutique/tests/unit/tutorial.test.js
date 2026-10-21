@@ -174,3 +174,36 @@ test('nuit 1 : main fantôme si le marchand reste immobile 4 s loin des meubles 
   assert.ok(red, 'traînée rouge vers le voleur');
   assert.equal(redBeforeGrace, false, 'pas avant 3 s');
 });
+
+test('objectif selon la phase : au Matin, l’amélioration prête passe d’abord ; pendant le Jour, jamais d’amélioration', () => {
+  const g = newGame(11, (s) => {
+    s.shops.q1.pads.done = ['P1', 'P2'];
+    s.shops.q1.day = 2;
+    s.player.level = 2;
+    s.furniture.etagere.plans = 2;
+    s.player.coins = 30;
+  });
+  g.phase = { name: 'morning', t: 0 };
+  assert.equal(nextObjective(g).kind, 'upgrade', 'Matin : elle se fait là, tout de suite');
+  startDay(g);
+  const o = nextObjective(g);
+  assert.equal(o.kind, 'pad', 'Jour : le Frigo à payer');
+  g.shop.pads.done = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+  assert.notEqual(nextObjective(g).kind, 'upgrade', 'Jour : pas d’objectif impossible');
+});
+
+test('un passage de niveau en attente ne bloque pas l’emplacement du Frigo (niveau 2) pendant le jour 2', () => {
+  const g = newGame(11, (s) => {
+    s.shops.q1.pads.done = ['P1', 'P2'];
+    s.shops.q1.day = 2;
+    s.stats.cycles = 1;
+    s.shops.q1.phase.firstSaleDone = true;
+  });
+  startDay(g);
+  play(g, 0.2, still);
+  assert.equal(g.day.pad, null, 'niveau 1, XP 0 : pas encore');
+  g.save.player.xp = 125;
+  play(g, 0.2, still);
+  assert.equal(g.save.player.level, 1, 'le niveau attend l’aube');
+  assert.ok(g.day.pad && g.day.pad.id === 'P3', 'mais l’emplacement apparaît');
+});

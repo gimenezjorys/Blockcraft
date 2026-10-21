@@ -47,6 +47,21 @@ export function applyLevelUps(g) {
   return gained;
 }
 
+/**
+ * Niveau que donnera l'XP déjà gagnée (le passage se fête à l'aube) : sert aux conditions de jeu prises pendant la
+ * journée, comme l'emplacement du Frigo (« niveau 2 »), pour qu'un passage en attente ne bloque jamais rien (P2, Hugo).
+ * @param {{ level: number, xp: number }} player
+ */
+export function projectedLevel(player) {
+  let level = player.level;
+  let xp = player.xp;
+  while (level < MAX_LEVEL && xp >= xpToNext(level)) {
+    xp -= xpToNext(level);
+    level++;
+  }
+  return level;
+}
+
 /** Multiplicateur d'XP du quartier (X_Q). */
 export function xpFactor(shopId) {
   return DISTRICT_FACTORS.xp[shopId] || 1;

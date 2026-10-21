@@ -75,6 +75,15 @@ export const SVG = {
   back: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="#2B1A33" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
+/** Icône d'une fonction débloquée (cartes de déblocage, étiquette d'objectif) : la même que sur son bouton (P2, Léa). */
+export function featureIconSvg(feature) {
+  const map = {
+    editor: SVG.rotate, quests: SVG.scroll, daily: SVG.star, calendar: SVG.check, merchantUpgrades: SVG.arrowUp,
+    q2: SVG.map, q3: SVG.map, q4: SVG.map, q5: SVG.map, recipes: SVG.plan, wardrobe: SVG.ruby, achievements: SVG.star,
+  };
+  return map[feature] || SVG.star;
+}
+
 /**
  * Coffre en SVG (bois, argent, or, lune, bienvenue).
  * @param {string} type

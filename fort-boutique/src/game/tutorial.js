@@ -123,6 +123,13 @@ function usefulTarget(g) {
   const d = g.day;
   const p = g.player;
   const reg = g.register;
+  // Commande spéciale en cours (minuteur) : le client du parchemin, ou d'abord le producteur de ce qu'il demande.
+  const o = d.order;
+  if (o && o.waiting && o.got < o.need) {
+    if (p.stack.includes(o.product)) return { cell: cellOf(g, o.c.x, o.c.y), f: { cx: o.c.x, cy: o.c.y }, halo: true };
+    const src = nearest(g, g.furn.filter((x) => x.def.day.kind === 'producer' && x.def.day.product === o.product && x.stock > 0));
+    if (src) return { cell: standCell(g, src), f: src };
+  }
   if (reg && (d.queue.length || d.pile > 0) && distToFurniture(reg, p.x, p.y) > 1.2) return { cell: standCell(g, reg), f: reg, halo: true };
   if (d.pad && g.save.player.coins >= d.pad.price - d.pad.paid) return { cell: d.pad.y * g.grid.w + d.pad.x, pad: true };
   if (p.stack.length) {
@@ -154,9 +161,13 @@ function setHand(g, h, target) {
 }
 
 function stepDayHints(g, h, L, active) {
-  if (h.forcedT > 0 && g.day.pad) {
-    setArrow(g, h, { cell: g.day.pad.y * g.grid.w + g.day.pad.x }, 'gold');
-    return;
+  // Tap sur l'étiquette : la flèche montre l'emplacement au sol, sinon ce qui est utile maintenant (jamais un « non »).
+  if (h.forcedT > 0) {
+    const target = g.day.pad ? { cell: g.day.pad.y * g.grid.w + g.day.pad.x } : guideTarget(g, L) || usefulTarget(g);
+    if (target) {
+      setArrow(g, h, target, 'gold');
+      return;
+    }
   }
   if (!active) return;
   const firstDay = g.save.stats.cycles === 0;

@@ -257,6 +257,7 @@ function runP2() {
   let hintS = 0;
   let wasHint = false;
   const nightStars = [];
+  const nightsInfo = {};
   const seen = { vip: false, hurried: false, order: false, rush: false };
   let summary10 = null;
   g.document.addEventListener('touchend', (e) => {
@@ -294,6 +295,15 @@ function runP2() {
       if (s.hints.shown && !wasHint) hintsShown++;
       if (s.hints.shown) hintS += 0.1;
       wasHint = !!s.hints.shown;
+    }
+    // Nuits : durée, Grignotins à l'écran en même temps, secondes sans aucun Grignotin (Hugo : « on attend »).
+    if (s && s.phase === 'night' && s.night) {
+      const k = s.save.nights + 1;
+      const ns = nightsInfo[k] || (nightsInfo[k] = { night: k, s: 0, empty: 0, max: 0 });
+      ns.s += 0.1;
+      const n = s.night.monsters.length;
+      ns.max = Math.max(ns.max, n);
+      if (n === 0) ns.empty += 0.1;
     }
     if (s && s.rush) seen.rush = true;
     if (s && s.order) seen.order = true;
@@ -345,6 +355,7 @@ function runP2() {
     inertTaps,
     adOffersFirst10min: adOffers,
     nightStars,
+    nights: Object.values(nightsInfo).map((x) => ({ night: x.night, s: Math.round(x.s), empty: Math.round(x.empty), max: x.max })),
     seen,
     summary10,
     errors: g.errors.slice(),
@@ -385,6 +396,29 @@ function runP2Hesitant() {
   return out;
 }
 
+/** Même joueur le jour, mais immobile la nuit (jamais de Cloche) : une nuit doit pouvoir se perdre (Hugo, P1 et P2). */
+function runP2Passive() {
+  const g = loadGame();
+  const bot = new HumanBot(g, { passiveNight: true });
+  const nights = [];
+  let prev = null;
+  for (let ms = 0; ms < 12 * 60 * 1000; ms += 100) {
+    bot.tick(100);
+    const st = g.hooks.getState();
+    const s = st.scene && st.scene.save ? st.scene : null;
+    if (!s) continue;
+    if (prev && s.phase === 'dawn' && prev.phase !== 'dawn' && s.night && s.night.result) {
+      const r = s.night.result;
+      nights.push({ night: s.save.nights, stars: r.stars, kept: r.kept, thefts: r.thefts, escaped: r.escaped });
+    }
+    prev = s;
+    if (nights.length >= 3) break;
+  }
+  const out = { nights, errors: g.errors.slice() };
+  g.close();
+  return out;
+}
+
 function toMarkdownP2(r) {
   const lines = [];
   lines.push('## Mesures automatiques (P2)', '');
@@ -403,9 +437,13 @@ function toMarkdownP2(r) {
   lines.push(`Indices montrés (main, halo, traînée) : ${r.hintsShown} fois, ${r.hintSeconds} s au total`);
   lines.push(`Étoiles par nuit : ${r.nightStars.join(', ') || '—'} — Rush vu : ${r.seen.rush ? 'oui' : 'non'} — Commande spéciale vue : ${r.seen.order ? 'oui' : 'non'}`);
   lines.push(`Propositions de pub pendant les 10 premières minutes : ${r.adOffersFirst10min}`);
+  if (r.nights) lines.push(`Nuits : ${r.nights.map((n) => `nuit ${n.night} ${n.s} s (au plus ${n.max} Grignotins à la fois, ${n.empty} s sans aucun)`).join(' ; ')}`);
   if (r.summary10) {
     const b = r.summary10;
     lines.push(`Bilan à 10:00 : jour ${b.day}, ${b.nights} nuits (${b.nightStars.join(', ')}★), ${b.pads} achats d’emplacements, ${b.upgrades} amélioration(s), niveau ${b.level}, ${b.edits} aménagement(s)`);
+  }
+  if (r.passive) {
+    lines.push('', `Joueur passif la nuit (ne bouge pas, jamais de Cloche) : ${r.passive.nights.map((n) => `nuit ${n.night} ${n.stars}★ (${Math.round(n.kept * 100)} %, ${n.escaped} sorti${n.escaped > 1 ? 's' : ''})`).join(' ; ')}`);
   }
   if (r.hesitant) {
     const hz = r.hesitant;
@@ -420,7 +458,7 @@ function toMarkdownP2(r) {
   return lines.join('\n') + '\n';
 }
 
-const runners = { P1: runP1, P2: () => ({ ...runP2(), hesitant: runP2Hesitant() }) };
+const runners = { P1: runP1, P2: () => ({ ...runP2(), hesitant: runP2Hesitant(), passive: runP2Passive() }) };
 if (!runners[which]) {
   process.stderr.write(`playtest inconnu : ${which} (disponibles : ${Object.keys(runners).join(', ')})\n`);
   process.exit(1);
@@ -431,4 +469,4 @@ mkdirSync(join(ROOT, 'docs/playtests'), { recursive: true });
 writeFileSync(join(ROOT, `docs/playtests/${which}.measures.json`), JSON.stringify(result, null, 2) + '\n');
 writeFileSync(join(ROOT, `docs/playtests/${which}.measures.md`), md);
 process.stdout.write(md);
-process.exit(result.errors.length || (result.hesitant && result.hesitant.errors.length) ? 1 : 0);
+process.exit(result.errors.length || (result.hesitant && result.hesitant.errors.length) || (result.passive && result.passive.errors.length) ? 1 : 0);

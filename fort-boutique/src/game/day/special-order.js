@@ -97,6 +97,18 @@ function finish(g, ok) {
   d.order = null;
 }
 
+/**
+ * Produit que le client de la Commande prend en ce moment au marchand (à portée, il en manque), sinon null :
+ * il passe avant les étagères voisines (P2, Léa : la dépose sur l'étagère d'à côté vidait la pile).
+ * @param {any} g
+ */
+export function orderReceiving(g) {
+  const o = g.day && g.day.order;
+  if (!o || !o.waiting || o.got >= o.need) return null;
+  const p = g.player;
+  return Math.hypot(p.x - o.c.x, p.y - o.c.y) <= SO.giveRange && p.stack.includes(o.product) ? o.product : null;
+}
+
 /** @param {any} g @param {number} dt */
 export function stepSpecialOrder(g, dt) {
   const d = g.day;

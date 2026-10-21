@@ -8,6 +8,9 @@ import { FURNITURE } from '../../data/furniture.js';
 import { districtDef } from '../../data/districts.js';
 import { clientToLogical } from '../../render/camera.js';
 
+/** Nombre à une décimale, avec la virgule française (P2, Léa). */
+const dec = (v) => v.toFixed(1).replace('.', ',');
+
 /**
  * @param {any} app
  * @param {{ scene: any, ed: any, showAdvice: boolean, hintFirst: boolean, onValidate: () => void, onCancel: () => void }} p
@@ -46,8 +49,8 @@ function mount(app, p, d) {
   const arrow = (dv) => (dv > 0.05 ? ' ↑' : dv < -0.05 ? ' ↓' : '');
   function refresh() {
     const L = editorLengths(ed);
-    custBtn.querySelector('.tag-label').textContent = `${t('editor.customers')} ${L.customers.toFixed(1)}${arrow(L.customersDelta)}`;
-    monBtn.querySelector('.tag-label').textContent = `${t('editor.monsters')} ${L.monsters.toFixed(1)}${arrow(L.monstersDelta)}`;
+    custBtn.querySelector('.tag-label').textContent = `${t('editor.customers')} ${dec(L.customers)}${arrow(L.customersDelta)}`;
+    monBtn.querySelector('.tag-label').textContent = `${t('editor.monsters')} ${dec(L.monsters)}${arrow(L.monstersDelta)}`;
     const sel = ed.selected >= 0 ? ed.layout[ed.selected] : null;
     rotate.classList.toggle('disabled', !sel);
     store.classList.toggle('disabled', !sel || sel.id === 'caisse');

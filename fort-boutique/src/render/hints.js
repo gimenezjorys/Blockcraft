@@ -170,8 +170,49 @@ export function drawOrderCard(ctx, o, productIcon, total, t) {
     ctx.fillStyle = low ? P.danger : P.etiquetteVerte;
     ctx.fill();
   }
-  // Petit parchemin dans le coin.
-  disc(ctx, x + w - 4, y + 4, 7, P.kraft, 2);
+  // Ce qu'on gagne : un petit coffre en bois dans le coin (G19 7:40 « → coffre »).
+  rr(ctx, x + w - 13, y - 4, 18, 13, 3);
+  fillInk(ctx, P.bois, 1.8);
+  rr(ctx, x + w - 13, y - 4, 18, 5, 2);
+  fillInk(ctx, P.boisFonce, 1.4);
+  disc(ctx, x + w - 4, y + 3, 2, P.or, 1);
+  ctx.restore();
+}
+
+/**
+ * Bulle du client de la Commande spéciale (P2, Léa) : le produit demandé et « 2/5 », avec un halo qui pulse.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x position du client (pixels du monde)
+ * @param {number} y
+ * @param {(ctx: CanvasRenderingContext2D) => void} productIcon dessine le produit centré en (0, 0)
+ * @param {number} got
+ * @param {number} need
+ * @param {number} t
+ */
+export function drawOrderBubble(ctx, x, y, productIcon, got, need, t) {
+  const pulse = 0.5 + 0.5 * Math.sin(t * 5);
+  ctx.save();
+  ctx.globalAlpha = 0.35 + 0.4 * pulse;
+  ctx.strokeStyle = P.craieJaune;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 10, 16 + pulse * 4, 8 + pulse * 2, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.translate(x, y - 40);
+  rr(ctx, -22, -13, 44, 24, 8);
+  fillInk(ctx, P.ticket, 2);
+  ctx.beginPath();
+  ctx.moveTo(-3, 11);
+  ctx.lineTo(0, 16);
+  ctx.lineTo(3, 11);
+  ctx.fillStyle = P.ticket;
+  ctx.fill();
+  ctx.save();
+  ctx.translate(-11, -1);
+  productIcon(ctx);
+  ctx.restore();
+  stickerText(ctx, `${got}/${need}`, 9, 0, 12, P.craieJaune);
   ctx.restore();
 }
 

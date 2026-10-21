@@ -13,7 +13,12 @@ import { HINTS } from '../../data/tutorial.js';
 // les cartes sortent une à une (2:42 → 2:46), le ruban de niveau vient après l'amélioration (2:57). Un tap accélère × 4.
 const LINE_GAP = 1.1;
 const STAR_GAP = 0.8;
+/** Aubes suivantes : le ticket va vite (≈ 3,5 s) ; G19 ne règle que la toute première (P2, Hugo). */
+const QUICK_LINE_GAP = 0.35;
+const QUICK_STAR_GAP = 0.4;
 const CARD_GAP = 0.9;
+/** La sortie apparaît peu après la dernière carte (jamais bloquante). */
+const CONTINUE_AFTER_S = 0.8;
 /** Sans amélioration possible (ou si le joueur n'en fait pas), le ruban arrive quand même. */
 const RIBBON_WAIT_S = 6;
 
@@ -185,7 +190,8 @@ function mount(app, p, d) {
     refreshDouble();
   }, d);
   // Tap n'importe où : accélère l'impression du ticket.
-  onTap(ticket, () => { st.fast = true; }, d);
+  // Tap n'importe où (hors boutons) : le ticket s'imprime 4 fois plus vite.
+  onTap(el, () => { st.fast = true; }, d);
   refreshDouble();
 
   function showLevel() {
@@ -209,22 +215,24 @@ function mount(app, p, d) {
       stepHand(dt);
       // Lignes du ticket.
       const all = [...lineEls, totalEl];
-      while (st.revealed < all.length && st.t >= 0.3 + st.revealed * LINE_GAP) {
+      const lineGap = p.quick ? QUICK_LINE_GAP : LINE_GAP;
+      const starGap = p.quick ? QUICK_STAR_GAP : STAR_GAP;
+      while (st.revealed < all.length && st.t >= 0.3 + st.revealed * lineGap) {
         all[st.revealed].classList.remove('hidden');
         all[st.revealed].classList.add('printed');
         sfx('pad_tick', { n: st.revealed * 5 });
         st.revealed++;
       }
       // Étoiles.
-      const starStart = 0.3 + all.length * LINE_GAP + 0.2;
-      while (st.starsShown < r.stars && st.t >= starStart + st.starsShown * STAR_GAP) {
+      const starStart = 0.3 + all.length * lineGap + 0.2;
+      while (st.starsShown < r.stars && st.t >= starStart + st.starsShown * starGap) {
         const s = starEls[st.starsShown];
         s.innerHTML = SVG.star;
         s.classList.add('stamp');
         sfx('star', { n: st.starsShown });
         st.starsShown++;
       }
-      const chestAt = starStart + 3 * STAR_GAP + 0.2;
+      const chestAt = starStart + 3 * starGap + 0.2;
       if (st.t >= chestAt) {
         // Reprise après rechargement : les cartes du coffre de la nuit déjà ouvert se remontrent.
         if (!st.replayed && dawn.chest && dawn.chest.opened && dawn.chest.content && !cards.childElementCount) queueCards(dawn.chest.content);
@@ -241,9 +249,10 @@ function mount(app, p, d) {
         }
         // La sortie suit l'ouverture de tous les coffres (rien ne bloque) ; le ruban de niveau vient après les cartes et
         // l'amélioration (G19 2:57), ou après quelques secondes s'il n'y a rien à améliorer.
-        if (st.ci < 0) actions.hidden = false;
         if (st.ci < 0 && !st.cardsQueued.length) {
           if (st.cardsDoneT < 0) st.cardsDoneT = st.t;
+          // « Continuer » arrive juste après la dernière carte (P2, Léa : un tap réflexe sautait la récompense).
+          if (st.t - st.cardsDoneT >= CONTINUE_AFTER_S || p.resumed) actions.hidden = false;
           const canUp = !!cards.querySelector('.card-plan.can-up');
           if (st.upgraded || !canUp || st.t - st.cardsDoneT >= RIBBON_WAIT_S || p.resumed) showLevel();
         }

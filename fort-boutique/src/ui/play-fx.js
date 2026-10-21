@@ -179,7 +179,20 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
         floaters.add(`+${e.a}`, px(e.x), py(e.y) - 34, { color: P.etiquetteVerte, size: 16, life: 0.9 });
         break;
       case 'thief_escape':
+        // La perte se voit (P2, Léa) : « −N » rouge à la sortie, quelques pièces qui s'envolent dehors.
         view.jarBlink = 1;
+        if (e.a > 0) {
+          floaters.add(`−${e.a}`, px(e.x), py(e.y) - 30, { color: P.danger, size: 16, life: 1.1 });
+          fx.burst('dust', px(e.x), py(e.y) - 10, Math.min(8, 2 + e.a), P.or, 90, 0.7, 4);
+          play('grumpy');
+        }
+        break;
+      case 'bag_drop':
+        // Nuit du tutoriel : le sac tombe sur le seuil, les pièces reviennent au Bocal.
+        play('drop');
+        floaters.add(`+${e.a}`, px(e.x), py(e.y) - 30, { color: P.etiquetteVerte, size: 15, life: 0.9 });
+        if (g.register) for (let i = 0; i < 6; i++) fx.coinFlight(px(e.x), py(e.y) - 6, px(g.register.cx), py(g.register.cy) - 6, i * 0.05, 0);
+        view.jarBlink = 0.5;
         break;
       case 'broken':
         play('broken');

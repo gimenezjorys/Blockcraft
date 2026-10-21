@@ -2,7 +2,7 @@
 // silhouette qui se révèle. Un tap pour continuer.
 import { h, onTap, tagButton } from '../widgets.js';
 import { t } from '../i18n.js';
-import { furnitureIcon } from '../icons.js';
+import { furnitureIcon, featureIconSvg } from '../icons.js';
 import { unlocksAtLevel, districtOpen } from '../../game/progression.js';
 import { UNLOCK_CARD_ORDER } from '../../data/unlocks.js';
 
@@ -51,7 +51,7 @@ function mount(app, p, d) {
   const top = p.levels.length ? Math.max(...p.levels) : 0;
   const row = h('div.unlock-row');
   shown.forEach((c, i) => {
-    const icon = c.kind === 'furniture' ? furnitureIcon(c.id, 56) : h('div.unlock-feat', { text: '★' });
+    const icon = c.kind === 'furniture' ? furnitureIcon(c.id, 56) : h('div.unlock-feat', { html: featureIconSvg(c.id) });
     const card = h('div.card.unlock-card', { 'data-unlock': c.id, style: { animationDelay: `${0.2 + i * 0.25}s` } }, [
       h('div.unlock-icon', [icon]),
       h('div.unlock-name', { text: t(c.kind === 'furniture' ? `furn.${c.id}` : `feat.${c.id}`) }),

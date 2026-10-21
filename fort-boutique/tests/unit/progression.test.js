@@ -198,3 +198,20 @@ test('M11 : l’XP du jour s’additionne, mais le niveau monte à l’aube (G12
   assert.deepEqual(dawn.level, { from: 1, to: 2 }, 'le ruban de l’aube le montre');
   assert.deepEqual(g.save.progress.pendingUnlocks, [2]);
 });
+
+test('M11 : la première aube fête toujours le niveau 2 (G19 2:57), une seule fois', async () => {
+  const { enterDawn } = await import('../../src/game/cycle.js');
+  const g = newGame();
+  g.save.player.xp = 70;
+  g.phase = { name: 'dawn', t: 0 };
+  g.nightResult = { stars: 2, kept: 0.95, coins: 0, xp: 30, jarFinal: 0, loot: 0, kills: 0, killsByType: {}, bossNight: false, tutorial: true };
+  enterDawn(g);
+  assert.equal(g.save.player.level, 2);
+  assert.equal(g.save.player.xp, 0);
+  const g2 = newGame();
+  g2.save.player.xp = 70;
+  g2.phase = { name: 'dawn', t: 0 };
+  g2.nightResult = { ...g.nightResult, tutorial: false };
+  enterDawn(g2);
+  assert.equal(g2.save.player.level, 1, 'les nuits suivantes ne complètent rien');
+});

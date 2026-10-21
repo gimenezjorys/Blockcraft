@@ -7,6 +7,7 @@ import { initRegister } from './register.js';
 import { goToCell } from './customers.js';
 import { validateLayout } from '../shop.js';
 import { orderSpot } from './special-order.js';
+import { projectedLevel } from '../progression.js';
 
 /** Durée de remplissage d'un emplacement (DECISIONS.md, M4). */
 export function padFillSeconds(price) {
@@ -26,7 +27,7 @@ export function nextPadDef(g) {
     if (w.firstSale && !g.shop.phase.firstSaleDone) return null;
     if (w.after && !done.includes(w.after)) return null;
     if (w.minDay && g.shop.day < w.minDay) return null;
-    if (w.minLevel && g.save.player.level < w.minLevel) return null;
+    if (w.minLevel && projectedLevel(g.save.player) < w.minLevel) return null;
     return p;
   }
   return null;

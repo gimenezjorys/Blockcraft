@@ -86,7 +86,7 @@ function fillBudget(rng, budget, types, weights, active, out) {
 /**
  * Génère toutes les vagues d'une nuit.
  * @param {{ seed: number, districtId: string, week: number, night: number, entrances: any[], boss?: string|null,
- *   tutorial?: boolean, weightMult?: Record<string, number>, goldenChance?: number }} p
+ *   tutorial?: boolean, weightMult?: Record<string, number>, goldenChance?: number, budgetMult?: number, starThief?: boolean }} p
  * @returns {{ waves: Array<{ groups: Array<{ type: string, count: number, entrance: string, scriptedThief?: boolean }>, boss: string | null }>, golden: number, newTypes: string[] }}
  */
 export function generateNight(p) {
@@ -110,7 +110,7 @@ export function generateNight(p) {
   const waves = [];
   for (let i = 1; i <= W; i++) {
     const isBossWave = !!p.boss && i === W;
-    let budget = waveBudget({ k, i, s, districtId });
+    let budget = waveBudget({ k, i, s, districtId }) * (p.budgetMult || 1);
     if (isBossWave) budget *= WAVES.bossEscort;
     const groups = [];
     if (i === 1 && fresh.length) {
@@ -125,6 +125,16 @@ export function generateNight(p) {
       fillBudget(rng, budget, types, weights, active, groups);
     }
     waves.push({ groups, boss: isBossWave ? p.boss : null });
+  }
+  // Nuit d'apprentissage : le dernier Grignotin au sol de la dernière vague est un « voleur vedette » que seuls le marchand
+  // et son balai rattrapent (comme le voleur de la nuit 1, sans le ralenti).
+  // De préférence un raton (lent, comme celui de la nuit 1), sinon le dernier Grignotin au sol.
+  if (p.starThief) {
+    const ground = (x) => !isAirborne(MONSTERS[x.type] || {});
+    let chosen = null;
+    for (let i = waves.length - 1; i >= 0 && !chosen; i--) chosen = waves[i].groups.slice().reverse().find((x) => x.type === 'raton') || null;
+    for (let i = waves.length - 1; i >= 0 && !chosen; i--) chosen = waves[i].groups.slice().reverse().find(ground) || null;
+    if (chosen) chosen.scriptedThief = true;
   }
   // Raton doré : une nuit sur 10, une fois, dans une vague au hasard (G8.8).
   let golden = -1;

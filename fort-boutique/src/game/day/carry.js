@@ -4,6 +4,7 @@ import { PLAYER } from '../../data/balance.js';
 import { stackCapacity } from '../player.js';
 import { distToFurniture } from '../state.js';
 import { putOnShelf } from './shelves.js';
+import { orderReceiving } from './special-order.js';
 
 /** @param {any} g @param {number} dt */
 export function stepCarry(g, dt) {
@@ -36,11 +37,13 @@ export function stepCarry(g, dt) {
   } else {
     p.pickT = Math.min(p.pickT, 1 / PLAYER.pickupRate);
   }
-  // Dépose.
+  // Dépose (sauf le produit que le client de la Commande spéciale est en train de prendre).
   let dropped = false;
+  const reserved = orderReceiving(g);
   if (p.stack.length) {
     for (const f of g.furn) {
       if (f.def.day.kind !== 'shelf' || f.count >= f.capacity) continue;
+      if (reserved && (f.product === reserved || (!f.product && p.stack.every((x) => x === reserved)))) continue;
       if (distToFurniture(f, p.x, p.y) > PLAYER.dropRange) continue;
       const idx = f.product ? p.stack.lastIndexOf(f.product) : p.stack.length - 1;
       if (idx < 0) continue;

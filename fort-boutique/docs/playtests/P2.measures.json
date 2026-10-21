@@ -142,7 +142,7 @@
       "key": false,
       "label": "Aube 2",
       "targetS": 390,
-      "atS": 357.3,
+      "atS": 358.3,
       "gapPct": -8,
       "ok": true
     },
@@ -151,8 +151,8 @@
       "key": true,
       "label": "Niveau 3 (ruban)",
       "targetS": 390,
-      "atS": 377.8,
-      "gapPct": -3,
+      "atS": 373.1,
+      "gapPct": -4,
       "ok": true
     },
     {
@@ -160,8 +160,8 @@
       "key": false,
       "label": "Deuxième Matin",
       "targetS": 410,
-      "atS": 384.3,
-      "gapPct": -6,
+      "atS": 379.6,
+      "gapPct": -7,
       "ok": true
     },
     {
@@ -169,8 +169,8 @@
       "key": false,
       "label": "Premier aménagement validé",
       "targetS": 455,
-      "atS": 392.20000000000005,
-      "gapPct": -14,
+      "atS": 387.5,
+      "gapPct": -15,
       "ok": true
     },
     {
@@ -178,8 +178,8 @@
       "key": true,
       "label": "Jour 3",
       "targetS": 460,
-      "atS": 397.3,
-      "gapPct": -14,
+      "atS": 392.6,
+      "gapPct": -15,
       "ok": true
     },
     {
@@ -187,8 +187,8 @@
       "key": true,
       "label": "Première Commande spéciale (jour 3, 20 à 45 % de la journée : ≈ 8:40)",
       "targetS": 520,
-      "atS": 453.70000000000005,
-      "gapPct": -13,
+      "atS": 436.8,
+      "gapPct": -16,
       "ok": true
     },
     {
@@ -196,8 +196,8 @@
       "key": true,
       "label": "Fermeture du jour 3 : nouvelle entrée annoncée",
       "targetS": 610,
-      "atS": 547.2,
-      "gapPct": -10,
+      "atS": 542.5,
+      "gapPct": -11,
       "ok": true
     }
   ],
@@ -206,7 +206,7 @@
     "at": 134.4,
     "screen": "dawn"
   },
-  "hintsShown": 3,
+  "hintsShown": 2,
   "hintSeconds": 2,
   "screens": [
     {
@@ -237,45 +237,65 @@
     {
       "screen": "hud",
       "from": 168.6,
-      "to": 357.3
+      "to": 358.3
     },
     {
       "screen": "dawn",
-      "from": 357.3,
-      "to": 380.8
+      "from": 358.3,
+      "to": 376.1
     },
     {
       "screen": "unlocks",
-      "from": 380.8,
-      "to": 384.3
+      "from": 376.1,
+      "to": 379.6
     },
     {
       "screen": "morning",
-      "from": 384.3,
-      "to": 387.3
+      "from": 379.6,
+      "to": 382.6
     },
     {
       "screen": "editor",
-      "from": 387.3,
-      "to": 392.3
+      "from": 382.6,
+      "to": 387.6
     },
     {
       "screen": "morning",
-      "from": 392.3,
-      "to": 397.3
+      "from": 387.6,
+      "to": 392.6
     },
     {
       "screen": "hud",
-      "from": 397.3,
+      "from": 392.6,
       "to": 600
     }
   ],
-  "taps": 18,
+  "taps": 19,
   "inertTaps": 0,
   "adOffersFirst10min": 0,
   "nightStars": [
     3,
     3
+  ],
+  "nights": [
+    {
+      "night": 1,
+      "s": 29,
+      "empty": 9,
+      "max": 2
+    },
+    {
+      "night": 2,
+      "s": 58,
+      "empty": 11,
+      "max": 4
+    },
+    {
+      "night": 3,
+      "s": 48,
+      "empty": 7,
+      "max": 4
+    }
   ],
   "seen": {
     "vip": false,
@@ -298,8 +318,8 @@
   "errors": [],
   "final": {
     "level": 3,
-    "xp": 273,
-    "coins": 967,
+    "xp": 283,
+    "coins": 1003,
     "pads": [
       "P1",
       "P2",
@@ -353,14 +373,40 @@
         "day": 1
       },
       {
-        "at": 200.6,
-        "what": "day:main+flèche dorée",
+        "at": 204.79999999999998,
+        "what": "day:main+flèche dorée+halo",
         "day": 2
       }
     ],
     "firstPurchaseS": 53.5,
     "nightStars": [
-      2
+      3
+    ],
+    "errors": []
+  },
+  "passive": {
+    "nights": [
+      {
+        "night": 1,
+        "stars": 3,
+        "kept": 1,
+        "thefts": 1,
+        "escaped": 0
+      },
+      {
+        "night": 2,
+        "stars": 2,
+        "kept": 0.9573170731707317,
+        "thefts": 1,
+        "escaped": 1
+      },
+      {
+        "night": 3,
+        "stars": 2,
+        "kept": 0.9595959595959596,
+        "thefts": 1,
+        "escaped": 1
+      }
     ],
     "errors": []
   }

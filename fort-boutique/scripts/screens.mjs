@@ -76,7 +76,7 @@ for (let i = 0; i < 3; i++) {
   await page.tap('.dawn-chest');
   await page.waitForTimeout(250);
 }
-await page.waitForTimeout(1500);
+await page.waitForTimeout(3400);
 await shot('06-coffre');
 await page.tap('#dawn-continue');
 await page.waitForTimeout(800);

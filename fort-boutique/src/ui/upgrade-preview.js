@@ -4,6 +4,8 @@ import { FURNITURE } from '../data/furniture.js';
 import { nightStats, dayStats } from '../game/stats.js';
 
 const round1 = (v) => (Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : v.toFixed(1).replace('.', ','));
+/** Avant → après : des entiers dès 5 (G19 2:50 « dégâts 6 → 7 », P2 Hugo), une décimale en dessous ou s'ils se confondent. */
+const pair = (a, b) => (a >= 5 && Math.round(a) !== Math.round(b) ? [String(Math.round(a)), String(Math.round(b))] : [round1(a), round1(b)]);
 
 /**
  * Statistiques principales avant et après le passage au niveau suivant.
@@ -17,9 +19,13 @@ export function upgradeDeltas(id, level) {
   const a = nightStats(def, level);
   const b = nightStats(def, level + 1);
   const out = [];
-  if (a.dmg > 0) out.push({ key: 'dmg', from: round1(a.dmg), to: round1(b.dmg) });
-  else if (a.dps > 0) out.push({ key: 'dps', from: round1(a.dps), to: round1(b.dps) });
-  if (a.hp > 0) out.push({ key: 'hp', from: round1(a.hp), to: round1(b.hp) });
+  const add = (key, x, y) => {
+    const [from, to] = pair(x, y);
+    out.push({ key, from, to });
+  };
+  if (a.dmg > 0) add('dmg', a.dmg, b.dmg);
+  else if (a.dps > 0) add('dps', a.dps, b.dps);
+  if (a.hp > 0) add('hp', a.hp, b.hp);
   const da = dayStats(def, level);
   const db = dayStats(def, level + 1);
   if (da.capacity) out.push({ key: 'cap', from: String(da.capacity), to: String(db.capacity) });

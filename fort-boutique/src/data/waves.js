@@ -32,10 +32,11 @@ export const WAVES = {
   /** Les ratons de cette nuit gardent les PV d'avant le réglage M10 (20 au lieu de 25) : seuls les meubles suffisent,
    *  seul le voleur scénarisé atteint la caisse (G19 « première victoire »). */
   tutorialHpMult: 0.8,
-  /** Nuits d'apprentissage (Q1, semaine 1, nuits 2 et 3) : un nouveau Grignotin, puis une nouvelle entrée. Les vagues
-   *  entrent plus lentement pour laisser le temps de voir (G19 : nuit 2 ≈ 60 s, 3 vagues ; avec le rythme de G8.3 elle
-   *  ne durait que 28 s dans la petite boutique). Budget de menace inchangé. Dès la nuit 4 : rythme normal. */
-  learning: { district: 'q1', week: 1, nights: [2, 3], memberGapS: 1.05, groupGapS: 2.7, pauseS: 6 },
+  /** Nuits d'apprentissage (Q1, semaine 1, nuits 2 et 3) : un nouveau Grignotin, puis une nouvelle entrée. Plus de
+   *  Grignotins (budget × 1,5), qui entrent plus espacés, pour atteindre le ≈ 60 s de G19 avec du jeu plutôt que des pauses
+   *  (P2, Hugo) ; et un « voleur vedette » que seuls le marchand et son balai rattrapent : un marchand immobile perd une
+   *  étoile. Dès la nuit 4 : rythme et budget normaux (G8.3). */
+  learning: { district: 'q1', week: 1, nights: [2, 3], memberGapS: 0.8, groupGapS: 2.0, pauseS: 3.5, budgetMult: 1.5, starThief: true },
 };
 
 /** Mise à l'échelle des PV (G10.2) : M_Q × (1 + 0,12 (k − 1)) × 1,35^(s − 1). */

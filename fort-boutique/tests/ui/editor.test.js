@@ -93,7 +93,7 @@ test('Aménager : glisser un meuble au doigt le déplace, les longueurs de traje
     assert.deepEqual({ x: after.layout[idx].x, y: after.layout[idx].y }, valid);
     assert.equal(after.moves, 1);
     const expected = pathLengths('q1', 0, after.layout);
-    assert.match(g.$('#ed-monsters').textContent, new RegExp(expected.monsters.toFixed(1).replace('.', '\\.')));
+    assert.match(g.$('#ed-monsters').textContent, new RegExp(expected.monsters.toFixed(1).replace('.', ',')));
     if (Math.abs(expected.monsters - pathLengths('q1', 0, snap.layout).monsters) > 0.05) assert.notEqual(g.$('#ed-monsters').textContent, label0);
     bot.tapEl('#ed-validate');
     g.hooks.advance(300);

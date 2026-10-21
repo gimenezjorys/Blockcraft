@@ -232,9 +232,17 @@ test('voleur scénarisé : ralenti de moitié après 3 s sans réaction', () => 
   const g = newGame(31);
   startNight(g, { dayTakings: 120 });
   // M11 : la nuit scénarisée suit le rythme de G19 (vague 2 vers 2:08) : le vol arrive vers 28 s, on attend 45 s.
-  run(g, 45, () => teleport(g, 4.5, 5.5));
+  let slowed = false;
+  const ev = run(g, 45, () => {
+    teleport(g, 4.5, 5.5);
+    if (g.night && g.night.monsters.active.some((m) => m.slowedByScript)) slowed = true;
+  });
   // Le voleur a eu le temps de fuir (le marchand ne bouge pas) : il a été ralenti.
-  assert.ok(g.night.lost > 0 || g.night.monsters.active.some((m) => m.slowedByScript));
+  assert.ok(slowed, 'ralenti après 3 s sans réaction');
+  // M11 (P2, Léa) : sur le seuil, il lâche son sac ; les pièces reviennent au Bocal, la première nuit reste à 3 étoiles.
+  assert.equal(count(ev, 'bag_drop'), 1);
+  assert.equal(count(ev, 'thief_escape'), 0);
+  assert.equal(g.nightResult.stars, 3);
 });
 
 test('marchand : coup de balai, réparation d’un meuble cassé, Cloche', () => {
@@ -272,4 +280,30 @@ test('dégâts : multiplicateurs puis armure ; hérisson et lance-conserves', ()
   assert.equal(before - m.hp, 3);
   finishNight(g, true);
   assert.equal(g.night.ended, true);
+});
+
+test('nuits d’apprentissage (Q1, nuits 2 et 3) : plus de Grignotins, et un voleur vedette que seul le marchand rattrape', async () => {
+  const { generateNight } = await import('../../src/game/night/waves.js');
+  const g = newGame(31, (s) => { s.shops.q1.night = 2; s.stats.nights = 1; s.stats.cycles = 1; });
+  startNight(g, { dayTakings: 200 });
+  assert.equal(g.night.learning, true);
+  const stars = g.night.waves.flatMap((w) => w.groups).filter((x) => x.scriptedThief);
+  assert.equal(stars.length, 1, 'un seul voleur vedette');
+  const plain = generateNight({ seed: g.save.seed, districtId: 'q1', week: 1, night: 2, entrances: g.grid.entrances });
+  const count2 = (w) => w.waves.reduce((a, x) => a + x.groups.reduce((b, y) => b + y.count, 0), 0);
+  assert.ok(count2(g.night) > count2(plain), 'plus de Grignotins qu’une nuit 2 ordinaire');
+  // Marchand immobile loin de tout : le voleur vedette s’échappe avec ses pièces (une étoile perdue), sans ralenti.
+  let slowed = false;
+  run(g, 120, () => {
+    teleport(g, 4.5, 0.5);
+    if (g.night && g.night.monsters.active.some((m) => m.slowedByScript)) slowed = true;
+  });
+  assert.equal(slowed, false, 'le ralenti n’aide que la nuit 1');
+  assert.ok(g.nightResult.escaped >= 1);
+  assert.ok(g.nightResult.stars <= 2, 'un marchand immobile perd une étoile');
+  // La nuit 4 retrouve le rythme et le budget de G8.3.
+  const g4 = newGame(31, (s) => { s.shops.q1.night = 4; s.stats.nights = 3; });
+  startNight(g4, { dayTakings: 200 });
+  assert.equal(g4.night.learning, false);
+  assert.equal(g4.night.waves.flatMap((w) => w.groups).filter((x) => x.scriptedThief).length, 0);
 });

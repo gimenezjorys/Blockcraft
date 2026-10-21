@@ -412,6 +412,7 @@ button { font: inherit; color: inherit; }
 .unlock-card .unlock-icon canvas { animation: reveal 900ms ease-out both; animation-delay: inherit; }
 .unlock-name { font-weight: 800; font-size: 11px; text-align: center; line-height: 1.1; overflow-wrap: anywhere; hyphens: auto; max-width: 100%; }
 .unlock-feat { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; font-size: 34px; color: var(--doree); -webkit-text-stroke: 2px var(--encre); }
+.unlock-feat svg { width: 46px; height: 46px; }
 .unlock-more { width: 52px; font: 900 22px var(--f-title); }
 @keyframes unlock-in { from { transform: translateY(-40px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes reveal { from { filter: brightness(0) opacity(.5); } to { filter: none; } }

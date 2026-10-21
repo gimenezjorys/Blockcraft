@@ -1,8 +1,9 @@
 // Fort Boutique — objectif toujours visible (G3.5) : un seul objectif, avec icône et barre de progression.
 // Priorités : 1) emplacement d'achat ; 2) amélioration prête ; 3) quête presque finie ; 4) prochain déblocage ;
-// 5) Pleine Lune. Logique pure : l'interface (étiquette kraft) ne fait que l'afficher.
+// 5) Pleine Lune. Au Matin, 2) passe avant 1) ; pendant le Jour, 2) ne s'affiche pas (M11, DECISIONS.md).
+// Logique pure : l'interface (étiquette kraft) ne fait que l'afficher.
 import { canUpgrade } from './economy.js';
-import { unlockedFurniture, nextUnlock, levelProgress } from './progression.js';
+import { unlockedFurniture, nextUnlock, levelProgress, projectedLevel } from './progression.js';
 import { UNLOCK_CARD_ORDER } from '../data/unlocks.js';
 import { FURNITURE } from '../data/furniture.js';
 
@@ -18,7 +19,7 @@ function pendingPad(g) {
   if (!p) return null;
   const w = p.when || {};
   if (w.minDay && g.shop.day < w.minDay) return null;
-  if (w.minLevel && g.save.player.level < w.minLevel) return null;
+  if (w.minLevel && projectedLevel(g.save.player) < w.minLevel) return null;
   return p;
 }
 
@@ -46,6 +47,12 @@ function nearQuest(save) {
 export function nextObjective(g) {
   const save = g.save;
   const coins = save.player.coins;
+  // L'étiquette ne montre jamais ce que la phase interdit (P2, Hugo) : pendant le Jour, pas d'amélioration (elle se
+  // fait au Matin) ; au Matin, l'amélioration prête passe avant l'emplacement (qui ne se paie que le jour).
+  const inDay = !!g.phase && (g.phase.name === 'day' || g.phase.name === 'closing');
+  const up = inDay ? null : unlockedFurniture(save).find((id) => canUpgrade(save, id).ok);
+  // 2) Amélioration prête (plans et pièces suffisants : la flèche verte s'allume).
+  if (up) return { kind: 'upgrade', furniture: up, progress: 1 };
   // 1) Emplacement d'achat : celui qui est au sol, sinon le prochain de la liste.
   const live = g.day && g.day.pad;
   const def = live ? null : pendingPad(g);
@@ -64,9 +71,6 @@ export function nextObjective(g) {
       cell: live ? { x: live.x, y: live.y } : null,
     };
   }
-  // 2) Amélioration prête (plans et pièces suffisants : la flèche verte s'allume).
-  const up = unlockedFurniture(save).find((id) => canUpgrade(save, id).ok);
-  if (up) return { kind: 'upgrade', furniture: up, progress: 1 };
   // 3) Quête presque finie.
   const q = nearQuest(save);
   if (q) return { kind: 'quest', id: q.id, progress: q.progress };

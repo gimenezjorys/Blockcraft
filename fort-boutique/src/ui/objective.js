@@ -2,11 +2,10 @@
 // Pendant les 10 premières minutes, aucun mot (G19) : une icône, un nombre, une barre. Le nom est dans aria-label.
 import { h, onTap } from './widgets.js';
 import { t, fmt } from './i18n.js';
-import { SVG, furnitureIcon } from './icons.js';
+import { SVG, furnitureIcon, featureIconSvg } from './icons.js';
 import { nextObjective, objectiveKey } from '../game/objectives.js';
 
 /** Icône d'une fonction débloquée (sans texte). */
-const FEATURE_ICON = { editor: SVG.rotate, quests: SVG.scroll, daily: SVG.star, calendar: SVG.check, merchantUpgrades: SVG.arrowUp };
 
 /**
  * @param {() => any} game
@@ -45,7 +44,7 @@ export function createObjective(game, onPick, d) {
       ico.innerHTML = SVG.scroll;
     } else if (o.kind === 'unlock') {
       if (o.furniture) ico.appendChild(icon(o.furniture, true));
-      else ico.innerHTML = FEATURE_ICON[o.feature] || SVG.lock;
+      else ico.innerHTML = featureIconSvg(o.feature);
       num = h('span.obj-num.lvl', [h('span.req-ico', { html: SVG.lock }), h('span', { text: String(o.level) })]);
     } else {
       ico.innerHTML = SVG.moon;

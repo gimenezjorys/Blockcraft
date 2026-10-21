@@ -48,6 +48,8 @@ export function startNight(g, opts = {}) {
     tutorial,
     weightMult: mods.weightMult,
     goldenChance: mods.goldenChance,
+    budgetMult: learning ? L.budgetMult : 1,
+    starThief: learning && L.starThief,
   });
   const takings = opts.dayTakings ?? shop.phase.dayTakings ?? 0;
   const jar = opts.jar ?? jarValue(Q, takings);
@@ -211,7 +213,8 @@ function stepScripted(g, dt) {
   m.speedBoostActive = false;
   const near = Math.hypot(g.player.x - m.x, g.player.y - m.y) < 1.6;
   if (near) m.reacted = true;
-  if (!m.reacted && n.t - m.stoleAt >= NIGHT.scriptedThiefGrace) m.slowedByScript = true;
+  // Le ralenti n'aide que la nuit 1 (G19 2:08) ; le voleur vedette des nuits d'apprentissage ne ralentit pas.
+  if (n.tutorial && !m.reacted && n.t - m.stoleAt >= NIGHT.scriptedThiefGrace) m.slowedByScript = true;
   void dt;
 }
 
@@ -265,6 +268,7 @@ export function finishNight(g, timeout) {
     bossWin,
     timeout,
     bellUses: n.bellUses,
+    tutorial: !!n.tutorial,
   };
   g.events.push('night_end', 0, 0, stars, bossWin ? 1 : 0);
   return n.result;

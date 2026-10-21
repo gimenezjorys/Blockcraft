@@ -88,7 +88,8 @@ export function spawnMonster(g, type, entranceKind, o = {}) {
   // Voleur scénarisé de la nuit 1 : les meubles ne le visent jamais, seul le balai du marchand le rattrape.
   m.shielded = false;
   m.towerShield = !!o.scriptedThief;
-  if (m.scriptedThief) m.hp = m.maxHp = NIGHT_RULES.scriptedThiefHp;
+  // Jamais plus de PV que le Grignotin normal (une souris vedette reste une souris).
+  if (m.scriptedThief) m.hp = m.maxHp = Math.min(m.maxHp, NIGHT_RULES.scriptedThiefHp);
   m.reacted = false;
   m.speedBoost = 1;
   m.speedBoostActive = false;

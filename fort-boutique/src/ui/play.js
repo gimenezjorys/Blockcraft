@@ -13,7 +13,7 @@ import {
   hudHit, heart, drawWavePips, drawJarGauge, drawBellButton, drawTelegraph, drawBanner, drawBossBar, drawBossCard,
 } from '../render/hud.js';
 import { drawWantBubble, drawProduct } from '../render/sprites/products.js';
-import { drawHintsWorld, drawGhostHand, drawOrderCard, drawEntranceWarning } from '../render/hints.js';
+import { drawHintsWorld, drawGhostHand, drawOrderCard, drawEntranceWarning, drawOrderBubble } from '../render/hints.js';
 import { stepHints } from '../game/tutorial.js';
 import { SPECIAL_ORDER } from '../data/tutorial.js';
 import { drawMonster } from '../render/sprites/monsters.js';
@@ -27,7 +27,7 @@ const C = 48;
 /**
  * @param {any} app
  * @param {any} g partie (src/game/state.js)
- * @param {{ onPause?: () => void, onEvent?: (e: any) => void }} [hooks]
+ * @param {{ onPause?: () => void, onEvent?: (e: any) => void, onTap?: (x: number, y: number) => void }} [hooks]
  */
 export function createPlay(app, g, hooks = {}) {
   const renderer = createRenderer({
@@ -127,6 +127,9 @@ export function createPlay(app, g, hooks = {}) {
     },
     onButton(id, phase) {
       if (id === 'pause' && phase === 'up' && hooks.onPause) hooks.onPause();
+    },
+    onTap(x, y) {
+      if (hooks.onTap) hooks.onTap(x, y);
     },
     onKey(key) {
       if (key === 'Escape' && hooks.onPause) {
@@ -232,6 +235,10 @@ function drawWorldOverlay(ctx, g, ox, oy) {
       drawPadLabel(ctx, d.pad, ox, oy, g.t);
     }
     if (g.register && d.pile > 0) drawCoinPile(ctx, ox + g.register.x * C + 12, oy + g.register.y * C + 4, d.pile);
+    if (d.order && d.order.waiting) {
+      const o = d.order;
+      drawOrderBubble(ctx, ox + o.c.x * C, oy + o.c.y * C, (c) => drawProduct(c, o.product, 0.75), o.got, o.need, g.t);
+    }
     for (const c of d.customers) {
       if (c.state === 'wait') {
         const k = c.patienceFull ? Math.max(0, c.patience / c.patienceFull) : 1;

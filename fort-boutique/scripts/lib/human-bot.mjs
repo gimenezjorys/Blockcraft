@@ -329,6 +329,11 @@ export class HumanBot extends TouchBot {
   }
 
   nightH(sc) {
+    // Joueur passif la nuit (mesure de Hugo, P1/P2) : il ne bouge pas, ne sonne jamais la Cloche.
+    if (this.passiveNight) {
+      this.release();
+      return;
+    }
     const p = sc.player;
     const n = sc.night;
     if (n.bellCharge >= n.bellNeed && n.monsters.length >= 4) this.tapCanvas(288, 568);

@@ -16,8 +16,9 @@ import { createHub, HUB_SCREENS } from './hub.js';
 import { createObjective } from './objective.js';
 import { forceArrow } from '../game/tutorial.js';
 
-/** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime. */
+/** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime (plus courte ensuite ; un tap l'abrège). */
 const DAWN_DELAY_S = 2.5;
+const DAWN_DELAY_LATER_S = 1.2;
 
 /** Sauvegarde automatique pendant le jeu (B9). */
 const AUTOSAVE_S = 10;
@@ -71,11 +72,13 @@ export function createSession(app, o) {
     app.router.goto('hud', {
       game: () => g,
       // Tap sur l'objectif pendant le Jour : la flèche dorée montre l'emplacement (G3.5) ; le reste se fait au Matin.
+      // Jamais de « non » (P2, Léa) : la flèche dorée montre l'emplacement, ou ce qui est utile maintenant.
       onObjective: (o, el) => {
-        if (o.kind === 'pad' && o.onFloor) {
-          sfx('ui_tap');
-          forceArrow(g);
-        } else wiggle(el);
+        sfx('ui_tap');
+        forceArrow(g);
+        el.classList.remove('pop');
+        void el.offsetWidth;
+        el.classList.add('pop');
       },
     });
   }
@@ -145,6 +148,8 @@ export function createSession(app, o) {
       save: g.save,
       // Après un rechargement, le ticket s'imprime vite : on ne fait pas attendre deux fois (Sam).
       resumed,
+      // Seule la toute première aube suit le rythme lent de G19 ; ensuite le ticket va vite (P2, Hugo).
+      quick: g.save.stats.cycles >= 1,
       hints: g.save.stats.cycles < 3,
       onOpenChest: () => {
         const c = openDawnChest(g);
@@ -217,7 +222,7 @@ export function createSession(app, o) {
             /* rien */
           }
         }
-        dawnDelay = DAWN_DELAY_S;
+        dawnDelay = g.save.stats.cycles === 0 ? DAWN_DELAY_S : DAWN_DELAY_LATER_S;
         break;
       case 'save':
         save();
@@ -290,7 +295,14 @@ export function createSession(app, o) {
         d.lastSeenAt = now();
       });
       if (loaded.repaired && app.services.toast) app.services.toast(t('save.repaired'));
-      play = createPlay(app, g, { onPause: pause, onEvent });
+      play = createPlay(app, g, {
+        onPause: pause,
+        onEvent,
+        // Un tap pendant la pluie de pièces passe directement au ticket.
+        onTap: () => {
+          if (dawnDelay > 0.15) dawnDelay = 0.15;
+        },
+      });
       app.setScene(play);
       if (session.onLoaded) session.onLoaded(g, loaded);
       route(resumePoint(g));
