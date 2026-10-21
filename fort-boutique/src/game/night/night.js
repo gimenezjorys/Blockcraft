@@ -16,6 +16,8 @@ import { addXp, xpFactor } from '../progression.js';
 import { computeFields } from '../state.js';
 import { trackQuest } from '../quest-track.js';
 import { staffToBed } from '../staff.js';
+import { redMoonMult } from '../franchise.js';
+import { FRANCHISE } from '../../data/balance.js';
 import { initCat } from '../cat.js';
 import { eventNightMods, trackEvent } from '../weekly-events.js';
 
@@ -25,6 +27,15 @@ export function bestiaryBonus(count) {
   if (count >= 250) return 0.06;
   if (count >= 25) return 0.03;
   return 0;
+}
+
+/** Lanternes prêtées du Festival : au centre, et près de la porte à la Pharmacie. */
+function loanLights(g) {
+  const { w, h } = g.grid;
+  const r = 2.5;
+  const out = [{ x: w / 2, y: h / 2 - 0.5, r }];
+  if (g.shopId === 'q3') out.push({ x: w / 2, y: h - 1, r });
+  return out;
 }
 
 /** Fusionne les effets du mode de jeu et ceux de l'événement de la semaine. */
@@ -39,6 +50,7 @@ function mergeMods(a, ev) {
     lootMult: (a.lootMult || 1) * ev.lootMult,
     goldenChance: ev.goldenChance ?? a.goldenChance,
     lootType: ev.lootType || a.lootType || null,
+    lantern: ev.lantern || a.lantern || false,
     xpMult: (a.xpMult || 1) * ev.xpMult,
   };
 }
@@ -80,7 +92,7 @@ export function startNight(g, opts = {}) {
   const ms = merchantNightStats(g.save.player.upgrades);
   const bestiary = {};
   for (const [type, c] of Object.entries(g.save.collections.bestiary)) bestiary[type] = bestiaryBonus(c);
-  const redMoon = shop.redMoon ? 1.5 + 0.5 * shop.franchiseStars : 1;
+  const redMoon = redMoonMult(shop);
   g.night = {
     k,
     s,
@@ -133,10 +145,14 @@ export function startNight(g, opts = {}) {
     bossEscaped: false,
     bossKilled: false,
     hpMult: redMoon * (mods.hpMult || 1) * (tutorial ? WAVES.tutorialHpMult : 1),
-    lootMult: (mods.lootMult || 1) * (1 + 0.1 * shop.franchiseStars),
+    lootMult: (mods.lootMult || 1) * (1 + FRANCHISE.lootPerStar * shop.franchiseStars),
     speedMult: mods.speedMult || 1,
     dmgMult: (mods.dmgMult || 1) * (retry ? shop.phase.retryDmg : 1),
+    // Nuit sans fin (G13.2) : vagues ajoutées une à une, PV qui montent, fin quand le Bocal est vide.
+    endless: opts.endless ? { ...opts.endless, held: 0, baseHp: 1 } : null,
     lootType: mods.lootType || null,
+    // Festival des lanternes : une lanterne prêtée au centre de la boutique, deux à la Pharmacie (G13.5).
+    loanLights: mods.lantern ? loanLights(g) : [],
     xpMult: mods.xpMult || 1,
     monsterSpeed: tutorial ? 1 : SCALING.monsterSpeed,
     groupGap: learning ? WAVES.learning.groupGapS : Q >= 3 ? WAVES.groupGapLateS : WAVES.groupGapS,
@@ -213,7 +229,10 @@ export function stepNight(g, dt) {
   } else if (n.state === 'active') {
     if (aliveCount(g) === 0) {
       g.events.push('wave_clear', 0, 0, n.waveIndex, n.waves.length);
-      if (n.waveIndex >= n.waves.length - 1) {
+      if (n.endless) {
+        n.endless.held = n.waveIndex + 1;
+        if (n.waveIndex >= n.waves.length - 1) n.waves.push(n.endless.next(g, n.waveIndex + 2));
+      } else if (n.waveIndex >= n.waves.length - 1) {
         finishNight(g, false);
         return;
       }
@@ -229,7 +248,8 @@ export function stepNight(g, dt) {
   stepTowers(g, dt);
   stepProjectiles(g, dt);
   stepMerchantNight(g, dt);
-  if (n.t >= WAVES.maxNightS) finishNight(g, true);
+  if (n.endless && n.jar <= 0) finishNight(g, false);
+  else if (!n.endless && n.t >= WAVES.maxNightS) finishNight(g, true);
 }
 
 /** Voleur scénarisé de la nuit 1 : rapide jusqu'au vol, ralenti de moitié après 3 s sans réaction (G19 2:08). */
@@ -300,6 +320,7 @@ export function finishNight(g, timeout) {
     timeout,
     bellUses: n.bellUses,
     tutorial: !!n.tutorial,
+    endlessHeld: n.endless ? n.endless.held : 0,
   };
   g.events.push('night_end', 0, 0, stars, bossWin ? 1 : 0);
   return n.result;

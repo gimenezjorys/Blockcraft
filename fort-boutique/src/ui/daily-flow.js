@@ -117,23 +117,7 @@ export function createDailyFlow(app, o) {
     o.renderMorning();
   }
 
-  function pause() {
-    if (app.router.has('pause')) return;
-    app.loop.pause('menu');
-    app.input.cancelAll();
-    app.router.push('pause', {
-      night: true,
-      onResume: () => {
-        app.router.pop();
-        app.loop.resume('menu');
-      },
-      onQuit: () => {
-        app.router.pop();
-        app.loop.resume('menu');
-        leave();
-      },
-    });
-  }
+  const pause = () => challengePause(app, leave);
 
   return {
     open,
@@ -144,4 +128,23 @@ export function createDailyFlow(app, o) {
       if (cg && ended) finish();
     },
   };
+}
+
+/** Pause d'une nuit hors partie (défi, Nuit sans fin) : Reprendre, ou Quitter (la tentative ne compte pas). */
+export function challengePause(app, leave) {
+  if (app.router.has('pause')) return;
+  app.loop.pause('menu');
+  app.input.cancelAll();
+  app.router.push('pause', {
+    night: true,
+    onResume: () => {
+      app.router.pop();
+      app.loop.resume('menu');
+    },
+    onQuit: () => {
+      app.router.pop();
+      app.loop.resume('menu');
+      leave();
+    },
+  });
 }

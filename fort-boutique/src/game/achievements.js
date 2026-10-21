@@ -21,6 +21,7 @@ export function achievementMetric(save, metric) {
     case 'dailyStreak': return save.daily.challenge.streak || 0;
     case 'kills': return save.collections.bestiary[arg] || 0;
     case 'mokaLevel': return save.player.cat && save.player.cat.unlocked ? save.player.cat.level : 0;
+    case 'endlessBest': return (save.endless && save.endless.best) || 0;
     case 'franchiseStars': return Object.values(save.shops).reduce((a, s) => a + ((s && s.franchiseStars) || 0), 0);
     default: return 0;
   }

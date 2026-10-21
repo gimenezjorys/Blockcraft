@@ -15,6 +15,7 @@ import { trackQuest } from './quest-track.js';
 import { recordNight } from './streak.js';
 import { now, utcDay, utcWeekday } from '../core/time.js';
 import { currentEvent } from './weekly-events.js';
+import { franchiseBossWin } from './franchise.js';
 
 /**
  * Où reprendre une partie chargée (G5.2) : jour avec le temps restant, nuit depuis le début, aube, matin.
@@ -173,6 +174,8 @@ export function leaveDawn(g) {
   if (r && r.bossNight) {
     if (r.bossWin) {
       shop.bossBeatenCount++;
+      // Franchise (G13.4) : le boss battu en Lune rouge donne une étoile ; la semaine continue normalement.
+      franchiseBossWin(shop);
       shop.week++;
       // Quartier suivant : sa carte se fête au Matin s'il est vraiment ouvert (boss vaincu ET niveau, G12.4).
       const next = DISTRICT_IDS.find((id) => DISTRICTS[id].previousBoss === g.shopId);
@@ -229,4 +232,23 @@ export function retryBossNight(g, bonus) {
     f.eyes = 1;
   }
   return true;
+}
+
+/**
+ * Crée la boutique de chaque quartier ouvert (boss précédent vaincu ET niveau) qui n'existe pas encore : un niveau
+ * atteint après la victoire sur le boss ouvre aussi le quartier (G12.4). Sa carte se fête au Matin suivant.
+ * @param {any} save
+ * @returns {string[]} quartiers ouverts maintenant
+ */
+export function openReadyDistricts(save) {
+  const opened = [];
+  for (const id of DISTRICT_IDS) {
+    if (save.shops[id] && save.shops[id].unlocked) continue;
+    if (!districtOpen(save, id)) continue;
+    save.shops[id] = save.shops[id] || defaultShop(id);
+    save.shops[id].unlocked = true;
+    if (!save.progress.pendingDistricts.includes(id)) save.progress.pendingDistricts.push(id);
+    opened.push(id);
+  }
+  return opened;
 }

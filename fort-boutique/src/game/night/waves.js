@@ -68,7 +68,9 @@ export function fillBudget(rng, budget, types, weights, active, out) {
   let left = budget;
   let guard = 50;
   while (guard-- > 0) {
-    const affordable = types.filter((t) => MONSTERS[t].threat > 0 && MONSTERS[t].threat <= left + 1e-9);
+    // Un groupe en formation (corbeaux en V de 3, G10.1) ne se tire qu'entier : le budget doit couvrir tout le groupe.
+    const whole = (t) => (MONSTERS[t].formation ? MONSTERS[t].group[0] : 1);
+    const affordable = types.filter((t) => MONSTERS[t].threat > 0 && MONSTERS[t].threat * whole(t) <= left + 1e-9);
     if (!affordable.length) break;
     const type = rng.weighted(affordable, (t) => weights[t] || 1);
     const def = MONSTERS[type];

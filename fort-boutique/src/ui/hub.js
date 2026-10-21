@@ -19,17 +19,18 @@ import { buyCosmetic, equipCosmetic } from '../game/cosmetics.js';
 import { ADS } from '../data/balance.js';
 import { now, utcDay } from '../core/time.js';
 import { trackQuest } from '../game/quest-track.js';
+import { startFranchise } from '../game/franchise.js';
 
 /** Écrans du hub déjà branchés (les autres boutons disent « Bientôt »). */
-export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily', 'wardrobe'];
+export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily', 'wardrobe', 'endless'];
 
 /** Quartiers dont le contenu est prêt (M16 à M19 ajoutent les suivants). */
-export const PLAYABLE_DISTRICTS = ['q1', 'q2'];
+export const PLAYABLE_DISTRICTS = ['q1', 'q2', 'q3', 'q4', 'q5'];
 
 /**
  * @param {any} app
  * @param {{ game: () => any, save: (force?: boolean) => void, refresh: () => void, switchShop?: (id: string) => void,
- *   daily?: () => any, ads?: () => any }} o
+ *   daily?: () => any, endless?: () => any, ads?: () => any }} o
  */
 export function createHub(app, o) {
   const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
@@ -152,6 +153,17 @@ export function createHub(app, o) {
         onGo: (id) => {
           app.router.pop();
           if (o.switchShop) o.switchShop(id);
+        },
+        onEndless: o.endless ? () => {
+          app.router.pop();
+          o.endless().open();
+        } : undefined,
+        // Franchise (G13.4) : semaine 1, Lune rouge ; la disposition et les meubles restent.
+        onFranchise: (id) => {
+          if (!startFranchise(g.save, id)) return;
+          o.save(true);
+          close();
+          toast(t('map.franchised'), SVG.check);
         },
         onClose: close,
       });

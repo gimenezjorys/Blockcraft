@@ -26,6 +26,7 @@ import reward from './ui/screens/reward.js';
 import daily from './ui/screens/daily.js';
 import ad from './ui/screens/ad.js';
 import wardrobe from './ui/screens/wardrobe.js';
+import endless from './ui/screens/endless.js';
 import { createAds } from './ads/ads.js';
 import hud from './ui/screens/hud.js';
 import intro from './ui/screens/intro.js';
@@ -127,7 +128,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon, quests, calendar, reward, daily, ad, wardrobe });
+  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon, quests, calendar, reward, daily, ad, wardrobe, endless });
   app.router.goto('title');
   app.loop.start();
 }

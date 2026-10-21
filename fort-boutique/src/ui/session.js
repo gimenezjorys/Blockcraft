@@ -2,14 +2,13 @@
 import { now } from '../core/time.js';
 import { seedFrom } from '../core/rng.js';
 import { loadSave, SaveManager, serialize } from '../save/save.js';
-import { defaultSave, defaultShop } from '../save/schema.js';
-import { DISTRICT_IDS } from '../data/districts.js';
+import { defaultSave } from '../save/schema.js';
 import { createGame, rebuildShop } from '../game/state.js';
 import { resumePoint, enterMorning, openShop, markNightPending, resumeNight, enterDawn, openDawnChest, openExtraChest, leaveDawn } from '../game/cycle.js';
 import { startDay } from '../game/day/day.js';
 import { startNight } from '../game/night/night.js';
 import { upgradeFurniture, canUpgrade } from '../game/economy.js';
-import { isUnlocked, unlockedFurniture, districtOpen } from '../game/progression.js';
+import { isUnlocked, unlockedFurniture } from '../game/progression.js';
 import { createPlay } from './play.js';
 import { ADS } from '../data/balance.js';
 import { t, setLang } from './i18n.js';
@@ -26,9 +25,10 @@ import { collectOffline } from '../game/offline.js';
 import { dailyFirstAttempt } from '../game/daily.js';
 import { checkEvent, eventState } from '../game/weekly-events.js';
 import { createDailyFlow } from './daily-flow.js';
+import { createEndlessFlow } from './endless-flow.js';
 import { createAdFlow } from './ad-flow.js';
 import { canShowInterstitial, noteInterstitial, noteCycle } from '../ads/ad-policy.js';
-import { retryBossNight } from '../game/cycle.js';
+import { retryBossNight, openReadyDistricts } from '../game/cycle.js';
 import { grantReward } from '../game/rewards.js';
 import { utcDay } from '../core/time.js';
 
@@ -121,7 +121,7 @@ export function createSession(app, o) {
     enterMorning(g);
     rebuildShop(g);
     // Quartier ouvert plus tard (niveau atteint après la victoire sur le boss) : sa boutique et sa carte arrivent (G12.4).
-    openDistricts(g.save);
+    openReadyDistricts(g.save);
     // Rétention (G14, G15) : jours manqués (gels), quêtes du jour, succès et paliers du bestiaire gagnés.
     const t0 = now();
     streakCheck(g.save, t0);
@@ -178,17 +178,6 @@ export function createSession(app, o) {
     });
   }
 
-  /** Crée la boutique de chaque quartier ouvert (boss précédent vaincu ET niveau) qui n'existe pas encore. */
-  function openDistricts(data) {
-    for (const id of DISTRICT_IDS) {
-      if (data.shops[id] && data.shops[id].unlocked) continue;
-      if (!districtOpen(data, id)) continue;
-      data.shops[id] = data.shops[id] || defaultShop(id);
-      data.shops[id].unlocked = true;
-      if (!data.progress.pendingDistricts.includes(id)) data.progress.pendingDistricts.push(id);
-    }
-  }
-
   /** Scène de jeu de la boutique courante. */
   function makePlay() {
     return createPlay(app, g, {
@@ -217,8 +206,10 @@ export function createSession(app, o) {
   }
 
   const adFlow = createAdFlow(app, { game: () => g, save });
-  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily, ads: () => adFlow, switchShop: (id) => switchShop(id) });
-  const daily = createDailyFlow(app, { game: () => g, play: () => play, save, renderMorning: () => renderMorning() });
+  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily, endless: () => endless, ads: () => adFlow, switchShop: (id) => switchShop(id) });
+  const flowOpts = { game: () => g, play: () => play, save, renderMorning: () => renderMorning() };
+  const daily = createDailyFlow(app, flowOpts);
+  const endless = createEndlessFlow(app, flowOpts);
 
   function showDawn(resumed = false) {
     dawnDelay = -1;
@@ -519,6 +510,7 @@ export function createSession(app, o) {
     step(dt) {
       if (!g || !saver) return;
       daily.step();
+      endless.step();
       if (dawnDelay >= 0) {
         dawnDelay -= dt;
         if (dawnDelay < 0 && app.router.baseId() === 'hud') showDawn();
@@ -544,9 +536,11 @@ export function createSession(app, o) {
      */
     autoPause() {
       if (!g || !play || app.router.currentId() === 'title') return;
-      if (daily.active()) {
-        daily.pause();
-        return;
+      for (const f of [daily, endless]) {
+        if (f.active()) {
+          f.pause();
+          return;
+        }
       }
       const n = g.phase.name;
       if (n === 'day' || n === 'closing' || n === 'dusk' || n === 'night') pause();

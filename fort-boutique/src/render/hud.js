@@ -177,7 +177,7 @@ export function hudHit(x, y, { bell = false } = {}) {
  * @param {number} total
  * @param {number} cleared vagues terminées
  */
-export function drawWavePips(ctx, wave, total, cleared) {
+export function drawWavePips(ctx, wave, total, cleared, endless = false) {
   // Lune.
   ctx.fillStyle = P.lune;
   ctx.strokeStyle = P.encre;
@@ -191,6 +191,11 @@ export function drawWavePips(ctx, wave, total, cleared) {
   ctx.arc(20, 20, 3, 0, Math.PI * 2);
   ctx.arc(28, 27, 2, 0, Math.PI * 2);
   ctx.fill();
+  // Nuit sans fin : le numéro de la vague à la place des pastilles (la liste s'allonge sans fin).
+  if (endless) {
+    stickerText(ctx, `× ${wave + 1}`, 44, 23, 17, P.craieJaune, 'left');
+    return;
+  }
   for (let i = 0; i < total; i++) {
     const x = 48 + i * 18;
     const done = i < cleared;

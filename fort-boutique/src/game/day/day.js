@@ -11,6 +11,7 @@ import { placePlayerAtStart } from '../state.js';
 import { initStaff, stepStaff, sleepStaff } from '../staff.js';
 import { initCat } from '../cat.js';
 import { eventDayMods } from '../weekly-events.js';
+import { franchiseSalesBonus } from '../franchise.js';
 import { trackQuest } from '../quest-track.js';
 import { streakCheck, streakBonus } from '../streak.js';
 
@@ -90,7 +91,8 @@ export function startDay(g, opts = {}) {
   }
   // Flamme de la boutique (G15.2) : jours manqués d'abord (gels), puis +2 % de pièces par jour de série.
   streakCheck(g.save);
-  g.day.salesMult = 1 + streakBonus(g.save);
+  // + franchise : +10 % de ventes par étoile (G13.4).
+  g.day.salesMult = 1 + streakBonus(g.save) + franchiseSalesBonus(g.shop);
   // Événement de la semaine et saison (G13.5, G13.6).
   const em = eventDayMods(g.shopId);
   g.day.cheap = em.cheap;

@@ -47,6 +47,7 @@ export function eventNightMods(t = now()) {
     lootType: ev.lootType || null,
     goldenChance: ev.goldenChance,
     xpMult: xpBoost(t),
+    lantern: !!ev.lantern,
   };
 }
 

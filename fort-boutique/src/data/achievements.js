@@ -18,6 +18,7 @@ export const ACHIEVEMENTS = [
   ...BESTIARY_TYPES.map((m) => ({ id: `best_${m}`, metric: `kills:${m}`, goal: 100, rubies: 3 })),
   ...tiers('moka', 'mokaLevel', [[5, 10], [10, 25]]),
   ...tiers('franchise', 'franchiseStars', [[1, 10], [5, 25], [25, 60]]),
+  ...tiers('endless', 'endlessBest', [[10, 10], [25, 25], [50, 50]]),
 ];
 
 /** Bestiaire (G14.4) : paliers de victoires, bonus de dégâts (night.js) et rubis. */

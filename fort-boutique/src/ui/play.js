@@ -333,7 +333,7 @@ function drawHud(ctx, g, view, app) {
     }
   } else if (g.night && (name === 'night' || name === 'dawn')) {
     const n = g.night;
-    drawWavePips(ctx, n.waveIndex, n.waves.length, view.cleared);
+    drawWavePips(ctx, n.waveIndex, n.waves.length, view.cleared, !!n.endless);
     drawJarGauge(ctx, n.jar / Math.max(1, n.jarInitial), Math.round(n.jar), view.jarBlink);
     const boss = bossOf(g);
     if (boss) drawBossBar(ctx, boss.hp / Math.max(1, boss.maxHp), boss.hitT || 0);

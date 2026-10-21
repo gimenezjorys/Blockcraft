@@ -21,7 +21,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M14 — Défi du jour, Rivaux, partage, événements | ✅ | 2026-10-21 | Défi du jour (même boutique et mêmes vagues pour tous, aménagement libre, score, première tentative récompensée, Entraînement, Rivaux, Partager), événements de la semaine (bannière, effets, défi), saisons (XP +10 %, décor) ; D2.4.8 simulé. |
 | M15 — Pubs, rubis, Garde-robe + P3 | ✅ | 2026-10-21 | Adaptateurs (none, sim, squelettes Poki et CrazyGames), règles et plafonds (ad-policy testé règle par règle), 7 placements récompensés + interstitielle it_dawn, Garde-robe (6 catégories, rubis, saisons) et rendu des cosmétiques ; D2.4.7 tenu ; P3 : 1 majeur corrigé. |
 | M16 — Quartier 2 : la Boulangerie | ✅ | 2026-10-21 | Boulangerie jouable (carte des quartiers), un test par comportement (défaut du four corrigé), simulation SIM_Q2 : tous les seuils D2.4 tenus sauf D2.4.4 (reporté en M20). |
-| M17 — Quartier 3 : la Pharmacie | ⬜ | | |
+| M17 — Quartier 3 : la Pharmacie | ✅ | 2026-10-21 | Pharmacie jouable, un test par comportement, lanterne prêtée du Festival, formations de corbeaux entières ; SIM_Q3 : tous les seuils D2.4 tenus sauf D2.4.4 (reporté en M20). |
 | M18 — Quartier 4 : la Quincaillerie | ⬜ | | |
 | M19 — Quartier 5 : l'Emporium | ⬜ | | |
 | M20 — Équilibrage global + P4 | ⬜ | | |
@@ -176,6 +176,7 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
 
 - [ ] M16 — D2.4.4 au Q2 : une Pleine Lune perdue vide le Bocal ; trois défaites de suite = trois nuits basses → M20.
+- [ ] M17 — D2.4.4 au Q3 (48 %) : même cause → M20.
 - [ ] P3 — Flamme éteinte impossible à rallumer sans pub avec les rubis d'un joueur récent → M20 (économie des rubis).
 - [ ] P3 — Deux fenêtres de gains à la suite au retour (ticket puis calendrier) → M22.
 - [ ] P2 — 4e emplacement en avance sur G19 (revenus du jour 2) ; revu en M12 : toujours 6/7 repères avec les 150 pièces du calendrier → M20 (équilibrage global).
@@ -214,3 +215,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-21 — M14 fait (tests essentiels ; D2.4.8 tenu). Prochaine étape : M15 pubs, rubis, Garde-robe + Playtest P3.
 - 2026-10-21 — M15 fait : pubs (B10, G18), Garde-robe (G17), P3 (docs/playtests/P3.md). Jalon D terminé. Prochaine étape : M16 Quartier 2, la Boulangerie.
 - 2026-10-21 — M16 fait : la Boulangerie (docs/sim/SIM_Q2.md ; D2.4.4 du Q2 reporté en M20). Prochaine étape : M17 Quartier 3, la Pharmacie.
+- 2026-10-21 — M17 fait : la Pharmacie (docs/sim/SIM_Q3.md ; D2.4.4 du Q3 reporté en M20). Prochaine étape : M18 Quartier 4, la Quincaillerie.

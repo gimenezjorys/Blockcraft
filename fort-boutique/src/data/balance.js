@@ -104,9 +104,9 @@ export const FURNITURE_LEVEL = {
 
 export const DISTRICT_FACTORS = {
   /** Multiplicateur de PV des Grignotins par quartier (G10.2). */
-  hp: { q1: 1.0, q2: 1.5, q3: 3.6, q4: 6.2, q5: 10.0 }, // M16 (D2.5) : Q2 2,0 -> 1,5
+  hp: { q1: 1.0, q2: 1.5, q3: 2.7, q4: 6.2, q5: 10.0 }, // M16-M17 (D2.5) : Q2 2,0 -> 1,5 ; Q3 3,6 -> 2,7
   /** Multiplicateur de budget de menace par quartier (G8.3). */
-  threat: { q1: 1.0, q2: 0.8625, q3: 1.3, q4: 1.45, q5: 1.6 }, // M16 (D2.5) : Q2 1,15 -> 0,8625
+  threat: { q1: 1.0, q2: 0.8625, q3: 0.975, q4: 1.45, q5: 1.6 }, // M16-M17 (D2.5) : Q2 1,15 -> 0,8625 ; Q3 1,3 -> 0,975
   /** Multiplicateur d'XP par quartier (G12.3). */
   xp: { q1: 1, q2: 2, q3: 3.2, q4: 4.6, q5: 6.4 },
 };
@@ -164,3 +164,9 @@ export const ADS = {
 
 /** Hors ligne et retour (G16). */
 export const OFFLINE = { minAbsenceMin: 15, capHours: 8, staffShare: 0.2, welcomeDays: 3 };
+
+/** Nuit sans fin (G13.2, niveau 16). */
+export const ENDLESS = { budgetBase: 6, budgetGrowth: 1.12, hpGrowth: 1.08, jar: 1000, chestEvery: 5, chestsPerDay: 3, rivals: 15 };
+
+/** Franchise de quartier (G13.4, niveau 16) : Lune rouge, étoiles (5 au plus), +10 % de ventes et de butin par étoile. */
+export const FRANCHISE = { maxStars: 5, redMoonBase: 1.5, redMoonPerStar: 0.5, salesPerStar: 0.1, lootPerStar: 0.1 };

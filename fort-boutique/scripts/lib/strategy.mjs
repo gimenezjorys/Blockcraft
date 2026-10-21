@@ -127,7 +127,9 @@ export function morningActions(g, profile, o) {
         id = priorityPick(shop, buyable, profile, g.shopId);
       } else {
         const air = hasFlyers(g.shopId);
-        const val = (x) => defenseValue(x) * (air && FURNITURE[x].air ? 2 : 1) / canBuy(save, g.shopId, x).price;
+        const dark = districtDef(g.shopId).dark;
+        const lit = (x) => (dark && FURNITURE[x].night.behavior === 'light' && countOf(shop, x) < 3 ? 3 : 1);
+        const val = (x) => defenseValue(x) * (air && FURNITURE[x].air ? 2 : 1) * lit(x) / canBuy(save, g.shopId, x).price;
         id = buyable.sort((a, b) => val(b) - val(a))[0];
         const sellNeed = needsSelling(shop);
         if (sellNeed && buyable.includes(sellNeed)) id = sellNeed;
@@ -190,6 +192,21 @@ const PRIORITIES = {
   q2: [
     ['etagere', 3], ['four', 1], ['plante', 1], ['comptoir', 2], ['vitrine', 1], ['etagere', 4], ['petrin', 1], ['cafe', 1],
     ['four', 2], ['vitrine', 2], ['etagere', 6], ['plante', 2], ['petrin', 2], ['comptoir', 4],
+  ],
+  // Obscurité : une lanterne tout de suite (les fantômes ne se voient qu'à la lumière), le pilulier contre les volants.
+  q3: [
+    ['lanterne', 1], ['etagere', 3], ['pilulier', 1], ['herbier', 1], ['lanterne', 2], ['plante', 1], ['comptoir', 2],
+    ['pilulier', 2], ['alambic', 1], ['etagere', 5], ['lanterne', 3], ['herbier', 2], ['cafe', 1], ['comptoir', 4],
+  ],
+  // Corbeaux (volants) et golems (métal) : établi et pistolet à peinture contre les volants, aimant contre le métal.
+  q4: [
+    ['etagere', 3], ['etabli', 1], ['aimant', 1], ['plante', 1], ['peinture', 1], ['comptoir', 2], ['enclume', 1],
+    ['ventilo', 1], ['etabli', 2], ['etagere', 5], ['peinture', 2], ['aimant', 2], ['enclume', 2], ['comptoir', 4],
+  ],
+  // Phalènes (volants, attirées par les lampes) et tout le bestiaire : bonbons (plusieurs cibles), une lanterne-appât.
+  q5: [
+    ['etagere', 3], ['bonbons', 1], ['plante', 1], ['lanterne', 1], ['comptoir', 2], ['bonbons', 2], ['aimant', 1],
+    ['etabli', 1], ['cristal', 1], ['horloge', 1], ['etagere', 5], ['pupitre', 1], ['peinture', 1], ['comptoir', 4],
   ],
 };
 

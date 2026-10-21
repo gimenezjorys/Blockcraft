@@ -3,14 +3,14 @@
 import { defaultSave } from '../../src/save/schema.js';
 import { createGame, rebuildShop } from '../../src/game/state.js';
 import { stepGame } from '../../src/game/phases.js';
-import { openShop, markNightPending, enterDawn, openDawnChest, leaveDawn, retryBossNight } from '../../src/game/cycle.js';
+import { openShop, markNightPending, enterDawn, openDawnChest, leaveDawn, retryBossNight, openReadyDistricts } from '../../src/game/cycle.js';
 import { startNight } from '../../src/game/night/night.js';
 import { grantReward } from '../../src/game/rewards.js';
 import { ADS } from '../../src/data/balance.js';
 import { catalogIds, canBuy } from '../../src/game/catalog.js';
 import { canUpgrade } from '../../src/game/economy.js';
 import { unlockedFurniture, districtOpen } from '../../src/game/progression.js';
-import { DISTRICTS } from '../../src/data/districts.js';
+import { DISTRICTS, DISTRICT_IDS } from '../../src/data/districts.js';
 import { createPilot, PROFILES } from './bots.mjs';
 import { morningActions } from './strategy.mjs';
 import { applyQuestModel } from './quests-model.mjs';
@@ -144,7 +144,7 @@ export function simulateGame(o) {
     enterDawn(g);
     openDawnChest(g);
     if (r.bossNight) out.bossAttempts++;
-    if (r.bossNight && out.q2 && g.shopId === 'q2') out.q2.attempts++;
+    if (r.bossNight && out.d && out.d[g.shopId]) out.d[g.shopId].attempts++;
     let rr = r;
     if (o.ads) {
       save.player.coins += r.coins;
@@ -158,7 +158,7 @@ export function simulateGame(o) {
         enterDawn(g);
         openDawnChest(g);
         out.bossAttempts++;
-        if (out.q2 && g.shopId === 'q2') out.q2.attempts++;
+        if (out.d && out.d[g.shopId]) out.d[g.shopId].attempts++;
         save.player.coins += rr.coins;
       }
     }
@@ -205,18 +205,29 @@ export function simulateGame(o) {
     });
     if (rr.bossWin && out.bossWonAt === null && g.shopId === 'q1') out.bossWonAt = c;
     if (out.bossWonAt !== null && out.nextLevelAt === null && districtOpen(save, nextDistrict)) out.nextLevelAt = c;
-    if (o.through === 'q2') {
-      // Quartier 2 : on y part dès qu'il est ouvert ; on suit son boss et le niveau du Q3 (12).
-      if (!out.q2 && districtOpen(save, 'q2')) {
-        save.currentShop = 'q2';
-        g = createGame({ save });
-        pilot = createPilot(profile, o.seed + 7919);
-        out.q2 = { start: c + 1, bossWonAt: null, attempts: 0, nextLevelAt: null };
-      } else if (out.q2 && g.shopId === 'q2') {
-        if (rr.bossWin && out.q2.bossWonAt === null) out.q2.bossWonAt = c;
-        if (out.q2.bossWonAt !== null && out.q2.nextLevelAt === null && districtOpen(save, 'q3')) out.q2.nextLevelAt = c;
-        if (out.q2.bossWonAt !== null && (out.q2.nextLevelAt !== null || c >= out.q2.bossWonAt + 4)) break;
+    if (o.through) {
+      // Quartiers suivants (M16+) : on part dans le suivant dès qu'il est ouvert (boss vaincu ET niveau) ; pour chacun,
+      // le cycle d'arrivée, la victoire sur son boss, les tentatives et le niveau du quartier d'après.
+      const chain = DISTRICT_IDS.slice(0, DISTRICT_IDS.indexOf(o.through) + 1);
+      out.d = out.d || {};
+      const cur = g.shopId;
+      const d = out.d[cur];
+      if (d) {
+        if (rr.bossWin && d.bossWonAt === null) d.bossWonAt = c;
+        const after = DISTRICT_IDS[DISTRICT_IDS.indexOf(cur) + 1];
+        if (d.bossWonAt !== null && d.nextLevelAt === null && (!after || districtOpen(save, after))) d.nextLevelAt = c;
       }
+      const next = chain[chain.indexOf(cur) + 1];
+      openReadyDistricts(save);
+      if (next && !out.d[next] && districtOpen(save, next)) {
+        save.currentShop = next;
+        g = createGame({ save });
+        pilot = createPilot(profile, o.seed + 7919 * (chain.indexOf(next) + 1));
+        out.d[next] = { start: c + 1, bossWonAt: null, attempts: 0, nextLevelAt: null };
+        if (next === 'q2') out.q2 = out.d.q2;
+        continue;
+      }
+      if (cur === o.through && d && d.bossWonAt !== null && (d.nextLevelAt !== null || c >= d.bossWonAt + 4)) break;
       continue;
     }
     if (o.stopAfterBoss !== false && out.bossWonAt !== null && (out.nextLevelAt !== null || c >= out.bossWonAt + 4)) break;
