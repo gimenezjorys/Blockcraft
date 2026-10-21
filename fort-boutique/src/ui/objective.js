@@ -5,8 +5,6 @@ import { t, fmt } from './i18n.js';
 import { SVG, furnitureIcon, featureIconSvg } from './icons.js';
 import { nextObjective, objectiveKey } from '../game/objectives.js';
 
-/** Icône d'une fonction débloquée (sans texte). */
-
 /**
  * @param {() => any} game
  * @param {(o: ReturnType<typeof nextObjective>) => void} onPick tap : « emmène à l'endroit concerné »
@@ -51,7 +49,8 @@ export function createObjective(game, onPick, d) {
       num = h('span.obj-num', { text: String(o.nights) });
     }
     const fill = h('span.obj-fill');
-    fill.style.width = `${Math.round(o.progress * 100)}%`;
+    // Même arrondi que la clé de rendu (pas de barre figée à 99 %, P2 Sam).
+    fill.style.width = `${Math.round(o.progress * 50) * 2}%`;
     el.append(ico, h('span.obj-body', [num, h('span.obj-bar', [fill])].filter(Boolean)));
   }
 

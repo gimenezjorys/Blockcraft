@@ -139,3 +139,48 @@ test('Commande spéciale : à portée du client, les articles vont au client ava
   const ev = run(g, 2, () => teleport(g, o.c.x, o.c.y));
   assert.equal(count(ev, 'order_give'), o.need, 'tout pour le client');
 });
+
+test('rechargement en pleine Commande : le client revient avec ce qu’on lui a donné et le temps qui restait (P2, Sam)', async () => {
+  const { createGame } = await import('../../src/game/state.js');
+  const g = dayGame(3);
+  run(g, g.day.orderAt + 0.1, () => teleport(g, 0.5, 0.5));
+  run(g, 8, () => teleport(g, 0.5, 0.5));
+  const o = g.day.order;
+  g.player.stack = ['pomme', 'pomme'];
+  run(g, 0.5, () => teleport(g, o.c.x, o.c.y));
+  assert.equal(o.got, 2);
+  const left = o.timeLeft;
+  // Rechargement : la sauvegarde (JSON) est relue, la journée reprend.
+  const save = JSON.parse(JSON.stringify(g.save));
+  const g2 = createGame({ save });
+  startDay(g2, { resume: true });
+  const o2 = g2.day.order;
+  assert.ok(o2, 'la Commande revient');
+  assert.equal(o2.product, o.product);
+  assert.equal(o2.need, o.need);
+  assert.equal(o2.got, 2, 'les articles déjà donnés comptent');
+  assert.ok(Math.abs(o2.timeLeft - left) < 0.1);
+  run(g2, 8, () => teleport(g2, 0.5, 0.5));
+  g2.player.stack = Array(o2.need - 2).fill(o2.product);
+  const ev = run(g2, 2, () => teleport(g2, o2.c.x, o2.c.y));
+  assert.equal(count(ev, 'order_done'), 1);
+  assert.equal(g2.shop.phase.orderChests, 1);
+  assert.equal(g2.shop.phase.order, null);
+});
+
+test('rechargement en plein Rush : les clients restants et les pourboires × 1,5 reprennent', async () => {
+  const { createGame } = await import('../../src/game/state.js');
+  const g = dayGame(2);
+  run(g, g.day.rushAt + 1.2, () => teleport(g, 0.5, 0.5));
+  assert.ok(g.day.rush);
+  const save = JSON.parse(JSON.stringify(g.save));
+  const g2 = createGame({ save });
+  startDay(g2, { resume: true });
+  assert.ok(g2.day.rush, 'le Rush continue');
+  assert.equal(g2.day.tipMult, RUSH.tipMult);
+  assert.ok(g2.day.rush.left >= 1 && g2.day.rush.left <= RUSH.customers - 1);
+  assert.equal(g2.day.rushAt, -1, 'il ne recommence pas depuis le début');
+  run(g2, RUSH.tipS + 1, () => teleport(g2, 0.5, 0.5));
+  assert.equal(g2.day.tipMult, 1);
+  assert.equal(g2.shop.phase.rush, null);
+});

@@ -42,7 +42,7 @@ export function unlockCards(levels, o = {}) {
 
 /**
  * @param {any} app
- * @param {{ levels: number[], districts?: string[], save?: any, onDone: () => void }} p
+ * @param {{ levels: number[], districts?: string[], save?: any, onDone: () => void, celebrated?: boolean }} p
  */
 function mount(app, p, d) {
   const cards = unlockCards(p.levels, { save: p.save, districts: p.districts });
@@ -67,7 +67,8 @@ function mount(app, p, d) {
   onTap(el, (e) => {
     if (e.target === el) p.onDone();
   }, d);
-  if (app.services.audio) app.services.audio.play('level_up');
+  // Le ruban de l'aube a déjà fêté le niveau (fanfare) : ici, un simple son de carte (P2, Sam : pas deux fanfares).
+  if (app.services.audio) app.services.audio.play(p.celebrated ? 'card' : 'level_up');
   return {
     el,
     onKey(key) {

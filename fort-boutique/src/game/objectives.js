@@ -3,7 +3,7 @@
 // 5) Pleine Lune. Au Matin, 2) passe avant 1) ; pendant le Jour, 2) ne s'affiche pas (M11, DECISIONS.md).
 // Logique pure : l'interface (étiquette kraft) ne fait que l'afficher.
 import { canUpgrade } from './economy.js';
-import { unlockedFurniture, nextUnlock, levelProgress, projectedLevel } from './progression.js';
+import { unlockedFurniture, nextUnlock, levelProgress, projectedLevel, projectedPlayer } from './progression.js';
 import { UNLOCK_CARD_ORDER } from '../data/unlocks.js';
 import { FURNITURE } from '../data/furniture.js';
 
@@ -76,11 +76,13 @@ export function nextObjective(g) {
   if (q) return { kind: 'quest', id: q.id, progress: q.progress };
   // 4) Prochain déblocage (niveau N+1, ou le suivant qui apporte quelque chose), en silhouette.
   // Un meuble qui apporte un nouveau produit passe avant les meubles génériques (G19 3:02 : le Frigo se révèle).
-  const u = nextUnlock(save);
+  // Le niveau déjà gagné (fêté à l'aube) compte : la barre ne reste jamais pleine et muette (P2, Sam).
+  const pp = projectedPlayer(save.player);
+  const u = nextUnlock(save, pp.level);
   if (u) {
     const furniture = u.furniture.find((id) => !FURNITURE[id].generic) || u.furniture[0] || null;
     const feature = furniture ? null : UNLOCK_CARD_ORDER.find((k) => u.features.includes(k)) || u.features[0] || null;
-    return { kind: 'unlock', level: u.level, furniture, feature, progress: u.level === save.player.level + 1 ? levelProgress(save.player) : 0 };
+    return { kind: 'unlock', level: u.level, furniture, feature, progress: u.level === pp.level + 1 ? levelProgress(pp) : 0 };
   }
   // 5) Pleine Lune dans X nuits.
   const k = g.shop.night;

@@ -19,6 +19,13 @@ export function initDayEvents(g) {
   d.rushAt = g.shop.day >= RUSH.fromDay && !ph.rushDone ? d.duration * g.rng.range(RUSH.window[0], RUSH.window[1]) : -1;
   d.rush = null;
   d.tipMult = 1;
+  // Rechargement en plein Rush : il reprend (clients restants, pourboires × 1,5 pour le temps qui restait) (P2, Sam).
+  const r = ph.rush;
+  if (r && typeof r === 'object' && Number(r.tipT) > 0 && Number(r.tipT) <= RUSH.tipS) {
+    const left = Math.max(0, Math.min(RUSH.customers, Math.round(Number(r.left) || 0)));
+    d.rush = { left, spawnT: 0, tipT: Number(r.tipT) };
+    d.tipMult = RUSH.tipMult;
+  } else ph.rush = null;
   initSpecialOrder(g);
 }
 
@@ -42,6 +49,7 @@ function stepRush(g, dt, elapsed) {
     d.rushAt = -1;
     g.shop.phase.rushDone = true;
     d.rush = { left: RUSH.customers, spawnT: 0, tipT: RUSH.tipS };
+    g.shop.phase.rush = { left: RUSH.customers, tipT: RUSH.tipS };
     g.events.push('rush', 0, 0, RUSH.customers, RUSH.tipS);
   }
   const r = d.rush;
@@ -55,5 +63,13 @@ function stepRush(g, dt, elapsed) {
   }
   r.tipT -= dt;
   d.tipMult = r.tipT > 0 ? RUSH.tipMult : 1;
-  if (r.tipT <= 0 && r.left <= 0) d.rush = null;
+  const saved = g.shop.phase.rush;
+  if (saved) {
+    saved.left = r.left;
+    saved.tipT = Math.max(0, r.tipT);
+  }
+  if (r.tipT <= 0 && r.left <= 0) {
+    d.rush = null;
+    g.shop.phase.rush = null;
+  }
 }

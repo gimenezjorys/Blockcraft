@@ -53,13 +53,18 @@ export function applyLevelUps(g) {
  * @param {{ level: number, xp: number }} player
  */
 export function projectedLevel(player) {
+  return projectedPlayer(player).level;
+}
+
+/** Niveau et XP restante une fois les passages en attente appliqués (sans rien modifier). */
+export function projectedPlayer(player) {
   let level = player.level;
   let xp = player.xp;
   while (level < MAX_LEVEL && xp >= xpToNext(level)) {
     xp -= xpToNext(level);
     level++;
   }
-  return level;
+  return { level, xp };
 }
 
 /** Multiplicateur d'XP du quartier (X_Q). */
@@ -112,8 +117,8 @@ export function unlocksAtLevel(level) {
 }
 
 /** Prochain déblocage (niveau N+1 ou plus), pour l'objectif « silhouette » (G3.5). */
-export function nextUnlock(save) {
-  for (let l = save.player.level + 1; l <= 40; l++) {
+export function nextUnlock(save, fromLevel = save.player.level) {
+  for (let l = fromLevel + 1; l <= 40; l++) {
     const u = unlocksAtLevel(l);
     if (u.features.length || u.furniture.length) return { level: l, ...u };
   }

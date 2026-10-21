@@ -51,6 +51,7 @@ export default {
   'pause.title': 'Pause',
   'pause.resume': 'Resume',
   'pause.saved': "Game saved: you can close anytime",
+  'pause.savedNight': "Game saved. If you close now, the night restarts from the first wave",
   'pause.quit': 'Title screen',
   'save.repaired': 'Shop repaired',
   'furn.etagere': "Shelf",

@@ -42,7 +42,7 @@ export function defaultShop(id) {
     lastNightStars: 0,
     phase: {
       name: 'morning', dayTimeLeftS: 0, dayTakings: 0, daySales: 0, dayTips: 0, dayPile: 0, vipsSpawned: 0,
-      rushDone: false, ordersSpawned: 0, orderChests: 0, dawnClaimed: true, carried: [], firstSaleDone: false,
+      rushDone: false, ordersSpawned: 0, orderChests: 0, order: null, rush: null, dawnClaimed: true, carried: [], firstSaleDone: false,
     },
   };
 }

@@ -184,6 +184,7 @@ export function createSession(app, o) {
     app.loop.pause('menu');
     app.input.cancelAll();
     app.router.push('pause', {
+      night: !!g && (g.phase.name === 'night' || g.phase.name === 'dusk'),
       onResume: () => {
         app.router.pop();
         app.loop.resume('menu');

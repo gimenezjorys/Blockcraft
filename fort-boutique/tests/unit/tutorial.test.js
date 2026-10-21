@@ -207,3 +207,23 @@ test('un passage de niveau en attente ne bloque pas l’emplacement du Frigo (ni
   assert.equal(g.save.player.level, 1, 'le niveau attend l’aube');
   assert.ok(g.day.pad && g.day.pad.id === 'P3', 'mais l’emplacement apparaît');
 });
+
+test('objectif « niveau » : quand l’XP du jour a déjà franchi le palier, la barre vise le palier suivant (P2, Sam)', () => {
+  const g = newGame(11, (s) => {
+    s.shops.q1.pads.done = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+    s.shops.q1.day = 3;
+    s.player.level = 3;
+  });
+  startDay(g);
+  g.save.player.xp = 100;
+  let o = nextObjective(g);
+  assert.equal(o.kind, 'unlock');
+  assert.equal(o.level, 4);
+  assert.equal(o.progress, 0.5);
+  // 230 XP au niveau 3 : le niveau 4 est acquis (fêté à l’aube) ; la barre continue vers le niveau 5.
+  g.save.player.xp = 230;
+  o = nextObjective(g);
+  assert.equal(g.save.player.level, 3);
+  assert.equal(o.level, 5);
+  assert.ok(o.progress > 0 && o.progress < 1, `${o.progress}`);
+});

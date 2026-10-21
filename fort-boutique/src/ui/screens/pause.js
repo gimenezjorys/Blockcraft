@@ -5,7 +5,7 @@ import { SVG } from '../icons.js';
 
 /**
  * @param {any} app
- * @param {{ onResume: () => void, onSettings?: (() => void) | null, onQuit: () => void }} p
+ * @param {{ onResume: () => void, onSettings?: (() => void) | null, onQuit: () => void, night?: boolean }} p
  */
 function mount(app, p, d) {
   const resume = tagButton({ label: t('pause.resume'), variant: 'green', id: 'pause-resume' });
@@ -17,7 +17,8 @@ function mount(app, p, d) {
   }
   const quit = tagButton({ label: t('pause.quit'), variant: 'coral', small: true, id: 'pause-quit' });
   // Sam (P1) : on peut tout fermer sans rien perdre, et on le dit.
-  const saved = h('div.pause-saved', [h('span.pause-saved-ico', { html: SVG.check }), h('span', { text: t('pause.saved') })]);
+  // La nuit, une coupure la fait reprendre à la première vague (G5.2) : on le dit aussi (P2, Sam).
+  const saved = h('div.pause-saved', [h('span.pause-saved-ico', { html: p.night ? SVG.moon : SVG.check }), h('span', { text: t(p.night ? 'pause.savedNight' : 'pause.saved') })]);
   const panel = h('div.slate.pause-panel', [h('h2.sticker.pause-title', { text: t('pause.title') }), resume, settings, quit, saved]);
   const el = h('div.overlay', [panel]);
   onTap(resume, () => p.onResume(), d);

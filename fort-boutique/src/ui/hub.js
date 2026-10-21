@@ -173,7 +173,7 @@ export function createHub(app, o) {
      * @param {() => void} [onDone]
      * @returns {boolean} vrai si des cartes sont affichées
      */
-    showUnlocks(onDone) {
+    showUnlocks(onDone, { celebrated = true } = {}) {
       const g = o.game();
       const prog = g.save.progress;
       const pending = prog.pendingUnlocks;
@@ -195,6 +195,8 @@ export function createHub(app, o) {
         levels,
         districts,
         save: g.save,
+        // Les niveaux viennent de l'aube (ruban et fanfare déjà vus) ; les quêtes du Matin (M12) passeront false.
+        celebrated,
         onDone: () => {
           clear();
           app.router.pop();

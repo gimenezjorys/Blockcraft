@@ -51,6 +51,7 @@ export default {
   'pause.title': 'Pause',
   'pause.resume': 'Reprendre',
   'pause.saved': "Partie sauvegardée : tu peux fermer quand tu veux",
+  'pause.savedNight': "Partie sauvegardée. Si tu fermes, la nuit reprendra à la première vague",
   'pause.quit': 'Écran titre',
   'save.repaired': 'Boutique réparée',
   'furn.etagere': "Étagère",

@@ -92,8 +92,9 @@ function chooseBasket(g, c) {
  * Fait entrer un client.
  * @param {any} g
  * @param {string} [forcedType]
+ * @param {{ noBasket?: boolean }} [opts] noBasket : client sans panier (Commande spéciale), même si rien n'est exposé
  */
-export function spawnCustomer(g, forcedType) {
+export function spawnCustomer(g, forcedType, opts = {}) {
   const d = g.day;
   let type = forcedType || 'villager';
   if (!forcedType) {
@@ -105,8 +106,8 @@ export function spawnCustomer(g, forcedType) {
     else if (day >= greedy.fromDay && r < hurried.share + greedy.share) type = 'greedy';
   }
   const c = newCustomer(g, type);
-  chooseBasket(g, c);
-  if (!c.wants.length) {
+  if (!opts.noBasket) chooseBasket(g, c);
+  if (!opts.noBasket && !c.wants.length) {
     d.free.push(c);
     return null;
   }

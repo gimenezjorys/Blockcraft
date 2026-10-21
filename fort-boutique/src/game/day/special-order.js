@@ -8,13 +8,35 @@ import { spawnCustomer, goToCell, leave } from './customers.js';
 import { itemPrice, syncDayPhase } from './register.js';
 import { addXp, xpFactor } from '../progression.js';
 import { neighbors } from '../pathfinding.js';
+import { PRODUCTS } from '../../data/products.js';
 
-/** Programme la commande du jour (aucune si déjà venue aujourd'hui, même après un rechargement). */
+/** Commande en cours sauvegardée avec la journée, si elle est lisible (sauvegarde abîmée = pas de commande). */
+function savedOrder(ph) {
+  const o = ph.order;
+  if (!o || typeof o !== 'object' || !PRODUCTS[o.product]) return null;
+  const need = Math.round(Number(o.need));
+  const got = Math.round(Number(o.got));
+  const timeLeft = Number(o.timeLeft);
+  if (!(need >= 1 && need <= 10) || !(got >= 0 && got < need) || !(timeLeft > 0 && timeLeft <= SO.deliverS)) return null;
+  return { product: o.product, need, got, timeLeft };
+}
+
+/**
+ * Programme la commande du jour (aucune si déjà venue aujourd'hui, même après un rechargement). Après un rechargement
+ * en pleine Commande, le client revient avec ce qu'on lui a déjà donné et le temps qui restait (P2, Sam ; A0.2).
+ */
 export function initSpecialOrder(g) {
   const d = g.day;
+  const ph = g.shop.phase;
   d.order = null;
   d.orderAt = -1;
-  if (g.shop.day < SO.fromDay || (g.shop.phase.ordersSpawned || 0) > 0) return;
+  const saved = savedOrder(ph);
+  if (saved) {
+    start(g, saved);
+    return;
+  }
+  ph.order = null;
+  if (g.shop.day < SO.fromDay || (ph.ordersSpawned || 0) > 0) return;
   d.orderAt = d.duration * g.rng.range(SO.window[0], SO.window[1]);
 }
 
@@ -48,20 +70,22 @@ function orderable(g) {
   return exposedProducts(g).filter((p) => made.has(p));
 }
 
-function start(g) {
+/** @param {any} g @param {{ product: string, need: number, got: number, timeLeft: number }} [resume] */
+function start(g, resume) {
   const d = g.day;
   const products = orderable(g);
   const spot = orderSpot(g);
-  if (!products.length || spot < 0) return;
-  const c = spawnCustomer(g, 'order');
+  if (spot < 0 || (!resume && !products.length)) return;
+  const c = spawnCustomer(g, 'order', { noBasket: true });
   if (!c) return;
-  const product = products[g.rng.int(products.length)];
-  const need = g.rng.intRange(SO.count[0], SO.count[1]);
+  const product = resume ? resume.product : products[g.rng.int(products.length)];
+  const need = resume ? resume.need : g.rng.intRange(SO.count[0], SO.count[1]);
   c.wants.length = 0;
   c.state = 'order';
   goToCell(g, c, spot);
-  d.order = { c, product, need, got: 0, timeLeft: SO.deliverS, waiting: false, giveT: 0, state: 'walk' };
-  g.shop.phase.ordersSpawned = (g.shop.phase.ordersSpawned || 0) + 1;
+  d.order = { c, product, need, got: resume ? resume.got : 0, timeLeft: resume ? resume.timeLeft : SO.deliverS, waiting: false, giveT: 0, state: 'walk' };
+  if (!resume) g.shop.phase.ordersSpawned = (g.shop.phase.ordersSpawned || 0) + 1;
+  g.shop.phase.order = { product, need, got: d.order.got, timeLeft: d.order.timeLeft };
   g.events.push('order_in', c.x, c.y, need, 0, product);
 }
 
@@ -95,6 +119,7 @@ function finish(g, ok) {
   leave(g, c, false);
   c.mood = 1;
   d.order = null;
+  g.shop.phase.order = null;
 }
 
 /**
@@ -143,6 +168,12 @@ export function stepSpecialOrder(g, dt) {
     }
   } else {
     o.giveT = Math.min(o.giveT, 1 / SO.giveRate);
+  }
+  // Recopié dans la journée sauvegardée (aucune allocation : l'objet existe déjà).
+  const saved = g.shop.phase.order;
+  if (saved) {
+    saved.got = o.got;
+    saved.timeLeft = Math.max(0, o.timeLeft);
   }
   if (o.got >= o.need) finish(g, true);
   else if (o.timeLeft <= 0) finish(g, false);
