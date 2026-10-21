@@ -1,0 +1,89 @@
+// Fort Boutique — mesures et seuils des simulations du Quartier 1 (D2.3, D2.4, G12.5).
+
+export const median = (arr) => {
+  const a = arr.filter((x) => Number.isFinite(x)).sort((x, y) => x - y);
+  if (!a.length) return NaN;
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+};
+const share = (arr, pred) => (arr.length ? arr.filter(pred).length / arr.length : 0);
+const pct = (x) => `${Math.round(x * 100)} %`;
+
+/** Plus longue série de nuits (Pleine Lune comprise) sous 50 % de Bocal gardé. */
+function worstLowRun(game) {
+  let run = 0;
+  let worst = 0;
+  for (const c of game.cycles) {
+    run = c.kept < 0.5 ? run + 1 : 0;
+    worst = Math.max(worst, run);
+  }
+  return worst;
+}
+
+/** Économie d'une partie : un achat utile accessible en 2 cycles au plus, et pas d'inflation (D2.4.5). */
+export function economyOk(game) {
+  const cs = game.cycles;
+  let accessible = true;
+  for (let i = 0; i < cs.length; i++) {
+    let ok = false;
+    for (let j = i; j < Math.min(cs.length, i + 3); j++) if (cs[j].coinsBefore >= cs[j].usefulBefore) ok = true;
+    if (!ok && i + 2 < cs.length) accessible = false;
+  }
+  // Solde gardé après les achats du Matin : s'il dépasse 4 fois l'achat utile le moins cher plus de 3 cycles de suite,
+  // c'est qu'il n'y a plus rien d'utile à acheter (inflation).
+  let rich = 0;
+  let inflation = false;
+  for (const c of cs) {
+    rich = Number.isFinite(c.useful) && c.coins > 4 * c.useful ? rich + 1 : 0;
+    if (rich > 3) inflation = true;
+  }
+  return { accessible, inflation, ok: accessible && !inflation };
+}
+
+/** Niveau atteint à la fin d'un cycle. */
+const levelAt = (game, cycle) => {
+  const c = game.cycles.find((x) => x.cycle === cycle);
+  return c ? c.level : NaN;
+};
+
+/**
+ * Évalue les seuils D2.4 du Quartier 1.
+ * @param {{ weak: any[], medium: any[], strong: any[] }} r parties par profil
+ * @param {number} maxCycles
+ */
+export function evaluateQ1(r, maxCycles) {
+  const won = (g) => (g.bossWonAt === null ? maxCycles + 1 : g.bossWonAt);
+  const M = median(r.medium.map(won));
+  const W = median(r.weak.map(won));
+  const S = median(r.strong.map(won));
+  // « Nuits au Q1 » : toutes les nuits jouées dans le quartier (Pleine Lune comprise), jusqu'au départ vers le Q2.
+  const strongNights = r.strong.flatMap((g) => g.cycles);
+  const eco = r.medium.map(economyOk);
+  const nextGap = r.medium.filter((g) => g.bossWonAt !== null).map((g) => (g.nextLevelAt === null ? Infinity : g.nextLevelAt - g.bossWonAt));
+  const night = (games, k) => median(games.map((g) => (g.cycles[k - 1] ? g.cycles[k - 1].nightS : NaN)));
+  const rows = [
+    { id: 'D2.4.1', label: 'Moyen : Roi Raton battu entre les cycles 7 et 10 (médiane)', value: `cycle ${M}`, ok: M >= 7 && M <= 10 },
+    { id: 'D2.4.2a', label: 'Faible : boss battu en 4 tentatives au plus (médiane)', value: `${median(r.weak.map((g) => g.bossAttempts))} tentative(s)`, ok: median(r.weak.map((g) => g.bossAttempts)) <= 4 && share(r.weak, (g) => g.bossWonAt !== null) >= 0.5 },
+    { id: 'D2.4.2b', label: 'Faible : durée du quartier ≤ 1,6 × celle du Moyen', value: `${(W / M).toFixed(2)} ×`, ok: W / M <= 1.6 },
+    { id: 'D2.4.3a', label: 'Fort : pas plus de 1,35 × plus rapide que le Moyen', value: `${(M / S).toFixed(2)} ×`, ok: M / S <= 1.35 },
+    { id: 'D2.4.3b', label: 'Fort : ★★★ sur 80 % des nuits au plus', value: pct(share(strongNights, (c) => c.stars === 3)), ok: share(strongNights, (c) => c.stars === 3) <= 0.8 },
+    { id: 'D2.4.3c', label: 'Fort : boss battu du premier coup 85 % des fois au plus', value: pct(share(r.strong, (g) => g.bossWonAt !== null && g.bossAttempts === 1)), ok: share(r.strong, (g) => g.bossWonAt !== null && g.bossAttempts === 1) <= 0.85 },
+    { id: 'D2.4.4', label: 'Moyen : jamais 3 nuits de suite sous 50 % (95 % des parties)', value: pct(share(r.medium, (g) => worstLowRun(g) < 3)), ok: share(r.medium, (g) => worstLowRun(g) < 3) >= 0.95 },
+    { id: 'D2.4.5', label: 'Moyen : achat utile en 2 cycles au plus, sans inflation (90 % des parties)', value: `${pct(share(eco, (e) => e.ok))} (accessible ${pct(share(eco, (e) => e.accessible))}, inflation ${pct(share(eco, (e) => e.inflation))})`, ok: share(eco, (e) => e.ok) >= 0.9 },
+    { id: 'D2.4.6', label: 'Moyen : niveau 7 au plus tard 2 cycles après le Roi Raton (80 %)', value: pct(share(nextGap, (x) => x <= 2)), ok: share(nextGap, (x) => x <= 2) >= 0.8 },
+    { id: 'G12.5a', label: 'Moyen : niveau 3 à la fin du cycle 2 (médiane)', value: `niveau ${median(r.medium.map((g) => levelAt(g, 2)))}`, ok: median(r.medium.map((g) => levelAt(g, 2))) >= 3 },
+    { id: 'G12.5b', label: 'Moyen : niveau 4 à la fin du cycle 3 (médiane)', value: `niveau ${median(r.medium.map((g) => levelAt(g, 3)))}`, ok: median(r.medium.map((g) => levelAt(g, 3))) >= 4 },
+    { id: 'G12.5c', label: 'Moyen : niveau 5 au cycle 4 ou 5 (médiane)', value: `niveau ${median(r.medium.map((g) => levelAt(g, 5)))} au cycle 5, ${median(r.medium.map((g) => levelAt(g, 4)))} au cycle 4`, ok: median(r.medium.map((g) => levelAt(g, 5))) >= 5 && median(r.medium.map((g) => levelAt(g, 3))) < 5 },
+  ];
+  const info = {
+    bossCycles: { weak: W, medium: M, strong: S },
+    nightS: { n1: night(r.medium, 1), n2: night(r.medium, 2), n6: night(r.medium, 6) },
+    earnedPerCycle: median(r.medium.flatMap((g) => g.cycles.filter((c) => !c.bossNight).map((c) => c.earned))),
+    starsShare: {
+      weak: share(r.weak.flatMap((g) => g.cycles), (c) => c.stars === 3),
+      medium: share(r.medium.flatMap((g) => g.cycles), (c) => c.stars === 3),
+      strong: share(strongNights, (c) => c.stars === 3),
+    },
+  };
+  return { rows, ok: rows.every((x) => x.ok), info };
+}

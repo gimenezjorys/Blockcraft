@@ -1,0 +1,24 @@
+{
+  "name": "fort-boutique",
+  "version": "0.2.0",
+  "description": "Fort Boutique — le jour, tu vends ; la nuit, tes meubles se battent.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs --quiet && node scripts/build.mjs --test --quiet && node scripts/test.mjs",
+    "sim": "node scripts/sim.mjs",
+    "playtest": "node scripts/build.mjs --test --quiet && node scripts/playtest.mjs",
+    "bench": "node scripts/bench.mjs",
+    "check": "node scripts/check.mjs",
+    "dev": "node scripts/dev.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "jsdom": "29.1.1"
+  }
+}

@@ -1,0 +1,252 @@
+{
+  "playtest": "P1",
+  "durationS": 337.3,
+  "milestones": [
+    {
+      "id": "firstPurchase",
+      "label": "Premier achat (P1)",
+      "targetS": 45,
+      "atS": 45.2,
+      "gapPct": 0,
+      "ok": true
+    },
+    {
+      "id": "secondPurchase",
+      "label": "Deuxième achat (P2)",
+      "targetS": 75,
+      "atS": 75.3,
+      "gapPct": 0,
+      "ok": true
+    },
+    {
+      "id": "firstNight",
+      "label": "Première nuit",
+      "targetS": 105,
+      "atS": 104.5,
+      "gapPct": 0,
+      "ok": true
+    },
+    {
+      "id": "firstDawn",
+      "label": "Première aube",
+      "targetS": 145,
+      "atS": 134,
+      "gapPct": -8,
+      "ok": true
+    },
+    {
+      "id": "firstChest",
+      "label": "Premier coffre ouvert",
+      "targetS": 165,
+      "atS": 146.8,
+      "gapPct": -11,
+      "ok": true
+    },
+    {
+      "id": "firstUpgrade",
+      "label": "Première amélioration",
+      "targetS": 190,
+      "atS": 146.9,
+      "gapPct": -23,
+      "ok": false
+    },
+    {
+      "id": "level2",
+      "label": "Niveau 2",
+      "targetS": 177,
+      "atS": 134,
+      "gapPct": -24,
+      "ok": false
+    },
+    {
+      "id": "firstMorning",
+      "label": "Premier Matin",
+      "targetS": 182,
+      "atS": 147,
+      "gapPct": -19,
+      "ok": true
+    },
+    {
+      "id": "day2",
+      "label": "Jour 2",
+      "targetS": 195,
+      "atS": 147.3,
+      "gapPct": -24,
+      "ok": false
+    },
+    {
+      "id": "thirdPurchase",
+      "label": "Troisième achat (P3, Frigo)",
+      "targetS": 220,
+      "atS": 157.9,
+      "gapPct": -28,
+      "ok": false
+    },
+    {
+      "id": "secondNight",
+      "label": "Deuxième nuit",
+      "targetS": 325,
+      "atS": 277.3,
+      "gapPct": -15,
+      "ok": true
+    },
+    {
+      "id": "level3",
+      "label": "Niveau 3",
+      "targetS": 390,
+      "atS": 324.2,
+      "gapPct": -17,
+      "ok": true
+    },
+    {
+      "id": "secondMorning",
+      "label": "Deuxième Matin",
+      "targetS": 410,
+      "atS": 337.2,
+      "gapPct": -18,
+      "ok": true
+    }
+  ],
+  "hub": [
+    {
+      "id": "hub-catalog",
+      "response": "secousse"
+    },
+    {
+      "id": "hub-editor",
+      "response": "secousse"
+    },
+    {
+      "id": "hub-upgrades",
+      "response": "écran upgrades"
+    },
+    {
+      "id": "hub-quests",
+      "response": "secousse"
+    },
+    {
+      "id": "hub-calendar",
+      "response": "message"
+    },
+    {
+      "id": "hub-daily",
+      "response": "secousse"
+    },
+    {
+      "id": ".hub-map",
+      "response": "écran map"
+    }
+  ],
+  "passiveNights": [
+    {
+      "stars": 2,
+      "kept": 0.96
+    },
+    {
+      "stars": 3,
+      "kept": 1
+    }
+  ],
+  "screens": [
+    {
+      "screen": "intro",
+      "from": 0.1,
+      "to": 4.5,
+      "exitAfter": null
+    },
+    {
+      "screen": "hud",
+      "from": 4.5,
+      "to": 136.8,
+      "exitAfter": 0
+    },
+    {
+      "screen": "dawn",
+      "from": 136.8,
+      "to": 147,
+      "exitAfter": 10
+    },
+    {
+      "screen": "unlocks",
+      "from": 147,
+      "to": 147.1,
+      "exitAfter": 0
+    },
+    {
+      "screen": "morning",
+      "from": 147.1,
+      "to": 147.3,
+      "exitAfter": 0
+    },
+    {
+      "screen": "hud",
+      "from": 147.3,
+      "to": 327,
+      "exitAfter": 0
+    },
+    {
+      "screen": "dawn",
+      "from": 327,
+      "to": 337.2,
+      "exitAfter": 10
+    },
+    {
+      "screen": "unlocks",
+      "from": 337.2,
+      "to": 337.3,
+      "exitAfter": 0
+    },
+    {
+      "screen": "morning",
+      "from": 337.3,
+      "to": 337.3,
+      "exitAfter": 0
+    }
+  ],
+  "taps": 24,
+  "inertTaps": 0,
+  "adOffersFirst10min": 0,
+  "nightStars": [
+    3,
+    3
+  ],
+  "worstOneStarRun": 0,
+  "errors": [],
+  "final": {
+    "level": 3,
+    "xp": 85,
+    "coins": 696,
+    "pads": [
+      "P1",
+      "P2",
+      "P3",
+      "P4"
+    ],
+    "furniture": {
+      "etagere": {
+        "level": 2,
+        "plans": 10
+      },
+      "cagette": {
+        "level": 1,
+        "plans": 2
+      },
+      "caisse": {
+        "level": 1,
+        "plans": 0
+      },
+      "comptoir": {
+        "level": 1,
+        "plans": 6
+      },
+      "frigo": {
+        "level": 2,
+        "plans": 6
+      },
+      "plante": {
+        "level": 1,
+        "plans": 8
+      }
+    }
+  }
+}
