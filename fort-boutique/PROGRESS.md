@@ -15,7 +15,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M8 — Aménagement | ✅ | 2026-10-20 | Éditeur plein écran : glisser au doigt (fantôme vert/rouge), tourner, ranger, Réserve, trajets et longueurs, Conseil de Mamie, Valider/Annuler ; 8 tests (dont 3 aux vrais gestes). |
 | M9 — La semaine et la Pleine Lune | ✅ | 2026-10-20 | Pleine Lune : Roi Raton (invocations, vol 35 %, fuite), barre de PV, carte d'intro, victoire/échec, Courage de Mamie, Coffre de Lune, semaine 2 ; carte des quartiers (boss ET niveau) ; aperçu de la lune ; 8 tests. |
 | M10 — Simulateur d'équilibrage (Q1) | ✅ | 2026-10-20 | Simulateur (bots Faible/Moyen/Fort en parallèle, modèle provisoire des quêtes) : 300 parties par profil, tous les seuils D2.4 applicables tenus après réglages dans la marge ±25 % ; 3 bugs de jeu trouvés et corrigés ; test sim de 40 parties. |
-| M11 — Les 10 premières minutes + P2 | 🔄 | | Fait : enveloppe, guide et indices sans texte (règle des 4 s), étiquette d'objectif, Rush, Commande spéciale, rythme de G19 (15/15 jalons en gras dans ±20 %), corrections des critiques Léa, Hugo, Sam. Reste : docs/playtests/P2.md et revue de code (coupées par la limite d'usage). |
+| M11 — Les 10 premières minutes + P2 | ✅ | 2026-10-21 | Enveloppe, guide et indices sans texte (4 s), objectif toujours visible, Rush, Commande spéciale, rythme de G19 (15/15 jalons en gras dans ±20 %), niveau à l'aube ; P2 : 9 majeurs corrigés (Léa, Hugo, Sam). |
 | M12 — Quêtes, calendrier, série, succès, bestiaire | ⬜ | | |
 | M13 — Hors ligne, Moka, personnel | ⬜ | | |
 | M14 — Défi du jour, Rivaux, partage, événements | ⬜ | | |
@@ -124,9 +124,9 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Fini quand : tous les seuils D2.4 du Quartier 1 sont tenus.
 
 **M11 — Les 10 premières minutes + Playtest P2**
-- [ ] Implémenter G19 à la seconde près : indices visuels sans texte, jours courts, ordre des pads, premier coffre, première amélioration, raisons de revenir.
-- [ ] Objectif toujours visible (G3.5).
-- [ ] Playtest P2 (D3) : chaque jalon de G19 atteint dans sa fenêtre (±20 %) ; jamais plus de 20 s sans objectif visible.
+- [x] Implémenter G19 à la seconde près : indices visuels sans texte, jours courts, ordre des pads, premier coffre, première amélioration, raisons de revenir.
+- [x] Objectif toujours visible (G3.5).
+- [x] Playtest P2 (D3) : chaque jalon de G19 atteint dans sa fenêtre (±20 %) ; jamais plus de 20 s sans objectif visible.
 
 ### Jalon D — Rétention
 
@@ -175,6 +175,10 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
 
+- [ ] P2 — 4e emplacement en avance sur G19 (revenus du jour 2) → M12 (avec les 150 pièces du calendrier).
+- [ ] P2 — Jour 3 sans achat après P5 et P6 → M12 (quêtes du jour).
+- [ ] P2 — Commande spéciale facile (client près de la caisse, G7.7) ; appeler la vague suivante plus tôt (Hugo) → M22.
+- [ ] P2 — Mots dans l'éditeur (« Clients », « Grignotins ») → M21.
 - [ ] P1 — Jalons du début 22 à 38 % en avance sur G19 (robot rapide, mais nuits trop courtes) → M11 (M10 : nuits un peu plus longues, nuit 2 ≈ 28 s, nuit 6 ≈ 70 s).
 - [ ] P1 — Nuits ≈ 15 % du temps de jeu ; transformation des meubles timide (petits yeux, armes peu visibles) → M10, M21.
 - [ ] P1 — Ticket de l'aube très textuel ; les pièces gagnées ne volent pas vers le compteur → M21.
@@ -201,3 +205,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M8 fait : aménagement. Reste : M9 semaine et Pleine Lune. Prochaine étape : brancher boss.js dans la nuit (bossStep), carte d'intro et barre de PV, Courage de Mamie.
 - 2026-10-20 — M9 fait : semaine complète jusqu'au boss. Reste : M10 simulateur d'équilibrage Q1. Prochaine étape : scripts/sim.mjs avec scripts/lib/bots.mjs et strategy.mjs, 300 parties, seuils D2.4.
 - 2026-10-20 — M10 fait : équilibrage Q1 (docs/sim/SIM_Q1.md). Reste : M11 les 10 premières minutes + P2. Prochaine étape : G19 seconde par seconde (flèche dorée, main fantôme, objectif toujours visible).
+- 2026-10-21 — M11 fait : les 10 premières minutes + P2 (docs/playtests/P2.md). v0.2 publiée sur GitHub Pages. Prochaine étape : M12 quêtes, calendrier, série, succès, bestiaire.
