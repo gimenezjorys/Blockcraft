@@ -75,7 +75,8 @@ export async function buildGame({ test = TEST, quiet = QUIET } = {}) {
   // Un « </script> » dans une chaîne fermerait la balise : on l'échappe.
   code = code.replace(/<\/script/gi, '<\\/script');
 
-  const cssSrc = readFileSync(join(ROOT, 'src/ui/ui.css'), 'utf8');
+  // Feuilles de style dans l'ordre (chaque fichier reste sous 600 lignes).
+  const cssSrc = ['src/ui/ui.css', 'src/ui/retention.css'].map((f) => readFileSync(join(ROOT, f), 'utf8')).join('\n');
   const css = (await transform(cssSrc, { loader: 'css', minify: true })).code.trim();
   const favicon = 'data:image/svg+xml,' + encodeURIComponent(faviconSvg());
 

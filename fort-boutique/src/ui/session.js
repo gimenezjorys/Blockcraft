@@ -16,6 +16,11 @@ import { SVG } from './icons.js';
 import { createHub, HUB_SCREENS } from './hub.js';
 import { createObjective } from './objective.js';
 import { forceArrow } from '../game/tutorial.js';
+import { refreshQuests, questsClaimable } from '../game/quests.js';
+import { calendarState } from '../game/calendar.js';
+import { streakCheck } from '../game/streak.js';
+import { checkAchievements } from '../game/achievements.js';
+import { checkBestiary } from '../game/bestiary.js';
 
 /** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime (plus courte ensuite ; un tap l'abrège). */
 const DAWN_DELAY_S = 2.5;
@@ -105,9 +110,20 @@ export function createSession(app, o) {
   function showMorning() {
     enterMorning(g);
     rebuildShop(g);
+    // Rétention (G14, G15) : jours manqués (gels), quêtes du jour, succès et paliers du bestiaire gagnés.
+    const t0 = now();
+    streakCheck(g.save, t0);
+    refreshQuests(g.save, t0);
+    const achieved = checkAchievements(g.save, t0);
+    const tiers = checkBestiary(g.save);
+    if (achieved.length || tiers.length) save(true);
     renderMorning();
-    // Les déblocages se fêtent au Matin suivant (G12.4).
-    hub.showUnlocks();
+    const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
+    for (const a of achieved) toast(t('ach.unlocked', { n: a.rubies }), SVG.star);
+    for (const b of tiers) toast(t('best.tier', { name: t(`mon.${b.type}`), n: b.rubies }), SVG.ruby);
+    // Les déblocages se fêtent au Matin suivant (G12.4), puis le calendrier s'ouvre seul s'il attend (G19 3:02).
+    const calendar = () => session.hubScreens.has('calendar') && isUnlocked(g.save, 'calendar') && hub.autoCalendar();
+    if (!hub.showUnlocks(calendar)) calendar();
   }
 
   /** Pastilles du hub : Aménager qui vient d'ouvrir (G19 6:50), une amélioration possible. */
@@ -116,6 +132,8 @@ export function createSession(app, o) {
     return {
       editor: isUnlocked(save, 'editor') && !save.progress.flags.editorSeen,
       upgrades: unlockedFurniture(save).some((id) => canUpgrade(save, id).ok),
+      quests: isUnlocked(save, 'quests') && questsClaimable(save, now()),
+      calendar: calendarState(save, now()).canClaim,
     };
   }
 

@@ -7,6 +7,8 @@ import { FEATURE_LEVELS } from '../../data/unlocks.js';
 import { padsRemaining } from '../../game/day/pads.js';
 import { HINTS } from '../../data/tutorial.js';
 import { listen } from '../../core/events.js';
+import { flameSvg } from './calendar.js';
+import { flameColor } from '../../game/streak.js';
 
 /** Raccourcis du hub et leur condition d'ouverture. */
 export const HUB_BUTTONS = [
@@ -38,6 +40,15 @@ function mount(app, p, d) {
       isUnlocked(save, 'wardrobe') ? h('span.money', [h('span.money-ico', { html: SVG.ruby }), h('span.money-n', { text: fmt(pl.rubies) })]) : null,
     ]),
   ]);
+  // Flamme de la boutique (G15.2) : jours de série ; un tap ouvre le Calendrier.
+  const s = save.daily.streak;
+  if (isUnlocked(save, 'calendar') && (s.count > 0 || s.best > 0)) {
+    const flame = h('button.hub-flame', { type: 'button', 'aria-label': t('streak.days', { n: s.count }), id: 'hub-flame' }, [
+      h('span.flame-ico', { html: flameSvg(flameColor(s.count)) }), h('span.flame-n', { text: String(s.count) }),
+    ]);
+    onTap(flame, () => (ready.has('calendar') ? p.onButton('calendar') : null), d);
+    top.appendChild(flame);
+  }
   const gear = h('button.hub-gear', { type: 'button', 'aria-label': t('hub.settings'), html: SVG.gear });
   onTap(gear, () => p.onSettings(), d);
   top.appendChild(gear);

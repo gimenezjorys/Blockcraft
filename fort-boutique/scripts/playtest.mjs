@@ -229,6 +229,10 @@ function objectiveVisible(g, st) {
       return visible('.dawn-chest') || g.$$('.card-up').some((b) => !b.hidden) || visible('.dawn-actions');
     case 'unlocks':
       return visible('#unlock-ok');
+    case 'calendar':
+      return visible('#calendar-today') || visible('#calendar-close');
+    case 'reward':
+      return visible('.reward');
     case 'editor':
       return visible('#ed-validate');
     case 'intro': {

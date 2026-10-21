@@ -116,3 +116,19 @@ export function loadGame(opts = {}) {
     close() { window.close(); },
   };
 }
+
+/** Horloge de départ du build de test (src/debug/test-hooks.js). */
+export const TEST_NOW = 1792411200000;
+
+/**
+ * Le calendrier est déjà réclamé ce jour UTC (M12) : le Matin s'affiche sans que le Calendrier s'ouvre seul.
+ * Pour les tests d'un autre écran du hub, partis d'une sauvegarde préparée.
+ * @param {any} save
+ */
+export function calendarDoneToday(save) {
+  const day = Math.floor(TEST_NOW / 86400000);
+  save.daily.lastCalendarDay = day;
+  save.daily.maxClaimDay = day;
+  save.daily.calendarIndex = Math.max(1, save.daily.calendarIndex);
+  return save;
+}

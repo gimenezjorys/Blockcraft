@@ -1,7 +1,7 @@
 // M9 au doigt : lune du Matin, carte des quartiers, et une vraie nuit de Pleine Lune jouée par le robot.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadGame } from '../helpers/dom.js';
+import { loadGame, calendarDoneToday } from '../helpers/dom.js';
 import { TouchBot } from '../helpers/bot.js';
 import { defaultSave } from '../../src/save/schema.js';
 import { serialize, parseAndVerify, SAVE_KEY } from '../../src/save/save.js';
@@ -23,7 +23,7 @@ function fullMoonSave(mutate) {
   Object.assign(shop.phase, { name: 'morning', dawnClaimed: true });
   shop.pads.done = districtDef('q1').pads.map((p) => p.id);
   if (mutate) mutate(s);
-  return { [SAVE_KEY]: serialize(s) };
+  return { [SAVE_KEY]: serialize(calendarDoneToday(s)) };
 }
 
 function playUntil(g, bot, pred, maxMs = 600000) {

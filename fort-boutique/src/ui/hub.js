@@ -9,9 +9,14 @@ import { unlockCards } from './screens/unlocks.js';
 import { openEditor, commitEditor } from '../game/editor.js';
 import { createEditorScene } from './editor-scene.js';
 import { NIGHT } from '../data/night.js';
+import { refreshQuests, claimQuest, claimWeekly, rerollQuest } from '../game/quests.js';
+import { calendarState, claimCalendar } from '../game/calendar.js';
+import { relightStreak } from '../game/streak.js';
+import { now, utcDay } from '../core/time.js';
+import { trackQuest } from '../game/quest-track.js';
 
 /** Écrans du hub déjà branchés (les autres boutons disent « Bientôt »). */
-export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon'];
+export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar'];
 
 /** Quartiers dont le contenu est prêt (M16 à M19 ajoutent les suivants). */
 export const PLAYABLE_DISTRICTS = ['q1'];
@@ -34,7 +39,59 @@ export function createHub(app, o) {
     o.refresh();
   }
 
+  /** Fenêtre de gains par-dessus l'écran courant (un tap ferme). */
+  function showReward(title, rewards) {
+    app.router.push('reward', { title, rewards, onClose: () => app.router.pop() });
+  }
+
   const screens = {
+    /** Quêtes du jour et de la semaine, succès, bestiaire (G14). */
+    quests(g, tab) {
+      refreshQuests(g.save, now());
+      app.router.push('quests', {
+        save: g.save,
+        tab,
+        onClaim: (i) => {
+          const r = claimQuest(g.save, i);
+          if (!r) return null;
+          o.save(true);
+          showReward(t('quests.done'), [r.reward, r.bonus].filter(Boolean));
+          return r;
+        },
+        onClaimWeekly: (i) => {
+          const r = claimWeekly(g.save, i);
+          if (!r) return null;
+          o.save(true);
+          showReward(t('quests.done'), [r.reward, r.bonus].filter(Boolean));
+          return r;
+        },
+        onReroll: (i) => {
+          const ok = rerollQuest(g.save, i);
+          if (ok) o.save(true);
+          return ok;
+        },
+        onClose: close,
+      });
+    },
+    /** Calendrier de 7 jours et flamme de la boutique (G15). */
+    calendar(g) {
+      app.router.push('calendar', {
+        save: g.save,
+        onClaim: (choiceId) => {
+          const r = claimCalendar(g.save, now(), choiceId);
+          if (!r) return null;
+          o.save(true);
+          showReward(t('calendar.day', { n: r.day }), [r.reward]);
+          return r;
+        },
+        onRelight: () => {
+          const ok = relightStreak(g.save, now());
+          if (ok) o.save(true);
+          return ok;
+        },
+        onClose: close,
+      });
+    },
     /** Carte des quartiers (G13.1). */
     map(g) {
       app.router.push('map', {
@@ -97,6 +154,7 @@ export function createHub(app, o) {
           }
           flags.editorSeen = true;
           g.save.stats.moved = (g.save.stats.moved || 0) + ed.moves;
+          trackQuest(g.save, 'move', ed.moves);
           rebuildShop(g);
           if (app.services.audio) app.services.audio.play('upgrade');
           o.save(true);
@@ -156,6 +214,19 @@ export function createHub(app, o) {
   };
 
   return {
+    /**
+     * Le calendrier s'ouvre seul une fois par jour UTC quand une récompense attend (G19 3:02).
+     * @returns {boolean}
+     */
+    autoCalendar() {
+      const g = o.game();
+      const flags = g.save.progress.flags;
+      const today = utcDay(now());
+      if (flags.calendarAutoDay === today || !calendarState(g.save, now()).canClaim) return false;
+      flags.calendarAutoDay = today;
+      screens.calendar(g);
+      return true;
+    },
     /**
      * Ouvre l'écran d'un bouton du hub.
      * @param {string} id

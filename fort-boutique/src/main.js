@@ -20,6 +20,9 @@ import unlocks from './ui/screens/unlocks.js';
 import editor from './ui/screens/editor.js';
 import map from './ui/screens/map.js';
 import moon from './ui/screens/moon.js';
+import quests from './ui/screens/quests.js';
+import calendar from './ui/screens/calendar.js';
+import reward from './ui/screens/reward.js';
 import hud from './ui/screens/hud.js';
 import intro from './ui/screens/intro.js';
 import settings from './ui/screens/settings.js';
@@ -116,7 +119,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon });
+  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon, quests, calendar, reward });
   app.router.goto('title');
   app.loop.start();
 }

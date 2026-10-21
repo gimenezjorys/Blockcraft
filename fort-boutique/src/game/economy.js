@@ -3,6 +3,7 @@ import { ECONOMY, RECIPES } from '../data/balance.js';
 import { FURNITURE } from '../data/furniture.js';
 import { PRODUCTS } from '../data/products.js';
 import { furnState } from './state.js';
+import { trackQuest } from './quest-track.js';
 
 /** Plafond de niveau des meubles = min(10 ; 1 + arrondi supérieur(niveau ÷ 3)) (G9.1). */
 export function furnitureLevelCap(merchantLevel) {
@@ -51,6 +52,7 @@ export function upgradeFurniture(save, id) {
   save.player.coins -= c.cost.coins;
   st.level++;
   save.stats.upgradesDone = (save.stats.upgradesDone || 0) + 1;
+  trackQuest(save, 'upgrade');
   return true;
 }
 

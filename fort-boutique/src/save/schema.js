@@ -122,6 +122,7 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
       upgradesDone: 0,
       chestsOpened: 0,
       bossKills: {},
+      bossKillsW5: {},
     },
     offline: { lastCollectAt: 0, welcomeChestForDay: -1, pendingDelivery: null },
   };

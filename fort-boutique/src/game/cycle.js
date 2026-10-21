@@ -11,6 +11,9 @@ import { fillAllProducers } from './day/producers.js';
 import { DISTRICTS, DISTRICT_IDS } from '../data/districts.js';
 import { districtOpen, applyLevelUps } from './progression.js';
 import { defaultShop } from '../save/schema.js';
+import { trackQuest } from './quest-track.js';
+import { recordNight } from './streak.js';
+import { now } from '../core/time.js';
 
 /**
  * Où reprendre une partie chargée (G5.2) : jour avec le temps restant, nuit depuis le début, aube, matin.
@@ -97,6 +100,8 @@ export function enterDawn(g) {
   ph.name = 'dawn';
   const levelFrom = g.save.player.level;
   claimNight(g, result);
+  // La flamme de la boutique avance une fois par jour UTC (G15.2).
+  ph.dawn.streak = recordNight(g.save, now());
   // G19 2:57 : la première aube fête toujours le niveau 2 ; il ne manque au plus que quelques XP à un joueur hésitant
   // (P2, Léa), on les complète une seule fois.
   if (result.tutorial && g.save.player.level === 1) g.save.player.xp = Math.max(g.save.player.xp, xpToNext(1));
@@ -168,8 +173,11 @@ export function leaveDawn(g) {
       }
       shop.night = 1;
       shop.bossAssist = 0;
-      const bk = g.save.stats.bossKills;
-      bk[g.district.boss] = (bk[g.district.boss] || 0) + 1;
+      const st = g.save.stats;
+      st.bossKills[g.district.boss] = (st.bossKills[g.district.boss] || 0) + 1;
+      // Succès « vaincu en semaine 5 » (G14.3) : la semaine du combat, avant le passage à la suivante.
+      if (shop.week - 1 >= 5) st.bossKillsW5[g.district.boss] = (st.bossKillsW5[g.district.boss] || 0) + 1;
+      trackQuest(g.save, 'moon');
     } else {
       shop.bossAssist = Math.min(Math.round(NIGHT.assistMax / NIGHT.assistPerFail), shop.bossAssist + 1);
     }

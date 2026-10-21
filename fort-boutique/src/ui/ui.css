@@ -582,3 +582,4 @@ button { font: inherit; color: inherit; }
 .settings .set-cmp-row { display: grid; grid-template-columns: 1fr 70px 70px; gap: 6px; font-size: calc(13px * var(--ui-scale)); }
 .settings .set-cmp-row.head { color: var(--craie-jaune); }
 .settings .set-version { margin-top: 8px; font-family: var(--f-mono); font-size: 11px; opacity: .7; text-align: center; }
+

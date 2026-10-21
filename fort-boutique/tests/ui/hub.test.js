@@ -1,7 +1,7 @@
 // M7 : le Matin au doigt — cartes de déblocage, Catalogue (acheter puis placer), Améliorer (meubles, marchand).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadGame } from '../helpers/dom.js';
+import { loadGame, calendarDoneToday } from '../helpers/dom.js';
 import { TouchBot } from '../helpers/bot.js';
 import { defaultSave } from '../../src/save/schema.js';
 import { serialize, parseAndVerify, SAVE_KEY } from '../../src/save/save.js';
@@ -25,7 +25,7 @@ function morningSave(mutate) {
   shop.phase.dawnClaimed = true;
   shop.pads.done = districtDef('q1').pads.map((p) => p.id);
   if (mutate) mutate(s);
-  return { [SAVE_KEY]: serialize(s) };
+  return { [SAVE_KEY]: serialize(calendarDoneToday(s)) };
 }
 
 const savedData = (g) => parseAndVerify(g.window.localStorage.getItem(SAVE_KEY)).data;

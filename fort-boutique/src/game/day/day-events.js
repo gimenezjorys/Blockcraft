@@ -3,6 +3,7 @@ import { CUSTOMER_TYPES } from '../../data/balance.js';
 import { RUSH } from '../../data/tutorial.js';
 import { spawnCustomer } from './customers.js';
 import { initSpecialOrder, stepSpecialOrder } from './special-order.js';
+import { trackQuest } from '../quest-track.js';
 
 /** Programme les surprises du jour : VIP (1 par jour au Q1 dès le jour 2, 2 ensuite, G7.2), Rush, Commande. */
 export function initDayEvents(g) {
@@ -23,7 +24,7 @@ export function initDayEvents(g) {
   const r = ph.rush;
   if (r && typeof r === 'object' && Number(r.tipT) > 0 && Number(r.tipT) <= RUSH.tipS) {
     const left = Math.max(0, Math.min(RUSH.customers, Math.round(Number(r.left) || 0)));
-    d.rush = { left, spawnT: 0, tipT: Number(r.tipT) };
+    d.rush = { left, spawnT: 0, tipT: Number(r.tipT), bad: !!r.bad };
     d.tipMult = RUSH.tipMult;
   } else ph.rush = null;
   initSpecialOrder(g);
@@ -48,8 +49,8 @@ function stepRush(g, dt, elapsed) {
   if (!d.rush && d.rushAt >= 0 && elapsed >= d.rushAt) {
     d.rushAt = -1;
     g.shop.phase.rushDone = true;
-    d.rush = { left: RUSH.customers, spawnT: 0, tipT: RUSH.tipS };
-    g.shop.phase.rush = { left: RUSH.customers, tipT: RUSH.tipS };
+    d.rush = { left: RUSH.customers, spawnT: 0, tipT: RUSH.tipS, bad: false };
+    g.shop.phase.rush = { left: RUSH.customers, tipT: RUSH.tipS, bad: false };
     g.events.push('rush', 0, 0, RUSH.customers, RUSH.tipS);
   }
   const r = d.rush;
@@ -69,6 +70,8 @@ function stepRush(g, dt, elapsed) {
     saved.tipT = Math.max(0, r.tipT);
   }
   if (r.tipT <= 0 && r.left <= 0) {
+    // Quête « finir un Rush sans client fâché » (G14.1).
+    if (!r.bad) trackQuest(g.save, 'rush');
     d.rush = null;
     g.shop.phase.rush = null;
   }

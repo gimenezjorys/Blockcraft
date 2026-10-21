@@ -14,6 +14,7 @@ import { updateVisibility } from './light.js';
 import { jarValue, keptRatio, starsFor } from './theft.js';
 import { addXp, xpFactor } from '../progression.js';
 import { computeFields } from '../state.js';
+import { trackQuest } from '../quest-track.js';
 
 /** Bonus de dégâts du bestiaire (G14.4) : seul le palier le plus haut compte. */
 export function bestiaryBonus(count) {
@@ -292,6 +293,13 @@ export function claimNight(g, result, { doubleCoins = false } = {}) {
   }
   g.save.stats.nights++;
   if (result.stars === 3) g.save.stats.nights3++;
+  // Quêtes (G14.1, G14.2) : comptées ici, une seule fois par nuit.
+  trackQuest(g.save, 'kill', result.kills || 0);
+  trackQuest(g.save, 'thief', result.caught || 0);
+  trackQuest(g.save, 'bell', result.bellUses || 0);
+  trackQuest(g.save, 'loot', result.loot || 0);
+  trackQuest(g.save, 'stars', result.stars || 0);
+  if (result.stars === 3) trackQuest(g.save, 'night3');
   shop.lastNightStars = result.stars;
   return true;
 }

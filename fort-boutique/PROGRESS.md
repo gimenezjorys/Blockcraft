@@ -16,7 +16,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M9 — La semaine et la Pleine Lune | ✅ | 2026-10-20 | Pleine Lune : Roi Raton (invocations, vol 35 %, fuite), barre de PV, carte d'intro, victoire/échec, Courage de Mamie, Coffre de Lune, semaine 2 ; carte des quartiers (boss ET niveau) ; aperçu de la lune ; 8 tests. |
 | M10 — Simulateur d'équilibrage (Q1) | ✅ | 2026-10-20 | Simulateur (bots Faible/Moyen/Fort en parallèle, modèle provisoire des quêtes) : 300 parties par profil, tous les seuils D2.4 applicables tenus après réglages dans la marge ±25 % ; 3 bugs de jeu trouvés et corrigés ; test sim de 40 parties. |
 | M11 — Les 10 premières minutes + P2 | ✅ | 2026-10-21 | Enveloppe, guide et indices sans texte (4 s), objectif toujours visible, Rush, Commande spéciale, rythme de G19 (15/15 jalons en gras dans ±20 %), niveau à l'aube ; P2 : 9 majeurs corrigés (Léa, Hugo, Sam). |
-| M12 — Quêtes, calendrier, série, succès, bestiaire | ⬜ | | |
+| M12 — Quêtes, calendrier, série, succès, bestiaire | ✅ | 2026-10-21 | 3 quêtes du jour à graine UTC (+ relance), 4-5 de la semaine, calendrier de 7 jours (s'ouvre seul au premier Matin), flamme de la boutique (+2 %/jour, gels, rallumage 48 h), 52 succès et paliers du bestiaire, écrans Quêtes et Calendrier. |
 | M13 — Hors ligne, Moka, personnel | ⬜ | | |
 | M14 — Défi du jour, Rivaux, partage, événements | ⬜ | | |
 | M15 — Pubs, rubis, Garde-robe + P3 | ⬜ | | |
@@ -175,8 +175,8 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
 
-- [ ] P2 — 4e emplacement en avance sur G19 (revenus du jour 2) → M12 (avec les 150 pièces du calendrier).
-- [ ] P2 — Jour 3 sans achat après P5 et P6 → M12 (quêtes du jour).
+- [ ] P2 — 4e emplacement en avance sur G19 (revenus du jour 2) ; revu en M12 : toujours 6/7 repères avec les 150 pièces du calendrier → M20 (équilibrage global).
+- [ ] P2 — Jour 3 sans achat après P5 et P6 ; les quêtes n'ouvrent qu'au niveau 4 (fin du cycle 3, G12.4) → M20.
 - [ ] P2 — Commande spéciale facile (client près de la caisse, G7.7) ; appeler la vague suivante plus tôt (Hugo) → M22.
 - [ ] P2 — Mots dans l'éditeur (« Clients », « Grignotins ») → M21.
 - [ ] P1 — Jalons du début 22 à 38 % en avance sur G19 (robot rapide, mais nuits trop courtes) → M11 (M10 : nuits un peu plus longues, nuit 2 ≈ 28 s, nuit 6 ≈ 70 s).
@@ -206,3 +206,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M9 fait : semaine complète jusqu'au boss. Reste : M10 simulateur d'équilibrage Q1. Prochaine étape : scripts/sim.mjs avec scripts/lib/bots.mjs et strategy.mjs, 300 parties, seuils D2.4.
 - 2026-10-20 — M10 fait : équilibrage Q1 (docs/sim/SIM_Q1.md). Reste : M11 les 10 premières minutes + P2. Prochaine étape : G19 seconde par seconde (flèche dorée, main fantôme, objectif toujours visible).
 - 2026-10-21 — M11 fait : les 10 premières minutes + P2 (docs/playtests/P2.md). v0.2 publiée sur GitHub Pages. Prochaine étape : M12 quêtes, calendrier, série, succès, bestiaire.
+- 2026-10-21 — M12 fait (mode rapide demandé : tests essentiels de la mission seulement). P2 rejoué : 15/15 jalons, calendrier réclamé à 2:41. Prochaine étape : M13 hors ligne, Moka, personnel.

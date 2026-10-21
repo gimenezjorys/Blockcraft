@@ -7,6 +7,7 @@ import { distToFurniture } from '../state.js';
 import { dayStats } from '../stats.js';
 import { addXp, xpFactor } from '../progression.js';
 import { goToCell, leave } from './customers.js';
+import { trackQuest } from '../quest-track.js';
 
 /**
  * Prépare la file : case d'attente (voisine de la caisse la plus proche de la porte) et places en ligne.
@@ -114,7 +115,12 @@ export function pay(g, c) {
   st.served++;
   st.sold += c.got.length;
   if (c.type === 'vip') st.vipServed++;
-  for (const p of c.got) d.soldBy[p] = (d.soldBy[p] || 0) + 1;
+  for (const p of c.got) {
+    d.soldBy[p] = (d.soldBy[p] || 0) + 1;
+    trackQuest(g.save, 'sell', 1, p);
+  }
+  trackQuest(g.save, 'serve');
+  if (c.type === 'vip') trackQuest(g.save, 'vip');
   if (!g.shop.phase.firstSaleDone) g.shop.phase.firstSaleDone = true;
   const xq = xpFactor(g.shopId);
   addXp(g, (XP_GAINS.itemSold * c.got.length + XP_GAINS.customerServed) * xq * (d.xpMult || 1));

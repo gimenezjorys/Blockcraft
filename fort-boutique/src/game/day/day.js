@@ -8,6 +8,8 @@ import { initRegister, stepRegister, collectPile } from './register.js';
 import { stepPads } from './pads.js';
 import { initDayEvents, stepDayEvents } from './day-events.js';
 import { placePlayerAtStart } from '../state.js';
+import { trackQuest } from '../quest-track.js';
+import { streakCheck, streakBonus } from '../streak.js';
 
 /**
  * Durée de la journée : 90 s (jour 1), 120 s (jour 2), puis 150 s ; +10 s avec l'Horloge de Mamie (G5.1).
@@ -83,6 +85,9 @@ export function startDay(g, opts = {}) {
     ph.rush = null;
     ph.dawnClaimed = false;
   }
+  // Flamme de la boutique (G15.2) : jours manqués d'abord (gels), puis +2 % de pièces par jour de série.
+  streakCheck(g.save);
+  g.day.salesMult = 1 + streakBonus(g.save);
   g.player.stack = Array.isArray(ph.carried) ? ph.carried.slice(0, 14) : [];
   initProducers(g);
   initShelves(g);
@@ -159,6 +164,7 @@ export function endDay(g) {
   shop.lastDayDurationS = d.duration;
   shop.phase.dayTimeLeftS = 0;
   shop.phase.dayTakings = d.takings;
+  trackQuest(g.save, 'takings', d.takings);
   return {
     takings: d.takings,
     sales: d.sales,
