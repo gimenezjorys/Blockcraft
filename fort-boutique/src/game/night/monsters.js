@@ -128,6 +128,7 @@ function speedOf(g, m) {
   if (m.speedBoostActive) v *= m.speedBoost || 1;
   v *= 1 - effectiveSlow(m);
   v *= g.night.speedMult || 1;
+  if (!m.def.boss) v *= g.night.monsterSpeed || 1;
   return v;
 }
 
@@ -451,7 +452,7 @@ export function kill(g, m, source) {
   const n = g.night;
   if (!m.alive) return;
   m.hp = 0;
-  const loot = scaledLoot(m.def, g.shopId, n.s) * (n.lootMult || 1);
+  const loot = scaledLoot(m.def, g.shopId, n.s) * (n.lootMult || 1) * ((n.lootType && n.lootType[m.type]) || 1);
   n.loot += Math.round(loot);
   n.kills++;
   n.killsByType[m.type] = (n.killsByType[m.type] || 0) + 1;

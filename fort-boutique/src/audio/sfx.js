@@ -372,4 +372,12 @@ export const SFX = {
       noise(ctx, out, { t0: t, dur: 0.05, gain: 0.08 * o.k, freq: 3000 });
     },
   },
+  // Moka : un « miaou » (glissando montant puis descendant).
+  cat: {
+    bus: 'sfx', max: 1, dur: 0.45,
+    fn(ctx, out, t, o) {
+      tone(ctx, out, { type: 'triangle', freq: 520, freqEnd: 880, t0: t, dur: 0.16, gain: 0.09 * o.k });
+      tone(ctx, out, { type: 'triangle', freq: 880, freqEnd: 460, t0: t + 0.16, dur: 0.26, gain: 0.08 * o.k });
+    },
+  },
 };

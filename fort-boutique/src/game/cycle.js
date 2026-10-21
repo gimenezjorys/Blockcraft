@@ -13,7 +13,8 @@ import { districtOpen, applyLevelUps } from './progression.js';
 import { defaultShop } from '../save/schema.js';
 import { trackQuest } from './quest-track.js';
 import { recordNight } from './streak.js';
-import { now } from '../core/time.js';
+import { now, utcDay, utcWeekday } from '../core/time.js';
+import { currentEvent } from './weekly-events.js';
 
 /**
  * Où reprendre une partie chargée (G5.2) : jour avec le temps restant, nuit depuis le début, aube, matin.
@@ -97,6 +98,14 @@ export function enterDawn(g) {
     })),
   };
   ph.orderChests = 0;
+  // Fête de Mamie (G13.5) : un coffre d'argent en plus à la première aube du dimanche (une fois par dimanche).
+  const ev = currentEvent();
+  const today = utcDay();
+  const ep = g.save.daily.eventProgress;
+  if (ev.sundayChest && utcWeekday() === 6 && ep.sundayDay !== today && !result.tutorial) {
+    ep.sundayDay = today;
+    ph.dawn.extra.push({ type: ev.sundayChest, first: false, opened: false, seed: seedFrom(g.save.seed, 'dimanche', today) });
+  }
   ph.name = 'dawn';
   const levelFrom = g.save.player.level;
   claimNight(g, result);

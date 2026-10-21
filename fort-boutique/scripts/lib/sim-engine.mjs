@@ -23,12 +23,17 @@ import * as XP_DATA from '../../src/data/xp.js';
 import * as FURN_DATA from '../../src/data/furniture.js';
 import * as CHEST_DATA from '../../src/data/chests.js';
 import * as TUTO_DATA from '../../src/data/tutorial.js';
+import * as MERCHANT_DATA from '../../src/data/merchant.js';
+import { EVENTS_SWITCH } from '../../src/game/weekly-events.js';
+
+// L'équilibrage se mesure sans événement de la semaine ni saison (D2, DECISIONS.md M14).
+EVENTS_SWITCH.enabled = false;
 
 const REGISTRY = {
   WAVES: WAVES_DATA.WAVES, SCALING: WAVES_DATA.SCALING, MONSTERS: MONSTER_DATA.MONSTERS, BOSSES: MONSTER_DATA.BOSSES,
   CUSTOMERS: BALANCE.CUSTOMERS, ECONOMY: BALANCE.ECONOMY, DAY: BALANCE.DAY, NIGHT: NIGHT_DATA.NIGHT, XP_GAINS: XP_DATA.XP_GAINS,
   FURNITURE: FURN_DATA.FURNITURE, FURNITURE_LEVEL: BALANCE.FURNITURE_LEVEL, CHESTS: CHEST_DATA.CHESTS,
-  RUSH: TUTO_DATA.RUSH, SPECIAL_ORDER: TUTO_DATA.SPECIAL_ORDER, XP_TABLE: XP_DATA.XP_TABLE,
+  RUSH: TUTO_DATA.RUSH, SPECIAL_ORDER: TUTO_DATA.SPECIAL_ORDER, XP_TABLE: XP_DATA.XP_TABLE, CAT: MERCHANT_DATA.CAT,
 };
 
 /**

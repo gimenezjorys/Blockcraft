@@ -25,8 +25,10 @@ export const CAT = {
   followOffset: 0.6,
   fetchEveryS: 8,
   fetchRadius: 3,
-  dmg: 9,
-  rate: 1,
+  // M13 (D2.5, au-delà de la marge, justifié dans DECISIONS.md) : 9 -> 3,375 dégâts (× 0,375) et 1 -> 0,75 bond/s :
+  // Moka aide sans faire passer le Fort au-dessus de 80 % de ★★★ ; × 1,18 par niveau (≈ 15 dégâts au niveau 10).
+  dmg: 3.375,
+  rate: 0.75,
   range: 2,
   dmgPerLevel: 1.18,
   rangeLevels: [4, 7, 10],

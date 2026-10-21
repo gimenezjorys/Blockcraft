@@ -49,7 +49,7 @@ export function activeEntrances(entrances, k, s) {
  * Entrées utilisables par un type : volants par la cheminée s'il y en a une, sinon par les ouvertures ;
  * au sol par les portes, fenêtres et la trappe.
  */
-function entrancesFor(type, active) {
+export function entrancesFor(type, active) {
   const air = isAirborne(MONSTERS[type] || {});
   if (air) {
     // Les volants passent par la cheminée quand il y en a une (G10.4), sinon par les ouvertures.
@@ -64,7 +64,7 @@ function entrancesFor(type, active) {
  * Remplit un budget avec des groupes de 2 à 5 Grignotins du même type.
  * @param {Rng} rng
  */
-function fillBudget(rng, budget, types, weights, active, out) {
+export function fillBudget(rng, budget, types, weights, active, out) {
   let left = budget;
   let guard = 50;
   while (guard-- > 0) {

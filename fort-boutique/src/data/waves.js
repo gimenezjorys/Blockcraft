@@ -15,9 +15,10 @@ export const WAVES = {
   bossEscort: 0.5,
   /** Rythme (s). */
   telegraphS: 2.5,
-  memberGapS: 0.35,
-  groupGapS: 0.9,
-  groupGapLateS: 0.7,
+  // M13 (D2.5) : écarts × 0,75 (0,35 / 0,9 / 0,7) avec Moka, pour tenir « Fort ≤ 80 % de ★★★ ».
+  memberGapS: 0.2625,
+  groupGapS: 0.675,
+  groupGapLateS: 0.525,
   pauseS: 3.5,
   /** Plafond de sécurité d'une nuit (s). */
   maxNightS: 240,
@@ -46,6 +47,8 @@ export const SCALING = {
   lootPerDistrict: 0.6,
   lootPerWeek: 0.1,
   thiefSpeed: 1.5, // M10 : 1,2 -> 1,5 (D2.5)
+  /** M13 (D2.5) : Grignotins (hors boss) × 1,25 de vitesse, sauf la nuit tutoriel, pour tenir « Fort ≤ 80 % de ★★★ » avec Moka. */
+  monsterSpeed: 1.25,
   recoverBonus: 1.1,
 };
 

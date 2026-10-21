@@ -79,6 +79,13 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
         play('kaching');
         floaters.add(`+${e.a}`, px(e.x), py(e.y) - 30, { color: P.orReflet, size: 15 });
         break;
+      case 'cat_arrive':
+        view.hearts.push({ x: px(e.x), y: py(e.y) - 30, t: 0 });
+        play('cat');
+        break;
+      case 'cat_fetch':
+        play('coin');
+        break;
       case 'happy':
         view.hearts.push({ x: px(e.x), y: py(e.y) - 30, t: 0 });
         play('happy');

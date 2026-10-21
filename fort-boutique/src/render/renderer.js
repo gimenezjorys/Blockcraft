@@ -5,6 +5,7 @@ import { SpriteCache, disc } from './sprites/draw.js';
 import { drawShopShell, drawBackdrop, drawPad } from './sprites/shop.js';
 import { drawFurniture } from './sprites/furniture.js';
 import { drawMerchant, drawCustomer } from './sprites/characters.js';
+import { drawCat, drawStaff } from './sprites/helpers.js';
 import { drawMonster, drawMonsterEyes, MONSTER_LOOK } from './sprites/monsters.js';
 import { drawProjectile } from './sprites/projectiles.js';
 import { Lighting } from './lighting.js';
@@ -109,6 +110,8 @@ export function createRenderer(env) {
     poolN = 0;
     for (const f of g.furn) item('f', f.y + f.h - 0.05, f);
     item('p', g.player.y, g.player);
+    if (g.cat) item('k', g.cat.y, g.cat);
+    if (g.staff) for (const s of g.staff) item('s', s.y, s);
     if (g.day && (g.phase.name === 'day' || g.phase.name === 'closing')) for (const c of g.day.customers) item('c', c.y, c);
     stats.monsters = 0;
     if (n) {
@@ -140,6 +143,13 @@ export function createRenderer(env) {
         ctx.save();
         ctx.translate(ox + p.x * C, oy + p.y * C + 12);
         drawMerchant(ctx, p, night, g.save.cosmetics.equipped.outfit);
+        ctx.restore();
+      } else if (d.kind === 'k' || d.kind === 's') {
+        const r = d.ref;
+        ctx.save();
+        ctx.translate(ox + r.x * C, oy + r.y * C + 10);
+        if (d.kind === 'k') drawCat(ctx, r, g.t);
+        else drawStaff(ctx, r, g.t);
         ctx.restore();
       } else if (d.kind === 'c') {
         const c = d.ref;

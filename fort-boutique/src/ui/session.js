@@ -21,6 +21,7 @@ import { calendarState } from '../game/calendar.js';
 import { streakCheck } from '../game/streak.js';
 import { checkAchievements } from '../game/achievements.js';
 import { checkBestiary } from '../game/bestiary.js';
+import { collectOffline } from '../game/offline.js';
 
 /** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime (plus courte ensuite ; un tap l'abrège). */
 const DAWN_DELAY_S = 2.5;
@@ -121,9 +122,13 @@ export function createSession(app, o) {
     const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
     for (const a of achieved) toast(t('ach.unlocked', { n: a.rubies }), SVG.star);
     for (const b of tiers) toast(t('best.tier', { name: t(`mon.${b.type}`), n: b.rubies }), SVG.ruby);
-    // Les déblocages se fêtent au Matin suivant (G12.4), puis le calendrier s'ouvre seul s'il attend (G19 3:02).
+    // Les déblocages se fêtent au Matin suivant (G12.4), puis le ticket « Pendant ton absence » (G16), puis le
+    // calendrier s'ouvre seul s'il attend (G19 3:02).
     const calendar = () => session.hubScreens.has('calendar') && isUnlocked(g.save, 'calendar') && hub.autoCalendar();
-    if (!hub.showUnlocks(calendar)) calendar();
+    const away = () => {
+      if (!hub.showAway(calendar)) calendar();
+    };
+    if (!hub.showUnlocks(away)) away();
   }
 
   /** Pastilles du hub : Aménager qui vient d'ouvrir (G19 6:50), une amélioration possible. */
@@ -380,6 +385,8 @@ export function createSession(app, o) {
       const loaded = loadSave(o.storage, { seed: seedFrom(tNow, 'nouvelle partie'), now: tNow, lang: o.lang });
       const data = loaded.data;
       data.stats.sessions++;
+      // Retour après une absence (G16) : réserves pleines, gains du personnel, Coffre de Bienvenue.
+      collectOffline(data, tNow);
       g = createGame({ save: data });
       saver = new SaveManager(o.storage, data, { now }, loaded.text);
       saver.beforeWrite.push((d) => {

@@ -8,6 +8,9 @@ import { initRegister, stepRegister, collectPile } from './register.js';
 import { stepPads } from './pads.js';
 import { initDayEvents, stepDayEvents } from './day-events.js';
 import { placePlayerAtStart } from '../state.js';
+import { initStaff, stepStaff, sleepStaff } from '../staff.js';
+import { initCat } from '../cat.js';
+import { eventDayMods } from '../weekly-events.js';
 import { trackQuest } from '../quest-track.js';
 import { streakCheck, streakBonus } from '../streak.js';
 
@@ -88,12 +91,19 @@ export function startDay(g, opts = {}) {
   // Flamme de la boutique (G15.2) : jours manqués d'abord (gels), puis +2 % de pièces par jour de série.
   streakCheck(g.save);
   g.day.salesMult = 1 + streakBonus(g.save);
+  // Événement de la semaine et saison (G13.5, G13.6).
+  const em = eventDayMods(g.shopId);
+  g.day.cheap = em.cheap;
+  g.day.cheapMult = em.cheapMult;
+  g.day.xpMult = (g.day.xpMult || 1) * em.xpMult;
   g.player.stack = Array.isArray(ph.carried) ? ph.carried.slice(0, 14) : [];
   initProducers(g);
   initShelves(g);
   initRegister(g);
   initDayEvents(g);
+  initStaff(g);
   placePlayerAtStart(g);
+  initCat(g);
   g.phase = { name: 'day', t: 0 };
   g.events.push('day_start', 0, 0, duration);
 }
@@ -103,6 +113,7 @@ export function stepDay(g, dt) {
   const d = g.day;
   stepProducers(g, dt);
   stepCarry(g, dt);
+  stepStaff(g, dt);
   if (!d.closing) {
     d.timeLeft -= dt;
     g.shop.phase.dayTimeLeftS = Math.max(0, d.timeLeft);
@@ -159,6 +170,8 @@ export function endDay(g) {
   const d = g.day;
   dismissAll(g);
   collectPile(g, true);
+  // Le personnel range ce qu'il porte et va dormir (G11.3).
+  sleepStaff(g);
   const shop = g.shop;
   shop.lastDayTakings = d.takings;
   shop.lastDayDurationS = d.duration;

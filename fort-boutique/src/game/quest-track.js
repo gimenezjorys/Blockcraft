@@ -7,10 +7,10 @@ import { Rng, seedFrom } from '../core/rng.js';
 import { now, utcDay, utcWeek } from '../core/time.js';
 import { isUnlocked } from './progression.js';
 
-/** Conditions « needs » : fonction débloquée et prête (le Défi du jour arrive en M14). */
+/** Conditions « needs » : fonction débloquée. */
 const NEEDS = {
   editor: (save) => isUnlocked(save, 'editor'),
-  dailyChallenge: () => false,
+  dailyChallenge: (save) => isUnlocked(save, 'daily'),
 };
 
 /** Q : quartier le plus avancé débloqué (G14.1). */

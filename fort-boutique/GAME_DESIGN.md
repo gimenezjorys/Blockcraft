@@ -276,7 +276,7 @@ Valeur au début de la nuit = max(20 × Q, arrondi(0,5 × recette du jour)), Q �
 - Chaque monstre coûte son « coût de menace » (G10). Le générateur, à graine (graine de partie, quartier, semaine, nuit), tire des groupes de 2 à 5 du même type parmi ceux autorisés à cette nuit, avec les pondérations de `data/waves.js`, et les répartit entre les entrées actives.
 - Un type nouveau apparaît d'abord **seul**, en petit groupe, dans la vague 1 de sa nuit d'introduction.
 - **Télégraphe** : 2,5 s avant chaque vague, chaque entrée active montre une bulle pulsante avec les icônes des types qui vont sortir (et une étiquette « NOUVEAU » pour un type jamais vu).
-- Rythme : 0,35 s entre deux membres d'un groupe, 0,9 s entre deux groupes (0,7 s à partir du Q3), 3,5 s de pause entre deux vagues (bannière « Vague 2/4 »).
+- Rythme : 0,2625 s entre deux membres d'un groupe, 0,675 s entre deux groupes (0,525 s à partir du Q3), 3,5 s de pause entre deux vagues (bannière « Vague 2/4 ») (M13 : 0,35 / 0,9 / 0,7 au départ, −25 %, D2.5, avec l'arrivée de Moka).
 - *M11 (rythme des premières nuits, DECISIONS.md) :* la nuit 1 scénarisée suit G19 (bulle 3 s, 2 s entre deux ratons, 5 s de pause, ratons à 20 PV comme avant M10 : ≈ 34 s) ; les nuits 2 et 3 de la semaine 1 au Q1 sont des « nuits d'apprentissage » : budget × 1,5, 0,8 s entre membres, 2,0 s entre groupes, 3,5 s de pause (nuit 2 ≈ 58 s au lieu de 28 s, G19 ≈ 60 s), et un « voleur vedette » (de préférence un raton, jamais plus de PV que d'habitude, 20 au plus) que les meubles ne visent pas : seul le balai du marchand le rattrape, sans le ralenti de la nuit 1. Un marchand immobile y perd une étoile ; à la nuit 1, le voleur scénarisé lâche son sac sur le seuil (les pièces reviennent, sans bonus). Dès la nuit 4, le rythme et le budget ci-dessus s'appliquent.
 
 ### G8.4 Vol et fuite
@@ -401,7 +401,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 ### G10.2 Mise à l'échelle
 - PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 2,0 / 3,6 / 6,2 / 10,0 pour Q1 à Q5, k la nuit de la semaine, s la semaine.
 - Butin = butin de base × (1 + 0,6 × (Q − 1)) × (1 + 0,1 × (s − 1)).
-- Vitesse, armure et % de vol ne changent jamais.
+- Vitesse, armure et % de vol ne changent jamais. *M13 (D2.5) :* toutes les vitesses du tableau sont × 1,25 en jeu (hors boss), sauf pendant la nuit 1 scénarisée qui garde les vitesses ci-dessus (G19 « première victoire »).
 
 ### G10.3 Les boss (Pleine Lune)
 
@@ -452,7 +452,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 ### G11.2 Moka, le chat de Mamie (niveau 5)
 - Arrivée : Moka saute sur la caisse, s'étire, miaule, puis suit le marchand (retard 0,4 s, décalage 0,6 case).
 - Jour : toutes les 8 s, il rapporte au marchand un tas de pièces situé à ≤ 3 cases.
-- Nuit : bondit sur le Grignotin le plus proche de lui à ≤ 2,0 cases : 9 dégâts, 1,0/s, touche les volants. Il ne peut pas être blessé.
+- Nuit : bondit sur le Grignotin le plus proche de lui à ≤ 2,0 cases : 3,375 dégâts, 0,75/s, touche les volants (M13 : 9 dégâts, 1,0/s au départ ; −62,5 % et −25 %, D2.5, justifié dans DECISIONS.md). Il ne peut pas être blessé.
 - Niveaux 1 à 10 avec des **croquettes** : 5, 10, 20, 35, 55, 80, 110, 150, 200 croquettes pour les niveaux 2 à 10. Dégâts ×1,18 par niveau ; portée +0,1 case aux niveaux 4, 7 et 10.
 - Cosmétiques propres (G17).
 

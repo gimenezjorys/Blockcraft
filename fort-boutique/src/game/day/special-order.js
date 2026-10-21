@@ -10,6 +10,7 @@ import { addXp, xpFactor } from '../progression.js';
 import { neighbors } from '../pathfinding.js';
 import { PRODUCTS } from '../../data/products.js';
 import { trackQuest } from '../quest-track.js';
+import { trackEvent } from '../weekly-events.js';
 
 /** Commande en cours sauvegardée avec la journée, si elle est lisible (sauvegarde abîmée = pas de commande). */
 function savedOrder(ph) {
@@ -109,6 +110,7 @@ function finish(g, ok) {
     st.sold += o.need;
     st.ordersDone = (st.ordersDone || 0) + 1;
     trackQuest(g.save, 'order');
+    trackEvent(g.save, 'order', 1);
     trackQuest(g.save, 'serve');
     trackQuest(g.save, 'sell', o.need, o.product);
     addXp(g, (XP_GAINS.itemSold * o.need + XP_GAINS.customerServed) * xpFactor(g.shopId));

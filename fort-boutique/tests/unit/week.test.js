@@ -47,7 +47,8 @@ test('Roi Raton : invoque 3 ratons toutes les 6 s, immunisé au recul', () => {
   teleport(g, 0.5, 5.5);
   const ev = run(g, 12.2);
   assert.equal(count(ev, 'boss_summon'), 2);
-  const ratons = g.night.monsters.active.filter((x) => x.type === 'raton').length + g.night.kills;
+  // Ratons apparus (M13 : plus rapides, certains volent et repartent avant la fin : on compte les apparitions).
+  const ratons = ev.filter((e) => e.type === 'monster_spawn' && e.s === 'raton').length;
   assert.ok(ratons >= 6, `${ratons} ratons invoqués`);
   assert.equal(knockbackAmount(m, 1), 0);
 });

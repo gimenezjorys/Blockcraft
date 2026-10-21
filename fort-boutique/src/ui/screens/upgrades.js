@@ -11,13 +11,16 @@ import { merchantUpgradeInfo, recipeInfo, expansionInfo } from '../../game/upgra
 import { upgradeStatsEl } from '../upgrade-preview.js';
 import { FEATURE_LEVELS } from '../../data/unlocks.js';
 import { RECIPES } from '../../data/balance.js';
+import { catActive, catLevelCost, catDamage, catRange } from '../../game/cat.js';
+import { staffInfo, clerkStats, cashierTime } from '../../game/staff.js';
 
 const TABS = ['furniture', 'merchant', 'recipes', 'shop'];
 
 /**
  * @param {any} app
  * @param {{ g: any, tab?: string, onUpgradeFurniture: (id: string) => boolean, onMerchant: (id: string) => boolean,
- *   onRecipe: (product: string) => boolean, onExpand: () => boolean, onClose: () => void }} p
+ *   onRecipe: (product: string) => boolean, onExpand: () => boolean, onCat?: () => boolean,
+ *   onStaff?: (action: 'hire' | 'up', role: string, i?: number) => boolean, onClose: () => void }} p
  */
 function mount(app, p, d) {
   const g = p.g;
@@ -42,8 +45,8 @@ function mount(app, p, d) {
     tabs.appendChild(b);
   }
 
-  function row(icon, title, detail, cost, ok, onBuy, id, extra) {
-    const btn = tagButton({ label: cost === null ? t('catalog.max') : fmt(cost), variant: ok ? 'green' : 'kraft', small: true, icon: cost === null ? undefined : SVG.coin });
+  function row(icon, title, detail, cost, ok, onBuy, id, extra, costIcon = SVG.coin) {
+    const btn = tagButton({ label: cost === null ? t('catalog.max') : fmt(cost), variant: ok ? 'green' : 'kraft', small: true, icon: cost === null ? undefined : costIcon });
     if (!ok) btn.classList.add('disabled');
     const text = h('div.up-text', [h('div.up-title', { text: title }), h('div.up-detail', { text: detail })]);
     if (extra) text.appendChild(extra);
@@ -80,6 +83,13 @@ function mount(app, p, d) {
         const info = merchantUpgradeInfo(save, id);
         list.appendChild(row(h('span.up-emoji', { html: SVG.star }), `${t(`up.${id}`)} · ${t('common.lvl')} ${info.level}/${info.max}`, t(`upgrades.effect.${id}`), info.cost, info.ok, () => p.onMerchant(id), id));
       }
+      // Moka (G11.2) : niveaux avec des croquettes.
+      if (catActive(save) && p.onCat) {
+        const lvl = save.player.cat.level;
+        const cost = catLevelCost(save);
+        const detail = t('cat.detail', { d: fmt(Math.round(catDamage(lvl) * 10) / 10), r: fmt(catRange(lvl)) });
+        list.appendChild(row(h('span.up-emoji', { html: SVG.kibble }), `${t('cat.name')} · ${t('common.lvl')} ${lvl}/10`, detail, cost, cost !== null && save.player.kibble >= cost, () => p.onCat(), 'cat', null, SVG.kibble));
+      }
     } else if (tab === 'recipes') {
       if (save.player.level < RECIPES.unlockLevel) list.appendChild(h('div.up-note', { text: t('upgrades.lockedAt', { n: RECIPES.unlockLevel }) }));
       for (const prod of districtDef(g.shopId).products) {
@@ -92,7 +102,27 @@ function mount(app, p, d) {
       const title = info.reason === 'max' ? t('upgrades.expandMax') : t('upgrades.expand', { n: info.to });
       const detail = info.reason === 'level' ? t('upgrades.lockedAt', { n: info.level }) : t('upgrades.expandDetail');
       list.appendChild(row(furnitureIcon('comptoir', 40), title, detail, info.cost, info.ok, () => p.onExpand(), 'expand'));
+      staffRows();
     }
+  }
+
+  /** Personnel (G11.3, niveau 10) : embaucher, puis monter chaque employé. */
+  function staffRows() {
+    if (!p.onStaff) return;
+    const s = staffInfo(save, g.shopId);
+    if (!s.unlocked) {
+      list.appendChild(h('div.up-note', { text: t('staff.lockedAt', { n: FEATURE_LEVELS.staff }) }));
+      return;
+    }
+    const money = (c) => c !== null && save.player.coins >= c;
+    const ico = () => h('span.up-emoji', { html: SVG.check });
+    s.clerks.forEach((c, i) => {
+      const st = clerkStats(c.level);
+      list.appendChild(row(ico(), `${t('staff.clerk')} ${i + 1} · ${t('common.lvl')} ${c.level}/5`, t('staff.clerkDetail', { n: st.carry, s: fmt(st.speed) }), c.cost, money(c.cost), () => p.onStaff('up', 'clerk', i), `clerk-${i}`));
+    });
+    if (s.hireClerk !== null) list.appendChild(row(ico(), t('staff.hireClerk'), t('staff.clerkDetail', { n: 3, s: fmt(2.2) }), s.hireClerk, money(s.hireClerk), () => p.onStaff('hire', 'clerk'), 'hire-clerk'));
+    if (s.cashier) list.appendChild(row(ico(), `${t('staff.cashier')} · ${t('common.lvl')} ${s.cashier.level}/5`, t('staff.cashierDetail', { s: fmt(cashierTime(s.cashier.level)) }), s.cashier.cost, money(s.cashier.cost), () => p.onStaff('up', 'cashier'), 'cashier'));
+    else list.appendChild(row(ico(), t('staff.hireCashier'), t('staff.cashierDetail', { s: fmt(0.9) }), s.hireCashier, money(s.hireCashier), () => p.onStaff('hire', 'cashier'), 'hire-cashier'));
   }
   render();
   void FURNITURE;

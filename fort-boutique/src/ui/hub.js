@@ -12,6 +12,8 @@ import { NIGHT } from '../data/night.js';
 import { refreshQuests, claimQuest, claimWeekly, rerollQuest } from '../game/quests.js';
 import { calendarState, claimCalendar } from '../game/calendar.js';
 import { relightStreak } from '../game/streak.js';
+import { levelUpCat } from '../game/cat.js';
+import { hireStaff, upgradeStaff } from '../game/staff.js';
 import { now, utcDay } from '../core/time.js';
 import { trackQuest } from '../game/quest-track.js';
 
@@ -202,6 +204,16 @@ export function createHub(app, o) {
           o.save(true);
           return true;
         },
+        onCat: () => {
+          if (!levelUpCat(g.save)) return false;
+          o.save(true);
+          return true;
+        },
+        onStaff: (action, role, i) => {
+          const ok = action === 'hire' ? hireStaff(g.save, g.shopId, role) : upgradeStaff(g.save, g.shopId, role, i);
+          if (ok) o.save(true);
+          return ok;
+        },
         onExpand: () => {
           if (!expandShop(g.save, g.shopId)) return false;
           rebuildShop(g);
@@ -214,6 +226,29 @@ export function createHub(app, o) {
   };
 
   return {
+    /**
+     * Ticket « Pendant ton absence » (G16), une fois : réserves pleines, pièces du personnel, lettre de Mamie et Coffre
+     * de Bienvenue. Les gains sont déjà versés au chargement (rien ne se perd si l'onglet se ferme).
+     * @returns {boolean}
+     */
+    showAway(onDone) {
+      const g = o.game();
+      const pd = g.save.offline.pendingDelivery;
+      if (!pd) return false;
+      g.save.offline.pendingDelivery = null;
+      o.save(true);
+      app.router.push('reward', {
+        title: t('offline.title'),
+        subtitle: t('offline.minutes', { h: Math.floor(pd.minutes / 60), m: Math.round(pd.minutes % 60) }),
+        lines: [t('offline.stock'), pd.welcome ? t('offline.letter') : null].filter(Boolean),
+        rewards: [pd.coins ? { coins: pd.coins } : null, pd.welcome ? { chest: pd.welcome } : null].filter(Boolean),
+        onClose: () => {
+          app.router.pop();
+          if (onDone) onDone();
+        },
+      });
+      return true;
+    },
     /**
      * Le calendrier s'ouvre seul une fois par jour UTC quand une récompense attend (G19 3:02).
      * @returns {boolean}

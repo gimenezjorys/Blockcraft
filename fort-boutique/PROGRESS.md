@@ -17,7 +17,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M10 — Simulateur d'équilibrage (Q1) | ✅ | 2026-10-20 | Simulateur (bots Faible/Moyen/Fort en parallèle, modèle provisoire des quêtes) : 300 parties par profil, tous les seuils D2.4 applicables tenus après réglages dans la marge ±25 % ; 3 bugs de jeu trouvés et corrigés ; test sim de 40 parties. |
 | M11 — Les 10 premières minutes + P2 | ✅ | 2026-10-21 | Enveloppe, guide et indices sans texte (4 s), objectif toujours visible, Rush, Commande spéciale, rythme de G19 (15/15 jalons en gras dans ±20 %), niveau à l'aube ; P2 : 9 majeurs corrigés (Léa, Hugo, Sam). |
 | M12 — Quêtes, calendrier, série, succès, bestiaire | ✅ | 2026-10-21 | 3 quêtes du jour à graine UTC (+ relance), 4-5 de la semaine, calendrier de 7 jours (s'ouvre seul au premier Matin), flamme de la boutique (+2 %/jour, gels, rallumage 48 h), 52 succès et paliers du bestiaire, écrans Quêtes et Calendrier. |
-| M13 — Hors ligne, Moka, personnel | ⬜ | | |
+| M13 — Hors ligne, Moka, personnel | ✅ | 2026-10-21 | Retour après absence (réserves pleines, gains du personnel plafonnés à 8 h, Coffre de Bienvenue après 3 jours, ticket du Matin), Moka (suit, rapporte, bondit ; croquettes), commis et caissier (dorment la nuit) ; équilibrage Q1 refait avec Moka (D2.5). |
 | M14 — Défi du jour, Rivaux, partage, événements | ⬜ | | |
 | M15 — Pubs, rubis, Garde-robe + P3 | ⬜ | | |
 | M16 — Quartier 2 : la Boulangerie | ⬜ | | |
@@ -207,3 +207,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M10 fait : équilibrage Q1 (docs/sim/SIM_Q1.md). Reste : M11 les 10 premières minutes + P2. Prochaine étape : G19 seconde par seconde (flèche dorée, main fantôme, objectif toujours visible).
 - 2026-10-21 — M11 fait : les 10 premières minutes + P2 (docs/playtests/P2.md). v0.2 publiée sur GitHub Pages. Prochaine étape : M12 quêtes, calendrier, série, succès, bestiaire.
 - 2026-10-21 — M12 fait (mode rapide demandé : tests essentiels de la mission seulement). P2 rejoué : 15/15 jalons, calendrier réclamé à 2:41. Prochaine étape : M13 hors ligne, Moka, personnel.
+- 2026-10-21 — M13 fait (tests essentiels). Q1 rééquilibré avec Moka dans les marges D2.5 (docs/sim/SIM_Q1.md). Prochaine étape : M14 Défi du jour, Rivaux, partage, événements.

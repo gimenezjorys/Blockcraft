@@ -142,8 +142,8 @@
       "key": false,
       "label": "Aube 2",
       "targetS": 390,
-      "atS": 364.8,
-      "gapPct": -6,
+      "atS": 364.20000000000005,
+      "gapPct": -7,
       "ok": true
     },
     {
@@ -151,7 +151,7 @@
       "key": true,
       "label": "Niveau 3 (ruban)",
       "targetS": 390,
-      "atS": 379.6,
+      "atS": 379,
       "gapPct": -3,
       "ok": true
     },
@@ -160,7 +160,7 @@
       "key": false,
       "label": "Deuxième Matin",
       "targetS": 410,
-      "atS": 386.1,
+      "atS": 385.5,
       "gapPct": -6,
       "ok": true
     },
@@ -169,8 +169,8 @@
       "key": false,
       "label": "Premier aménagement validé",
       "targetS": 455,
-      "atS": 394,
-      "gapPct": -13,
+      "atS": 393.40000000000003,
+      "gapPct": -14,
       "ok": true
     },
     {
@@ -178,7 +178,7 @@
       "key": true,
       "label": "Jour 3",
       "targetS": 460,
-      "atS": 399.1,
+      "atS": 398.5,
       "gapPct": -13,
       "ok": true
     },
@@ -187,7 +187,7 @@
       "key": true,
       "label": "Première Commande spéciale (jour 3, 20 à 45 % de la journée : ≈ 8:40)",
       "targetS": 520,
-      "atS": 443.3,
+      "atS": 442.70000000000005,
       "gapPct": -15,
       "ok": true
     },
@@ -196,7 +196,7 @@
       "key": true,
       "label": "Fermeture du jour 3 : nouvelle entrée annoncée",
       "targetS": 610,
-      "atS": 549,
+      "atS": 548.4,
       "gapPct": -10,
       "ok": true
     }
@@ -252,36 +252,36 @@
     {
       "screen": "hud",
       "from": 175.1,
-      "to": 364.8
+      "to": 364.20000000000005
     },
     {
       "screen": "dawn",
-      "from": 364.8,
-      "to": 382.6
+      "from": 364.20000000000005,
+      "to": 382
     },
     {
       "screen": "unlocks",
-      "from": 382.6,
-      "to": 386.1
+      "from": 382,
+      "to": 385.5
     },
     {
       "screen": "morning",
-      "from": 386.1,
-      "to": 389.1
+      "from": 385.5,
+      "to": 388.5
     },
     {
       "screen": "editor",
-      "from": 389.1,
-      "to": 394.1
+      "from": 388.5,
+      "to": 393.5
     },
     {
       "screen": "morning",
-      "from": 394.1,
-      "to": 399.1
+      "from": 393.5,
+      "to": 398.5
     },
     {
       "screen": "hud",
-      "from": 399.1,
+      "from": 398.5,
       "to": 600
     }
   ],
@@ -302,13 +302,13 @@
     {
       "night": 2,
       "s": 58,
-      "empty": 11,
+      "empty": 12,
       "max": 4
     },
     {
       "night": 3,
-      "s": 41,
-      "empty": 7,
+      "s": 42,
+      "empty": 8,
       "max": 4
     }
   ],

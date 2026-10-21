@@ -4,6 +4,7 @@ import { stepPlayer, playerSpeed } from './player.js';
 import { stepDay, endDay, CLOSING_S } from './day/day.js';
 import { startNight, stepNight } from './night/night.js';
 import { DAY } from '../data/balance.js';
+import { stepCat } from './cat.js';
 
 /** Durée du crépuscule (G5.1). */
 export const DUSK_S = DAY.duskS;
@@ -21,6 +22,7 @@ export function stepGame(g, dt) {
   if (walking) {
     const p = g.player;
     stepPlayer(p, g.input.x, g.input.y, playerSpeed(g.save.player.upgrades.shoes), dt, g.grid.w, g.grid.h, g.solid);
+    if (g.cat) stepCat(g, dt);
   }
   if (name === 'day' || name === 'closing') {
     stepDay(g, dt);

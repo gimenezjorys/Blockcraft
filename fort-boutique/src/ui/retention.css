@@ -51,3 +51,5 @@
 .hub-flame { position: relative; display: flex; align-items: center; gap: 2px; padding: 2px 6px; border: 3px solid var(--encre); border-radius: 12px; background: var(--ardoise); color: var(--craie); font: 900 14px/1 var(--f-title); }
 .hub-flame .flame-ico { width: 22px; height: 22px; flex-basis: 22px; }
 @media (prefers-reduced-motion: reduce) { .cal-today { animation: none; } }
+.reward-sub { font: 800 16px/1 var(--f-mono); color: var(--craie-jaune); }
+.reward-line { max-width: 260px; font-size: 13px; text-align: center; }

@@ -21,6 +21,9 @@ const TUNING = [
   ['Balai : dégâts / intervalle / portée (G8.7)', '6 / 0,8 s / 0,9', '4,5 / 1,0 s / 0,68', '−25 % / +25 % / −24 %'],
   ['Roi Raton : PV / invocation (G10.3)', '900 / 6 s', '1 125 / 4,8 s', '+25 % / −20 %'],
   ['Dégâts des meubles par niveau (G9.1)', '× 1,20', '× 1,12', '−7 %'],
+  ['M13 — Moka : dégâts / bonds par seconde (G11.2)', '9 / 1,0', '3,375 / 0,75', '−62,5 % (justifié) / −25 %'],
+  ['M13 — Vitesse des Grignotins hors boss, hors nuit 1 (G10.1)', '× 1', '× 1,25', '+25 %'],
+  ['M13 — Écarts dans les vagues : membres / groupes (G8.3)', '0,35 / 0,9 s', '0,2625 / 0,675 s', '−25 %'],
 ];
 
 /** Résultat allégé (sans le détail des meubles), pour les messages entre workers. */
@@ -93,7 +96,7 @@ function report(res, o) {
     const lv = (p) => median(res.byProfile[p].map((g) => (g.cycles[c - 1] ? g.cycles[c - 1].level : NaN)));
     L.push(`| ${c} | ${lv('weak')} | ${lv('medium')} | ${lv('strong')} |`);
   }
-  L.push('', '## Changements faits (M10, marges D2.5)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
+  L.push('', '## Changements faits (M10 et M13, marges D2.5)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
   for (const c of TUNING) L.push(`| ${c[0]} | ${c[1]} | ${c[2]} | ${c[3]} |`);
   L.push('', 'Hors données : bots corrigés (itinéraire BFS, case d\'accès de la caisse, dépenses du Matin), trois bugs de jeu corrigés (emplacement d\'achat bloqué, pile bloquée par un produit sans étagère, produit d\'étagère modifiable dans l\'éditeur). Voir DECISIONS.md.');
   L.push('', '## Limites connues', '');

@@ -34,7 +34,6 @@ test('quêtes : tirage à graine par jour UTC, jamais de quête impossible, rela
     refreshQuests(s, T0 + k * DAY);
     const ids = s.daily.quests.list.map((q) => q.id);
     days.add(ids.join());
-    assert.ok(!ids.includes('daily'), 'Défi du jour pas encore disponible (M14)');
   }
   assert.ok(days.size > 10, 'le tirage change avec le jour');
   // Une quête impossible n'est jamais tirée : ni Commande spéciale avant le jour 3, ni aménagement avant le niveau 3.
@@ -100,7 +99,7 @@ test('quêtes : suivi et récompenses exactes dans l’ordre des réclamations (
   // Semaine (niveau 8) : coffre d'or par quête.
   const w = save(8);
   refreshQuests(w, T0);
-  assert.equal(w.daily.weekly.list.length, 4, 'les Défis du jour arrivent en M14');
+  assert.equal(w.daily.weekly.list.length, 5, 'les 5 quêtes de la semaine (Défi du jour compris, M14)');
   trackQuest(w, 'moon');
   assert.equal(claimWeekly(w, 0).reward.chest.type, 'gold');
 });

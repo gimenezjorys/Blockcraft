@@ -140,3 +140,6 @@ export const DAY_AURAS = {
 export const ADS = {
   quietPlaytimeMs: 10 * 60 * 1000,
 };
+
+/** Hors ligne et retour (G16). */
+export const OFFLINE = { minAbsenceMin: 15, capHours: 8, staffShare: 0.2, welcomeDays: 3 };

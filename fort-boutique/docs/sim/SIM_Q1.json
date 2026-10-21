@@ -35,7 +35,7 @@
     {
       "id": "D2.4.3c",
       "label": "Fort : boss battu du premier coup 85 % des fois au plus",
-      "value": "15 %",
+      "value": "22 %",
       "ok": true
     },
     {
@@ -71,7 +71,7 @@
     {
       "id": "G12.5c",
       "label": "Moyen : niveau 5 au cycle 4 ou 5 (médiane)",
-      "value": "niveau 6 au cycle 5, 5 au cycle 4",
+      "value": "niveau 7 au cycle 5, 6 au cycle 4",
       "ok": true
     }
   ],
@@ -82,15 +82,15 @@
       "strong": 8
     },
     "nightS": {
-      "n1": 19.116666666666863,
-      "n2": 28.283333333333008,
-      "n6": 70.67499999999728
+      "n1": 28.81666666666631,
+      "n2": 55.08333333333149,
+      "n6": 60.61666666666451
     },
-    "earnedPerCycle": 608,
+    "earnedPerCycle": 670.5,
     "starsShare": {
-      "weak": 0.6050420168067226,
-      "medium": 0.6261319534282018,
-      "strong": 0.7864188163884673
+      "weak": 0.47968,
+      "medium": 0.5236859182349124,
+      "strong": 0.7928994082840237
     }
   }
 }
