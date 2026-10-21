@@ -35,6 +35,8 @@ export function startNight(g, opts = {}) {
   const Q = districtNumber(g.shopId);
   const isBoss = k >= 7;
   const tutorial = g.shopId === 'q1' && s === 1 && k === 1 && g.save.stats.nights === 0;
+  const L = WAVES.learning;
+  const learning = !tutorial && g.shopId === L.district && s === L.week && L.nights.includes(k);
   const mods = opts.mods || {};
   const gen = opts.waves || generateNight({
     seed: g.save.seed,
@@ -65,7 +67,7 @@ export function startNight(g, opts = {}) {
     isBoss,
     waveIndex: 0,
     state: 'pause',
-    stateT: WAVES.telegraphS,
+    stateT: tutorial ? WAVES.tutorialStartS : WAVES.telegraphS,
     telegraphed: false,
     schedule: [],
     monsters: createMonsterPool(),
@@ -104,10 +106,13 @@ export function startNight(g, opts = {}) {
     goldenKilled: false,
     bossEscaped: false,
     bossKilled: false,
-    hpMult: redMoon * (mods.hpMult || 1),
+    hpMult: redMoon * (mods.hpMult || 1) * (tutorial ? WAVES.tutorialHpMult : 1),
     lootMult: (mods.lootMult || 1) * (1 + 0.1 * shop.franchiseStars),
     speedMult: mods.speedMult || 1,
-    groupGap: Q >= 3 ? WAVES.groupGapLateS : WAVES.groupGapS,
+    groupGap: learning ? WAVES.learning.groupGapS : Q >= 3 ? WAVES.groupGapLateS : WAVES.groupGapS,
+    memberGap: tutorial ? WAVES.tutorialMemberGapS : learning ? WAVES.learning.memberGapS : WAVES.memberGapS,
+    pauseS: tutorial ? WAVES.tutorialPauseS : learning ? WAVES.learning.pauseS : WAVES.pauseS,
+    learning,
     scripted: null,
     // Capacités des boss (G10.3), appelées par stepMonsters.
     bossStep,
@@ -125,12 +130,14 @@ function scheduleWave(g, wave) {
   const n = g.night;
   const out = [];
   let t = 0;
+  // Nuit scénarisée et nuits d'apprentissage : les Grignotins entrent plus espacés, le temps de voir (G19).
+  const gap = n.memberGap;
   for (const grp of wave.groups) {
     for (let i = 0; i < grp.count; i++) {
       out.push({ at: t, type: grp.type, entrance: grp.entrance, scriptedThief: !!grp.scriptedThief && i === grp.count - 1 });
-      t += WAVES.memberGapS;
+      t += gap;
     }
-    t += n.groupGap - WAVES.memberGapS;
+    t += n.groupGap - gap;
   }
   if (wave.boss) out.push({ at: t + 0.4, type: wave.boss, entrance: bossEntrance(g), boss: true });
   n.schedule = out;
@@ -179,7 +186,7 @@ export function stepNight(g, dt) {
       }
       n.waveIndex++;
       n.state = 'pause';
-      n.stateT = WAVES.pauseS;
+      n.stateT = n.pauseS;
       n.telegraphed = false;
     }
   }

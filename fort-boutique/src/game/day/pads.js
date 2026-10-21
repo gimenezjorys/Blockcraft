@@ -6,6 +6,7 @@ import { initShelves } from './shelves.js';
 import { initRegister } from './register.js';
 import { goToCell } from './customers.js';
 import { validateLayout } from '../shop.js';
+import { orderSpot } from './special-order.js';
 
 /** Durée de remplissage d'un emplacement (DECISIONS.md, M4). */
 export function padFillSeconds(price) {
@@ -132,5 +133,6 @@ export function refreshAfterLayoutChange(g) {
     else if (c.state === 'toShelf' && g.furn[c.shelfIdx]) goToCell(g, c, g.furn[c.shelfIdx].access);
     else if (c.state === 'toQueue' && g.day.queueCell >= 0) goToCell(g, c, g.day.queueCell);
     else if (c.state === 'enter') goToCell(g, c, g.grid.door.y * g.grid.w + g.grid.door.x);
+    else if (c.state === 'order') goToCell(g, c, orderSpot(g));
   }
 }

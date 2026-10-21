@@ -7,8 +7,15 @@ import { canUpgrade } from '../../game/economy.js';
 import { levelProgress } from '../../game/progression.js';
 import { upgradeStatsEl } from '../upgrade-preview.js';
 import { CHEST_TAPS } from '../../data/chests.js';
+import { HINTS } from '../../data/tutorial.js';
 
-const LINE_GAP = 0.35;
+// Rythme de G19 : le ticket s'imprime ligne par ligne (2:25 → 2:37, ≈ 10 s ici, plus 2,5 s de pluie de pièces avant),
+// les cartes sortent une à une (2:42 → 2:46), le ruban de niveau vient après l'amélioration (2:57). Un tap accélère × 4.
+const LINE_GAP = 1.1;
+const STAR_GAP = 0.8;
+const CARD_GAP = 0.9;
+/** Sans amélioration possible (ou si le joueur n'en fait pas), le ruban arrive quand même. */
+const RIBBON_WAIT_S = 6;
 
 /**
  * @param {any} app
@@ -40,7 +47,11 @@ function mount(app, p, d) {
     h('div.ticket-edge'),
   ]);
   for (const el of [...lineEls, totalEl]) el.classList.add('hidden');
-  const chestWrap = h('button.dawn-chest', { type: 'button', 'aria-label': t('dawn.chest'), html: dawn.chest ? chestSvg(dawn.chest.type) : '' });
+  // Coffres de l'aube : celui de la nuit, puis ceux des Commandes spéciales du jour (G7.7), un par un.
+  const chests = [dawn.chest, ...(dawn.extra || [])].filter(Boolean);
+  const openers = [dawn.chest ? () => p.onOpenChest() : null, ...(dawn.extra || []).map((_, i) => () => (p.onOpenExtra ? p.onOpenExtra(i) : null))].filter(Boolean);
+  const firstClosed = () => chests.findIndex((c) => !c.opened);
+  const chestWrap = h('button.dawn-chest', { type: 'button', 'aria-label': t('dawn.chest'), html: chests.length ? chestSvg(chests[Math.max(0, firstClosed())].type) : '' });
   chestWrap.hidden = true;
   const cards = h('div.dawn-cards');
   const doubleBtn = tagButton({ label: t('ads.double'), variant: 'gold', icon: SVG.tv, small: true, id: 'dawn-double' });
@@ -61,7 +72,31 @@ function mount(app, p, d) {
   if (ribbon) ribbon.hidden = true;
   const el = h('div.dawn', [ticket, chestWrap, cards, ribbon, actions]);
 
-  const st = { t: 0, revealed: 0, starsShown: 0, taps: 0, opened: !!(dawn.chest && dawn.chest.opened), cardsQueued: [], cardT: 0, fast: false };
+  const st = { t: 0, revealed: 0, starsShown: 0, taps: 0, ci: firstClosed(), cardsQueued: [], cardT: 0, fast: !!p.resumed, replayed: false, idle: 0,
+    cardsDoneT: -1, upgraded: false };
+  // Main fantôme (G19, principes) : après 4 s sans tap, elle montre le coffre, puis la flèche verte d'amélioration.
+  const hand = h('div.ghost-hand.tap', { html: SVG.hand, 'aria-hidden': 'true' });
+  hand.hidden = true;
+  const hideHand = () => {
+    st.idle = 0;
+    hand.hidden = true;
+  };
+  d.listen(el, 'pointerdown', hideHand, true);
+  d.listen(el, 'touchstart', hideHand, { capture: true, passive: true });
+  function stepHand(dt) {
+    if (!p.hints) return;
+    st.idle += dt;
+    if (st.idle < HINTS.delayS || !hand.hidden) return;
+    let target = null;
+    if (!chestWrap.hidden && !chestWrap.classList.contains('open')) target = chestWrap;
+    else if (!st.cardsQueued.length) {
+      const up = cards.querySelector('.card-plan.can-up .card-up');
+      if (up && !up.hidden) target = up.parentNode;
+    }
+    if (!target) return;
+    target.appendChild(hand);
+    hand.hidden = false;
+  }
   const audio = () => app.services.audio;
   const sfx = (id, o) => audio() && audio().play(id, o);
 
@@ -92,6 +127,7 @@ function mount(app, p, d) {
     };
     onTap(up, () => {
       if (p.onUpgrade(id)) {
+        st.upgraded = true;
         sfx('upgrade');
         c.classList.remove('jump');
         void c.offsetWidth;
@@ -120,15 +156,16 @@ function mount(app, p, d) {
   }
 
   function openChest() {
-    const content = p.onOpenChest();
-    st.opened = true;
+    const content = openers[st.ci] ? openers[st.ci]() : null;
+    st.ci = firstClosed();
+    st.taps = 0;
     chestWrap.classList.add('open');
     sfx('chest_open');
     if (content) queueCards(content);
   }
 
   onTap(chestWrap, () => {
-    if (st.opened || chestWrap.hidden) return;
+    if (st.ci < 0 || chestWrap.hidden || chestWrap.classList.contains('open')) return;
     st.taps++;
     chestWrap.dataset.taps = String(st.taps);
     chestWrap.classList.remove('shake');
@@ -169,6 +206,7 @@ function mount(app, p, d) {
     el,
     update(dt) {
       st.t += dt * (st.fast ? 4 : 1);
+      stepHand(dt);
       // Lignes du ticket.
       const all = [...lineEls, totalEl];
       while (st.revealed < all.length && st.t >= 0.3 + st.revealed * LINE_GAP) {
@@ -179,23 +217,35 @@ function mount(app, p, d) {
       }
       // Étoiles.
       const starStart = 0.3 + all.length * LINE_GAP + 0.2;
-      while (st.starsShown < r.stars && st.t >= starStart + st.starsShown * 0.4) {
+      while (st.starsShown < r.stars && st.t >= starStart + st.starsShown * STAR_GAP) {
         const s = starEls[st.starsShown];
         s.innerHTML = SVG.star;
         s.classList.add('stamp');
         sfx('star', { n: st.starsShown });
         st.starsShown++;
       }
-      const chestAt = starStart + 3 * 0.4 + 0.2;
+      const chestAt = starStart + 3 * STAR_GAP + 0.2;
       if (st.t >= chestAt) {
-        if (dawn.chest && !st.opened && chestWrap.hidden) {
+        // Reprise après rechargement : les cartes du coffre de la nuit déjà ouvert se remontrent.
+        if (!st.replayed && dawn.chest && dawn.chest.opened && dawn.chest.content && !cards.childElementCount) queueCards(dawn.chest.content);
+        st.replayed = true;
+        // Coffre suivant : il apparaît quand les cartes du précédent sont sorties.
+        if (st.ci >= 0 && !st.cardsQueued.length && (chestWrap.hidden || chestWrap.classList.contains('open'))) {
+          chestWrap.innerHTML = chestSvg(chests[st.ci].type);
+          hideHand();
+          chestWrap.classList.remove('open', 'appear');
+          void chestWrap.offsetWidth;
           chestWrap.hidden = false;
           chestWrap.classList.add('appear');
+          chestWrap.dataset.taps = '0';
         }
-        if (dawn.chest && dawn.chest.opened && !cards.childElementCount && !st.cardsQueued.length && dawn.chest.content) queueCards(dawn.chest.content);
-        if (!dawn.chest || st.opened) {
-          if (actions.hidden) showLevel();
-          actions.hidden = false;
+        // La sortie suit l'ouverture de tous les coffres (rien ne bloque) ; le ruban de niveau vient après les cartes et
+        // l'amélioration (G19 2:57), ou après quelques secondes s'il n'y a rien à améliorer.
+        if (st.ci < 0) actions.hidden = false;
+        if (st.ci < 0 && !st.cardsQueued.length) {
+          if (st.cardsDoneT < 0) st.cardsDoneT = st.t;
+          const canUp = !!cards.querySelector('.card-plan.can-up');
+          if (st.upgraded || !canUp || st.t - st.cardsDoneT >= RIBBON_WAIT_S || p.resumed) showLevel();
         }
       }
       if (st.cardsQueued.length) {
@@ -206,8 +256,8 @@ function mount(app, p, d) {
           c.classList.add('fly-in');
           cards.appendChild(c);
           sfx('card', { n: cards.childElementCount });
-          st.cardT = 0.25;
-          if (dawn.chest && st.opened) chestWrap.hidden = true;
+          st.cardT = CARD_GAP;
+          if (chestWrap.classList.contains('open')) chestWrap.hidden = true;
         }
       }
     },

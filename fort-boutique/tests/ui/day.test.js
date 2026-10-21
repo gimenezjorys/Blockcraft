@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadGame } from '../helpers/dom.js';
-import { walkTo, waitFor } from '../helpers/drive.js';
+import { walkTo, waitFor, openEnvelope } from '../helpers/drive.js';
 
 test('jour 1 au doigt : cagette -> étagère -> premier client -> encaissement, avec les sons', () => {
   const g = loadGame();
@@ -11,6 +11,9 @@ test('jour 1 au doigt : cagette -> étagère -> premier client -> encaissement, 
     g.fingers.tap(g.$('.screen-title'), 180, 320);
     g.hooks.advance(50);
     assert.equal(g.audio.contexts, 1, 'contexte audio créé au premier geste');
+    // M11 : la scène de l'enveloppe (G19 0:02) précède le Jour 1.
+    assert.equal(g.hooks.getState().screen, 'intro');
+    assert.ok(openEnvelope(g), 'un tap sur l’enveloppe ouvre la boutique');
     let st = g.hooks.getState();
     assert.equal(st.scene.phase, 'day');
     // Laisse pousser des pommes, puis va à côté de la cagette (0,1).

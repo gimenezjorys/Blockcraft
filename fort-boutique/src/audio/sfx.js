@@ -349,6 +349,22 @@ export const SFX = {
       });
     },
   },
+  // Rush (G7.7) : roulement qui monte et carillon ; la couche musicale 3 viendra avec le séquenceur (M23).
+  rush: {
+    bus: 'sfx', max: 1, dur: 0.9,
+    fn(ctx, out, t, o) {
+      for (let i = 0; i < 6; i++) tone(ctx, out, { freq: 120 + i * 30, freqEnd: 90 + i * 30, t0: t + i * 0.07, dur: 0.07, gain: 0.12 * o.k });
+      [84, 88, 91, 96].forEach((m, i) => fmBell(ctx, out, { t0: t + 0.42 + i * 0.08, freq: mtof(m), ratio: 1.4, index: 2, dur: 0.3, gain: 0.07 * o.k }));
+    },
+  },
+  // Commande spéciale : froissement de parchemin et petite cloche.
+  order: {
+    bus: 'sfx', max: 2, dur: 0.5,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.12, gain: 0.06 * o.k, filter: 'bandpass', freq: 2400 });
+      fmBell(ctx, out, { t0: t + 0.12, freq: mtof(o.ok ? 91 : 86), ratio: 1.4, index: 2, dur: 0.3, gain: 0.07 * o.k });
+    },
+  },
   quest: {
     bus: 'sfx', max: 3, dur: 0.2,
     fn(ctx, out, t, o) {

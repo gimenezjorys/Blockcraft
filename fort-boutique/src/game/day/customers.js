@@ -313,6 +313,10 @@ export function stepCustomers(g, dt) {
       case 'queue':
         stepQueued(g, c, dt);
         break;
+      case 'order':
+        // Commande spéciale (G7.7) : il rejoint sa place près de la caisse ; special-order.js fait le reste.
+        walk(g, c, dt);
+        break;
       case 'leave':
         if (walk(g, c, dt)) {
           // Passe la porte puis disparaît.

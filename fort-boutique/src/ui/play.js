@@ -12,7 +12,10 @@ import {
   drawJoystick, drawSunBar, drawCoinCounter, drawPauseButton, drawPadLabel, drawCoinPile, drawDoorSign,
   hudHit, heart, drawWavePips, drawJarGauge, drawBellButton, drawTelegraph, drawBanner, drawBossBar, drawBossCard,
 } from '../render/hud.js';
-import { drawWantBubble } from '../render/sprites/products.js';
+import { drawWantBubble, drawProduct } from '../render/sprites/products.js';
+import { drawHintsWorld, drawGhostHand, drawOrderCard, drawEntranceWarning } from '../render/hints.js';
+import { stepHints } from '../game/tutorial.js';
+import { SPECIAL_ORDER } from '../data/tutorial.js';
 import { drawMonster } from '../render/sprites/monsters.js';
 import { drawFurniture } from '../render/sprites/furniture.js';
 import { FURNITURE, footprint } from '../data/furniture.js';
@@ -67,6 +70,8 @@ export function createPlay(app, g, hooks = {}) {
         if (g.phase.name === 'night') g.input.bell = 1;
       }
       stepGame(g, dt);
+      // Indices des 10 premières minutes (G19) : ils lisent les événements de ce pas, avant qu'on vide la file.
+      stepHints(g, dt);
       for (let i = 0; i < g.events.length; i++) {
         const e = g.events.items[i];
         onFx(e);
@@ -135,6 +140,13 @@ export function createPlay(app, g, hooks = {}) {
       return false;
     },
     snapshot: () => snapshot(g, fx, renderer),
+    /** Position à l'écran (pixels logiques) d'un point du monde exprimé en cases (scène de l'enveloppe, G19 0:02). */
+    worldToScreen(cx, cy) {
+      const wx = g.grid.origin.x + cx * C;
+      const wy = g.grid.origin.y + cy * C;
+      const z = camera.base || 1;
+      return { x: 180 + (wx - 180) * z, y: wy * z };
+    },
   };
 
   function tickView(dt) {
@@ -233,8 +245,16 @@ function drawWorldOverlay(ctx, g, ox, oy) {
   drawDoorSign(ctx, ox + (g.grid.door.x + 0.5) * C, oy + g.grid.h * C + 22, name === 'day' || name === 'morning' || name === 'free');
 }
 
-/** Bulles du télégraphe (2,5 s avant chaque vague). */
+/** Bulles du télégraphe (2,5 s avant chaque vague) et indices sans texte (G19), au-dessus du voile de nuit. */
 function drawAfterLight(ctx, g, view, ox, oy) {
+  const ph = g.phase.name;
+  if (g.hints && (ph === 'day' || ph === 'closing' || ph === 'night')) drawHintsWorld(ctx, g.hints, g.player, ox, oy, g.t);
+  // G19 10:10 : la nuit qui vient ouvre une nouvelle entrée ; on la montre dès la fermeture.
+  if ((ph === 'closing' || ph === 'dusk') && g.shop.week === 1) {
+    for (const e of g.grid.entrances) {
+      if (e.fromNight > 1 && e.fromNight === g.shop.night) drawEntranceWarning(ctx, ox + (e.x + 0.5) * C, oy + (e.y + 0.5) * C, g.t, t('hud.new'));
+    }
+  }
   const n = g.night;
   if (!n || g.phase.name !== 'night' || n.ended) return;
   if (n.state === 'pause' && n.stateT <= WAVES.telegraphS) {
@@ -276,6 +296,10 @@ function drawHud(ctx, g, view, app) {
   if (d && (name === 'day' || name === 'closing')) {
     drawSunBar(ctx, 1 - Math.max(0, d.timeLeft) / d.duration);
     drawCoinCounter(ctx, view.coins, view.bump);
+    if (d.order && d.order.waiting) {
+      const product = d.order.product;
+      drawOrderCard(ctx, d.order, (c) => drawProduct(c, product, 1.1), SPECIAL_ORDER.deliverS, g.t);
+    }
   } else if (g.night && (name === 'night' || name === 'dawn')) {
     const n = g.night;
     drawWavePips(ctx, n.waveIndex, n.waves.length, view.cleared);
@@ -294,6 +318,8 @@ function drawHud(ctx, g, view, app) {
   }
   drawPauseButton(ctx);
   if (view.banner) drawBanner(ctx, view.banner.text, view.banner.t, view.banner.life, view.banner.color);
+  // Main fantôme : jamais par-dessus un doigt posé (elle montre le geste, elle ne le gêne pas).
+  if (g.hints && g.hints.hand && !app.input.joystick.active && (name === 'day' || name === 'closing' || name === 'night')) drawGhostHand(ctx, g.hints.hand, g.t);
 }
 
 function snapshot(g, fx, renderer) {
@@ -344,6 +370,14 @@ function snapshot(g, fx, renderer) {
         }
       : null,
     padsDone: g.shop.pads.done.slice(),
+    hints: g.hints
+      ? { hand: !!g.hints.hand, arrow: g.hints.arrow ? g.hints.arrow.color : null, to: g.hints.arrow ? { x: g.hints.arrow.tx, y: g.hints.arrow.ty } : null, halo: !!g.hints.halo, shown: g.hints.shown }
+      : null,
+    order: d && d.order ? { product: d.order.product, need: d.order.need, got: d.order.got, timeLeft: d.order.timeLeft, waiting: d.order.waiting, x: d.order.c.x, y: d.order.c.y } : null,
+    rush: !!(d && d.rush),
+    newEntrance: (g.phase.name === 'closing' || g.phase.name === 'dusk') && g.shop.week === 1
+      ? g.grid.entrances.filter((e) => e.fromNight > 1 && e.fromNight === g.shop.night).map((e) => e.kind)
+      : [],
     particles: fx.count,
     drawnMonsters: renderer.stats.monsters,
   };

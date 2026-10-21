@@ -15,6 +15,25 @@ export function addXp(g, amount) {
   const p = g.save.player;
   if (!(amount > 0)) return 0;
   p.xp += amount;
+  // Pendant le jour et la nuit, l'XP s'additionne mais le niveau attend l'aube (G12.3 « niveaux 2, 3 et 4 atteints à
+  // l'aube », G19 : ruban à 2:57 et 6:30). Les niveaux en fin de cycle ne changent pas (DECISIONS.md, M11).
+  if (g.phase && LEVEL_WAITS.has(g.phase.name)) {
+    p.xp = Math.round(p.xp * 100) / 100;
+    return 0;
+  }
+  return applyLevelUps(g);
+}
+
+/** Phases où le passage de niveau attend l'aube. */
+const LEVEL_WAITS = new Set(['day', 'closing', 'dusk', 'night']);
+
+/**
+ * Applique les passages de niveau dus à l'XP accumulée (à l'aube, au Matin, ou tout de suite hors du jeu).
+ * @param {any} g
+ * @returns {number} nombre de niveaux gagnés
+ */
+export function applyLevelUps(g) {
+  const p = g.save.player;
   let gained = 0;
   while (p.level < MAX_LEVEL && p.xp >= xpToNext(p.level)) {
     p.xp -= xpToNext(p.level);

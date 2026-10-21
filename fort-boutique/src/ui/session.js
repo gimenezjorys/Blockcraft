@@ -3,7 +3,7 @@ import { now } from '../core/time.js';
 import { seedFrom } from '../core/rng.js';
 import { loadSave, SaveManager } from '../save/save.js';
 import { createGame, rebuildShop } from '../game/state.js';
-import { resumePoint, enterMorning, openShop, markNightPending, resumeNight, enterDawn, openDawnChest, leaveDawn } from '../game/cycle.js';
+import { resumePoint, enterMorning, openShop, markNightPending, resumeNight, enterDawn, openDawnChest, openExtraChest, leaveDawn } from '../game/cycle.js';
 import { startDay } from '../game/day/day.js';
 import { startNight } from '../game/night/night.js';
 import { upgradeFurniture, canUpgrade } from '../game/economy.js';
@@ -13,6 +13,11 @@ import { ADS } from '../data/balance.js';
 import { t } from './i18n.js';
 import { SVG } from './icons.js';
 import { createHub, HUB_SCREENS } from './hub.js';
+import { createObjective } from './objective.js';
+import { forceArrow } from '../game/tutorial.js';
+
+/** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime. */
+const DAWN_DELAY_S = 2.5;
 
 /** Sauvegarde automatique pendant le jeu (B9). */
 const AUTOSAVE_S = 10;
@@ -32,6 +37,8 @@ export function createSession(app, o) {
   /** Une sauvegarde de transition attend d'être écrite : la coche « sauvegardé » clignotera. */
   let flashPending = false;
   let lastWrites = 0;
+  /** Compte à rebours avant l'écran de l'aube (pluie de pièces). */
+  let dawnDelay = -1;
 
   /**
    * Sauvegarde. Même « forcée » (transition de phase), l'écriture respecte B9 : au plus une toutes les 500 ms ;
@@ -52,8 +59,43 @@ export function createSession(app, o) {
     flashPending = false;
   }
 
+  const sfx = (id) => app.services.audio && app.services.audio.play(id);
+  const wiggle = (el) => {
+    sfx('error');
+    el.classList.remove('nope');
+    void el.offsetWidth;
+    el.classList.add('nope');
+  };
+
   function showHud() {
-    app.router.goto('hud');
+    app.router.goto('hud', {
+      game: () => g,
+      // Tap sur l'objectif pendant le Jour : la flèche dorée montre l'emplacement (G3.5) ; le reste se fait au Matin.
+      onObjective: (o, el) => {
+        if (o.kind === 'pad' && o.onFloor) {
+          sfx('ui_tap');
+          forceArrow(g);
+        } else wiggle(el);
+      },
+    });
+  }
+
+  /** Tap sur l'objectif au Matin : on emmène le joueur à l'endroit concerné (G3.5). */
+  function morningObjective(o, el) {
+    const pulse = (sel) => {
+      const b = document.querySelector(sel);
+      if (!b) return wiggle(el);
+      sfx('ui_tap');
+      b.classList.remove('hint-pulse');
+      void b.offsetWidth;
+      b.classList.add('hint-pulse');
+      return null;
+    };
+    if (o.kind === 'pad') pulse('#hub-open');
+    else if (o.kind === 'upgrade') hub.open('upgrades');
+    else if (o.kind === 'moon') hub.open('moon');
+    else if (o.kind === 'quest') pulse('#hub-quests');
+    else if (o.kind === 'unlock') pulse(o.furniture ? '#hub-catalog' : `#hub-${o.feature}`);
   }
 
   function showMorning() {
@@ -89,17 +131,28 @@ export function createSession(app, o) {
       ready: session.hubScreens,
       badges: hubBadges(g),
       onSettings: () => pause(),
+      objective: (d) => createObjective(() => g, morningObjective, d),
+      hintOpen: g.save.stats.cycles < 3,
     });
   }
 
   const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning() });
 
-  function showDawn() {
+  function showDawn(resumed = false) {
+    dawnDelay = -1;
     app.router.goto('dawn', {
       dawn: g.shop.phase.dawn,
       save: g.save,
+      // Après un rechargement, le ticket s'imprime vite : on ne fait pas attendre deux fois (Sam).
+      resumed,
+      hints: g.save.stats.cycles < 3,
       onOpenChest: () => {
         const c = openDawnChest(g);
+        save(true);
+        return c;
+      },
+      onOpenExtra: (i) => {
+        const c = openExtraChest(g, i);
         save(true);
         return c;
       },
@@ -132,6 +185,8 @@ export function createSession(app, o) {
       },
       onSettings: session.onSettings ? () => session.onSettings() : null,
       onQuit: () => {
+        // La pluie de pièces de l'aube ne doit pas ouvrir l'aube par-dessus l'écran titre.
+        dawnDelay = -1;
         save(true);
         app.router.pop();
         app.loop.resume('menu');
@@ -162,7 +217,7 @@ export function createSession(app, o) {
             /* rien */
           }
         }
-        showDawn();
+        dawnDelay = DAWN_DELAY_S;
         break;
       case 'save':
         save();
@@ -174,12 +229,21 @@ export function createSession(app, o) {
   /** Reprend exactement là où la partie s'était arrêtée (G5.2). */
   function route(point) {
     switch (point) {
-      case 'intro':
-        g.save.progress.flags.introDone = true;
-        openShop(g);
-        save(true);
-        showHud();
+      case 'intro': {
+        // G19 0:02 : la scène de l'enveloppe, puis le Jour 1 commence.
+        const reg = g.register || { cx: 2.5, cy: 2.5 };
+        app.router.goto('intro', {
+          register: play.worldToScreen(reg.cx, reg.cy),
+          door: play.worldToScreen(g.grid.door.x + 0.5, g.grid.h),
+          onDone: () => {
+            g.save.progress.flags.introDone = true;
+            openShop(g);
+            save(true);
+            showHud();
+          },
+        });
         break;
+      }
       case 'day':
         startDay(g, { resume: true });
         showHud();
@@ -197,7 +261,7 @@ export function createSession(app, o) {
           break;
         }
         g.phase = { name: 'dawn', t: 10 };
-        showDawn();
+        showDawn(true);
         break;
       default:
         showMorning();
@@ -235,6 +299,10 @@ export function createSession(app, o) {
     /** À chaque pas : sauvegarde automatique et temps de jeu. */
     step(dt) {
       if (!g || !saver) return;
+      if (dawnDelay >= 0) {
+        dawnDelay -= dt;
+        if (dawnDelay < 0 && app.router.baseId() === 'hud') showDawn();
+      }
       const name = g.phase.name;
       if (name === 'day' || name === 'closing' || name === 'night' || name === 'dusk') {
         g.save.stats.playtimeMs += dt * 1000;

@@ -231,7 +231,8 @@ test('nuit 1 complète : deux vagues, les meubles tirent, fin de nuit et étoile
 test('voleur scénarisé : ralenti de moitié après 3 s sans réaction', () => {
   const g = newGame(31);
   startNight(g, { dayTakings: 120 });
-  run(g, 30, () => teleport(g, 4.5, 5.5));
+  // M11 : la nuit scénarisée suit le rythme de G19 (vague 2 vers 2:08) : le vol arrive vers 28 s, on attend 45 s.
+  run(g, 45, () => teleport(g, 4.5, 5.5));
   // Le voleur a eu le temps de fuir (le marchand ne bouge pas) : il a été ralenti.
   assert.ok(g.night.lost > 0 || g.night.monsters.active.some((m) => m.slowedByScript));
 });

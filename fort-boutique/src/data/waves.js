@@ -25,6 +25,17 @@ export const WAVES = {
   goldenChance: 0.1,
   /** Première nuit du jeu, scénarisée (G19 1:49 et 2:08). */
   tutorial: [[{ type: 'raton', count: 3 }], [{ type: 'raton', count: 4, scriptedThief: true }]],
+  /** Rythme de la nuit scénarisée (G19 : bulle 1:46, vague 1 1:49, vague 2 ≈ 2:08, fin ≈ 2:22, soit ≈ 36 s). */
+  tutorialStartS: 3,
+  tutorialMemberGapS: 2.0,
+  tutorialPauseS: 5,
+  /** Les ratons de cette nuit gardent les PV d'avant le réglage M10 (20 au lieu de 25) : seuls les meubles suffisent,
+   *  seul le voleur scénarisé atteint la caisse (G19 « première victoire »). */
+  tutorialHpMult: 0.8,
+  /** Nuits d'apprentissage (Q1, semaine 1, nuits 2 et 3) : un nouveau Grignotin, puis une nouvelle entrée. Les vagues
+   *  entrent plus lentement pour laisser le temps de voir (G19 : nuit 2 ≈ 60 s, 3 vagues ; avec le rythme de G8.3 elle
+   *  ne durait que 28 s dans la petite boutique). Budget de menace inchangé. Dès la nuit 4 : rythme normal. */
+  learning: { district: 'q1', week: 1, nights: [2, 3], memberGapS: 1.05, groupGapS: 2.7, pauseS: 6 },
 };
 
 /** Mise à l'échelle des PV (G10.2) : M_Q × (1 + 0,12 (k − 1)) × 1,35^(s − 1). */

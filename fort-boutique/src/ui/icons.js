@@ -70,6 +70,8 @@ export const SVG = {
   bulb: '<svg viewBox="0 0 24 24"><path d="M12 2.5a6.5 6.5 0 0 0-3.8 11.8c.6.5.8 1.1.8 1.8V17h6v-.9c0-.7.2-1.3.8-1.8A6.5 6.5 0 0 0 12 2.5z" fill="#FFE066" stroke="#2B1A33" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 20h5M10.5 22.5h3" stroke="#2B1A33" stroke-width="2" stroke-linecap="round"/></svg>',
   check: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#46D39A" stroke="#2B1A33" stroke-width="2"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#2B1A33" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   map: '<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" fill="#DDB389" stroke="#2B1A33" stroke-width="2" stroke-linejoin="round"/><path d="M9 4v14M15 6v14" stroke="#2B1A33" stroke-width="1.4"/></svg>',
+  scroll: '<svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 0 2 2H8a2 2 0 0 1-2-2z" fill="#FFF6E5" stroke="#2B1A33" stroke-width="2" stroke-linejoin="round"/><path d="M9 9h7M9 12.5h7M9 16h4" stroke="#2B1A33" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  hand: '<svg viewBox="0 0 48 56"><path d="M17 30V8.5a3.5 3.5 0 0 1 7 0V25l1-6.5a3.3 3.3 0 0 1 6.5 1V27l.7-4a3.2 3.2 0 0 1 6.3 1v5l.4-2.2a3 3 0 0 1 6 .8V38c0 9-6.5 15-15 15h-2c-6 0-9.5-2.5-12.5-7L8 37.5a3.4 3.4 0 0 1 5.4-4z" fill="#FFF6E5" stroke="#2B1A33" stroke-width="2.6" stroke-linejoin="round"/></svg>',
   back: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="#2B1A33" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 

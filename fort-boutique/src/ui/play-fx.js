@@ -45,6 +45,36 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
       case 'vip':
         play('vip');
         break;
+      case 'rush':
+        // G7.7 : bannière « RUSH! » (un des trois textes permis pendant les 10 premières minutes, G19).
+        play('rush');
+        view.banner = { text: t('day.rush'), t: 0, life: 1.8, color: P.pomme };
+        shake(2, 0.2);
+        break;
+      case 'order_in':
+        play('order', { ok: 0 });
+        break;
+      case 'order_give':
+        play('drop');
+        floaters.add(`${e.a}/${e.b}`, px(e.x), py(e.y) - 36, { color: P.craieJaune, size: 13 });
+        break;
+      case 'order_done':
+        play('order', { ok: 1 });
+        fx.burst('star', px(e.x), py(e.y) - 24, 10, P.or, 90, 0.6, 3);
+        break;
+      case 'order_fail':
+        view.hearts.push({ x: px(e.x), y: py(e.y) - 30, t: 0 });
+        break;
+      case 'night_end': {
+        // G19 2:22 : pluie de pièces sur la caisse avant l'aube.
+        if (!g.register) break;
+        play('coin', { n: 4 });
+        for (let i = 0; i < 14; i++) {
+          const dx = (i % 7) * 9 - 27;
+          fx.coinFlight(px(g.register.cx) + dx, py(g.register.cy) - 140 - (i % 3) * 20, px(g.register.cx), py(g.register.cy) - 6, i * 0.05, 0);
+        }
+        break;
+      }
       case 'kaching':
         play('kaching');
         floaters.add(`+${e.a}`, px(e.x), py(e.y) - 30, { color: P.orReflet, size: 15 });

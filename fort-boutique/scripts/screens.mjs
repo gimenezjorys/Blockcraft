@@ -38,7 +38,13 @@ await page.evaluate(() => { document.querySelector('.debug-panel').style.opacity
 await page.waitForTimeout(2600);
 await shot('01-titre');
 await page.touchscreen.tap(180, 320);
-await page.waitForTimeout(6000);
+// M11 : la scène de l'enveloppe (G19 0:02), puis le Jour 1 avec la main fantôme, la flèche dorée et l'objectif.
+await page.waitForTimeout(2300);
+await shot('01b-enveloppe');
+await page.tap('.intro-envelope', { force: true });
+await page.waitForTimeout(3200);
+await shot('01c-jour1-indices');
+await page.waitForTimeout(800);
 // Cagette (0,1) puis étagère (0,4) au clavier, puis la caisse.
 await hold('ArrowUp', 1000);
 await hold('ArrowLeft', 330);
@@ -54,14 +60,16 @@ await page.waitForTimeout(8600);
 await shot('03-crepuscule');
 await page.waitForTimeout(9000);
 await shot('04-nuit');
-await page.waitForTimeout(25000);
+// M11 : la nuit 1 suit le rythme de G19 (≈ 34 s), puis 2,5 s de pluie de pièces avant le ticket.
+await page.waitForSelector('.screen-dawn', { state: 'visible', timeout: 60000 }).catch(() => {});
+await page.waitForTimeout(4000);
 await shot('05-aube');
 // Vrai navigateur : la sortie et le bouton ×2 restent invisibles tant que le coffre est fermé (P1, G3.8, G18.3).
 const checks = [];
 const expectHidden = async (sel, why) => {
   if (await page.isVisible(sel)) checks.push(`${sel} visible : ${why}`);
 };
-await page.waitForSelector('.dawn-chest', { state: 'visible', timeout: 8000 }).catch(() => checks.push('coffre invisible'));
+await page.waitForSelector('.dawn-chest', { state: 'visible', timeout: 15000 }).catch(() => checks.push('coffre invisible'));
 await expectHidden('#dawn-continue', 'sortie avant le coffre');
 await expectHidden('#dawn-double', 'pub pendant les 10 premières minutes');
 for (let i = 0; i < 3; i++) {
@@ -162,6 +170,59 @@ await shot('07-matin');
   await p3.waitForTimeout(100);
   await p3.screenshot({ path: join(OUT, '14-roi-raton.png') });
   await ctx3.close();
+}
+// M11 : Rush (jour 2), Commande spéciale (jour 3), voleur de la nuit 1 et sa traînée rouge.
+{
+  const mk = (day, mutate) => {
+    const s = defaultSave({ seed: 21, now: 0, lang: 'fr' });
+    s.progress.flags.introDone = true;
+    s.progress.flags.firstChestDone = true;
+    Object.assign(s.stats, { cycles: day - 1, nights: day - 1 });
+    Object.assign(s.player, { level: day, coins: 0 });
+    const shop = s.shops.q1;
+    Object.assign(shop, { day, night: day });
+    Object.assign(shop.phase, { name: 'morning', dawnClaimed: true, firstSaleDone: true });
+    shop.pads.done = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'].slice(0, day * 2);
+    // Étagère garnie : les clients (et la Commande spéciale) ont quelque chose à demander.
+    const shelf = shop.layout.find((it) => it.id === 'etagere');
+    Object.assign(shelf, { product: 'pomme', count: 4 });
+    if (mutate) mutate(s);
+    return serialize(s);
+  };
+  const run = async (name, text, until, extraMs, move) => {
+    const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true, locale: 'fr-FR' });
+    await ctx.addInitScript(([k, v]) => { if (!localStorage.getItem(k)) localStorage.setItem(k, v); }, [SAVE_KEY, text]);
+    const pg = await ctx.newPage();
+    pg.on('pageerror', (e) => errors.push(e.message));
+    await pg.goto(`file://${join(ROOT, 'dist-test/index.html')}`);
+    await pg.waitForTimeout(600);
+    await pg.touchscreen.tap(180, 320);
+    await pg.waitForTimeout(600);
+    if (await pg.isVisible('#unlock-ok')) await pg.tap('#unlock-ok');
+    if (await pg.isVisible('#hub-open')) await pg.tap('#hub-open');
+    const ok = await pg.evaluate(([u, extra]) => {
+      const h = window.__FB_TEST__;
+      const test = new Function('s', `return ${u};`);
+      for (let i = 0; i < 1200; i++) {
+        h.advance(100);
+        const st = h.getState();
+        if (st.scene && test(st.scene)) {
+          h.advance(extra);
+          return true;
+        }
+      }
+      return false;
+    }, [until, extraMs]);
+    if (!ok) checks.push(`${name} : situation non atteinte`);
+    void move;
+    await pg.waitForTimeout(80);
+    await pg.screenshot({ path: join(OUT, `${name}.png`) });
+    await ctx.close();
+  };
+  await run('15-rush', mk(2), 's.rush', 600);
+  await run('16-commande', mk(3), 's.order && s.order.waiting', 400);
+  await run('17-voleur', mk(1, (s) => { Object.assign(s.stats, { cycles: 0, nights: 0 }); s.player.level = 1; s.shops.q1.phase.name = 'night'; s.shops.q1.phase.dayTakings = 120; }),
+    's.night && s.night.monsters.some((m) => m.thief && m.carry > 0)', 3600);
 }
 await browser.close();
 process.stdout.write(`captures dans ${OUT}${errors.length ? ` — erreurs : ${errors.join(' | ')}` : ''}\n`);

@@ -1,0 +1,367 @@
+{
+  "playtest": "P2",
+  "durationS": 600,
+  "milestones": [
+    {
+      "id": "day1",
+      "key": true,
+      "label": "Jour 1 (après l’enveloppe)",
+      "targetS": 6,
+      "atS": 5.4,
+      "gapPct": -10,
+      "ok": true
+    },
+    {
+      "id": "firstPurchase",
+      "key": true,
+      "label": "Premier achat (P1)",
+      "targetS": 40,
+      "atS": 37.4,
+      "gapPct": -7,
+      "ok": true
+    },
+    {
+      "id": "secondPurchase",
+      "key": true,
+      "label": "Deuxième achat (P2)",
+      "targetS": 75,
+      "atS": 72.1,
+      "gapPct": -4,
+      "ok": true
+    },
+    {
+      "id": "firstDusk",
+      "key": true,
+      "label": "Crépuscule 1",
+      "targetS": 102,
+      "atS": 101.39999999999999,
+      "gapPct": -1,
+      "ok": true
+    },
+    {
+      "id": "firstNight",
+      "key": true,
+      "label": "Nuit 1",
+      "targetS": 106,
+      "atS": 105.39999999999999,
+      "gapPct": -1,
+      "ok": true
+    },
+    {
+      "id": "firstDawn",
+      "key": true,
+      "label": "Aube 1 (écran du ticket)",
+      "targetS": 145,
+      "atS": 137.2,
+      "gapPct": -5,
+      "ok": true
+    },
+    {
+      "id": "firstChest",
+      "key": true,
+      "label": "Premier coffre ouvert",
+      "targetS": 162,
+      "atS": 149.2,
+      "gapPct": -8,
+      "ok": true
+    },
+    {
+      "id": "firstUpgrade",
+      "key": true,
+      "label": "Première amélioration",
+      "targetS": 170,
+      "atS": 154.1,
+      "gapPct": -9,
+      "ok": true
+    },
+    {
+      "id": "level2",
+      "key": false,
+      "label": "Niveau 2 (ruban)",
+      "targetS": 177,
+      "atS": 154.1,
+      "gapPct": -13,
+      "ok": true
+    },
+    {
+      "id": "firstMorning",
+      "key": true,
+      "label": "Premier Matin",
+      "targetS": 182,
+      "atS": 160.6,
+      "gapPct": -12,
+      "ok": true
+    },
+    {
+      "id": "day2",
+      "key": true,
+      "label": "Jour 2",
+      "targetS": 195,
+      "atS": 168.6,
+      "gapPct": -14,
+      "ok": true
+    },
+    {
+      "id": "thirdPurchase",
+      "key": false,
+      "label": "Troisième achat (P3, Frigo)",
+      "targetS": 220,
+      "atS": 188.5,
+      "gapPct": -14,
+      "ok": true
+    },
+    {
+      "id": "rush",
+      "key": false,
+      "label": "Premier Rush",
+      "targetS": 250,
+      "atS": 242.5,
+      "gapPct": -3,
+      "ok": true
+    },
+    {
+      "id": "fourthPurchase",
+      "key": false,
+      "label": "Quatrième achat (P4)",
+      "targetS": 280,
+      "atS": 210.79999999999998,
+      "gapPct": -25,
+      "ok": false
+    },
+    {
+      "id": "secondNight",
+      "key": true,
+      "label": "Nuit 2",
+      "targetS": 325,
+      "atS": 298.6,
+      "gapPct": -8,
+      "ok": true
+    },
+    {
+      "id": "secondDawn",
+      "key": false,
+      "label": "Aube 2",
+      "targetS": 390,
+      "atS": 357.3,
+      "gapPct": -8,
+      "ok": true
+    },
+    {
+      "id": "level3",
+      "key": true,
+      "label": "Niveau 3 (ruban)",
+      "targetS": 390,
+      "atS": 377.8,
+      "gapPct": -3,
+      "ok": true
+    },
+    {
+      "id": "secondMorning",
+      "key": false,
+      "label": "Deuxième Matin",
+      "targetS": 410,
+      "atS": 384.3,
+      "gapPct": -6,
+      "ok": true
+    },
+    {
+      "id": "firstEdit",
+      "key": false,
+      "label": "Premier aménagement validé",
+      "targetS": 455,
+      "atS": 392.20000000000005,
+      "gapPct": -14,
+      "ok": true
+    },
+    {
+      "id": "day3",
+      "key": true,
+      "label": "Jour 3",
+      "targetS": 460,
+      "atS": 397.3,
+      "gapPct": -14,
+      "ok": true
+    },
+    {
+      "id": "firstOrder",
+      "key": true,
+      "label": "Première Commande spéciale (jour 3, 20 à 45 % de la journée : ≈ 8:40)",
+      "targetS": 520,
+      "atS": 453.70000000000005,
+      "gapPct": -13,
+      "ok": true
+    },
+    {
+      "id": "newEntrance",
+      "key": true,
+      "label": "Fermeture du jour 3 : nouvelle entrée annoncée",
+      "targetS": 610,
+      "atS": 547.2,
+      "gapPct": -10,
+      "ok": true
+    }
+  ],
+  "worstGapWithoutObjective": {
+    "s": 12.5,
+    "at": 134.4,
+    "screen": "dawn"
+  },
+  "hintsShown": 3,
+  "hintSeconds": 2,
+  "screens": [
+    {
+      "screen": "intro",
+      "from": 0.10000000000000009,
+      "to": 5.4
+    },
+    {
+      "screen": "hud",
+      "from": 5.4,
+      "to": 137.2
+    },
+    {
+      "screen": "dawn",
+      "from": 137.2,
+      "to": 157.1
+    },
+    {
+      "screen": "unlocks",
+      "from": 157.1,
+      "to": 160.6
+    },
+    {
+      "screen": "morning",
+      "from": 160.6,
+      "to": 168.6
+    },
+    {
+      "screen": "hud",
+      "from": 168.6,
+      "to": 357.3
+    },
+    {
+      "screen": "dawn",
+      "from": 357.3,
+      "to": 380.8
+    },
+    {
+      "screen": "unlocks",
+      "from": 380.8,
+      "to": 384.3
+    },
+    {
+      "screen": "morning",
+      "from": 384.3,
+      "to": 387.3
+    },
+    {
+      "screen": "editor",
+      "from": 387.3,
+      "to": 392.3
+    },
+    {
+      "screen": "morning",
+      "from": 392.3,
+      "to": 397.3
+    },
+    {
+      "screen": "hud",
+      "from": 397.3,
+      "to": 600
+    }
+  ],
+  "taps": 18,
+  "inertTaps": 0,
+  "adOffersFirst10min": 0,
+  "nightStars": [
+    3,
+    3
+  ],
+  "seen": {
+    "vip": false,
+    "hurried": false,
+    "order": true,
+    "rush": true
+  },
+  "summary10": {
+    "day": 3,
+    "nights": 2,
+    "nightStars": [
+      3,
+      3
+    ],
+    "pads": 6,
+    "upgrades": 2,
+    "level": 3,
+    "edits": 1
+  },
+  "errors": [],
+  "final": {
+    "level": 3,
+    "xp": 273,
+    "coins": 967,
+    "pads": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6"
+    ],
+    "day": 3
+  },
+  "hesitant": {
+    "seen": [
+      {
+        "at": 5.4,
+        "what": "day:main+flèche dorée",
+        "day": 1
+      },
+      {
+        "at": 13.4,
+        "what": "day:+flèche dorée",
+        "day": 1
+      },
+      {
+        "at": 18.6,
+        "what": "day:main+flèche dorée",
+        "day": 1
+      },
+      {
+        "at": 20.700000000000003,
+        "what": "day:+flèche dorée",
+        "day": 1
+      },
+      {
+        "at": 23.3,
+        "what": "day:+flèche dorée+halo",
+        "day": 1
+      },
+      {
+        "at": 51.300000000000004,
+        "what": "day:+flèche dorée",
+        "day": 1
+      },
+      {
+        "at": 128.2,
+        "what": "night:main+flèche dorée+halo",
+        "day": 1
+      },
+      {
+        "at": 133.5,
+        "what": "night:main+flèche rouge",
+        "day": 1
+      },
+      {
+        "at": 200.6,
+        "what": "day:main+flèche dorée",
+        "day": 2
+      }
+    ],
+    "firstPurchaseS": 53.5,
+    "nightStars": [
+      2
+    ],
+    "errors": []
+  }
+}

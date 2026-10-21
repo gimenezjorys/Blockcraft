@@ -77,6 +77,8 @@ export function startDay(g, opts = {}) {
     ph.dayTips = 0;
     ph.dayPile = 0;
     ph.vipsSpawned = 0;
+    ph.rushDone = false;
+    ph.ordersSpawned = 0;
     ph.dawnClaimed = false;
   }
   g.player.stack = Array.isArray(ph.carried) ? ph.carried.slice(0, 14) : [];
@@ -138,6 +140,8 @@ export function beginClosing(g) {
   d.closing = true;
   d.closingT = 0;
   d.timeLeft = 0;
+  d.rush = null;
+  d.tipMult = 1;
   g.phase = { name: 'closing', t: 0 };
   g.events.push('close_shop');
 }

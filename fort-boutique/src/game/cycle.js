@@ -8,7 +8,7 @@ import { claimNight } from './night/night.js';
 import { rollChest, applyChest, upgradeChestRank } from './chests.js';
 import { fillAllProducers } from './day/producers.js';
 import { DISTRICTS, DISTRICT_IDS } from '../data/districts.js';
-import { districtOpen } from './progression.js';
+import { districtOpen, applyLevelUps } from './progression.js';
 import { defaultShop } from '../save/schema.js';
 
 /**
@@ -87,10 +87,17 @@ export function enterDawn(g) {
     day: { sales: day.sales || 0, tips: day.tips || 0 },
     chest: chestType ? { type: first ? 'wood' : chestType, first, opened: false, seed: seedFrom(g.save.seed, 'aube', g.save.stats.cycles, g.shopId) } : null,
     adDoubled: false,
+    // Coffres en bois gagnés par les Commandes spéciales du jour (G7.7), ouverts après celui de la nuit.
+    extra: Array.from({ length: Math.max(0, ph.orderChests | 0) }, (_, i) => ({
+      type: 'wood', first: false, opened: false, seed: seedFrom(g.save.seed, 'commande', g.save.stats.cycles, g.shopId, i),
+    })),
   };
+  ph.orderChests = 0;
   ph.name = 'dawn';
   const levelFrom = g.save.player.level;
   claimNight(g, result);
+  // L'XP du jour et de la nuit fait monter de niveau maintenant (G12.3) ; le ruban de l'aube le montre.
+  applyLevelUps(g);
   // Le passage de niveau se montre sur l'écran de l'aube (ruban), même après un rechargement.
   ph.dawn.level = { from: levelFrom, to: g.save.player.level };
   g.phase = { name: 'dawn', t: 0 };
@@ -118,6 +125,22 @@ export function openDawnChest(g) {
 }
 
 /**
+ * Ouvre un coffre en plus de l'aube (Commande spéciale).
+ * @param {any} g
+ * @param {number} i
+ */
+export function openExtraChest(g, i) {
+  const dawn = g.shop.phase.dawn;
+  const c = dawn && dawn.extra && dawn.extra[i];
+  if (!c || c.opened) return null;
+  const content = rollChest(g.save, c.type, { shopId: g.shopId, seed: c.seed });
+  applyChest(g.save, content);
+  c.opened = true;
+  c.content = content;
+  return content;
+}
+
+/**
  * Aube -> Matin : on avance d'une nuit (ou de semaine après la Pleine Lune, G8.9).
  * @param {any} g
  */
@@ -126,6 +149,7 @@ export function leaveDawn(g) {
   const dawn = shop.phase.dawn;
   // G3.8 « Rien ne se perd » : un coffre resté fermé s'ouvre tout seul en quittant l'aube.
   if (dawn && dawn.chest && !dawn.chest.opened) openDawnChest(g);
+  if (dawn && dawn.extra) dawn.extra.forEach((c, i) => !c.opened && openExtraChest(g, i));
   const r = dawn ? dawn.result : null;
   if (r && r.bossNight) {
     if (r.bossWin) {

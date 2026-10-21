@@ -42,7 +42,7 @@ export function defaultShop(id) {
     lastNightStars: 0,
     phase: {
       name: 'morning', dayTimeLeftS: 0, dayTakings: 0, daySales: 0, dayTips: 0, dayPile: 0, vipsSpawned: 0,
-      dawnClaimed: true, carried: [], firstSaleDone: false,
+      rushDone: false, ordersSpawned: 0, orderChests: 0, dawnClaimed: true, carried: [], firstSaleDone: false,
     },
   };
 }
@@ -87,7 +87,7 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
     },
     shops: { q1: defaultShop('q1') },
     currentShop: 'q1',
-    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, pendingUnlocks: [], pendingDistricts: [] },
+    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, learned: {}, pendingUnlocks: [], pendingDistricts: [] },
     daily: {
       calendarIndex: 0,
       lastCalendarDay: -1,

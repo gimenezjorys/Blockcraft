@@ -124,6 +124,8 @@ export const CUSTOMER_TYPES = {
   hurried: { patience: 6, basket: 1, tip: 0.5, payMult: 1, share: 0.15, fromDay: 3 },
   greedy: { patience: 12, basket: 3, tip: 0.1, payMult: 1, share: 0.1, fromDay: 2 },
   vip: { patience: 7, basket: 2, tip: 0.1, payMult: 3, priciest: true, perDayQ1: 1, perDay: 2, fromDay: 2 },
+  /** Client de la Commande spéciale (G7.7, parchemin) : n'entre que par data/tutorial.js (SPECIAL_ORDER). */
+  order: { patience: 50, basket: 1, tip: 0, payMult: 1 },
 };
 
 /** Effets de jour des meubles sur les clients (G9.3). */

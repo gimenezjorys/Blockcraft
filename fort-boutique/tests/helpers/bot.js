@@ -85,6 +85,7 @@ export class TouchBot {
     }
     const sc = st.scene;
     if (screen === 'title') this.tapEl('.screen-title');
+    else if (screen === 'intro') this.intro();
     else if (screen === 'dawn') this.dawn();
     else if (screen === 'unlocks') this.tapEl('#unlock-ok');
     else if (screen === 'morning') this.morning(st);
@@ -93,6 +94,13 @@ export class TouchBot {
     else this.release();
     this.g.hooks.advance(ms);
     this.t += ms;
+  }
+
+  /** Scène de l'enveloppe (G19 0:02) : on tape l'enveloppe dès qu'elle est posée sur la caisse. */
+  intro() {
+    this.release();
+    const env = this.g.$('.intro-envelope');
+    if (env && env.classList.contains('landed') && !env.classList.contains('open')) this.tapEl(env);
   }
 
   dawn() {

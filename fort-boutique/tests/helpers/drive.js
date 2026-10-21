@@ -51,3 +51,16 @@ export function waitFor(g, pred, maxMs = 20000, stepMs = 100) {
   }
   return pred(g.hooks.getState());
 }
+
+/**
+ * Premier lancement : tap sur l'écran titre, puis sur l'enveloppe de la scène d'intro (G19 0:02, M11) ;
+ * renvoie quand le Jour 1 a commencé.
+ * @param {ReturnType<import('./dom.js').loadGame>} g
+ */
+export function openEnvelope(g) {
+  g.hooks.advance(1000);
+  const env = g.$('.intro-envelope');
+  if (!env) return false;
+  g.fingers.tap(env, 180, 320);
+  return waitFor(g, (s) => s.scene && s.scene.phase === 'day', 4000, 50);
+}

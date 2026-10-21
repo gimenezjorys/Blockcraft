@@ -5,6 +5,8 @@ import { SVG } from '../icons.js';
 import { levelProgress, isUnlocked } from '../../game/progression.js';
 import { FEATURE_LEVELS } from '../../data/unlocks.js';
 import { padsRemaining } from '../../game/day/pads.js';
+import { HINTS } from '../../data/tutorial.js';
+import { listen } from '../../core/events.js';
 
 /** Raccourcis du hub et leur condition d'ouverture. */
 export const HUB_BUTTONS = [
@@ -19,7 +21,9 @@ export const HUB_BUTTONS = [
 /**
  * @param {any} app
  * @param {{ g: any, onOpen: () => void, onButton: (id: string) => void, onSettings: () => void, badges?: Record<string, boolean>,
- *   objective?: HTMLElement, ready?: Set<string> }} p  ready : écrans déjà disponibles (les autres affichent « Bientôt »)
+ *   objective?: (d: any) => { el: HTMLElement, update: () => void }, hintOpen?: boolean, ready?: Set<string> }} p
+ *   ready : écrans déjà disponibles (les autres affichent « Bientôt ») ; objective : étiquette « Prochain objectif » (G3.5) ;
+ *   hintOpen : pendant les 10 premières minutes, OUVRIR pulse après 8 s sans aucun tap (G19)
  */
 function mount(app, p, d) {
   const g = p.g;
@@ -52,7 +56,8 @@ function mount(app, p, d) {
   const mapBtn = h('button.hub-map', { type: 'button', 'aria-label': t('hub.map'), html: SVG.map });
   if (!ready.has('map')) mapBtn.classList.add('locked', 'soon');
   onTap(mapBtn, () => (ready.has('map') ? p.onButton('map') : nope(mapBtn)), d);
-  const row2 = h('div.hub-row2', [mapBtn, p.objective || h('div.hub-objective-slot'), moon]);
+  const objective = p.objective ? p.objective(d) : null;
+  const row2 = h('div.hub-row2', [mapBtn, objective ? h('div.hub-objective-slot', [objective.el]) : h('div.hub-objective-slot'), moon]);
   const grid = h('div.hub-grid');
   for (const b of HUB_BUTTONS) {
     const unlockedByLevel = !b.feature || isUnlocked(save, b.feature);
@@ -91,8 +96,21 @@ function mount(app, p, d) {
     p.onOpen();
   }, d);
   const el = h('div.morning', [top, row2, h('div.hub-spacer'), grid, h('div.hub-open-wrap', [open])]);
+  let idle = 0;
+  const touched = () => {
+    idle = 0;
+    open.classList.remove('hint-pulse');
+  };
+  d.add(listen(el, 'pointerdown', touched, true));
+  d.add(listen(el, 'touchstart', touched, { capture: true, passive: true }));
   return {
     el,
+    update(dt) {
+      if (objective) objective.update();
+      if (!p.hintOpen) return;
+      idle += dt;
+      if (idle >= HINTS.morningPulseS && !open.classList.contains('hint-pulse')) open.classList.add('hint-pulse');
+    },
     onKey(key) {
       if (key === 'Enter') {
         p.onOpen();

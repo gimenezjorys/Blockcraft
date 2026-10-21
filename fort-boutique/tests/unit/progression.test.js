@@ -181,3 +181,20 @@ test('marchand (G11.1), recettes (G7.5) et agrandissement E1 (G12.6) : coûts, e
   save.shops.q2 = defaultShop('q2');
   assert.equal(expansionInfo(save, 'q2').cost, Math.round(300 * 1.75), 'm_Q du quartier 2');
 });
+
+test('M11 : l’XP du jour s’additionne, mais le niveau monte à l’aube (G12.3, G19 2:57 et 6:30)', async () => {
+  const { startDay } = await import('../../src/game/day/day.js');
+  const { enterDawn } = await import('../../src/game/cycle.js');
+  const g = newGame();
+  startDay(g);
+  addXp(g, 130);
+  assert.equal(g.save.player.level, 1, 'pas de passage de niveau pendant le jour');
+  assert.equal(g.save.player.xp, 130);
+  g.nightResult = { stars: 3, kept: 1, coins: 0, xp: 45, jarFinal: 0, loot: 0, kills: 0, killsByType: {}, bossNight: false };
+  g.phase = { name: 'night', t: 0 };
+  const dawn = enterDawn(g);
+  assert.equal(g.save.player.level, 2, 'l’aube applique le passage');
+  assert.equal(g.save.player.xp, 130 + 45 - 120);
+  assert.deepEqual(dawn.level, { from: 1, to: 2 }, 'le ruban de l’aube le montre');
+  assert.deepEqual(g.save.progress.pendingUnlocks, [2]);
+});

@@ -190,7 +190,13 @@ test('aube : ruban de niveau après le coffre ; Matin : aucun bouton muet (P1)',
     assert.ok(g.$('.dawn-actions').hidden, 'pas de sortie avant le coffre');
     assert.ok(g.$('#dawn-double').hidden, 'pas de pub pendant les 10 premières minutes (G18.3)');
     playUntil(g, bot, (s) => s.scene.save.chestsOpened >= 1);
-    g.hooks.advance(300);
+    // M11, G19 2:46 → 2:57 : les cartes sortent une à une, on améliore l’étagère, puis le ruban descend.
+    g.hooks.advance(1000);
+    const up = g.$$('.card-up').find((b) => !b.hidden);
+    assert.ok(up, 'la flèche verte d’amélioration');
+    assert.ok(g.$('.dawn-level').hidden, 'le ruban attend l’amélioration');
+    bot.tapEl(up);
+    g.hooks.advance(2500);
     const ribbon = g.$('.dawn-level');
     assert.equal(ribbon.hidden, false);
     assert.equal(ribbon.dataset.level, '2');
