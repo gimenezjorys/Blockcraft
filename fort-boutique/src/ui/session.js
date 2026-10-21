@@ -2,13 +2,14 @@
 import { now } from '../core/time.js';
 import { seedFrom } from '../core/rng.js';
 import { loadSave, SaveManager, serialize } from '../save/save.js';
-import { defaultSave } from '../save/schema.js';
+import { defaultSave, defaultShop } from '../save/schema.js';
+import { DISTRICT_IDS } from '../data/districts.js';
 import { createGame, rebuildShop } from '../game/state.js';
 import { resumePoint, enterMorning, openShop, markNightPending, resumeNight, enterDawn, openDawnChest, openExtraChest, leaveDawn } from '../game/cycle.js';
 import { startDay } from '../game/day/day.js';
 import { startNight } from '../game/night/night.js';
 import { upgradeFurniture, canUpgrade } from '../game/economy.js';
-import { isUnlocked, unlockedFurniture } from '../game/progression.js';
+import { isUnlocked, unlockedFurniture, districtOpen } from '../game/progression.js';
 import { createPlay } from './play.js';
 import { ADS } from '../data/balance.js';
 import { t, setLang } from './i18n.js';
@@ -119,6 +120,8 @@ export function createSession(app, o) {
   function showMorning() {
     enterMorning(g);
     rebuildShop(g);
+    // Quartier ouvert plus tard (niveau atteint après la victoire sur le boss) : sa boutique et sa carte arrivent (G12.4).
+    openDistricts(g.save);
     // Rétention (G14, G15) : jours manqués (gels), quêtes du jour, succès et paliers du bestiaire gagnés.
     const t0 = now();
     streakCheck(g.save, t0);
@@ -175,8 +178,46 @@ export function createSession(app, o) {
     });
   }
 
+  /** Crée la boutique de chaque quartier ouvert (boss précédent vaincu ET niveau) qui n'existe pas encore. */
+  function openDistricts(data) {
+    for (const id of DISTRICT_IDS) {
+      if (data.shops[id] && data.shops[id].unlocked) continue;
+      if (!districtOpen(data, id)) continue;
+      data.shops[id] = data.shops[id] || defaultShop(id);
+      data.shops[id].unlocked = true;
+      if (!data.progress.pendingDistricts.includes(id)) data.progress.pendingDistricts.push(id);
+    }
+  }
+
+  /** Scène de jeu de la boutique courante. */
+  function makePlay() {
+    return createPlay(app, g, {
+      onPause: pause,
+      onEvent,
+      // Un tap pendant la pluie de pièces passe directement au ticket.
+      onTap: () => {
+        if (dawnDelay > 0.15) dawnDelay = 0.15;
+      },
+    });
+  }
+
+  /**
+   * Aller dans une autre boutique (carte des quartiers, au Matin) : chaque boutique garde sa journée, sa semaine et sa
+   * disposition ; l'argent, le niveau et les meubles améliorés sont communs (G13.1).
+   */
+  function switchShop(id) {
+    if (!g || g.shopId === id || !g.save.shops[id] || !g.save.shops[id].unlocked) return;
+    if (g.phase.name !== 'morning') return;
+    g.save.currentShop = id;
+    g = createGame({ save: g.save });
+    play = makePlay();
+    app.setScene(play);
+    save(true);
+    route(resumePoint(g));
+  }
+
   const adFlow = createAdFlow(app, { game: () => g, save });
-  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily, ads: () => adFlow });
+  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily, ads: () => adFlow, switchShop: (id) => switchShop(id) });
   const daily = createDailyFlow(app, { game: () => g, play: () => play, save, renderMorning: () => renderMorning() });
 
   function showDawn(resumed = false) {
@@ -468,14 +509,7 @@ export function createSession(app, o) {
       });
       if (loaded.repaired && app.services.toast) app.services.toast(t('save.repaired'));
       applySettings();
-      play = createPlay(app, g, {
-        onPause: pause,
-        onEvent,
-        // Un tap pendant la pluie de pièces passe directement au ticket.
-        onTap: () => {
-          if (dawnDelay > 0.15) dawnDelay = 0.15;
-        },
-      });
+      play = makePlay();
       app.setScene(play);
       if (session.onLoaded) session.onLoaded(g, loaded);
       route(resumePoint(g));

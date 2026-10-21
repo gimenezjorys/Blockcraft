@@ -74,7 +74,7 @@ test('le boss vole 35 % du Bocal et fuit à 0,75 case/s ; le vaincre pendant sa 
   assert.ok(n.jar >= n.jarInitial, 'le sac revient au Bocal (+10 %)');
 });
 
-test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage de Mamie (+15 % par échec, 60 % au plus)', () => {
+test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage de Mamie (+18,75 % par échec, 75 % au plus, M16)', () => {
   const g = bossNight();
   g.night.bossEscaped = true;
   finishNight(g, false);
@@ -99,7 +99,8 @@ test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage 
   }
   g.shop.phase.dawnClaimed = false;
   startNight(g, { dayTakings: 200, waves: { waves: [{ groups: [], boss: null }], golden: -1, newTypes: [] } });
-  assert.equal(g.night.assist, 0.6, 'plafonné à +60 %');
+  assert.equal(g.night.assist, NIGHT.assistMax, 'plafonné');
+  assert.equal(NIGHT.assistMax, 0.75);
 });
 
 test('victoire : Coffre de Lune, semaine 2 (nuit 1), PV du boss × 1,35, Courage remis à zéro', () => {

@@ -6,6 +6,7 @@ import { TouchBot } from '../helpers/bot.js';
 import { defaultSave } from '../../src/save/schema.js';
 import { serialize, parseAndVerify, SAVE_KEY } from '../../src/save/save.js';
 import { districtDef } from '../../src/data/districts.js';
+import { NIGHT } from '../../src/data/night.js';
 
 /** Matin du jour 7 : la nuit qui vient est la Pleine Lune. */
 function fullMoonSave(mutate) {
@@ -47,7 +48,7 @@ test('Matin : la lune montre le boss et « cette nuit » ; la carte des quartier
     assert.equal(g.hooks.getState().screen, 'moon');
     assert.match(g.$('.moon-name').textContent, /Roi Raton/);
     assert.match(g.$('.moon-when').textContent, /cette nuit/);
-    assert.match(g.$('.moon-courage').textContent, /15/);
+    assert.match(g.$('.moon-courage').textContent, new RegExp(String(Math.round(NIGHT.assistPerFail * 100))), 'Courage de Mamie après un échec (M16 : 18,75 %)');
     bot.tapEl('.overlay');
     g.hooks.advance(800);
     assert.equal(g.hooks.getState().screen, 'morning');

@@ -320,7 +320,9 @@ function stepCone(g, f, dt, rate) {
     return;
   }
   f.firing = 0.15;
-  f.cd -= dt * (rate / Math.max(1e-6, f.n.rate || 1));
+  // Le four n'a pas de cadence propre (5 ticks/s) : seules l'aura et la machine à café l'accélèrent (M16 : correction,
+  // l'ancienne formule divisait par une cadence nulle et le four ne tirait qu'une fois).
+  f.cd -= dt * rateMultiplier(g, f);
   if (f.cd > 0) return;
   f.cd += 1 / nd.ticks;
   for (let i = arr.length - 1; i >= 0; i--) {

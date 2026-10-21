@@ -272,7 +272,7 @@ Valeur au début de la nuit = max(20 × Q, arrondi(0,5 × recette du jour)), Q �
 
 ### G8.3 Vagues
 - Nombre de vagues selon la nuit k de la semaine : N1 2 ; N2 3 ; N3 3 ; N4 4 ; N5 4 ; N6 4 ; N7 5 (la dernière contient le boss). Semaine 2 et suivantes : 5 (N7 : 6).
-- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 1,15 / 1,3 / 1,45 / 1,6 pour Q1 à Q5 et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
+- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 0,8625 / 1,3 / 1,45 / 1,6 pour Q1 à Q5 (M16 : Q2 1,15 au départ, −25 %, D2.5) et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
 - Chaque monstre coûte son « coût de menace » (G10). Le générateur, à graine (graine de partie, quartier, semaine, nuit), tire des groupes de 2 à 5 du même type parmi ceux autorisés à cette nuit, avec les pondérations de `data/waves.js`, et les répartit entre les entrées actives.
 - Un type nouveau apparaît d'abord **seul**, en petit groupe, dans la vague 1 de sa nuit d'introduction.
 - **Télégraphe** : 2,5 s avant chaque vague, chaque entrée active montre une bulle pulsante avec les icônes des types qui vont sortir (et une étiquette « NOUVEAU » pour un type jamais vu).
@@ -308,7 +308,7 @@ Une nuit sur 10 (tirage à graine), un Raton doré apparaît une fois dans une v
 ### G8.9 La Pleine Lune (nuit 7)
 - Une lune pleine grossit dans le HUD toute la semaine (compte à rebours en nuits).
 - La nuit 7 contient le boss du quartier (G10.3). **Victoire** = boss vaincu, même s'il avait volé (le vaincre pendant sa fuite rend tout). Récompenses : Coffre de Lune (au lieu du coffre d'étoiles), XP de boss, quartier suivant si le niveau requis est atteint, bannière et fanfare.
-- **Échec** = le boss sort avec le butin : ★ 0, pas de Coffre de Lune, la Pleine Lune revient la nuit suivante avec le **Courage de Mamie** (+15 % de dégâts des meubles par échec, max +60 %, affiché à l'écran d'intro). Option pub : « Rejouer tout de suite (+25 % de dégâts) ».
+- **Échec** = le boss sort avec le butin : ★ 0, pas de Coffre de Lune, la Pleine Lune revient la nuit suivante avec le **Courage de Mamie** (+18,75 % de dégâts des meubles par échec, max +75 %, affiché à l'écran d'intro ; M16 : +15 % / 60 % au départ, +25 %, D2.5). Option pub : « Rejouer tout de suite (+18,75 % de dégâts) » (M15).
 - Après la victoire, la semaine 2 commence (G13.1).
 
 ## G9. Les meubles (jour + nuit)
@@ -399,7 +399,7 @@ Chaque forme de nuit est un **comportement** paramétré par les données : `pro
 Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus de la tête quand il est visé pour la première fois (flamme pour le gloubi et le hérisson, soleil pour le fantôme).
 
 ### G10.2 Mise à l'échelle
-- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 2,0 / 3,6 / 6,2 / 10,0 pour Q1 à Q5, k la nuit de la semaine, s la semaine.
+- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 1,5 / 3,6 / 6,2 / 10,0 pour Q1 à Q5 (M16 : Q2 2,0 au départ, −25 %, D2.5), k la nuit de la semaine, s la semaine.
 - Butin = butin de base × (1 + 0,6 × (Q − 1)) × (1 + 0,1 × (s − 1)).
 - Vitesse, armure et % de vol ne changent jamais. *M13 (D2.5) :* toutes les vitesses du tableau sont × 1,25 en jeu (hors boss), sauf pendant la nuit 1 scénarisée qui garde les vitesses ci-dessus (G19 « première victoire »).
 
@@ -408,7 +408,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 | Boss | Quartier | PV (semaine 1) | Armure | Vitesse | Vol | Butin | Capacités |
 |---|---|---|---|---|---|---|---|
 | Le Roi Raton | Q1 | 1 125 (M10 : 900) | 2 | 0,55 | 35 % | 150 | toutes les 4,8 s (M10 : 6 s), invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
-| La Grande Pâte | Q2 | 1 700 | 0 | 0,5 | 35 % | 250 | à 66 % et 33 % de PV, se scinde et lâche 4 gloubis ; feu ×1,5 ; ralentissements ×0,5 |
+| La Grande Pâte | Q2 | 1 275 | 0 | 0,375 | 26,25 % | 250 | à 66 % et 33 % de PV, se scinde et lâche 3 gloubis ; feu ×1,5 ; ralentissements ×0,5 (M16 : 1 700 / 0,5 / 35 % / 4 au départ, −25 %, D2.5) |
 | La Dame Blanche | Q3 | 1 500 | 0 | 0,6 | 35 % | 350 | traverse les meubles ; disparaît 3 s toutes les 7 s hors lumière ; invoque 2 fantômes toutes les 10 s ; lumière ×2 |
 | Le Ferrailleur | Q4 | 3 400 | 10 | 0,4 | 40 % | 500 | frappe les meubles voisins (30 dégâts/s) ; immunisé au recul et à l'étourdissement ; métal |
 | La Reine Phalène | Q5 | 4 800 | 2 | 0,6 | 40 % | 800 | vole ; éteint les lanternes à ≤ 2 cases pendant 4 s toutes les 9 s ; invoque 4 chauves-souris toutes les 8 s |

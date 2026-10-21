@@ -31,8 +31,9 @@ export const BOSSES = {
     noKnockback: true, fleeSpeed: 0.75, summon: { type: 'raton', count: 3, every: 4.8 },
   },
   grande_pate: {
-    id: 'grande_pate', district: 'q2', hp: 1700, armor: 0, speed: 0.5, steal: 0.35, loot: 250, boss: true,
-    weak: { fire: 1.5 }, slowResist: 0.5, splitAt: [0.66, 0.33], splitSpawn: { type: 'gloubi', count: 4 },
+    // M16 (D2.5) : PV 1 700 -> 1 275, vitesse 0,5 -> 0,375, vol 35 % -> 26,25 %, 4 -> 3 gloubis par scission.
+    id: 'grande_pate', district: 'q2', hp: 1275, armor: 0, speed: 0.375, steal: 0.2625, loot: 250, boss: true,
+    weak: { fire: 1.5 }, slowResist: 0.5, splitAt: [0.66, 0.33], splitSpawn: { type: 'gloubi', count: 3 },
   },
   dame_blanche: {
     id: 'dame_blanche', district: 'q3', hp: 1500, armor: 0, speed: 0.6, steal: 0.35, loot: 350, boss: true,

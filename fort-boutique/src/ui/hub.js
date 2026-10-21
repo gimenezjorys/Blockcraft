@@ -24,7 +24,7 @@ import { trackQuest } from '../game/quest-track.js';
 export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily', 'wardrobe'];
 
 /** Quartiers dont le contenu est prêt (M16 à M19 ajoutent les suivants). */
-export const PLAYABLE_DISTRICTS = ['q1'];
+export const PLAYABLE_DISTRICTS = ['q1', 'q2'];
 
 /**
  * @param {any} app

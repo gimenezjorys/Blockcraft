@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { simulateGame, applyOverrides } from './lib/sim-engine.mjs';
-import { evaluateQ1, median } from './lib/sim-metrics.mjs';
+import { evaluateQ1, evaluateQ2, median } from './lib/sim-metrics.mjs';
 import { runDailySims, dailyThreshold } from './lib/sim-daily.mjs';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
@@ -46,9 +46,16 @@ if (!isMainThread) {
   const runs = Number(arg('runs', 300));
   const district = arg('district', 'q1');
   const maxCycles = Number(arg('max-cycles', 30));
-  if (district !== 'q1' && district !== 'all') {
-    process.stderr.write(`quartier ${district} : simulation disponible avec son contenu (M16 à M19)\n`);
+  if (!['q1', 'q2', 'all'].includes(district)) {
+    process.stderr.write(`quartier ${district} : simulation disponible avec son contenu (M17 à M19)\n`);
     process.exit(1);
+  }
+  if (district === 'q2' || district === 'all') {
+    const r2 = await runQ2(runs, Number(arg('max-cycles', 45)));
+    writeFileSync(join(ROOT, 'docs/sim/SIM_Q2.md'), r2.md);
+    writeFileSync(join(ROOT, 'docs/sim/SIM_Q2.json'), JSON.stringify({ runs, rows: r2.ev.rows, info: r2.ev.info }, null, 2) + '\n');
+    if (!process.argv.includes('--quiet')) process.stdout.write(r2.md);
+    if (district === 'q2') process.exit(r2.ev.ok ? 0 : 1);
   }
   const result = await runSims({ runs, maxCycles });
   const md = report(result, { runs, maxCycles });
@@ -121,4 +128,42 @@ function report(res, o) {
   L.push('- Le Moyen bat le Roi Raton au cycle 10 en médiane : dans la fenêtre 7–10, mais à son bord. Tenir à la fois ce seuil et « Fort ≤ 80 % de ★★★ » laisse peu de marge ; à revoir avec les vraies quêtes (M12) et lors de l\'équilibrage global (M20).');
   L.push('', `Verdict : ${ev.ok ? 'tous les seuils applicables sont tenus.' : 'au moins un seuil n\'est pas tenu.'}`, '');
   return L.join('\n') + '\n';
+}
+
+/** Quartier 2 (M16) : parties jouées depuis le début jusqu'à la Grande Pâte, mêmes graines que le Q1. */
+async function runQ2(runs, maxCycles) {
+  const jobs = [];
+  for (const profile of PROFILE_IDS) for (let i = 0; i < runs; i++) jobs.push({ seed: 1000 + i, profile, maxCycles, through: 'q2' });
+  const W = Math.max(1, Math.min(availableParallelism() - 1, 8, jobs.length));
+  const t0 = performance.now();
+  const chunks = Array.from({ length: W }, (_, k) => jobs.filter((_, i) => i % W === k));
+  const parts = await Promise.all(chunks.map((c) => new Promise((resolve, reject) => {
+    const w = new Worker(fileURLToPath(import.meta.url), { workerData: { jobs: c, overrides: null } });
+    w.once('message', (m) => resolve(m.map((x, i) => ({ ...x, profile: c[i].profile }))));
+    w.once('error', reject);
+  })));
+  const all = parts.flat();
+  const by = Object.fromEntries(PROFILE_IDS.map((p) => [p, all.filter((g) => g.profile === p)]));
+  const ev = evaluateQ2(by, maxCycles);
+  const L = ['# Simulation d\'équilibrage — Quartier 2 (La Boulangerie)', ''];
+  L.push(`${runs} parties par profil, jouées depuis le début (Q1 puis Q2 dès son ouverture), ${maxCycles} cycles au plus, ${((performance.now() - t0) / 1000).toFixed(0)} s. Commande : \`npm run sim -- --runs ${runs} --district q2\`.`, '');
+  L.push('## Seuils (D2.4)', '', '| Seuil | Mesure | Résultat |', '|---|---|---|');
+  for (const r of ev.rows) L.push(`| ${r.id} — ${r.label} | ${r.value} | ${r.ok ? 'tenu' : '**NON TENU**'} |`);
+  const i = ev.info;
+  L.push('', '## Repères', '');
+  L.push(`- Arrivée au Q2 (médiane) : Faible cycle ${i.start.weak}, Moyen ${i.start.medium}, Fort ${i.start.strong}.`);
+  L.push(`- Durée du quartier (cycles, médiane) : Faible ${i.durations.weak}, Moyen ${i.durations.medium}, Fort ${i.durations.strong}.`);
+  L.push(`- Tentatives contre la Grande Pâte (médiane) : Faible ${i.attempts.weak}, Moyen ${i.attempts.medium}, Fort ${i.attempts.strong}.`);
+  L.push(`- Bocal gardé hors Pleine Lune (Moyen, médiane) : ${Math.round(i.keptMedium * 100)} %.`);
+  L.push(`- Nuits à ★★★ au Q2 : Faible ${Math.round(i.starsShare.weak * 100)} %, Moyen ${Math.round(i.starsShare.medium * 100)} %, Fort ${Math.round(i.starsShare.strong * 100)} %.`);
+  L.push('', '## Changements faits (M16, marges D2.5)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
+  for (const [a, b, c, d] of [
+    ['PV des Grignotins au Q2 (M_Q, G10.2)', '× 2,0', '× 1,5', '−25 %'],
+    ['Budget de menace du Q2 (F_Q, G8.3)', '× 1,15', '× 0,8625', '−25 %'],
+    ['Grande Pâte : PV / vitesse / vol (G10.3)', '1 700 / 0,5 / 35 %', '1 275 / 0,375 / 26,25 %', '−25 %'],
+    ['Grande Pâte : gloubis par scission', '4', '3', '−25 %'],
+    ['Courage de Mamie : par échec / au plus (G8.9)', '15 % / 60 %', '18,75 % / 75 %', '+25 %'],
+  ]) L.push(`| ${a} | ${b} | ${c} | ${d} |`);
+  L.push('', 'Robots (D2.2) : le Moyen suit une liste de priorités propre au quartier (étagères et vitrine contre les chauves-souris) ; le Fort compte double ce qui touche les volants là où il y en a ; le Faible achète aussi au hasard l\'agrandissement ou une amélioration du marchand.', '');
+  return { ev, md: L.join('\n') + '\n' };
 }

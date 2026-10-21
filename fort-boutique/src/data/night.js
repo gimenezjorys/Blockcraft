@@ -33,6 +33,7 @@ export const NIGHT = {
   /** Essai M10 (non retenu, DECISIONS.md) : fuite par la sortie ouverte la plus proche. Reste désactivé (G8.4). */
   thiefNearestExit: false,
   /** Courage de Mamie : +15 % de dégâts par échec au boss, max +60 % (G8.9). */
-  assistPerFail: 0.15,
-  assistMax: 0.6,
+  // M16 (D2.5) : Courage de Mamie 15 % -> 18,75 % par échec, 60 % -> 75 % au plus.
+  assistPerFail: 0.1875,
+  assistMax: 0.75,
 };

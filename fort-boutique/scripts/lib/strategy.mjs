@@ -78,6 +78,14 @@ export function morningActions(g, profile, o) {
     if (!upgradeFurniture(save, id)) break;
     out.upgraded.push(id);
   }
+  // 2 bis. Le Faible achète aussi « au hasard » ce qui est au Matin : l'agrandissement ou une amélioration du marchand,
+  // une fois de temps en temps (M16 : sans cela il gardait 19 000 pièces dans une boutique pleine).
+  if (profile.buy === 'cheapest' && rng.chance(0.5)) {
+    const ex = expansionInfo(save, g.shopId);
+    const ups = ['basket', 'shoes', 'broom', 'bell', 'whistle'].filter((id) => merchantUpgradeInfo(save, id).ok);
+    if (ex.ok && rng.chance(0.5)) expandShop(save, g.shopId);
+    else if (ups.length) buyMerchantUpgrade(save, rng.pick(ups));
+  }
   // 2. Améliorations du marchand et recettes (moyen et fort).
   if (profile.buy !== 'cheapest') {
     const order = profile.buy === 'optimal' ? ['basket', 'shoes', 'whistle', 'broom', 'bell'] : ['basket', 'shoes', 'broom', 'bell', 'whistle'];
@@ -116,9 +124,11 @@ export function morningActions(g, profile, o) {
         buyable.sort((a, b) => canBuy(save, g.shopId, a).price - canBuy(save, g.shopId, b).price);
         id = buyable[rng.int(Math.min(2, buyable.length))];
       } else if (profile.buy === 'priority') {
-        id = priorityPick(shop, buyable, profile);
+        id = priorityPick(shop, buyable, profile, g.shopId);
       } else {
-        id = buyable.sort((a, b) => defenseValue(b) / canBuy(save, g.shopId, b).price - defenseValue(a) / canBuy(save, g.shopId, a).price)[0];
+        const air = hasFlyers(g.shopId);
+        const val = (x) => defenseValue(x) * (air && FURNITURE[x].air ? 2 : 1) / canBuy(save, g.shopId, x).price;
+        id = buyable.sort((a, b) => val(b) - val(a))[0];
         const sellNeed = needsSelling(shop);
         if (sellNeed && buyable.includes(sellNeed)) id = sellNeed;
       }
@@ -170,12 +180,25 @@ function needsSelling(shop) {
   return null;
 }
 
-/** Liste de priorités « raisonnable » du profil moyen. */
-function priorityPick(shop, buyable, profile) {
-  const want = [
+/** Listes de priorités « raisonnables » du profil moyen, par quartier (M16 : la Boulangerie a ses volants). */
+const PRIORITIES = {
+  q1: [
     ['etagere', 3], ['cagette', 2], ['frigo', 1], ['plante', 1], ['comptoir', 3], ['chaudron', 1], ['etagere', 4],
     ['frigo', 2], ['plante', 2], ['chaudron', 2], ['etagere', 6], ['plante', 3], ['comptoir', 5],
-  ];
+  ],
+  // Chauves-souris par la cheminée : étagères et vitrine (contre les volants) d'abord, puis four et pétrin.
+  q2: [
+    ['etagere', 3], ['four', 1], ['plante', 1], ['comptoir', 2], ['vitrine', 1], ['etagere', 4], ['petrin', 1], ['cafe', 1],
+    ['four', 2], ['vitrine', 2], ['etagere', 6], ['plante', 2], ['petrin', 2], ['comptoir', 4],
+  ],
+};
+
+/** Le quartier fait-il venir des volants ? (leur valeur contre les volants compte alors double) */
+const hasFlyers = (districtId) => Object.keys(districtDef(districtId).weights || {}).some((t) => ['chauvesouris', 'corbeau', 'phalene'].includes(t));
+
+/** Liste de priorités « raisonnable » du profil moyen. */
+function priorityPick(shop, buyable, profile, districtId = 'q1') {
+  const want = PRIORITIES[districtId] || PRIORITIES.q1;
   for (const [id, n] of want) if (countOf(shop, id) + shop.storage.filter((s) => s === id).length < n && buyable.includes(id)) return id;
   void profile;
   return buyable.sort((a, b) => defenseValue(b) - defenseValue(a))[0];

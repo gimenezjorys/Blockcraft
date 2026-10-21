@@ -87,3 +87,50 @@ export function evaluateQ1(r, maxCycles) {
   };
   return { rows, ok: rows.every((x) => x.ok), info };
 }
+
+/**
+ * Seuils D2.4 du Quartier 2 (M16) : parties jouées depuis le début (through: 'q2'), cycles comptés depuis le début.
+ * @param {{ weak: any[], medium: any[], strong: any[] }} r
+ * @param {number} maxCycles
+ */
+export function evaluateQ2(r, maxCycles) {
+  const won = (g) => (g.q2 && g.q2.bossWonAt !== null ? g.q2.bossWonAt : maxCycles + 1);
+  const dur = (g) => won(g) - (g.q2 ? g.q2.start : maxCycles) + 1;
+  const M = median(r.medium.map(won));
+  const Md = median(r.medium.map(dur));
+  const Wd = median(r.weak.map(dur));
+  const Sd = median(r.strong.map(dur));
+  const q2Nights = (games) => games.flatMap((g) => g.cycles.filter((c) => c.district === 'q2'));
+  const strongNights = q2Nights(r.strong);
+  const lowRun = (g) => {
+    let run = 0;
+    let worst = 0;
+    for (const c of g.cycles.filter((x) => x.district === 'q2')) {
+      run = c.kept < 0.5 ? run + 1 : 0;
+      worst = Math.max(worst, run);
+    }
+    return worst;
+  };
+  const eco = r.medium.map((g) => economyOk({ cycles: g.cycles.filter((c) => c.district === 'q2') }));
+  const nextGap = r.medium.filter((g) => g.q2 && g.q2.bossWonAt !== null).map((g) => (g.q2.nextLevelAt === null ? Infinity : g.q2.nextLevelAt - g.q2.bossWonAt));
+  const attemptsW = median(r.weak.map((g) => (g.q2 ? g.q2.attempts : NaN)));
+  const rows = [
+    { id: 'D2.4.1', label: 'Moyen : Grande Pâte battue entre les cycles 15 et 20 (médiane, depuis le début)', value: `cycle ${M}`, ok: M >= 15 && M <= 20 },
+    { id: 'D2.4.2a', label: 'Faible : boss battu en 4 tentatives au plus (médiane)', value: `${attemptsW} tentative(s)`, ok: attemptsW <= 4 && share(r.weak, (g) => g.q2 && g.q2.bossWonAt !== null) >= 0.5 },
+    { id: 'D2.4.2b', label: 'Faible : durée du quartier ≤ 1,6 × celle du Moyen', value: `${(Wd / Md).toFixed(2)} ×`, ok: Wd / Md <= 1.6 },
+    { id: 'D2.4.3a', label: 'Fort : pas plus de 1,35 × plus rapide que le Moyen (durée du quartier)', value: `${(Md / Sd).toFixed(2)} ×`, ok: Md / Sd <= 1.35 },
+    { id: 'D2.4.3b', label: 'Fort : ★★★ sur 70 % des nuits au plus (Q2)', value: pct(share(strongNights, (c) => c.stars === 3)), ok: share(strongNights, (c) => c.stars === 3) <= 0.7 },
+    { id: 'D2.4.3c', label: 'Fort : boss battu du premier coup 85 % des fois au plus', value: pct(share(r.strong, (g) => g.q2 && g.q2.bossWonAt !== null && g.q2.attempts === 1)), ok: share(r.strong, (g) => g.q2 && g.q2.bossWonAt !== null && g.q2.attempts === 1) <= 0.85 },
+    { id: 'D2.4.4', label: 'Moyen : jamais 3 nuits de suite sous 50 % (95 % des parties)', value: pct(share(r.medium, (g) => lowRun(g) < 3)), ok: share(r.medium, (g) => lowRun(g) < 3) >= 0.95 },
+    { id: 'D2.4.5', label: 'Moyen : achat utile en 2 cycles au plus, sans inflation (90 % des parties)', value: `${pct(share(eco, (e) => e.ok))} (accessible ${pct(share(eco, (e) => e.accessible))}, inflation ${pct(share(eco, (e) => e.inflation))})`, ok: share(eco, (e) => e.ok) >= 0.9 },
+    { id: 'D2.4.6', label: 'Moyen : niveau 12 au plus tard 2 cycles après la Grande Pâte (80 %)', value: pct(share(nextGap, (x) => x <= 2)), ok: share(nextGap, (x) => x <= 2) >= 0.8 },
+  ];
+  const info = {
+    durations: { weak: Wd, medium: Md, strong: Sd },
+    start: { weak: median(r.weak.map((g) => (g.q2 ? g.q2.start : NaN))), medium: median(r.medium.map((g) => (g.q2 ? g.q2.start : NaN))), strong: median(r.strong.map((g) => (g.q2 ? g.q2.start : NaN))) },
+    attempts: { weak: attemptsW, medium: median(r.medium.map((g) => (g.q2 ? g.q2.attempts : NaN))), strong: median(r.strong.map((g) => (g.q2 ? g.q2.attempts : NaN))) },
+    keptMedium: median(q2Nights(r.medium).filter((c) => !c.bossNight).map((c) => c.kept)),
+    starsShare: { weak: share(q2Nights(r.weak), (c) => c.stars === 3), medium: share(q2Nights(r.medium), (c) => c.stars === 3), strong: share(strongNights, (c) => c.stars === 3) },
+  };
+  return { rows, ok: rows.every((x) => x.ok), info };
+}
