@@ -226,7 +226,7 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
       case 'gust':
       case 'nail':
         play(e.type === 'zap' ? 'zap' : e.type === 'swirl' || e.type === 'gust' ? 'swirl' : e.type === 'flame' ? 'flame' : 'hit');
-        view.flashes.push({ x: e.x, y: e.y, r: 0.8, t: 0 });
+        if (!(app.services.settings && app.services.settings.reducedFlash)) view.flashes.push({ x: e.x, y: e.y, r: 0.8, t: 0 });
         break;
       case 'explode':
         play('broken');

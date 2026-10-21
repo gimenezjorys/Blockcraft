@@ -22,6 +22,7 @@ import map from './ui/screens/map.js';
 import moon from './ui/screens/moon.js';
 import hud from './ui/screens/hud.js';
 import intro from './ui/screens/intro.js';
+import settings from './ui/screens/settings.js';
 
 const VERSION = typeof __FB_VERSION__ !== 'undefined' ? __FB_VERSION__ : { version: 'dev', hash: '', date: '' };
 
@@ -46,6 +47,10 @@ function boot() {
     get reducedMotion() {
       const g = session.game();
       return reduced || !!(g && !g.save.settings.shake);
+    },
+    get reducedFlash() {
+      const g = session.game();
+      return reduced || !!(g && g.save.settings.reducedFlash);
     },
     get leftHanded() {
       const g = session.game();
@@ -111,7 +116,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud, intro, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon });
+  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon });
   app.router.goto('title');
   app.loop.start();
 }

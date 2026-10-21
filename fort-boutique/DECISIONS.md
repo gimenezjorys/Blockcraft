@@ -326,3 +326,13 @@ Raison : critiques P2 vérifiées (docs/playtests/P2.md) ; P1 (majeur Hugo : « 
 Décision : « voleur scénarisé ralenti » vérifie aussi que le sac tombe sur le seuil (3 étoiles) au lieu d'une perte ; l'éditeur affiche les longueurs avec la virgule française, le test d'interface l'attend désormais. Intentions inchangées.
 Alternatives : garder l'ancien comportement.
 Raison : les règles et l'affichage ont changé après les critiques P2 (DECISIONS ci-dessus).
+
+## 2026-10-21 — v0.2 — Version jouable : ce qui est gardé, l'écran Paramètres
+Décision : (1) le périmètre v0.2 demande Aménager verrouillé et pas de Roi Raton ; les deux étaient déjà faits et testés (M8, M9) : on les garde (« ne pas refaire ni défaire ce qui marche »), rien n'est désactivé. (2) Paramètres, ouvert par le rouage du Matin et par la pause, posé par-dessus l'écran courant : volumes musique et effets (0 à 100), vibrations, secousses, flashs réduits, gaucher (Cloche à gauche), grand texte (`--ui-scale` 1,15), mode économie (canvas à demi-résolution), langue FR/EN (les écrans se redessinent tout de suite), export du code FB1 avec bouton Copier, import vérifié puis comparé (niveau, quartiers, pièces) avant « Remplacer ma partie », réinitialisation en deux taps (le 2e dans les 5 s), version et hash. Import et réinitialisation écrivent tout de suite (l'ancienne partie devient la copie de secours ; avant une réinitialisation, elle est aussi gardée sous `fortboutique.save.beforeReset`), puis retour à l'écran titre : la partie se recharge au tap suivant, par le même chemin qu'un lancement. (3) « Quitter » dans la pause ramène à l'écran titre, pas au Matin : quitter vers le Matin en pleine journée ferait perdre ou rejouer la journée ; la reprise exacte (G5.2) ramène le joueur là où il était.
+Alternatives : écran Paramètres séparé de la pause ; import qui remplace sans comparaison (B9 demande la comparaison) ; réinitialisation en un tap.
+Raison : prompt v0.2 (Étape B.3 et B.4), B9, A0.2.
+
+## 2026-10-21 — v0.2 — Correction d'un test (A0.5)
+Décision : le test « téléphone verrouillé en pleine journée » attendait « Bientôt » sur Paramètres dans la pause ; il vérifie désormais que l'écran s'ouvre, puis que le jeu reste en pause en revenant.
+Alternatives : aucune.
+Raison : l'écran existe depuis v0.2.

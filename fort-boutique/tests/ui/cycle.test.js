@@ -244,9 +244,13 @@ test('téléphone verrouillé en pleine journée : la pause s’ouvre et attend 
     g.hooks.advance(2000);
     assert.equal(g.hooks.getState().scene.day.timeLeft, t0, 'le temps ne file pas tant que le joueur n’a pas repris');
     assert.match(g.$('.pause-saved').textContent, /sauvegardée/);
+    // v0.2 : Paramètres existe (avant : « Bientôt ») ; on l'ouvre puis on revient à la pause, toujours en pause.
     bot.tapEl('#pause-settings');
     g.hooks.advance(50);
-    assert.ok(g.hooks.getState().toasts.some((x) => /Bientôt/.test(x)), 'Paramètres annonce « Bientôt »');
+    assert.equal(g.hooks.getState().screen, 'settings', 'Paramètres s’ouvre depuis la pause');
+    bot.tapEl('#settings-close');
+    g.hooks.advance(50);
+    assert.equal(g.hooks.getState().scene.day.timeLeft, t0, 'toujours en pause');
     bot.tapEl('#pause-resume');
     g.hooks.advance(500);
     assert.ok(g.hooks.getState().scene.day.timeLeft < t0, 'le jeu repart');

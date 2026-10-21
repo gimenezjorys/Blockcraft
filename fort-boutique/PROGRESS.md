@@ -15,7 +15,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M8 — Aménagement | ✅ | 2026-10-20 | Éditeur plein écran : glisser au doigt (fantôme vert/rouge), tourner, ranger, Réserve, trajets et longueurs, Conseil de Mamie, Valider/Annuler ; 8 tests (dont 3 aux vrais gestes). |
 | M9 — La semaine et la Pleine Lune | ✅ | 2026-10-20 | Pleine Lune : Roi Raton (invocations, vol 35 %, fuite), barre de PV, carte d'intro, victoire/échec, Courage de Mamie, Coffre de Lune, semaine 2 ; carte des quartiers (boss ET niveau) ; aperçu de la lune ; 8 tests. |
 | M10 — Simulateur d'équilibrage (Q1) | ✅ | 2026-10-20 | Simulateur (bots Faible/Moyen/Fort en parallèle, modèle provisoire des quêtes) : 300 parties par profil, tous les seuils D2.4 applicables tenus après réglages dans la marge ±25 % ; 3 bugs de jeu trouvés et corrigés ; test sim de 40 parties. |
-| M11 — Les 10 premières minutes + P2 | ⬜ | | |
+| M11 — Les 10 premières minutes + P2 | 🔄 | | Fait : enveloppe, guide et indices sans texte (règle des 4 s), étiquette d'objectif, Rush, Commande spéciale, rythme de G19 (15/15 jalons en gras dans ±20 %), corrections des critiques Léa, Hugo, Sam. Reste : docs/playtests/P2.md et revue de code (coupées par la limite d'usage). |
 | M12 — Quêtes, calendrier, série, succès, bestiaire | ⬜ | | |
 | M13 — Hors ligne, Moka, personnel | ⬜ | | |
 | M14 — Défi du jour, Rivaux, partage, événements | ⬜ | | |
@@ -29,9 +29,25 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M22 — Juice et options | ⬜ | | |
 | M23 — Audio complet | ⬜ | | |
 | M24 — Performances et mémoire | ⬜ | | |
-| M25 — Anglais, Paramètres, crédits, iOS, icônes | ⬜ | | |
+| M25 — Anglais, Paramètres, crédits, iOS, icônes | 🔄 | | v0.2 : écran Paramètres fait (volumes, confort, langue FR/EN, export/import FB1, réinitialisation en deux temps, version). Reste : anglais complet, crédits, iOS, icônes. |
 | M26 — Robustesse + P5 | ⬜ | | |
 | M27 — Publication | ⬜ | | |
+
+
+## v0.2 jouable — 2026-10-21 (UTC)
+
+**Audit (début de session v0.2).** `npm test` vert (23 fichiers, ≈ 26 s), `npm run build` OK (272 Ko), `npm run check` OK. Partie jouée au doigt dans jsdom (robot au rythme humain) : titre → enveloppe → Jour → Crépuscule → Nuit → Aube → Matin → Jour 2, sans erreur ni blocage. Le constat « écrans non branchés » ne tenait plus : Catalogue, Améliorer (Meubles, Marchand, Recettes, Boutique), Aménager, carte et lune existent depuis M7 à M9 ; Quêtes, Calendrier et Défi du jour sont verrouillés (cadenas, « Bientôt »). Manquait seulement l'écran **Paramètres** (le rouage ouvrait la pause, la pause disait « Bientôt »).
+
+**Ce qui marche.**
+- Cycle complet sur 6 cycles joués au doigt (jsdom, robot humain) : niveau 7, 6 emplacements d'achat et 2 achats au Catalogue, 10 coffres, 6 améliorations, 0 erreur JavaScript, aucun écran bloqué.
+- Reprise exacte après rechargement (jour, nuit, aube, Rush, Commande), pause automatique, joystick tactile, souris, clavier.
+- Quartier 1 complet : 7 meubles (jour et nuit), 5 Grignotins, semaine de 7 nuits avec entrées progressives, « NOUVEAU » et télégraphe, Roi Raton à la nuit 7 (déjà fait en M9, gardé), XP et niveaux, coffres et plans, améliorations, recettes, agrandissement E1, éditeur d'aménagement (M8, gardé).
+- Les 10 premières minutes de G19 (M11) : enveloppe, indices sans texte, objectif toujours visible.
+- Paramètres (rouage du Matin et pause) : musique, effets, vibrations, secousses, flashs réduits, gaucher, grand texte, économie, langue FR/EN, export/import FB1 (vérifié : même partie), réinitialisation en deux temps (ancienne partie gardée en secours), version et hash.
+
+**Limites connues.** Quêtes, calendrier, série, succès, bestiaire, Défi du jour, Moka, personnel, pubs, cosmétiques et quartiers 2 à 5 : pas encore (boutons verrouillés « Bientôt » ou absents). Anglais partiel. Audio de base, pas de musique. Le 4e emplacement d'achat arrive plus tôt que dans G19 (revenus du jour 2). Après les 6 emplacements du jour 3, rien à acheter avant le Matin suivant (le Catalogue s'ouvre au Matin, G6.7).
+
+**Prochaine mission.** M8 (éditeur) est déjà faite : prochaine étape proposée, finir M11 (docs/playtests/P2.md et revue de code), puis M12 (quêtes, calendrier, série).
 
 ---
 

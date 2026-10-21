@@ -1,7 +1,8 @@
 // Fort Boutique — la session de jeu : chargement, reprise (G5.2), transitions de phases, écrans, sauvegardes (B9).
 import { now } from '../core/time.js';
 import { seedFrom } from '../core/rng.js';
-import { loadSave, SaveManager } from '../save/save.js';
+import { loadSave, SaveManager, serialize } from '../save/save.js';
+import { defaultSave } from '../save/schema.js';
 import { createGame, rebuildShop } from '../game/state.js';
 import { resumePoint, enterMorning, openShop, markNightPending, resumeNight, enterDawn, openDawnChest, openExtraChest, leaveDawn } from '../game/cycle.js';
 import { startDay } from '../game/day/day.js';
@@ -10,7 +11,7 @@ import { upgradeFurniture, canUpgrade } from '../game/economy.js';
 import { isUnlocked, unlockedFurniture } from '../game/progression.js';
 import { createPlay } from './play.js';
 import { ADS } from '../data/balance.js';
-import { t } from './i18n.js';
+import { t, setLang } from './i18n.js';
 import { SVG } from './icons.js';
 import { createHub, HUB_SCREENS } from './hub.js';
 import { createObjective } from './objective.js';
@@ -133,7 +134,7 @@ export function createSession(app, o) {
       },
       ready: session.hubScreens,
       badges: hubBadges(g),
-      onSettings: () => pause(),
+      onSettings: () => openSettings(),
       objective: (d) => createObjective(() => g, morningObjective, d),
       hintOpen: g.save.stats.cycles < 3,
     });
@@ -179,6 +180,76 @@ export function createSession(app, o) {
     });
   }
 
+  /** Applique les réglages (volumes, grand texte, mode économie, langue). */
+  function applySettings() {
+    if (!g) return;
+    const st = g.save.settings;
+    if (app.services.audio) app.services.audio.setVolumes({ music: st.music, sfx: st.sfx });
+    if (typeof document !== 'undefined') document.documentElement.style.setProperty('--ui-scale', st.bigText ? '1.15' : '1');
+    if (app.economy !== !!st.economy) {
+      app.economy = !!st.economy;
+      app.refit();
+    }
+    setLang(st.lang);
+  }
+
+  /**
+   * Remplace la partie (import ou réinitialisation) : écrit tout de suite (l'ancienne devient la copie de secours),
+   * puis retour à l'écran titre ; la partie importée se charge au prochain tap, comme au lancement.
+   * @param {any} data
+   */
+  function replaceSave(data) {
+    if (!saver) return;
+    dawnDelay = -1;
+    saver.replace(data);
+    app.loop.resume('menu');
+    app.input.cancelAll();
+    app.setScene(null);
+    g = null;
+    play = null;
+    saver = null;
+    app.router.goto('title');
+  }
+
+  /** Paramètres (rouage du Matin ou bouton de la pause), posés par-dessus l'écran courant. */
+  function openSettings() {
+    if (!g || app.router.has('settings')) return;
+    app.router.push('settings', {
+      save: g.save,
+      version: app.version,
+      importCtx: { seed: seedFrom(now(), 'import'), now: now(), lang: g.save.settings.lang },
+      onChange: () => {
+        applySettings();
+        save();
+      },
+      onLang: (lang) => {
+        g.save.settings.lang = lang;
+        applySettings();
+        save(true);
+        // Les écrans se redessinent dans la nouvelle langue, Paramètres rouverts.
+        const inPause = app.router.has('pause');
+        app.router.pop();
+        if (inPause) {
+          app.router.pop();
+          app.loop.resume('menu');
+          pause();
+        } else if (app.router.baseId() === 'morning') renderMorning();
+        openSettings();
+      },
+      onReplace: (data) => replaceSave(data),
+      onReset: () => {
+        // Filet de sécurité : la partie effacée reste lisible sous une clé à part (jamais de perte silencieuse).
+        try {
+          o.storage.set('fortboutique.save.beforeReset', serialize(g.save));
+        } catch {
+          /* rien */
+        }
+        replaceSave(defaultSave({ seed: seedFrom(now(), 'nouvelle partie'), now: now(), lang: g.save.settings.lang }));
+      },
+      onClose: () => app.router.pop(),
+    });
+  }
+
   function pause() {
     if (app.router.has('pause')) return;
     app.loop.pause('menu');
@@ -189,7 +260,7 @@ export function createSession(app, o) {
         app.router.pop();
         app.loop.resume('menu');
       },
-      onSettings: session.onSettings ? () => session.onSettings() : null,
+      onSettings: () => (session.onSettings ? session.onSettings() : openSettings()),
       onQuit: () => {
         // La pluie de pièces de l'aube ne doit pas ouvrir l'aube par-dessus l'écran titre.
         dawnDelay = -1;
@@ -284,6 +355,7 @@ export function createSession(app, o) {
     saver: () => saver,
     save,
     pause,
+    openSettings,
     /** Démarre (ou reprend) la partie depuis le stockage. */
     start() {
       const tNow = now();
@@ -296,6 +368,7 @@ export function createSession(app, o) {
         d.lastSeenAt = now();
       });
       if (loaded.repaired && app.services.toast) app.services.toast(t('save.repaired'));
+      applySettings();
       play = createPlay(app, g, {
         onPause: pause,
         onEvent,
