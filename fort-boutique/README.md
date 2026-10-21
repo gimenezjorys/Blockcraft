@@ -7,7 +7,7 @@ Fort Boutique est un jeu web mobile (portrait, jouable d'un pouce, aussi à la s
 
 ## Jouer en ligne
 
-Le lien GitHub Pages sera indiqué ici dès que le projet aura son propre dépôt (voir DECISIONS.md, M0).
+**https://gimenezjorys.github.io/Blockcraft/fort-boutique/** (GitHub Pages du dépôt Blockcraft, branche `main` ; DECISIONS.md, v0.2).
 
 ## Jouer hors ligne
 

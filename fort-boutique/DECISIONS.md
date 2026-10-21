@@ -336,3 +336,8 @@ Raison : prompt v0.2 (Étape B.3 et B.4), B9, A0.2.
 Décision : le test « téléphone verrouillé en pleine journée » attendait « Bientôt » sur Paramètres dans la pause ; il vérifie désormais que l'écran s'ouvre, puis que le jeu reste en pause en revenant.
 Alternatives : aucune.
 Raison : l'écran existe depuis v0.2.
+
+## 2026-10-21 — v0.2 — Publication en ligne
+Décision : à la demande du propriétaire (« accessible à tous »), Fort Boutique est publié par le GitHub Pages déjà actif du dépôt Blockcraft (branche `main`, qui publie aussi Seedrift à la racine) : `fort-boutique/` est fusionné dans `main` ; adresse à partager : https://gimenezjorys.github.io/Blockcraft/fort-boutique/ (une petite page redirige vers `dist/`). Rien ne change pour Seedrift (la branche n'ajoute que `fort-boutique/` et sa CI ; aucun Markdown ne contient de balises Liquid qui casseraient la construction Jekyll de Pages). Le dépôt séparé `fort-boutique` et son workflow Pages (E1, E2) restent possibles plus tard.
+Alternatives : lien d'aperçu par un service tiers (raw.githack) sur la branche de travail ; attendre un dépôt dédié.
+Raison : E2 (lien GitHub Pages) ; demande explicite de publication ; un seul lien stable, sans service tiers.
