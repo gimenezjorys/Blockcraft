@@ -181,7 +181,7 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 - [x] V6 — Vitesse ×1 / ×2 / ×3 (2026-10-23)
 - [x] V7 — Écran titre animé (2026-10-23)
 - [x] V8 — Hub du matin vivant (façade, objets, établi) (2026-10-23)
-- [ ] V9 — Musique : thème écrit, ukulélé, glockenspiel, sifflement
+- [x] V9 — Musique : thème écrit, ukulélé, glockenspiel, sifflement (2026-10-23)
 - [ ] V10 — Équilibrage rapide et finitions
 - [ ] V11 — Livraison v1.1.0
 
@@ -244,3 +244,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-23 — V5 et V6 faits : emplacements d'embauche (game/day/hire-pads.js), 2e caissier, réservation des étagères entre commis, boutique automatisée, pilote automatique et « Passer la journée » (game/autopilot.js), vitesse ×1/×2/×3 par pas fixes multiples. Prochaine étape : V7 écran titre animé.
 - 2026-10-23 — V7 fait : écran titre en canvas (render/title-scene.js, façade partagée render/facade.js) : ciel du soir, toits en parallaxe, enseigne qui tombe et ouvre les yeux, lucioles, saison, étiquette suspendue, porte qui s'ouvre au tap. Prochaine étape : V8 hub du Matin.
 - 2026-10-23 — V8 fait : hub du Matin dessiné (render/hub-scene.js) : façade au jour avec l'intérieur réel du joueur dans la vitrine, objets du monde, établi, cachets de cire ; écrans habillés (livret, boîte à outils, ardoise, page de calendrier) ; grain de papier généré. Prochaine étape : V9 musique écrite.
+- 2026-10-23 — V9 fait : thème écrit (data/music-score.js), séquenceur réécrit (audio/music.js) avec ukulélé Karplus-Strong pré-rendu, glockenspiel, sifflement, piano FM, contrebasse, batterie ; 6 habillages, 3 habillages du jour + respiration ; saturation douce et filtre chaleur. Prochaine étape : V10 équilibrage rapide.

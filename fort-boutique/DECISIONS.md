@@ -545,3 +545,13 @@ Décision :
 - **Badge « Auto »** sur l'auvent quand la boutique est automatisée.
 Raison : PROMPT v1.1, V8.
 
+## 2026-10-23 — V9 — Musique écrite
+Décision :
+- **Partition** recopiée telle quelle (`data/music-score.js`, lue mesure par mesure) ; le séquenceur (`audio/music.js`) remplace les motifs de degrés de la v1.0 (`data/audio.js`, supprimé).
+- **Jour** : 36 mesures = intro (4, ukulélé) → A (8) → B (8) → A' (8, tout le monde + claps) → pont (4, basse et percussions) → reprise des 4 dernières mesures de A (4). Trois habillages tournent d'une boucle à l'autre (glockenspiel ; marimba doublé au sifflement ; piano électrique avec contre-chant de glockenspiel) et une boucle sur quatre commence par 8 mesures de respiration (ukulélé + sifflement). Une boucle dure 77 s : le cycle complet (12 boucles) ne se répète qu'au bout d'un quart d'heure.
+- **Nuit** : la mélodie passe en ré mineur degré par degré (même dessin mélodique) ; la partie B, non chiffrée pour la nuit dans le document, prend Si♭ | Do | Solm7 | Rém | Solm7 | La7 | Rém | La7.
+- **Couches** : jour, 1 client = ukulélé, basse et mélodie ; 2 clients ou plus = batterie ; Rush, commande spéciale ou vitesse ×2/×3 = claps et charleston en plus. Nuit : toms dès qu'un Grignotin est là.
+- **Mixage** : 0,28 par défaut (0,8 × 0,35), saturation douce tanh, passe-bas 9 kHz, panoramique (ukulélé à gauche, piano à droite avec trémolo, mélodie au centre) ; l'écran titre envoie la boîte à musique une deuxième fois dans la réverbération (« réverbération large »).
+- **Vérification** : un script de travail fait jouer chaque ambiance 90 s sur l'audio simulé (aucune erreur, chaque mesure fait bien 4 temps) ; le parcours dans Chromium avec le vrai WebAudio ne montre aucune erreur. Pas d'écoute possible ici : les gains sont ceux de la v1.0 pour les instruments repris.
+Raison : PROMPT v1.1, V9.
+
