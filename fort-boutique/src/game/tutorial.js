@@ -44,6 +44,8 @@ export function createHints() {
 export function forceArrow(g) {
   const h = g.hints || (g.hints = createHints());
   h.forcedT = HINTS.forcedArrowS;
+  // v1.1 : c'est la flèche d'objectif (guide.js) qui se montre, même en mode « Jamais » (le joueur l'a demandée).
+  if (g.guide) g.guide.forceT = HINTS.forcedArrowS;
 }
 
 const cellOf = (g, x, y) => Math.max(0, Math.min(g.grid.h - 1, Math.floor(y))) * g.grid.w + Math.max(0, Math.min(g.grid.w - 1, Math.floor(x)));
@@ -161,43 +163,18 @@ function setHand(g, h, target) {
 }
 
 function stepDayHints(g, h, L, active) {
-  // Tap sur l'étiquette : la flèche montre l'emplacement au sol, sinon ce qui est utile maintenant (jamais un « non »).
-  if (h.forcedT > 0) {
-    const target = g.day.pad ? { cell: g.day.pad.y * g.grid.w + g.day.pad.x } : guideTarget(g, L) || usefulTarget(g);
-    if (target) {
-      setArrow(g, h, target, 'gold');
-      return;
-    }
-  }
+  // Tap sur l'étiquette : la flèche d'objectif se montre (guide.js, forceT) ; plus de chemin doré en doublon (V2.5).
   if (!active) return;
-  const firstDay = g.save.stats.cycles === 0;
-  const guide = firstDay ? guideTarget(g, L) : null;
-  if (!L.move) {
-    // G19 0:06 : la main fantôme montre le geste tout de suite, la flèche montre où aller.
-    const target = guide || usefulTarget(g);
-    setHand(g, h, target);
-    setArrow(g, h, target, 'gold');
-    return;
-  }
-  if (guide) {
-    setArrow(g, h, guide, 'gold');
-    if (h.idleT >= HINTS.delayS) setHand(g, h, guide);
-    return;
-  }
-  if (h.idleT >= HINTS.delayS) {
-    const u = usefulTarget(g);
-    if (u) {
-      setArrow(g, h, u, 'gold');
-      setHand(g, h, u);
-    }
-  }
+  // v1.1 (V2.5) : la flèche d'objectif (guide.js) remplace les flèches, halos et mains du jour ; la main fantôme ne
+  // montre plus que le geste du joystick, au tout premier déplacement.
+  if (!L.move) setHand(g, h, guideTarget(g, L) || usefulTarget(g));
 }
 
 function stepNightHints(g, h, L, active, dt) {
   const n = g.night;
   if (!n || n.ended || !active) return;
   const p = g.player;
-  // Voleur en fuite : traînée rouge après 3 s sans réaction (G19 2:08).
+  // Voleur en fuite : c'est la flèche d'objectif qui le montre (V2).
   let thief = null;
   for (const m of n.monsters.active) {
     if (m.alive && m.thief && m.carry > 0) {
@@ -205,19 +182,8 @@ function stepNightHints(g, h, L, active, dt) {
       break;
     }
   }
-  if (thief && !L.thief) {
-    // Réagir, c'est se rapprocher du voleur au joystick (un voleur qui passe à côté d'un marchand immobile ne compte pas).
-    const dist = Math.hypot(p.x - thief.x, p.y - thief.y);
-    const moving = Math.hypot(g.input.x, g.input.y) > 0.15;
-    const reacting = moving && (dist < HINTS.thiefReactRange || dist < h.thiefDist - 1e-4);
-    h.thiefDist = dist;
-    h.thiefT = reacting ? 0 : h.thiefT + dt;
-    if (h.thiefT >= HINTS.thiefDelayS) {
-      h.arrow = { path: pathTo(g, h, cellOf(g, thief.x, thief.y)), color: 'red', tx: thief.x, ty: thief.y };
-      setHand(g, h, { cell: cellOf(g, thief.x, thief.y) });
-    }
-    return;
-  }
+  // v1.1 (V2) : le voleur est montré par la flèche d'objectif (plus de traînée rouge) ; on n'aide ici que pour l'aura.
+  if (thief) return;
   h.thiefT = 0;
   // Aura du marchand (G19 1:49) : main fantôme s'il reste immobile 4 s loin des meubles pendant une vague.
   let alive = null;

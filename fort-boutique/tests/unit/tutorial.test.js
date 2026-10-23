@@ -7,7 +7,8 @@ import { startDay } from '../../src/game/day/day.js';
 import { startNight } from '../../src/game/night/night.js';
 import { nextObjective, objectiveKey } from '../../src/game/objectives.js';
 import { stepHints, hintsActive, forceArrow, learned } from '../../src/game/tutorial.js';
-import { HINTS } from '../../src/data/tutorial.js';
+import { HINTS, GUIDE } from '../../src/data/tutorial.js';
+import { stepGuide, mastery, MASTERY_KEYS } from '../../src/game/guide.js';
 
 /** Avance avec les indices, comme la scène de jeu (stepGame puis stepHints, avant de vider la file). */
 function play(g, sec, onStep) {
@@ -16,6 +17,7 @@ function play(g, sec, onStep) {
     if (onStep) onStep(g);
     stepGame(g, DT);
     stepHints(g, DT);
+    stepGuide(g, DT);
     g.events.clear();
   }
 }
@@ -80,24 +82,26 @@ test('objectif : amélioration prête, puis quête presque finie, puis Pleine Lu
   assert.equal(o.nights, 7, 'nuit 1 : la Pleine Lune dans 7 nuits (elle comprise)');
 });
 
-test('jour 1 : la main fantôme montre le geste tout de suite, la flèche dorée mène à la cagette', () => {
+// v1.1 (V2.1, V2.5) : la flèche d'objectif (guide.js) remplace les flèches, halos et traînées des anciens indices ;
+// la main fantôme ne montre plus que le geste du joystick. Les 5 tests ci-dessous ont été réécrits en conséquence.
+test('jour 1 : la main fantôme montre le geste tout de suite, la flèche d’objectif vise la cagette', () => {
   const g = newGame();
   startDay(g);
   play(g, 3, still);
-  assert.ok(g.hints.hand, 'main fantôme dès le début (G19 0:06)');
-  assert.equal(g.hints.arrow.color, 'gold');
+  assert.ok(g.hints.hand, 'main fantôme dès le début (geste du joystick)');
   const crate = g.furn.find((f) => f.id === 'cagette');
-  const t = g.hints.arrow;
-  assert.ok(Math.abs(t.tx - ((crate.access % g.grid.w) + 0.5)) < 1e-9, 'la flèche vise la case devant la cagette');
-  // Le joueur bouge : la main disparaît, le guide reste.
+  assert.ok(g.guide.visible, 'flèche visible pendant l’apprentissage');
+  assert.equal(g.guide.reason, 'learning');
+  assert.equal(g.guide.target.ref, crate, 'la flèche vise la cagette');
+  // Le joueur bouge : la main disparaît, la flèche reste.
   play(g, 0.3, (gg) => { gg.input.x = -1; gg.input.y = 0; });
   assert.equal(learned(g.save).move, true);
   play(g, 0.1, still);
   assert.equal(g.hints.hand, null);
-  assert.ok(g.hints.arrow, 'la flèche continue de guider');
+  assert.ok(g.guide.visible, 'la flèche continue de guider');
 });
 
-test('jour 1 : après la prise, la flèche passe sur l’étagère ; la main ne revient qu’après 4 s sans rien faire', () => {
+test('jour 1 : après la prise, la flèche passe sur l’étagère la plus vide', () => {
   const g = newGame();
   startDay(g);
   learned(g.save).move = true;
@@ -106,54 +110,51 @@ test('jour 1 : après la prise, la flèche passe sur l’étagère ; la main ne 
   const ax = (crate.access % g.grid.w) + 0.5;
   const ay = ((crate.access / g.grid.w) | 0) + 0.5;
   play(g, 1.5, (gg) => teleport(gg, ax, ay));
-  // Un petit pas : le compteur d’inaction repart de zéro.
-  play(g, 0.1, (gg) => { gg.input.x = 0.2; gg.input.y = 0; });
+  play(g, 2, still);
   assert.ok(g.player.stack.length > 0);
-  assert.equal(learned(g.save).pick, true);
+  assert.ok(mastery(g.save).pick > 0, 'la prise compte pour l’apprentissage');
   const shelf = g.furn.find((f) => f.id === 'etagere');
-  assert.ok(Math.abs(g.hints.arrow.tx - ((shelf.access % g.grid.w) + 0.5)) < 1e-9, 'flèche vers l’étagère (G19 0:13)');
-  play(g, HINTS.delayS - 1, still);
-  assert.equal(g.hints.hand, null, 'pas de main avant 4 s');
-  play(g, 1.2, still);
-  assert.ok(g.hints.hand, 'main fantôme après 4 s sans l’action attendue');
+  assert.equal(g.guide.target.ref, shelf, 'flèche vers l’étagère (G19 0:13)');
+  assert.equal(g.hints.hand, null, 'plus de main après le premier déplacement');
 });
 
-test('après le guide : aucun indice tant que le joueur agit ; un indice utile après 4 s d’inaction', () => {
+test('après l’apprentissage : pas de flèche tant que le joueur agit ; elle revient après 4 s sans action utile', () => {
   const g = newGame(11, (s) => { s.stats.cycles = 1; s.shops.q1.day = 2; });
+  for (const k of MASTERY_KEYS) mastery(g.save)[k] = GUIDE.masteryCount;
   startDay(g);
   const shelf = g.furn.find((f) => f.id === 'etagere');
-  shelf.count = 0;
+  shelf.count = shelf.capacity;
   const crate = g.furn.find((f) => f.id === 'cagette');
   crate.stock = 3;
-  play(g, 2, (gg) => { gg.input.x = 0.3; gg.input.y = 0; });
-  assert.equal(g.hints.arrow, null, 'le joueur agit : rien');
-  play(g, HINTS.delayS + 0.2, still);
-  assert.ok(g.hints.arrow && g.hints.hand, 'indice après 4 s');
+  play(g, 2, (gg) => gg.events.push('pickup'));
+  assert.equal(g.guide.visible, false, 'le joueur agit : rien');
+  play(g, GUIDE.idleS + 0.3, still);
+  assert.ok(g.guide.visible, 'flèche après 4 s sans action utile');
+  assert.equal(g.guide.reason, 'idle');
 });
 
-test('les indices s’arrêtent après les 10 premières minutes (3 cycles) ; un tap sur l’objectif montre l’emplacement', () => {
-  const g = newGame(11, (s) => { s.stats.cycles = 3; s.shops.q1.day = 4; s.shops.q1.phase.firstSaleDone = true; });
+test('un tap sur l’objectif montre la flèche, même en mode « Jamais » ; elle s’efface ensuite', () => {
+  const g = newGame(11, (s) => { s.stats.cycles = 3; s.shops.q1.day = 4; s.shops.q1.phase.firstSaleDone = true; s.settings.guideArrow = 'never'; });
   assert.equal(hintsActive(g.save), false);
   startDay(g);
+  g.furn.find((f) => f.id === 'cagette').stock = 3;
   play(g, 6, still);
-  assert.equal(g.hints.arrow, null);
+  assert.equal(g.guide.visible, false, 'mode « Jamais »');
   assert.equal(g.hints.hand, null);
-  assert.ok(g.day.pad, 'un emplacement est au sol');
   forceArrow(g);
-  play(g, 0.1, still);
-  assert.ok(g.hints.arrow, 'flèche vers l’emplacement après un tap sur l’étiquette');
+  play(g, 0.3, still);
+  assert.ok(g.guide.visible && g.guide.reason === 'tap', 'flèche après un tap sur l’étiquette');
   play(g, HINTS.forcedArrowS + 0.2, still);
-  assert.equal(g.hints.arrow, null, 'elle s’efface ensuite');
+  assert.equal(g.guide.visible, false, 'elle s’efface ensuite');
 });
 
-test('nuit 1 : main fantôme si le marchand reste immobile 4 s loin des meubles ; traînée rouge vers le voleur après 3 s', () => {
+test('nuit 1 : main fantôme si le marchand reste immobile 4 s loin des meubles ; la flèche montre le voleur qui fuit', () => {
   const g = newGame(31);
   for (const f of g.furn) f.eyes = 1;
   startNight(g, { dayTakings: 120 });
   learned(g.save).move = true;
   let hand = false;
-  let red = false;
-  let redBeforeGrace = false;
+  let thief = false;
   let stoleAt = -1;
   const n = Math.round(45 / DT);
   for (let i = 0; i < n && !g.night.ended; i++) {
@@ -162,17 +163,14 @@ test('nuit 1 : main fantôme si le marchand reste immobile 4 s loin des meubles 
     stepGame(g, DT);
     for (let k = 0; k < g.events.length; k++) if (g.events.items[k].type === 'thief_grab' && stoleAt < 0) stoleAt = g.night.t;
     stepHints(g, DT);
+    stepGuide(g, DT);
     g.events.clear();
-    if (g.hints.hand && !(g.hints.arrow && g.hints.arrow.color === 'red')) hand = true;
-    if (g.hints.arrow && g.hints.arrow.color === 'red') {
-      red = true;
-      if (stoleAt >= 0 && g.night.t - stoleAt < HINTS.thiefDelayS - 0.1) redBeforeGrace = true;
-    }
+    if (g.hints.hand) hand = true;
+    if (g.guide.visible && g.guide.target && g.guide.target.kind === 'thief') thief = true;
   }
   assert.ok(hand, 'main fantôme vers un meuble (aura du marchand)');
   assert.ok(stoleAt >= 0, 'un voleur prend des pièces');
-  assert.ok(red, 'traînée rouge vers le voleur');
-  assert.equal(redBeforeGrace, false, 'pas avant 3 s');
+  assert.ok(thief, 'la flèche d’objectif montre le voleur');
 });
 
 test('objectif selon la phase : au Matin, l’amélioration prête passe d’abord ; pendant le Jour, jamais d’amélioration', () => {

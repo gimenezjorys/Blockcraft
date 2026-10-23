@@ -1,4 +1,4 @@
-// Fort Boutique — Moka, le chat de Mamie (G11.2, niveau 5) : suit le marchand (0,4 s de retard, 0,6 case derrière),
+// Fort Boutique — Moka, le chat de Mamie (G11.2 ; présent dès le jour 1 en v1.1, aide à partir du niveau 5) : suit le marchand (0,4 s de retard, 0,6 case derrière),
 // rapporte le jour le tas de pièces de la caisse à ≤ 3 cases (toutes les 8 s), bondit la nuit sur le Grignotin le plus
 // proche à ≤ 2 cases (9 dégâts, 1 fois par seconde, volants compris). Il ne peut pas être blessé.
 import { CAT } from '../data/merchant.js';
@@ -41,18 +41,58 @@ export function levelUpCat(save) {
  * @param {any} g
  */
 export function initCat(g) {
-  if (!catActive(g.save)) {
+  // v1.1 (V2.4) : Moka est là dès le jour 1 ; il n'aide (pièces, bonds) qu'à partir du niveau 5, comme avant.
+  const c = g.save.player.cat;
+  if (!c) {
     g.cat = null;
     return;
   }
-  const c = g.save.player.cat;
+  const helper = catActive(g.save);
+  const flags = g.save.progress.flags || (g.save.progress.flags = {});
+  const first = !flags.mokaMet;
+  flags.mokaMet = true;
+  if (helper) c.unlocked = true;
   const reg = g.register;
-  const first = !c.unlocked;
-  c.unlocked = true;
   const x = reg ? reg.cx : g.player.x;
   const y = reg ? reg.cy : g.player.y;
-  g.cat = { x, y, hist: [], fetchT: CAT.fetchEveryS, atkT: 0, pounce: null, arriveT: first ? 2 : 0 };
+  g.cat = { x, y, hist: [], fetchT: CAT.fetchEveryS, atkT: 0, pounce: null, arriveT: first ? 2 : 0, helper, visit: null, meowT: 0 };
   if (first) g.events.push('cat_arrive', x, y);
+}
+
+/**
+ * Nouvel objectif (V2.4) : Moka trotte jusqu'à la cible, s'y assoit 2 s et miaule. Un clin d'œil, sans effet de jeu.
+ * @param {any} g
+ * @param {number} x
+ * @param {number} y
+ */
+export function catVisit(g, x, y) {
+  const cat = g.cat;
+  if (!cat || cat.arriveT > 0) return;
+  cat.visit = { x, y, sit: 0, meowed: false, maxT: 6 };
+}
+
+/** Pas de la visite : trotter (4 cases/s), s'asseoir 2 s, miauler. Rend vrai tant que la visite dure. */
+function stepVisit(g, cat, dt) {
+  const v = cat.visit;
+  if (!v) return false;
+  v.maxT -= dt;
+  const dx = v.x - cat.x;
+  const dy = v.y - cat.y;
+  const d = Math.hypot(dx, dy);
+  if (d > 0.35 && v.sit === 0 && v.maxT > 0) {
+    const step = Math.min(d, CAT.trotSpeed * dt);
+    cat.x += (dx / d) * step;
+    cat.y += (dy / d) * step;
+    return true;
+  }
+  if (!v.meowed) {
+    v.meowed = true;
+    cat.meowT = 1.2;
+    g.events.push('cat_meow', cat.x, cat.y);
+  }
+  v.sit += dt;
+  if (v.sit >= CAT.sitS || v.maxT <= -CAT.sitS) cat.visit = null;
+  return true;
 }
 
 /** Position du marchand il y a `delay` secondes (historique court). */
@@ -74,9 +114,14 @@ export function stepCat(g, dt) {
     cat.arriveT -= dt;
     return;
   }
+  cat.meowT = Math.max(0, (cat.meowT || 0) - dt);
   const name = g.phase.name;
-  if (name === 'night' && g.night) stepCatNight(g, cat, dt);
-  else if ((name === 'day' || name === 'closing') && g.day) stepCatDay(g, cat, dt);
+  if (cat.helper) {
+    if (name === 'night' && g.night) stepCatNight(g, cat, dt);
+    else if ((name === 'day' || name === 'closing') && g.day) stepCatDay(g, cat, dt);
+  }
+  if (name === 'night') cat.visit = null;
+  if (!cat.pounce && stepVisit(g, cat, dt)) return;
   if (cat.pounce) {
     cat.pounce.t -= dt;
     const k = Math.min(1, dt * 14);

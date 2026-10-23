@@ -56,6 +56,8 @@ function freshDay(g, duration) {
     scratch: new Int16Array(g.grid.n),
     firstCustomerPending: g.shopId === 'q1' && g.shop.day === 1 && g.save.stats.cycles === 0,
     vipTimes: [],
+    openT: 0,
+    openBurst: 0,
   };
 }
 
@@ -88,6 +90,11 @@ export function startDay(g, opts = {}) {
     ph.order = null;
     ph.rush = null;
     ph.dawnClaimed = false;
+    // Ouverture (V2.4) : 2 s sans chrono, puis les clients qui attendaient entrent (pas au tout premier jour guidé).
+    g.day.openT = DAY.openS;
+    // 2 ou 3 clients, en alternance d'un jour à l'autre (sans tirage : les graines des journées ne changent pas).
+    const [lo, hi] = DAY.openBurst;
+    g.day.openBurst = g.day.firstCustomerPending ? 0 : lo + (g.shop.day % (hi - lo + 1));
   }
   // Flamme de la boutique (G15.2) : jours manqués d'abord (gels), puis +2 % de pièces par jour de série.
   streakCheck(g.save);
@@ -116,6 +123,15 @@ export function stepDay(g, dt) {
   stepProducers(g, dt);
   stepCarry(g, dt);
   stepStaff(g, dt);
+  if (d.openT > 0) {
+    // Ouverture (V2.4) : le panneau se retourne pendant que le chrono tourne déjà (rien ne ralentit).
+    d.openT -= dt;
+    if (d.openT <= 0) {
+      d.openT = 0;
+      if (d.openBurst > 0) d.spawnT = 0;
+      g.events.push('shop_open', g.grid.door.x + 0.5, g.grid.door.y + 0.5);
+    }
+  }
   if (!d.closing) {
     d.timeLeft -= dt;
     g.shop.phase.dayTimeLeftS = Math.max(0, d.timeLeft);
@@ -146,6 +162,13 @@ function spawnLogic(g, dt) {
   }
   d.spawnT -= dt;
   if (d.spawnT > 0) return;
+  if (d.openBurst > 0) {
+    // Les clients qui attendaient devant la porte entrent l'un après l'autre.
+    d.openBurst--;
+    spawnCustomer(g);
+    d.spawnT = d.openBurst > 0 ? DAY.openBurstGapS : arrivalInterval(g);
+    return;
+  }
   if (d.customers.length >= maxCustomers(g)) {
     d.spawnT = 0.5;
     return;

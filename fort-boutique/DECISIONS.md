@@ -484,3 +484,13 @@ Décision : état de la v1.0 et ce qui change :
 - **Musique** (`audio/music.js`, `data/audio.js`, M23) : motifs de degrés de gamme, arrangement simple. → V9 : le thème écrit de la v1.1 (`data/music-score.js`), ukulélé Karplus-Strong pré-rendu, glockenspiel, sifflement, piano électrique, contrebasse, batterie ; 3 habillages du jour.
 - **Sauvegarde** : version 1 → 2 en V3 (migration qui range les meubles dans les emplacements du plan par défaut, garde tout le reste, y compris le personnel).
 Raison : PROMPT v1.1, V1.
+
+## 2026-10-23 — V2 — Un jour clair et guidé
+Décision :
+- **Flèche d'objectif** : à l'apprentissage, si rien n'est encore prêt (tout début du jour), elle montre le producteur le plus proche (là où les articles poussent) plutôt que rien. Un tap sur l'étiquette la montre 3 s, même en mode « Jamais » (le joueur l'a demandée) ; le chemin doré de l'ancien tap est retiré (doublon).
+- **Objectifs de Mamie** : l'index est gardé par boutique (`progress.mamieObjective = { q1: 3, q2: 0 … }`), chaque quartier ayant sa liste. Listes des Q2 à Q5 (5 objectifs : premier produit, nouveaux meubles accessibles à l'arrivée, boss ; pièces × m_Q). Validation et récompense à l'affichage de la carte (Matin et Jour), une à la fois : coup de tampon 0,9 s puis glissement. « Remplis l'étagère de pommes » est validé si 4 articles ont déjà été vendus (joueur avancé, ou objectif vu au Matin quand les étagères sont vides). Pas d'objectif pendant le Défi du jour ni la Nuit sans fin.
+- **Ouverture** : 2 s de panneau qui se retourne, le chrono tourne déjà (rien ne ralentit) ; puis 2 ou 3 clients entrent à 0,35 s d'écart, en alternance selon le jour (sans tirage au sort, pour ne pas changer les graines). Pas de groupe au tout premier jour guidé (le premier client y attend la première étagère garnie).
+- **Moka** dès le jour 1 (premier passage noté par `progress.flags.mokaMet`) ; il ne rapporte les pièces et ne bondit la nuit qu'à partir du niveau 5, comme avant. Il trotte vers la cible d'un nouvel objectif (4 cases/s), s'assoit 2 s et miaule (bulle avec une note).
+- **Tests** : 8 tests cassés par ces changements voulus ont été mis à jour (5 tests d'indices réécrits pour la flèche d'objectif, 2 tests des premières minutes pour la carte de Mamie et la flèche, le test de rechargement en journée compte la récompense de Mamie).
+Raison : PROMPT v1.1, V2 (A0 : décider sans demander).
+

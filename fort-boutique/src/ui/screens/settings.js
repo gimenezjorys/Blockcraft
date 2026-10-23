@@ -63,6 +63,23 @@ function mount(app, p, d) {
     return h('div.set-row', [h('span.set-label', { text: t(label) }), b]);
   });
 
+  // v1.1 (V2.1) : flèche d'aide Auto / Toujours / Jamais.
+  const ARROW = ['auto', 'always', 'never'];
+  const arrowBtns = ARROW.map((mode) => tagButton({ label: t(`settings.arrow.${mode}`), small: true, id: `set-arrow-${mode}` }));
+  const paintArrow = () => arrowBtns.forEach((b, i) => {
+    const on = (s.guideArrow || 'auto') === ARROW[i];
+    b.dataset.variant = on ? 'green' : 'kraft';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  arrowBtns.forEach((b, i) => onTap(b, () => {
+    s.guideArrow = ARROW[i];
+    paintArrow();
+    sfx('ui_tap');
+    p.onChange();
+  }, d));
+  paintArrow();
+  const arrowRow = h('div.set-row', [h('span.set-label', { text: t('settings.arrow') }), h('div.set-langs', arrowBtns)]);
+
   // Langue.
   const langs = h('div.set-langs', ['fr', 'en'].map((lang) => {
     const b = tagButton({ label: lang.toUpperCase(), small: true, variant: s.lang === lang ? 'green' : 'kraft', id: `set-lang-${lang}` });
@@ -151,6 +168,7 @@ function mount(app, p, d) {
     slider('music', 'settings.music'),
     slider('sfx', 'settings.sfx'),
     h('h3.set-h', { text: t('settings.comfort') }),
+    arrowRow,
     ...toggles,
     h('h3.set-h', { text: t('settings.lang') }),
     langs,

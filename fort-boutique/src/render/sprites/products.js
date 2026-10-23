@@ -227,16 +227,16 @@ export function drawProduct(ctx, id, s = 1) {
 }
 
 /** Bulle « ? » + icône du produit voulu (client qui attend, G7.3). */
-export function drawWantBubble(ctx, id, alpha = 1) {
+export function drawWantBubble(ctx, id, alpha = 1, fill = P.ticket) {
   ctx.save();
   ctx.globalAlpha = alpha;
   rr(ctx, -14, -13, 28, 22, 8);
-  fillInk(ctx, P.ticket, 2);
+  fillInk(ctx, fill, 2);
   ctx.beginPath();
   ctx.moveTo(-3, 9);
   ctx.lineTo(0, 14);
   ctx.lineTo(3, 9);
-  ctx.fillStyle = P.ticket;
+  ctx.fillStyle = fill;
   ctx.fill();
   ctx.translate(-5, -2);
   drawProduct(ctx, id, 0.75);
@@ -246,5 +246,87 @@ export function drawWantBubble(ctx, id, alpha = 1) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('?', 0, 1);
+  ctx.restore();
+}
+
+/**
+ * Bulle d'état au-dessus d'un objet (v1.1, V2.2).
+ * kind : 'empty' (produit + « ! » rouge), 'low' (petite icône grisée), 'full' (coche verte + nombre),
+ * 'queue' (nombre de clients + horloge).
+ * @param {CanvasRenderingContext2D} ctx (origine au point d'ancrage, au-dessus de l'objet)
+ */
+export function drawStatusBubble(ctx, kind, product, n, t) {
+  ctx.save();
+  if (kind === 'low') {
+    ctx.globalAlpha = 0.55;
+    drawProduct(ctx, product, 0.7);
+    ctx.restore();
+    return;
+  }
+  const bob = Math.sin(t * 4) * 1.5;
+  ctx.translate(0, bob);
+  rr(ctx, -15, -13, 30, 22, 8);
+  fillInk(ctx, P.ticket, 2);
+  ctx.beginPath();
+  ctx.moveTo(-3, 9);
+  ctx.lineTo(0, 14);
+  ctx.lineTo(3, 9);
+  ctx.fillStyle = P.ticket;
+  ctx.fill();
+  ctx.font = '900 12px ui-rounded, system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  if (kind === 'empty') {
+    ctx.save();
+    ctx.translate(-5, -2);
+    drawProduct(ctx, product, 0.7);
+    ctx.restore();
+    disc(ctx, 8, -2, 5, P.danger, 1.4);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText('!', 8, -1.5);
+  } else if (kind === 'full') {
+    ctx.strokeStyle = P.etiquetteVerte;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-10, -2);
+    ctx.lineTo(-6, 2);
+    ctx.lineTo(0, -6);
+    ctx.stroke();
+    ctx.fillStyle = P.encre;
+    ctx.fillText(String(n), 7, -1.5);
+  } else if (kind === 'queue') {
+    disc(ctx, -6, -2, 5.5, P.craieJaune, 1.4);
+    ctx.strokeStyle = P.encre;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-6, -5);
+    ctx.lineTo(-6, -2);
+    ctx.lineTo(-3.5, -1);
+    ctx.stroke();
+    ctx.fillStyle = P.encre;
+    ctx.fillText(String(n), 7, -1.5);
+  }
+  ctx.restore();
+}
+
+/** Petite flèche verte qui pulse dans un coin : meuble améliorable (V2.2). */
+export function drawUpgradeBadge(ctx, x, y, t) {
+  const k = 1 + 0.12 * Math.sin(t * 6);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(k, k);
+  disc(ctx, 0, 0, 7, P.etiquetteVerte, 1.6);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.moveTo(0, -4.5);
+  ctx.lineTo(4, 0);
+  ctx.lineTo(1.5, 0);
+  ctx.lineTo(1.5, 4);
+  ctx.lineTo(-1.5, 4);
+  ctx.lineTo(-1.5, 0);
+  ctx.lineTo(-4, 0);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }

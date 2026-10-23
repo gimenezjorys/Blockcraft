@@ -174,7 +174,7 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 ## v1.1 « Plus simple, plus clair, plus joli » (docs/PROMPT_V1_1.md)
 
 - [x] V1 — Audit (DECISIONS.md, 2026-10-23)
-- [ ] V2 — Un jour clair et guidé : flèche d'objectif, bulles d'état, Objectifs de Mamie, ouverture, Moka
+- [x] V2 — Un jour clair et guidé : flèche d'objectif, bulles d'état, Objectifs de Mamie, ouverture, Moka (2026-10-23)
 - [ ] V3 — Emplacements prévus : la boutique se range toute seule (+ sauvegarde v2)
 - [ ] V4 — Plans de boutique (3 plans), échanger deux meubles ; éditeur libre en option expert
 - [ ] V5 — Personnel en boutique (emplacements d'embauche), boutique automatisée, pilote automatique, passer la journée
@@ -238,3 +238,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-21 — M18 fait : la Quincaillerie (docs/sim/SIM_Q4.md ; trois seuils reportés en M20). Prochaine étape : M19 l'Emporium, Nuit sans fin, Franchise.
 - 2026-10-23 — M19 fait : l'Emporium, Nuit sans fin, Franchise (jalon E terminé ; l'équilibre des Q4 et Q5 est le premier chantier de M20). Prochaine étape : M20 équilibrage global + Playtest P4.
 - 2026-10-23 — M20 fait : équilibrage global (règles d'aide, courbe), Playtest P4 (docs/playtests/P4.md). Sur consigne de l'utilisateur, tests et simulations ne sont plus lancés. Prochaine étape : M21 direction artistique.
+- 2026-10-23 — V2 fait : flèche d'objectif (game/guide.js), bulles d'état, Objectifs de Mamie (data/mamie.js, game/mamie.js, carte kraft avec tampon), ouverture de 2 s, Moka dès le jour 1, option « Flèche d'aide ». Prochaine étape : V3 emplacements prévus + sauvegarde v2.

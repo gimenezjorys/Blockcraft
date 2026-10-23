@@ -236,3 +236,91 @@ export function drawEntranceWarning(ctx, x, y, t, label) {
   ctx.restore();
   stickerText(ctx, label, x, y - 34 - pulse * 3, 13, P.craieRose);
 }
+
+/**
+ * Flèche d'objectif (v1.1, V2.1) : grosse flèche dorée (28 × 34 px, contour encre 3 px, reflet blanc) qui flotte à
+ * 36 px au-dessus de la cible et rebondit (6 px, 0,8 s) ; anneau doré au sol qui pulse (opacité 0,6 -> 0, 1,2 s).
+ * Aucun tracé de chemin.
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x centre de la cible (pixels)
+ * @param {number} y base de la cible (pixels)
+ * @param {number} t temps (s)
+ * @param {boolean} [thief] voleur : flèche rouge
+ */
+export function drawGuideArrow(ctx, x, y, t, thief = false) {
+  const ring = (t % 1.2) / 1.2;
+  ctx.save();
+  ctx.globalAlpha = 0.6 * (1 - ring);
+  ctx.strokeStyle = thief ? P.danger : P.or;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(x, y + 12, 12 + ring * 10, 5 + ring * 4, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  const by = y - 36 - Math.abs(Math.sin((t / 0.8) * Math.PI)) * 6;
+  ctx.translate(x, by);
+  // Flèche pointée vers le bas : tige 12 × 16, pointe 28 × 18.
+  ctx.beginPath();
+  ctx.moveTo(-6, -17);
+  ctx.lineTo(6, -17);
+  ctx.lineTo(6, -1);
+  ctx.lineTo(14, -1);
+  ctx.lineTo(0, 17);
+  ctx.lineTo(-14, -1);
+  ctx.lineTo(-6, -1);
+  ctx.closePath();
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = P.encre;
+  ctx.fillStyle = thief ? P.danger : P.or;
+  ctx.fill();
+  ctx.stroke();
+  // Reflet blanc.
+  ctx.fillStyle = 'rgba(255,255,255,.7)';
+  ctx.beginPath();
+  ctx.moveTo(-3.5, -14);
+  ctx.lineTo(-1, -14);
+  ctx.lineTo(-1, -3);
+  ctx.lineTo(-3.5, -3);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * v1.1 (V2.4) : panneau de porte qui se retourne à l'ouverture (côté rouge « Fermé », puis côté vert « Ouvert »).
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x
+ * @param {number} y
+ * @param {number} k avancée de 0 à 1
+ * @param {number} alpha
+ * @param {string} closed
+ * @param {string} open
+ */
+export function drawOpenSign(ctx, x, y, k, alpha, closed, open) {
+  if (alpha <= 0) return;
+  // Retournement entre 35 % et 75 % de l'ouverture.
+  const f = Math.max(0, Math.min(1, (k - 0.35) / 0.4));
+  const sx = Math.abs(Math.cos(f * Math.PI));
+  const front = f < 0.5;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  // Ficelle.
+  ctx.strokeStyle = P.encre;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x - 14, y - 12);
+  ctx.lineTo(x, y - 22);
+  ctx.lineTo(x + 14, y - 12);
+  ctx.stroke();
+  ctx.translate(x, y);
+  ctx.scale(Math.max(0.06, sx), 1);
+  rr(ctx, -26, -12, 52, 22, 5);
+  fillInk(ctx, front ? '#FF6B6B' : '#46D39A', 3);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '900 12px "Baloo 2", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(front ? closed : open, 0, 0);
+  ctx.restore();
+}

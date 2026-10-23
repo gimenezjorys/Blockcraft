@@ -34,6 +34,10 @@ export const DAY = {
   clockBonusS: 10,
   closingS: 6,
   duskS: 4,
+  // v1.1 (V2.4) : ouverture (panneau « Ouvert », carillon), puis 2 ou 3 clients qui attendaient devant la porte.
+  openS: 2,
+  openBurst: [2, 3],
+  openBurstGapS: 0.35,
 };
 
 export const CUSTOMERS = {

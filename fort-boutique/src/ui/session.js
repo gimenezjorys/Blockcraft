@@ -110,7 +110,12 @@ export function createSession(app, o) {
       b.classList.add('hint-pulse');
       return null;
     };
-    if (o.kind === 'pad') pulse('#hub-open');
+    if (o.kind === 'mamie') {
+      // Objectif de Mamie : l'endroit où il se fait (améliorations, plans de boutique) ; sinon « Ouvrir ».
+      if (o.def.kind === 'level') hub.open('upgrades');
+      else if (o.def.flag === 'planChosen') pulse('#hub-plans');
+      else pulse('#hub-open');
+    } else if (o.kind === 'pad') pulse('#hub-open');
     else if (o.kind === 'upgrade') hub.open('upgrades');
     else if (o.kind === 'moon') hub.open('moon');
     else if (o.kind === 'quest') pulse('#hub-quests');

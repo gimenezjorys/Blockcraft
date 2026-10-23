@@ -37,6 +37,21 @@ export function drawCat(ctx, cat, t, hat = null) {
   disc(ctx, 0, -11.5, 0.9, '#FF8FB1', 0);
   if (hat) drawCatHat(ctx, hat);
   ctx.restore();
+  // v1.1 (V2.4) : miaulement = petite bulle avec une note de musique.
+  if (cat.meowT > 0) {
+    const a = Math.min(1, cat.meowT / 0.3);
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.translate(10, -30 - (1.2 - cat.meowT) * 6);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 8, 7, 0, 0, Math.PI * 2);
+    fillInk(ctx, '#FFFFFF', 2);
+    ctx.fillStyle = P.encre;
+    ctx.fillRect(0.5, -4.5, 1.4, 7);
+    disc(ctx, -0.6, 2.6, 1.9, P.encre, 0);
+    ctx.fillRect(0.5, -4.5, 3.5, 1.4);
+    ctx.restore();
+  }
 }
 
 /** Accessoire de Moka (G17) : une forme simple et une couleur par objet. */

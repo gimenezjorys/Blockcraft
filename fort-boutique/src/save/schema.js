@@ -72,6 +72,10 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
       economy: false,
       rooster: true,
       weaknessIcons: true,
+      // v1.1 : flèche d'aide (auto | always | never), vitesses du jour et de la nuit.
+      guideArrow: 'auto',
+      daySpeed: 1,
+      nightSpeed: 1,
     },
     player: {
       level: 1,
@@ -89,7 +93,8 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
     },
     shops: { q1: defaultShop('q1') },
     currentShop: 'q1',
-    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, learned: {}, pendingUnlocks: [], pendingDistricts: [] },
+    // v1.1 : mamieObjective = index de l'objectif en cours, par boutique ; mastery = actions de base apprises (V2.1).
+    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, learned: {}, pendingUnlocks: [], pendingDistricts: [], mamieObjective: {}, mastery: {} },
     daily: {
       calendarIndex: 0,
       lastCalendarDay: -1,
@@ -125,6 +130,8 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
       chestsOpened: 0,
       bossKills: {},
       bossKillsW5: {},
+      // v1.1 : ventes cumulées par produit (Objectifs de Mamie).
+      soldBy: {},
     },
     offline: { lastCollectAt: 0, welcomeChestForDay: -1, pendingDelivery: null },
   };

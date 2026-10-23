@@ -42,3 +42,22 @@ export const SPECIAL_ORDER = {
   giveRate: 8,
   giveRange: 1.0,
 };
+
+/** Flèche d'objectif (v1.1, V2.1). */
+export const GUIDE = {
+  /** Fois qu'il faut faire chaque action de base (prendre, poser, encaisser, payer un emplacement) avant le mode discret. */
+  masteryCount: 3,
+  /** Recalcul de la cible (s) et stabilité minimale (s). */
+  scanS: 0.25,
+  holdS: 1.5,
+  /** Flèche après ce temps sans action utile (s). */
+  idleS: 4,
+  /** Nouvel emplacement payable : flèche pendant (s). */
+  newPadS: 3,
+  /** Étagère « presque vide » (part de la capacité). */
+  lowShelf: 0.25,
+  /** Tas de pièces à montrer (pièces). */
+  pileMin: 20,
+  /** File d'attente qui fait apparaître la flèche (clients). */
+  queueAlert: 3,
+};

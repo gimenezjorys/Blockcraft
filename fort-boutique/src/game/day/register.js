@@ -119,6 +119,7 @@ export function pay(g, c) {
   if (c.type === 'vip') st.vipServed++;
   for (const p of c.got) {
     d.soldBy[p] = (d.soldBy[p] || 0) + 1;
+    if (st.soldBy) st.soldBy[p] = (st.soldBy[p] || 0) + 1;
     trackQuest(g.save, 'sell', 1, p);
     if (d.cheap === p) trackEvent(g.save, 'sellCheap', 1);
   }

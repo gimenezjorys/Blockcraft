@@ -108,6 +108,7 @@ function finish(g, ok) {
     const st = g.save.stats;
     st.served++;
     st.sold += o.need;
+    if (st.soldBy) st.soldBy[o.product] = (st.soldBy[o.product] || 0) + o.need;
     st.ordersDone = (st.ordersDone || 0) + 1;
     trackQuest(g.save, 'order');
     trackEvent(g.save, 'order', 1);

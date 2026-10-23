@@ -21,6 +21,9 @@ export const EXPANSIONS = [
 /** Moka (G11.2). */
 export const CAT = {
   unlockLevel: 5,
+  // v1.1 (V2.4) : visite d'un nouvel objectif (trot en cases/s, assis 2 s).
+  trotSpeed: 4,
+  sitS: 2,
   followDelayS: 0.4,
   followOffset: 0.6,
   fetchEveryS: 8,

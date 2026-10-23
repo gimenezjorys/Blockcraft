@@ -8,13 +8,16 @@ import { PALETTE as P, NIGHT_VEIL } from '../data/palette.js';
 import { lightSources } from '../game/night/light.js';
 import { bossOf } from '../game/night/boss.js';
 import { WAVES } from '../data/waves.js';
+import { DAY } from '../data/balance.js';
 import {
   drawJoystick, drawSunBar, drawCoinCounter, drawPauseButton, drawPadLabel, drawCoinPile, drawDoorSign,
   hudHit, heart, drawWavePips, drawJarGauge, drawBellButton, drawTelegraph, drawBanner, drawBossBar, drawBossCard,
 } from '../render/hud.js';
-import { drawWantBubble, drawProduct } from '../render/sprites/products.js';
-import { drawHintsWorld, drawGhostHand, drawOrderCard, drawEntranceWarning, drawOrderBubble } from '../render/hints.js';
+import { drawWantBubble, drawProduct, drawStatusBubble, drawUpgradeBadge } from '../render/sprites/products.js';
+import { drawHintsWorld, drawGhostHand, drawOrderCard, drawEntranceWarning, drawOrderBubble, drawGuideArrow, drawOpenSign } from '../render/hints.js';
 import { stepHints } from '../game/tutorial.js';
+import { stepGuide } from '../game/guide.js';
+import { canUpgrade } from '../game/economy.js';
 import { SPECIAL_ORDER } from '../data/tutorial.js';
 import { drawMonster } from '../render/sprites/monsters.js';
 import { drawFurniture } from '../render/sprites/furniture.js';
@@ -94,8 +97,9 @@ export function createPlay(app, g, hooks = {}) {
       }
       stepGame(g, dt);
       cosmeticFx(dt);
-      // Indices des 10 premières minutes (G19) : ils lisent les événements de ce pas, avant qu'on vide la file.
+      // Indices des 10 premières minutes (G19) et flèche d'objectif (V2) : ils lisent les événements de ce pas.
       stepHints(g, dt);
+      stepGuide(g, dt);
       for (let i = 0; i < g.events.length; i++) {
         const e = g.events.items[i];
         onFx(e);
@@ -250,6 +254,53 @@ function duskLights(g, out) {
   return out;
 }
 
+/** Améliorable maintenant ? (recalculé au plus une fois par seconde, V2.2) */
+const upCache = { t: -1, set: new Set(), save: null };
+function upgradableNow(g, id) {
+  if (upCache.save !== g.save || g.t - upCache.t > 1 || g.t < upCache.t) {
+    upCache.t = g.t;
+    upCache.save = g.save;
+    upCache.set.clear();
+    for (const f of g.furn) if (!upCache.set.has(f.id) && canUpgrade(g.save, f.id).ok) upCache.set.add(f.id);
+  }
+  return upCache.set.has(id);
+}
+
+/** Bulles d'état du jour (V2.2) : étagère vide ou à moitié, producteur plein, file à la caisse. */
+function drawStatusBubbles(ctx, g, ox, oy) {
+  const d = g.day;
+  for (const f of g.furn) {
+    const kind = f.def.day.kind;
+    const x = ox + (f.x + f.w / 2) * C;
+    const y = oy + f.y * C - 10;
+    if (kind === 'shelf' && f.product) {
+      const k = f.count / Math.max(1, f.capacity);
+      if (f.count === 0) {
+        ctx.save();
+        ctx.translate(x, y);
+        drawStatusBubble(ctx, 'empty', f.product, 0, g.t);
+        ctx.restore();
+      } else if (k < 0.5) {
+        ctx.save();
+        ctx.translate(x + 10, y + 4);
+        drawStatusBubble(ctx, 'low', f.product, 0, g.t);
+        ctx.restore();
+      }
+    } else if (kind === 'producer' && f.reserve > 0 && f.stock >= f.reserve) {
+      ctx.save();
+      ctx.translate(x, y);
+      drawStatusBubble(ctx, 'full', f.def.day.product, f.stock, g.t);
+      ctx.restore();
+    }
+  }
+  if (g.register && d.queue.length >= 2) {
+    ctx.save();
+    ctx.translate(ox + (g.register.x + 0.5) * C, oy + g.register.y * C - 12);
+    drawStatusBubble(ctx, 'queue', null, d.queue.length, g.t);
+    ctx.restore();
+  }
+}
+
 function drawWorldOverlay(ctx, g, ox, oy) {
   const d = g.day;
   const name = g.phase.name;
@@ -275,10 +326,16 @@ function drawWorldOverlay(ctx, g, ox, oy) {
         const k = c.patienceFull ? Math.max(0, c.patience / c.patienceFull) : 1;
         ctx.save();
         ctx.translate(ox + c.x * C, oy + c.y * C - 34);
-        drawWantBubble(ctx, c.wants[c.got.length], 0.6 + 0.4 * k);
+        // V2.2 : la bulle passe du blanc à l'orange puis au rouge quand le client s'impatiente.
+        drawWantBubble(ctx, c.wants[c.got.length], 1, k > 0.6 ? P.ticket : k > 0.3 ? '#FFC58A' : '#FF8A8A');
         ctx.restore();
       }
     }
+    drawStatusBubbles(ctx, g, ox, oy);
+  }
+  // Meubles améliorables (plans et pièces suffisants) : flèche verte dans un coin, le jour comme la nuit (V2.2).
+  if (name === 'day' || name === 'closing' || name === 'night' || name === 'morning') {
+    for (const f of g.furn) if (upgradableNow(g, f.id)) drawUpgradeBadge(ctx, ox + (f.x + f.w) * C - 6, oy + f.y * C + 4, g.t);
   }
   drawDoorSign(ctx, ox + (g.grid.door.x + 0.5) * C, oy + g.grid.h * C + 22, name === 'day' || name === 'morning' || name === 'free');
 }
@@ -287,6 +344,16 @@ function drawWorldOverlay(ctx, g, ox, oy) {
 function drawAfterLight(ctx, g, view, ox, oy) {
   const ph = g.phase.name;
   if (g.hints && (ph === 'day' || ph === 'closing' || ph === 'night')) drawHintsWorld(ctx, g.hints, g.player, ox, oy, g.t);
+  // Flèche d'objectif (V2.1) : une seule cible, au-dessus du voile de nuit.
+  // Ouverture (V2.4) : le panneau de la porte se retourne, « Fermé » puis « Ouvert ».
+  if (ph === 'day' && g.day && g.phase.t < DAY.openS + 0.6) {
+    const door = g.grid.door;
+    const k = Math.min(1, g.phase.t / DAY.openS);
+    const fade = Math.max(0, Math.min(1, (DAY.openS + 0.6 - g.phase.t) / 0.6));
+    drawOpenSign(ctx, ox + (door.x + 0.5) * C, oy + (door.y + 0.95) * C, k, fade, t('hud.closedSign'), t('hud.openSign'));
+  }
+  const gd = g.guide;
+  if (gd && gd.visible && gd.target) drawGuideArrow(ctx, ox + gd.target.x * C, oy + gd.target.y * C, g.t, gd.target.kind === 'thief');
   // G19 10:10 : la nuit qui vient ouvre une nouvelle entrée ; on la montre dès la fermeture.
   if ((ph === 'closing' || ph === 'dusk') && g.shop.week === 1) {
     for (const e of g.grid.entrances) {
@@ -411,6 +478,9 @@ function snapshot(g, fx, renderer) {
     hints: g.hints
       ? { hand: !!g.hints.hand, arrow: g.hints.arrow ? g.hints.arrow.color : null, to: g.hints.arrow ? { x: g.hints.arrow.tx, y: g.hints.arrow.ty } : null, halo: !!g.hints.halo, shown: g.hints.shown }
       : null,
+    // v1.1 : flèche d'objectif (V2.1) et Objectifs de Mamie (V2.3).
+    guide: g.guide ? { visible: g.guide.visible, reason: g.guide.reason, target: g.guide.target ? { x: g.guide.target.x, y: g.guide.target.y, kind: g.guide.target.kind } : null } : null,
+    mamie: Object.assign({}, g.save.progress.mamieObjective || {}),
     order: d && d.order ? { product: d.order.product, need: d.order.need, got: d.order.got, timeLeft: d.order.timeLeft, waiting: d.order.waiting, x: d.order.c.x, y: d.order.c.y } : null,
     rush: !!(d && d.rush),
     newEntrance: (g.phase.name === 'closing' || g.phase.name === 'dusk') && g.shop.week === 1
