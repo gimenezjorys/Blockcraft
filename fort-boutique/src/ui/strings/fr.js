@@ -62,6 +62,7 @@ export default {
   'settings.leftHanded': 'Mode gaucher',
   'settings.bigText': 'Grand texte',
   'settings.economy': 'Mode économie',
+  'error.frame': "Oups, un petit souci ! Ta partie est sauvegardée.",
   'perf.economy': "Mode économie activé pour garder le jeu fluide",
   'settings.weaknessIcons': "Icônes de faiblesse des Grignotins",
   'settings.rooster': "Cocorico à l'aube",

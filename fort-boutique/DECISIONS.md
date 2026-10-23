@@ -459,3 +459,7 @@ Raison : B5 ; consigne « diminue complètement les tests ».
 ## 2026-10-23 — M25 — Anglais, Paramètres, crédits, écran d'accueil
 Décision : l'anglais était complet (443 clés, les mêmes en français et en anglais, vérifié par `npm run check`), le manifeste et les icônes (192, 512, apple-touch) existaient depuis M2. M25 ajoute aux Paramètres la carte « Écran d'accueil » : sur iPhone, la marche à suivre (Partager, puis « Sur l'écran d'accueil ») ; là où le navigateur propose l'installation (`beforeinstallprompt`, Android/Chrome), un bouton « Installer le jeu » ; si le jeu tourne déjà en plein écran, « Le jeu est installé ». Les crédits (M22) nomment l'auteur de la licence MIT.
 Raison : G22 ; PROMPT M25.
+
+## 2026-10-23 — M26 — Robustesse
+Décision : (1) La boucle du navigateur ne peut plus être figée par une erreur : une exception pendant une image est attrapée, la partie est sauvegardée tout de suite et un message rassurant s'affiche une fois (« Oups, un petit souci ! Ta partie est sauvegardée. ») ; le jeu continue à l'image suivante. Le mode test (`advance`) laisse remonter les erreurs. (2) Les sauvegardes abîmées étaient déjà couvertes depuis M4 et M6 : somme de contrôle CRC32, copie de secours, remise en état champ par champ (`sanitizeSave`), message « sauvegarde réparée ». (3) Non faits, sur consigne de l'utilisateur : les 10 minutes d'entrées au hasard, les 500 sauvegardes altérées et le Playtest final P5.
+Raison : PROMPT M26 ; consigne « stop les tests ».

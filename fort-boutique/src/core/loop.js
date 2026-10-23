@@ -11,7 +11,7 @@ export const STEP = 1 / 60;
  * @param {(cb: FrameRequestCallback) => number} [opts.raf]
  * @param {number} [opts.maxSteps]
  */
-export function createLoop({ step, render, raf, maxSteps = 5, onSlow }) {
+export function createLoop({ step, render, raf, maxSteps = 5, onSlow, onError }) {
   const pauses = new Set();
   let acc = 0;
   let last = -1;
@@ -87,8 +87,14 @@ export function createLoop({ step, render, raf, maxSteps = 5, onSlow }) {
             if (onSlow) onSlow();
           }
         } else if (stats.slowSince !== Infinity) stats.slowSince = -1;
-        loop.runFor(elapsed, maxSteps);
-        render(acc / STEP, elapsed);
+        // M26 : une erreur dans une image ne doit jamais figer le jeu ; on la signale et on continue.
+        try {
+          loop.runFor(elapsed, maxSteps);
+          render(acc / STEP, elapsed);
+        } catch (err) {
+          stats.errors = (stats.errors || 0) + 1;
+          if (onError) onError(err, stats.errors);
+        }
         raf(frame);
       };
       raf(frame);

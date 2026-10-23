@@ -92,6 +92,17 @@ export function createApp({ testBuild, version }) {
 
   app.loop = createLoop({
     raf: testBuild ? undefined : (cb) => window.requestAnimationFrame(cb),
+    onError(err, count) {
+      // Première erreur : trace, sauvegarde et message ; ensuite, silence (le jeu continue).
+      if (count > 1) return;
+      try {
+        console.error(err);
+        if (app.services.session) app.services.session.flush();
+        if (app.services.toast) app.services.toast(app.services.t ? app.services.t('error.frame') : 'Oups !');
+      } catch {
+        /* rien de plus à faire */
+      }
+    },
     onSlow() {
       if (app.economy) return;
       app.economy = true;
