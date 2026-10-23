@@ -555,3 +555,11 @@ Décision :
 - **Vérification** : un script de travail fait jouer chaque ambiance 90 s sur l'audio simulé (aucune erreur, chaque mesure fait bien 4 temps) ; le parcours dans Chromium avec le vrai WebAudio ne montre aucune erreur. Pas d'écoute possible ici : les gains sont ceux de la v1.0 pour les instruments repris.
 Raison : PROMPT v1.1, V9.
 
+## 2026-10-23 — V10 — Équilibrage rapide et finitions
+Décision :
+- **Simulation** (une seule fois, `npm run sim -- --runs 50 --district q1,q2` ; la commande accepte maintenant une liste de quartiers, et le robot paie les emplacements d'embauche comme ceux des meubles) : Q1, tous les seuils tenus, Roi Raton battu au cycle 8 (médiane du Moyen), le Faible en 2 tentatives (pas de mur), achats sans inflation ; Q2, tout tenu sauf D2.4.3b (le Fort a 81 % de nuits ★★★ pour 70 % au plus). Ce dernier seuil n'est pas dans la vérification demandée pour V10 et le rapport Q2 précédent datait de M16, avant les aides de M20 : pas de changement, noté dans les limites. Prix du personnel et des emplacements inchangés.
+- **Personnel** : les commis gardaient les étagères vides pour le premier produit venu (souvent les pommes) : la boutique automatisée ne vendait presque que des pommes (73 % d'un bon joueur). Les étagères vides sont maintenant gardées aux produits qui n'en ont aucune ; un commis sans travail attend sur place. Mesure (12 journées du jour 7, Q1, même boutique, sans aide) : 459 pièces contre 497 pour le robot Fort avec le même personnel, soit 92 % (objectif « environ 85 % » ; jouer reste plus rentable).
+- **15 premières minutes** (relues en captures du build) : la carte de Mamie était tronquée au Matin (« Remplis l'étagère de po… ») : texte un peu plus petit, carte un peu plus large ; le compteur de pièces à 4 chiffres touchait le bouton pause : décalé de 16 px vers la gauche.
+- **Performance** : boutique E3 pleine (35 meubles), 4 commis et 2 caissiers, vitesse ×3 : 60 images/s et 0,1 à 0,2 ms de simulation par image dans Chromium ; les particules restent telles quelles.
+Raison : PROMPT v1.1, V10.
+

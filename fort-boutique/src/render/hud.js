@@ -14,7 +14,7 @@ export const HUD_BUTTONS = {
 };
 
 /** Position du compteur de pièces (cible des pièces qui volent). */
-export const COIN_COUNTER = { x: 262, y: 22 };
+export const COIN_COUNTER = { x: 246, y: 22 };
 
 /**
  * Joystick flottant : anneau craie 2 px + pastille kraft (B6).

@@ -181,15 +181,26 @@ function reserved(g, self) {
   return out;
 }
 
+/** Produits fabriqués ici qui n'ont encore aucune étagère : les étagères vides leur sont gardées (variété = recette). */
+function productsWithoutShelf(g) {
+  const shown = new Set();
+  for (const f of g.furn) if (f.def.day.kind === 'shelf' && f.product) shown.add(f.product);
+  const out = new Set();
+  for (const f of g.furn) if (f.def.day.kind === 'producer' && !shown.has(f.def.day.product)) out.add(f.def.day.product);
+  return out;
+}
+
 /** Étagère qui accepte ce produit, la plus vide d'abord (hors étagères réservées). */
 function emptiestShelf(g, product, self = null) {
   let best = null;
   let bestFill = 2;
   const taken = self ? reserved(g, self) : null;
+  const missing = self ? productsWithoutShelf(g) : null;
   for (const f of g.furn) {
     if (f.def.day.kind !== 'shelf' || f.access < 0 || f.count >= f.capacity) continue;
     if (taken && taken.has(f.idx)) continue;
     if (f.product && f.product !== product) continue;
+    if (!f.product && missing && missing.size && !missing.has(product)) continue;
     const fill = f.count / Math.max(1, f.capacity);
     if (fill < bestFill) {
       bestFill = fill;
@@ -245,25 +256,19 @@ export function stepStaff(g, dt) {
     }
     if (s.kind !== 'clerk' || s.sleep) continue;
     if (s.state === 'idle') {
-      // Rien à faire depuis 2 s : petite bulle « Zzz » (V5.2) ; il rentre au coin réserve.
+      // Rien à faire depuis 2 s : petite bulle « Zzz » (V5.2).
       s.idleT = (s.idleT || 0) + dt;
       s.zzz = s.idleT > 2;
-      if (s.home && s.pathI < s.path.length) walk(g, s, dt);
       s.waitT -= dt;
       if (s.waitT > 0) continue;
       const job = findJob(g, s);
       if (!job) {
-        s.waitT = 0.8;
-        if (!s.home) {
-          s.home = true;
-          const post = staffPosts(g).clerk;
-          goToCell(g, s, post.y * g.grid.w + post.x);
-        }
+        // Il attend sur place (près des producteurs) : il repartira tout de suite au prochain article prêt.
+        s.waitT = 0.4;
         continue;
       }
       s.idleT = 0;
       s.zzz = false;
-      s.home = false;
       s.from = job.producer.idx;
       s.to = job.shelf.idx;
       s.state = 'toProducer';

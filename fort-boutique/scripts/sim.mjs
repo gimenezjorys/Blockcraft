@@ -95,24 +95,28 @@ if (!isMainThread) {
   const district = arg('district', 'q1');
   const maxCycles = Number(arg('max-cycles', 30));
   const READY = ['q2', 'q3', 'q4', 'q5'];
-  if (district !== 'q1' && district !== 'all' && !READY.includes(district)) {
+  // v1.1 (V10) : une liste de quartiers, par exemple « q1,q2 ».
+  const list = district === 'all' ? ['q1', ...READY] : district.split(',').map((x) => x.trim()).filter(Boolean);
+  if (!list.length || list.some((x) => x !== 'q1' && !READY.includes(x))) {
     process.stderr.write(`quartier ${district} : simulation disponible avec son contenu (M18 à M19)\n`);
     process.exit(1);
   }
-  for (const id of district === 'all' ? READY : READY.filter((x) => x === district)) {
+  let ok = true;
+  for (const id of list.filter((x) => x !== 'q1')) {
     const rd = await runDistrict(id, runs, Number(arg('max-cycles', { q2: 45, q3: 60, q4: 75, q5: 90 }[id])));
     writeFileSync(join(ROOT, `docs/sim/SIM_${id.toUpperCase()}.md`), rd.md);
     writeFileSync(join(ROOT, `docs/sim/SIM_${id.toUpperCase()}.json`), JSON.stringify({ runs, rows: rd.ev.rows, info: rd.ev.info }, null, 2) + '\n');
     if (!process.argv.includes('--quiet')) process.stdout.write(rd.md);
-    if (district === id) process.exit(rd.ev.ok ? 0 : 1);
+    ok = ok && rd.ev.ok;
   }
+  if (!list.includes('q1')) process.exit(ok ? 0 : 1);
   const result = await runSims({ runs, maxCycles });
   const md = report(result, { runs, maxCycles });
   mkdirSync(join(ROOT, 'docs/sim'), { recursive: true });
   writeFileSync(join(ROOT, 'docs/sim/SIM_Q1.md'), md);
   writeFileSync(join(ROOT, 'docs/sim/SIM_Q1.json'), JSON.stringify({ runs, maxCycles, rows: result.evaluation.rows, info: result.evaluation.info }, null, 2) + '\n');
   if (!process.argv.includes('--quiet')) process.stdout.write(md);
-  process.exit(result.evaluation.ok ? 0 : 1);
+  process.exit(result.evaluation.ok && ok ? 0 : 1);
 }
 
 /**

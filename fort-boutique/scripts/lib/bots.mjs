@@ -88,6 +88,8 @@ export function createPilot(profile, seed) {
     const shelves = g.furn.filter((f) => f.def.day.kind === 'shelf');
     const producers = g.furn.filter((f) => f.def.day.kind === 'producer');
     if (d.pad && g.save.player.coins >= d.pad.price - d.pad.paid && g.phase.name === 'day') return { x: d.pad.x + 0.5, y: d.pad.y + 0.5, tol: 0.25, mode: 'pad' };
+    // v1.1 (V5) : emplacements d'embauche, payés dès que les pièces suffisent.
+    if (d.hirePad && g.save.player.coins >= d.hirePad.price - d.hirePad.paid && g.phase.name === 'day') return { x: d.hirePad.x + 0.5, y: d.hirePad.y + 0.5, tol: 0.25, mode: 'pad' };
     if (p.stack.length) {
       const fit = shelves
         .filter((s) => s.count < s.capacity && (!s.product || p.stack.includes(s.product)) && s.access >= 0)
