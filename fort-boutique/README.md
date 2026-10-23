@@ -15,7 +15,7 @@ Télécharger [`dist/index.html`](dist/index.html) et l'ouvrir par un double-cli
 
 ## Ce qu'il y a dans le jeu (v1.0)
 
-- 5 quartiers et leurs boss, des semaines sans fin, 30 meubles qui vendent le jour et se battent la nuit, 13 Grignotins.
+- 5 quartiers et leurs boss, des semaines sans fin, 24 meubles qui vendent le jour et se battent la nuit, 13 Grignotins.
 - Les aides de Mamie (Courage, coup de main, semaines d'ouverture) : on n'est jamais bloqué.
 - Quêtes, calendrier, flamme, succès, bestiaire, Défi du jour à partager, événements, saisons.
 - Nuit sans fin, Franchise de quartier, Garde-robe ; pubs uniquement récompensées.

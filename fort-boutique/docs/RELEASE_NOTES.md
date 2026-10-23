@@ -16,7 +16,7 @@ Première version complète : les 28 missions du document de mission (M0 à M27)
 
 ### Technique
 - Un seul fichier `dist/index.html` (389 Ko), sans police, image ni son externes : dessins et sons faits par le code (canvas, WebAudio).
-- Musique procédurale (titre, Matin, Jour, Nuit, boss, crépuscule, aube) et 48 effets sonores.
+- Musique procédurale (titre, Matin, Jour, Nuit, boss, crépuscule, aube) et 49 effets sonores.
 - Sauvegarde locale versionnée (CRC32, copie de secours, réparation), export / import par code.
 - Français et anglais ; options d'accessibilité (secousses, flashs, gaucher, grand texte, icônes de faiblesse, mode économie).
 - Performances (scène la plus chargée) : 0,14 ms par pas de simulation, 580 appels de dessin par image ; mode économie automatique sur les téléphones lents.
