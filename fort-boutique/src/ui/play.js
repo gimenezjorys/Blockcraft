@@ -221,17 +221,22 @@ export function createPlay(app, g, hooks = {}) {
   return scene;
 }
 
+/** Teinte du voile de nuit en Lune rouge (M21). */
+const RED_MOON_VEIL = '#4A0F2A';
+
 /** Voile et teinte selon la phase (crépuscule : orange -> violet -> nuit en 4 s, G20.5). */
 function veilFor(g) {
   const name = g.phase.name;
   const full = g.district.dark ? NIGHT_VEIL.dark : NIGHT_VEIL.normal;
+  // Lune rouge (Franchise, G13.4) : la nuit tire sur le pourpre, pour qu'on la reconnaisse d'un coup d'œil.
+  const night = g.shop && g.shop.redMoon ? RED_MOON_VEIL : P.voileNuit;
   if (name === 'dusk') {
     const k = Math.min(1, g.phase.t / 4);
     if (k < 0.35) return { veil: 0.3 * (k / 0.35), tint: '#FFB36B' };
     if (k < 0.7) return { veil: 0.3 + (full - 0.3) * ((k - 0.35) / 0.35), tint: '#6A3FA8' };
-    return { veil: full, tint: P.voileNuit };
+    return { veil: full, tint: night };
   }
-  if (name === 'night') return { veil: full, tint: P.voileNuit };
+  if (name === 'night') return { veil: full, tint: night };
   if (name === 'dawn') return { veil: Math.max(0, full * (1 - g.phase.t / 2)), tint: '#6A3FA8' };
   return { veil: 0, tint: P.voileNuit };
 }

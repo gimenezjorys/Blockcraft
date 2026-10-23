@@ -25,7 +25,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M18 — Quartier 4 : la Quincaillerie | ✅ | 2026-10-21 | Un test par comportement, robots attentifs à l'armure, réglages −25 % ; SIM_Q4 : D2.4.2a, D2.4.4 et D2.4.5 non tenus (courbe des PV entre quartiers et Pleine Lune → M20). |
 | M19 — Quartier 5 : l'Emporium | ✅ | 2026-10-21 | Emporium jouable, un test par comportement ; Nuit sans fin (choix de la boutique, vagues sans fin, record, coffres, Rivaux simulés de la semaine) et Franchise (Lune rouge, étoiles) depuis la carte, testées au doigt ; réglages −25 % ; la Reine Phalène reste imbattable pour les robots → M20. |
 | M20 — Équilibrage global + P4 | ✅ | 2026-10-23 | Aides de Mamie (Courage qui éclaircit la horde et monte sans mur, coup de main après une mauvaise nuit), semaines d'ouverture, Reine Phalène attirée par les lanternes, dégâts +20 %/niveau au-delà du 5, courbe M_Q, PV des boss ; repérages : seuils D2.4 tenus dans les 5 quartiers sauf D2.4.5 au Q5 (88 %) ; P4 : 1 bloquant et 2 majeurs corrigés. Simulations de 300 parties arrêtées sur consigne. |
-| M21 — Direction artistique complète | ⬜ | | |
+| M21 — Direction artistique complète | ✅ | 2026-10-23 | Icônes des produits des Q3 à Q5, enseignes de prestige de la Franchise, nuit de Lune rouge, transitions d'écran (le reste de G20 existait déjà). |
 | M22 — Juice et options | ⬜ | | |
 | M23 — Audio complet | ⬜ | | |
 | M24 — Performances et mémoire | ⬜ | | |

@@ -47,7 +47,8 @@ function mount(app, p, d) {
     const stars = (shop && shop.franchiseStars) || 0;
     const name = h('div.map-name', [
       h('span', { text: t(`district.${id}`) }),
-      stars > 0 ? h('span.map-stars', { text: ` ${'★'.repeat(stars)}` }) : null,
+      // Enseigne de prestige de la Franchise (G13.4) : bois, bronze, argent, or, lune.
+      stars > 0 ? h('span.map-sign', { 'data-tier': String(Math.min(5, stars)), title: t(`map.sign${Math.min(5, stars)}`) }, [h('span.map-stars', { text: '★'.repeat(stars) })]) : null,
       shop && shop.redMoon ? h('span.map-red', { text: t('map.redMoon') }) : null,
     ]);
     let status;
