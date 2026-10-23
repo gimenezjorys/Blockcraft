@@ -372,6 +372,40 @@ export const SFX = {
       noise(ctx, out, { t0: t, dur: 0.05, gain: 0.08 * o.k, freq: 3000 });
     },
   },
+  // Cocorico de l'aube (G21.2, désactivable) : dent de scie, « formants » glissants, 0,9 s.
+  rooster: {
+    bus: 'sfx', max: 0.5, dur: 0.95, steady: true,
+    fn(ctx, out, t, o) {
+      const parts = [[520, 700, 0.12], [700, 880, 0.18], [880, 980, 0.32], [980, 620, 0.28]];
+      let at = t;
+      for (const [a, b, d] of parts) {
+        tone(ctx, out, { type: 'sawtooth', freq: a, freqEnd: b, t0: at, dur: d, gain: 0.035 * o.k });
+        tone(ctx, out, { type: 'triangle', freq: a * 2, freqEnd: b * 2, t0: at, dur: d, gain: 0.03 * o.k });
+        at += d;
+      }
+    },
+  },
+  // Lance-flammes (four) : souffle passe-bande modulé (G21.5 n° 23), en courtes bouffées.
+  flame: {
+    bus: 'sfx', max: 4, dur: 0.25,
+    fn(ctx, out, t, o) {
+      for (let i = 0; i < 4; i++) noise(ctx, out, { t0: t + i * 0.055, dur: 0.05, gain: 0.05 * o.k, filter: 'bandpass', freq: 900, q: 0.7 });
+    },
+  },
+  // Tourbillon, Bourrasque : bruit en balayage passe-bande 300 -> 1 500 Hz (n° 25).
+  swirl: {
+    bus: 'sfx', max: 3, dur: 0.4,
+    fn(ctx, out, t, o) {
+      noise(ctx, out, { t0: t, dur: 0.4, gain: 0.07 * o.k, filter: 'bandpass', freq: 300, freqEnd: 1500, q: 1.2, attack: 0.08 });
+    },
+  },
+  // Lumière, Rayon, Pages : dent de scie 1,2 kHz avec trémolo (n° 26).
+  zap: {
+    bus: 'sfx', max: 8, dur: 0.12,
+    fn(ctx, out, t, o) {
+      for (let i = 0; i < 3; i++) tone(ctx, out, { type: 'sawtooth', freq: 1200 * (o.pitch || 1), t0: t + i * 0.033, dur: 0.025, gain: 0.025 * o.k });
+    },
+  },
   // Moka : un « miaou » (glissando montant puis descendant).
   cat: {
     bus: 'sfx', max: 1, dur: 0.45,

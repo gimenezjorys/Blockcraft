@@ -4,6 +4,28 @@ import { perfNow } from '../core/time.js';
 import { listen } from '../core/events.js';
 
 const MIX = { master: 0.8, music: 0.32, sfx: 0.7, ui: 0.5 };
+/** Gros sons sous lesquels la musique baisse de 5 dB pendant 350 ms (G21.3). */
+const DUCK = new Set(['chest_open', 'level_up', 'boss', 'bell', 'star']);
+const DUCK_K = Math.pow(10, -5 / 20);
+/** Réverbération (G21.3) : envois musique et effets. */
+const SEND = { music: 0.18, sfx: 0.08 };
+
+/** Réponse impulsionnelle générée : bruit stéréo, décroissance exponentielle de 1,4 s, pré-délai 15 ms. */
+function impulse(ctx) {
+  const rate = ctx.sampleRate;
+  const len = Math.floor(rate * 1.4);
+  const b = ctx.createBuffer(2, len, rate);
+  let s = 4242;
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c);
+    for (let i = 0; i < len; i++) {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      const pre = i < rate * 0.015 ? 0 : 1;
+      d[i] = pre * ((s / 0x7fffffff) * 2 - 1) * Math.exp((-6 * i) / len);
+    }
+  }
+  return b;
+}
 const MAX_VOICES = 24;
 
 /**
@@ -43,6 +65,20 @@ export function createAudio(win) {
     sfx.connect(master);
     ui.connect(master);
     music.connect(master);
+    // Réverbération partagée (si le navigateur la refuse, on s'en passe).
+    try {
+      const verb = ctx.createConvolver();
+      verb.buffer = impulse(ctx);
+      verb.connect(master);
+      for (const [k, v] of Object.entries(SEND)) {
+        const send = ctx.createGain();
+        send.gain.value = v;
+        (k === 'music' ? music : sfx).connect(send);
+        send.connect(verb);
+      }
+    } catch {
+      /* sans réverbération */
+    }
     buses = { master, comp, sfx, ui, music };
     applyVolumes();
   }
@@ -124,6 +160,11 @@ export function createAudio(win) {
       }
       voices.push(t + r.dur + 0.1);
       stats.played++;
+      if (DUCK.has(id)) {
+        const level = MIX.music * settings.music;
+        buses.music.gain.setTargetAtTime(level * DUCK_K, t, 0.02);
+        buses.music.gain.setTargetAtTime(level, t + 0.35, 0.08);
+      }
       return true;
     },
     /** @param {{ music?: number, sfx?: number }} s */

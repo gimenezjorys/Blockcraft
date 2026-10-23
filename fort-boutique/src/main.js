@@ -5,6 +5,7 @@ import { createDemoScene } from './render/demo-scene.js';
 import { createStorage } from './save/storage.js';
 import { now, setClock } from './core/time.js';
 import { createAudio } from './audio/audio.js';
+import { createMusic } from './audio/music.js';
 import { buildCheats } from './debug/cheats.js';
 import { installTestHooks } from './debug/test-hooks.js';
 import { createSession } from './ui/session.js';
@@ -45,6 +46,8 @@ function boot() {
   const audio = createAudio(window);
   audio.attach();
   app.services.audio = audio;
+  const music = createMusic(audio);
+  app.services.music = music;
   const toasts = createToasts(document.getElementById('app'));
   app.services.toast = (text, icon) => toasts.show(text, icon);
   app.services.toasts = toasts;
@@ -87,6 +90,8 @@ function boot() {
   app.stepHooks.push((dt) => {
     session.step(dt);
     toasts.update(dt);
+    // Musique (G21.2) : ambiance d'après l'écran et la phase, notes planifiées juste à temps.
+    music.update(session.game(), app.router.baseId());
   });
   // Outils debug (?debug=1).
   let clockShift = 0;

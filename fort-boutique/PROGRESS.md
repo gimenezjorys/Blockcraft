@@ -27,7 +27,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M20 — Équilibrage global + P4 | ✅ | 2026-10-23 | Aides de Mamie (Courage qui éclaircit la horde et monte sans mur, coup de main après une mauvaise nuit), semaines d'ouverture, Reine Phalène attirée par les lanternes, dégâts +20 %/niveau au-delà du 5, courbe M_Q, PV des boss ; repérages : seuils D2.4 tenus dans les 5 quartiers sauf D2.4.5 au Q5 (88 %) ; P4 : 1 bloquant et 2 majeurs corrigés. Simulations de 300 parties arrêtées sur consigne. |
 | M21 — Direction artistique complète | ✅ | 2026-10-23 | Icônes des produits des Q3 à Q5, enseignes de prestige de la Franchise, nuit de Lune rouge, transitions d'écran (le reste de G20 existait déjà). |
 | M22 — Juice et options | ✅ | 2026-10-23 | Options manquantes de G22 (icônes de faiblesse, cocorico, crédits) ; juice de G20.6 déjà en place. |
-| M23 — Audio complet | ⬜ | | |
+| M23 — Audio complet | ✅ | 2026-10-23 | Séquenceur musical (titre, Matin, Jour, Nuit, boss, crépuscule, aube), couches selon l'action, réverbération et ducking, effets manquants (cocorico, flammes, tourbillon, rayon). |
 | M24 — Performances et mémoire | ⬜ | | |
 | M25 — Anglais, Paramètres, crédits, iOS, icônes | 🔄 | | v0.2 : écran Paramètres fait (volumes, confort, langue FR/EN, export/import FB1, réinitialisation en deux temps, version). Reste : anglais complet, crédits, iOS, icônes. |
 | M26 — Robustesse + P5 | ⬜ | | |
