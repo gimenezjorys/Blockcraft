@@ -8,6 +8,7 @@ import { drawFacade, drawSign, hash01, FACADE } from './facade.js';
 import { drawFurniture } from './sprites/furniture.js';
 import { FURNITURE, footprint } from '../data/furniture.js';
 import { drawStaff } from './sprites/helpers.js';
+import { now, utcDateParts } from '../core/time.js';
 
 /** Emplacements des objets du hub (pixels logiques) : la même table sert aux zones de tap DOM. */
 export const HUB_OBJECTS = {
@@ -157,7 +158,7 @@ function drawCalendar(ctx, o, t, lift) {
   ctx.font = '900 12px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(String(new Date().getUTCDate()), x + w / 2, y + 22);
+  ctx.fillText(String(utcDateParts(now()).day), x + w / 2, y + 22);
   if (lift) {
     const a = 0.25 + Math.sin(t * 4) * 0.15;
     ctx.save();

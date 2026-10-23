@@ -1,6 +1,8 @@
 # Fort Boutique — Game Design Document
 
 > Copie intégrale et fidèle de l'Annexe G du prompt (docs/PROMPT.md). Toute modification de valeur est justifiée dans DECISIONS.md et signalée ici par une note « (réglé : … ) ».
+>
+> **v1.1** : les règles du chapitre G26 (juste avant les sources) remplacent celles d'avant là où elles diffèrent : placement des meubles (G6.4 à G6.7), personnel (G11.3), objectif visible (G3.5), indices des premières minutes (G19), écran titre et hub (G20.8), musique (G21.2), sauvegarde (G23, version 2).
 
 # ANNEXE G — GAME DESIGN DOCUMENT
 *(À copier intégralement dans GAME_DESIGN.md dès M0, puis à tenir à jour. Les renvois [S1]…[S23] pointent vers les sources de G25.)*
@@ -1037,6 +1039,47 @@ Chaque champ a une valeur par défaut dans `schema.js` ; au chargement, la sauve
 ## G24. Statistiques locales et interface pour les bots
 - Les statistiques restent sur l'appareil (aucune donnée envoyée). Elles servent aux playtests, aux succès et aux simulations.
 - La logique expose une interface sans DOM pour les simulations : `createGame({ seed, save })`, `step(dtMs)`, `setInput({ x, y, bell })`, `getState()`, plus des actions de menu (`buy`, `upgrade`, `placeFurniture`, `openChest`…). Les **simulations** (D2) l'utilisent directement ; les **playtests** (D3) passent toujours par de vrais événements DOM.
+
+## G26. La v1.1 « Plus simple, plus clair, plus joli » (docs/PROMPT_V1_1.md)
+
+### G26.1 La flèche d'objectif et les bulles d'état (V2)
+- Une seule cible, une flèche dorée qui flotte au-dessus (36 px, rebond de 6 px en 0,8 s, anneau au sol) ; jamais de chemin.
+- Le jour, par priorité : emplacement payable (meuble ou embauche) → étagère la plus vide du produit porté → caisse si un client attend sans caissier → producteur d'une étagère à moins de 25 % → tas de pièces de 20 ou plus sans caissier → producteur le plus plein → (tout début du jour) producteur le plus proche. La nuit : le voleur qui fuit avec un sac. Recalculée toutes les 0,25 s, gardée 1,5 s au moins.
+- Visible pendant l'apprentissage (3 fois prendre, poser, encaisser, payer un emplacement), puis seulement après 4 s sans action utile, lors d'un imprévu (client devant une étagère vide, 3 clients ou plus en file, voleur) et 3 s quand un emplacement devient payable. Option Auto / Toujours / Jamais ; un tap sur l'objectif la montre 3 s même en « Jamais ».
+- Bulles : étagère vide (produit + « ! »), à moins de 50 % (produit grisé), producteur plein (coche + nombre), file à la caisse (nombre + horloge), patience du client (bulle blanche → orange → rouge), meuble améliorable (flèche verte qui pulse, jour et nuit).
+
+### G26.2 Les Objectifs de Mamie (V2.3)
+- Carte kraft en haut à gauche (icône, 6 mots au plus, nombre, barre), à la place du « Prochain objectif » tant qu'il en reste ; un par un, dans l'ordre ; tampon « Fait ! », récompense qui vole vers le compteur, l'objectif suivant glisse en place. Mesures absolues : déjà fait = validé dès qu'il apparaît.
+- Quartier 1 (14) : étagère de pommes 4/4 (10 pièces) ; servir 3 clients (15) ; 2e étagère (20) ; 100 pièces dans la journée (2 plans Étagère) ; première nuit (30) ; améliorer une étagère (20) ; frigo à lait (2 plans Frigo) ; 10 bouteilles de lait (40) ; caissier (50) ; choisir un plan (2 plans Comptoir) ; commis (60) ; journée en pilote automatique (coffre en bois) ; nuit ★★★ (3 plans) ; Roi Raton (coffre d'argent).
+- Quartiers 2 à 5 (5 chacun) : vendre le premier produit, acheter les nouveaux meubles, battre le boss (pièces × m_Q) ; liste dans `src/data/mamie.js`. Index gardé par boutique (`progress.mamieObjective`).
+
+### G26.3 Ouverture et Moka (V2.4)
+- Ouverture : 2 s de panneau « Fermé » → « Ouvert » à la porte et le carillon ; le chrono tourne déjà ; puis 2 ou 3 clients entrent à 0,35 s d'écart (sauf au tout premier jour guidé).
+- Moka est là dès le jour 1 ; il ne rapporte les pièces et ne se bat qu'à partir du niveau 5. À chaque nouvel objectif, il trotte jusqu'à la cible (4 cases/s), s'y assoit 2 s et miaule.
+
+### G26.4 Emplacements prévus et plans (V3, V4)
+- Types : producteur (tout meuble qui fabrique), présentoir (étagère), défense (le reste), caisse (fixe), postes du personnel (personnages, ne bloquent rien). Les meubles de 2 cases prennent deux emplacements voisins du même type.
+- Plans en données (`src/data/shop-plans.js`) : L'Allée (équilibrée, par défaut), Le Comptoir rapide (clients ★★★, défense ★), La Forteresse (clients ★, défense ★★★), pour E0 à E3, vérifiés à 100 % de remplissage. Un achat (emplacement au sol ou Catalogue) se pose dans le premier emplacement libre de son type ; plus de place = Réserve (« Plus de place : agrandis ou change de plan »).
+- Écran Plans (Matin, niveau 3, gratuit) : 3 mini-cartes avec les meubles du joueur et les notes tirées des trajets réels ; « Choisir » range tout (même type, ordre de remplissage) avec un glissement ; échange de deux meubles de même largeur ; « Annuler ». L'agrandissement reprend le même plan à la nouvelle taille.
+
+### G26.5 Personnel et automatisation (V5)
+- Emplacements d'embauche sur les postes du plan. Q1 : caissier jour 4 (250), commis jour 5 (350), commis jour 7 (700), 2e caissier avec E1 et jour 10 (1 200), 3e et 4e commis jours 9 et 12 (1 400, 2 800) ; 1 commis pour 2 producteurs, 4 au plus. Q2 à Q5 : prix × m_Q, dès le jour 2.
+- Caissier : 0,9 s par client (−0,1 s par niveau, 0,4 s au moins), pièces droit au porte-monnaie ; le 2e sert le client suivant en même temps. Commis : 3 articles (+1 par niveau), 2,2 cases/s (+0,2), étagère la plus vide dont le producteur a du stock, jamais celle d'un autre commis, étagères vides gardées aux produits qui n'en ont pas. Améliorations : caissier 300/700/1 500/3 000, commis 400/900/1 800/3 600 (× m_Q).
+- Boutique automatisée = 1 caissier et 1 commis pour 2 producteurs : badge « AUTO » (HUD, façade). Pilote automatique : interrupteur du HUD ; sans geste depuis 1 s, le marchand revient à la caisse. « Passer la journée » : le reste du jour joué en pas fixes sans intervention, en 1,5 s. Une boutique automatisée sans aide rapporte environ 90 % d'un bon joueur actif. Gains hors ligne dès un caissier et un commis.
+
+### G26.6 Vitesse (V6)
+- Bouton sous la pause : ×1 → ×2 → ×3 le jour, ×1 → ×2 la nuit ; ×2 dès le jour 2, ×3 dès le jour 4 ou une boutique automatisée. Plusieurs pas fixes par image (jamais un pas plus grand) ; image trop lente = un cran de moins (petite flèche). Mémorisée (`settings.daySpeed`, `settings.nightSpeed`).
+
+### G26.7 Écran titre et hub (V7, V8)
+- Titre : la boutique au soir (dégradé #2A2466 → #F59E6B, 40 étoiles, lune et halo, toits en parallaxe), lucioles, feuilles / citrouilles / neige selon la saison, yeux dans le buisson, raton qui passe la tête ; entrée de 1,6 s (caméra qui descend, enseigne qui tombe, lanternes, yeux qui s'ouvrent) ; « Touche pour jouer » sur une étiquette suspendue ; au tap, la porte s'ouvre et la lumière chaude envahit l'écran.
+- Hub : la même façade en plein jour ; objets → écrans (porte : OUVRIR ; ardoise : Quêtes ; calendrier ; boîte aux lettres : Défi du jour ; poteau : Carte ; Moka : Garde-robe ; lune : Pleine Lune ; établi : Catalogue, Améliorer, Plans) ; notifications en cachets de cire ; écrans habillés comme leurs objets ; ombres « tampon » nettes, grain de papier et de bois.
+
+### G26.8 Musique (V9)
+- Thème écrit (`src/data/music-score.js`) : fa majeur, 112 BPM, swing 56 %, parties A et B de 8 mesures. Titre : A à la boîte à musique, 90 BPM ; Matin : sifflement, ukulélé, contrebasse, 100 BPM ; Jour : 36 mesures (intro, A, B, A', pont, reprise), 3 habillages qui tournent et une respiration une boucle sur quatre ; Nuit : ré mineur, 92 BPM ; Boss : 100 BPM, timbales et chœur ; Aube : fin de A en ré majeur et oiseaux.
+- Couches : plus de clients = plus d'instruments ; Rush et vitesse = percussions. Musique à 0,28 par défaut, panoramique, saturation douce, filtre au-dessus de 9 kHz, −5 dB sous les gros effets.
+
+### G26.9 Sauvegarde v2
+- Nouveaux champs : `settings.guideArrow`, `settings.daySpeed`, `settings.nightSpeed`, `settings.freeLayout`, `progress.mamieObjective`, `progress.mastery`, `stats.soldBy` ; par boutique `plan`, `slots`, `autopilot`, `staff.cashier2`. Migration v1 → v2 : plan Allée, meubles posés dans l'emplacement libre le plus proche de leur type, trop-plein dans la Réserve, tout le reste gardé (test de fixture `tests/fixtures/save_v1_full.json`).
 
 ## G25. Sources
 - [S1] Sensor Tower — State of Gaming 2026 : https://sensortower.com/press/press-release-sensor-tower-state-of-gaming-gaming-drove-52-billion-downloads-82b-iap-revenue-on-mobile-and-12b-premium-revenue-on-steam

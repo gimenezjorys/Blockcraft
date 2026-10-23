@@ -76,7 +76,7 @@ export async function buildGame({ test = TEST, quiet = QUIET } = {}) {
   code = code.replace(/<\/script/gi, '<\\/script');
 
   // Feuilles de style dans l'ordre (chaque fichier reste sous 600 lignes).
-  const cssSrc = ['src/ui/ui.css', 'src/ui/retention.css'].map((f) => readFileSync(join(ROOT, f), 'utf8')).join('\n');
+  const cssSrc = ['src/ui/ui.css', 'src/ui/retention.css', 'src/ui/v11.css'].map((f) => readFileSync(join(ROOT, f), 'utf8')).join('\n');
   const css = (await transform(cssSrc, { loader: 'css', minify: true })).code.trim();
   const favicon = 'data:image/svg+xml,' + encodeURIComponent(faviconSvg());
 

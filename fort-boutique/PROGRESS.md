@@ -183,7 +183,7 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 - [x] V8 — Hub du matin vivant (façade, objets, établi) (2026-10-23)
 - [x] V9 — Musique : thème écrit, ukulélé, glockenspiel, sifflement (2026-10-23)
 - [x] V10 — Équilibrage rapide et finitions (2026-10-23)
-- [ ] V11 — Livraison v1.1.0
+- [x] V11 — Livraison v1.1.0 (2026-10-23)
 
 ## Problèmes mineurs relevés en playtest (à traiter en finition)
 
@@ -246,3 +246,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-23 — V8 fait : hub du Matin dessiné (render/hub-scene.js) : façade au jour avec l'intérieur réel du joueur dans la vitrine, objets du monde, établi, cachets de cire ; écrans habillés (livret, boîte à outils, ardoise, page de calendrier) ; grain de papier généré. Prochaine étape : V9 musique écrite.
 - 2026-10-23 — V9 fait : thème écrit (data/music-score.js), séquenceur réécrit (audio/music.js) avec ukulélé Karplus-Strong pré-rendu, glockenspiel, sifflement, piano FM, contrebasse, batterie ; 6 habillages, 3 habillages du jour + respiration ; saturation douce et filtre chaleur. Prochaine étape : V10 équilibrage rapide.
 - 2026-10-23 — V10 fait : simulation courte (50 parties, Q1 et Q2) : Roi Raton battu au cycle 8, pas de mur, pas d'inflation ; commis qui gardent les étagères vides aux produits sans étagère (boutique automatisée à 92 % d'un bon joueur) ; 60 images/s en ×3 sur une boutique E3 pleine. Prochaine étape : V11 livraison v1.1.0.
+- 2026-10-23 — V11 fait : GAME_DESIGN (chapitre G26), CHANGELOG, README, version 1.1.0, tag v1.1.0. La page GitHub Pages (branche `main`) passe en v1.1.0 à la fusion de la branche de travail.

@@ -1,5 +1,9 @@
 # Fort Boutique — notes de version
 
+## v1.1.0 (2026-10-23)
+
+« Plus simple, plus clair, plus joli » : flèche d'objectif, bulles d'état, Objectifs de Mamie ; emplacements prévus et 3 plans de boutique ; personnel embauché dans la boutique, pilote automatique, « Passer la journée », vitesse ×2/×3 ; écran titre animé, hub du Matin dessiné, thème musical écrit. Détail : [CHANGELOG.md](../CHANGELOG.md).
+
 ## v1.0.0 (2026-10-23)
 
 Première version complète : les 28 missions du document de mission (M0 à M27).

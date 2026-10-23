@@ -1,6 +1,6 @@
 {
   "name": "fort-boutique",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Fort Boutique — le jour, tu vends ; la nuit, tes meubles se battent.",
   "type": "module",
   "private": true,

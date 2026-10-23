@@ -7,8 +7,8 @@ import { nextObjective, objectiveKey } from '../game/objectives.js';
 import { currentMamie, checkMamie, mamieTarget } from '../game/mamie.js';
 import { catVisit } from '../game/cat.js';
 import { MAMIE_FX } from '../data/mamie.js';
+import { perfNow as now } from '../core/time.js';
 
-const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
 /**
  * @param {() => any} game
