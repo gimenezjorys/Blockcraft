@@ -171,6 +171,20 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 ---
 
+## v1.1 « Plus simple, plus clair, plus joli » (docs/PROMPT_V1_1.md)
+
+- [x] V1 — Audit (DECISIONS.md, 2026-10-23)
+- [ ] V2 — Un jour clair et guidé : flèche d'objectif, bulles d'état, Objectifs de Mamie, ouverture, Moka
+- [ ] V3 — Emplacements prévus : la boutique se range toute seule (+ sauvegarde v2)
+- [ ] V4 — Plans de boutique (3 plans), échanger deux meubles ; éditeur libre en option expert
+- [ ] V5 — Personnel en boutique (emplacements d'embauche), boutique automatisée, pilote automatique, passer la journée
+- [ ] V6 — Vitesse ×1 / ×2 / ×3
+- [ ] V7 — Écran titre animé
+- [ ] V8 — Hub du matin vivant (façade, objets, établi)
+- [ ] V9 — Musique : thème écrit, ukulélé, glockenspiel, sifflement
+- [ ] V10 — Équilibrage rapide et finitions
+- [ ] V11 — Livraison v1.1.0
+
 ## Problèmes mineurs relevés en playtest (à traiter en finition)
 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.

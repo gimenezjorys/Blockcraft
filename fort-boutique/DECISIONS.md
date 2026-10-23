@@ -471,3 +471,16 @@ Raison : PROMPT M27 et F ; règles du dépôt (pas de PR sans demande).
 ## 2026-10-23 — Correctif v1.0 : écran Paramètres
 Décision : l'écran Paramètres de la v1.0.0 plantait à l'ouverture (`installCard` appelé mais jamais écrit : l'ajout de M25 n'avait pas trouvé la fin du fichier, sans test pour le voir). La fonction est ajoutée ; les 5 tests d'interface des Paramètres et de la pause repassent.
 Raison : bug trouvé par le `npm test` de début de session (A1 du prompt v1.1).
+
+## 2026-10-23 — V1 — Audit avant la v1.1 (docs/PROMPT_V1_1.md)
+Décision : état de la v1.0 et ce qui change :
+- **Tutoriel et indices du jour** (`game/tutorial.js`, `render/hints.js`, `ui/objective.js`) : flèche dorée de guidage au tout premier jour, puis main fantôme, halo, flèche ou traînée rouge après 4 s d'inaction pendant 3 cycles ; étiquette « Prochain objectif » (emplacement, amélioration, quête, déblocage, lune). → V2 : une flèche d'objectif unique (plus de tracé), des bulles d'état, les Objectifs de Mamie en tête de l'étiquette ; la main fantôme ne garde que la démonstration du joystick.
+- **Emplacements d'achat** (`game/day/pads.js`, `data/districts.js` q1.pads) : 6 emplacements fixes du Q1 posés à des cases de G6.7, case libre la plus proche si elle est prise. → V3 : les emplacements suivent les emplacements prévus du plan (ordre de remplissage) ; plans en données dans `data/shop-plans.js`.
+- **Placement libre** : `catalog.findPlacement` (case qui garde le chemin le plus long), `autoPlaceFromStorage`, éditeur libre (`game/editor.js`, `ui/editor-scene.js`, `ui/screens/editor.js`). → V3/V4 : achat posé dans le meilleur emplacement libre de son type ; écran « Plans » (3 plans, échange de deux meubles) ; l'éditeur libre reste derrière l'option « Aménagement libre (expert) ».
+- **Moteur** : tout le jeu lit `shop.layout` (liste d'éléments posés) ; on le garde comme vérité, les emplacements (`shop.plan`, `shop.slots`) le rangent.
+- **Personnel** (`game/staff.js`, données `merchant.STAFF`) : niveau 10, 2 commis et 1 caissier au plus, embauche dans Améliorer. → V5 : embauche par des emplacements dans la boutique dès le jour 4, plus de commis, 2e caisse, boutique automatisée, pilote automatique, passer la journée.
+- **Écran titre** (`ui/screens/title.js`) : logo SVG à yeux, étoiles, « Touche pour jouer » au centre. → V7 : scène canvas animée (ciel, toits, façade, lucioles, étiquette suspendue, animation d'entrée et de sortie).
+- **Hub du Matin** (`ui/screens/morning.js`) : barre niveau/monnaies, grille de boutons-étiquettes, OUVRIR. → V8 : la façade vue de la rue, objets du monde (ardoise, calendrier, boîte aux lettres, poteau, Moka, lune), établi (catalogue, boîte à outils, rouleau de plan).
+- **Musique** (`audio/music.js`, `data/audio.js`, M23) : motifs de degrés de gamme, arrangement simple. → V9 : le thème écrit de la v1.1 (`data/music-score.js`), ukulélé Karplus-Strong pré-rendu, glockenspiel, sifflement, piano électrique, contrebasse, batterie ; 3 habillages du jour.
+- **Sauvegarde** : version 1 → 2 en V3 (migration qui range les meubles dans les emplacements du plan par défaut, garde tout le reste, y compris le personnel).
+Raison : PROMPT v1.1, V1.
