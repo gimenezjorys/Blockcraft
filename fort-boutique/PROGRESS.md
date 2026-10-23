@@ -29,7 +29,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M22 — Juice et options | ✅ | 2026-10-23 | Options manquantes de G22 (icônes de faiblesse, cocorico, crédits) ; juice de G20.6 déjà en place. |
 | M23 — Audio complet | ✅ | 2026-10-23 | Séquenceur musical (titre, Matin, Jour, Nuit, boss, crépuscule, aube), couches selon l'action, réverbération et ducking, effets manquants (cocorico, flammes, tourbillon, rayon). |
 | M24 — Performances et mémoire | ✅ | 2026-10-23 | `npm run bench` (0,14 ms par pas, 580 appels de dessin, budgets tenus), mode économie automatique ; tests de fuite non écrits (consigne). |
-| M25 — Anglais, Paramètres, crédits, iOS, icônes | 🔄 | | v0.2 : écran Paramètres fait (volumes, confort, langue FR/EN, export/import FB1, réinitialisation en deux temps, version). Reste : anglais complet, crédits, iOS, icônes. |
+| M25 — Anglais, Paramètres, crédits, iOS, icônes | ✅ | 2026-10-23 | Paramètres complets (G22), anglais complet (443 clés), crédits, carte « Écran d'accueil » (iOS, bouton Installer ailleurs), manifeste et icônes. |
 | M26 — Robustesse + P5 | ⬜ | | |
 | M27 — Publication | ⬜ | | |
 
