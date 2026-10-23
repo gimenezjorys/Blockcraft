@@ -30,7 +30,8 @@ export const MONSTERS = {
 
 export const BOSSES = {
   roi_raton: {
-    id: 'roi_raton', district: 'q1', hp: 1125, armor: 2, speed: 0.55, steal: 0.35, loot: 150, boss: true,
+    // M20 (D2.5) : PV 1 125 -> 1 350 (+20 %) : avec les aides de Mamie, le Fort gagnait trop tôt (★★★ au Q1 > 80 %).
+    id: 'roi_raton', district: 'q1', hp: 1350, armor: 2, speed: 0.55, steal: 0.35, loot: 150, boss: true,
     noKnockback: true, fleeSpeed: 0.75, summon: { type: 'raton', count: 3, every: 4.8 },
   },
   grande_pate: {
@@ -39,20 +40,21 @@ export const BOSSES = {
     weak: { fire: 1.5 }, slowResist: 0.5, splitAt: [0.66, 0.33], splitSpawn: { type: 'gloubi', count: 3 },
   },
   dame_blanche: {
-    // M17 (D2.5) : PV 1 500 -> 1 125, vol 35 % -> 26,25 %.
-    id: 'dame_blanche', district: 'q3', hp: 1125, armor: 0, speed: 0.6, steal: 0.2625, loot: 350, boss: true,
+    // M17 (D2.5) : vol 35 % -> 26,25 % ; PV 1 500 -> 1 125 en M17, revenus à 1 500 en M20 (Courage qui monte).
+    id: 'dame_blanche', district: 'q3', hp: 1500, armor: 0, speed: 0.6, steal: 0.2625, loot: 350, boss: true,
     ghost: true, weak: { light: 2 }, vanish: { every: 7, dur: 3 }, summon: { type: 'fantome', count: 2, every: 10 },
   },
   ferrailleur: {
-    // M18 (D2.5) : PV 3 400 -> 2 550, armure 10 -> 7,5, vitesse 0,4 -> 0,3, vol 40 -> 30 %, écrasement 30 -> 22,5 /s
-    // sur 1 -> 0,75 case (−25 % partout).
-    id: 'ferrailleur', district: 'q4', hp: 2550, armor: 7.5, speed: 0.3, steal: 0.3, loot: 500, boss: true,
+    // M18 (D2.5) : armure 10 -> 7,5, vitesse 0,4 -> 0,3, vol 40 -> 30 %, écrasement 30 -> 22,5 /s sur 1 -> 0,75 case
+    // (−25 %) ; PV 3 400 -> 2 550 en M18, 3 000 en M20 (Courage qui monte).
+    id: 'ferrailleur', district: 'q4', hp: 3000, armor: 7.5, speed: 0.3, steal: 0.3, loot: 500, boss: true,
     metal: true, noKnockback: true, noStun: true, smash: { dps: 22.5, radius: 0.75 },
   },
   reine_phalene: {
-    // M19 (D2.5) : PV 4 800 -> 3 600, vitesse 0,6 -> 0,45, vol 40 -> 30 % (−25 %).
-    id: 'reine_phalene', district: 'q5', hp: 3600, armor: 2, speed: 0.45, steal: 0.3, loot: 800, boss: true,
-    flying: true, douse: { every: 9, radius: 2, dur: 4 }, summon: { type: 'chauvesouris', count: 4, every: 8 },
+    // M19 (D2.5) : vitesse 0,6 -> 0,45, vol 40 -> 30 % (−25 %) ; PV 4 800 -> 3 600 en M19, revenus à 4 800 en M20.
+    id: 'reine_phalene', district: 'q5', hp: 4800, armor: 2, speed: 0.45, steal: 0.3, loot: 800, boss: true,
+    // M20 (règle) : va de lanterne en lanterne (elle éteint chacune 4 s en passant) avant de filer à la caisse.
+    flying: true, douse: { every: 9, radius: 2, dur: 4 }, summon: { type: 'chauvesouris', count: 4, every: 8 }, lampHunt: { dur: 4 },
   },
 };
 

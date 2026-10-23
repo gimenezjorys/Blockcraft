@@ -201,7 +201,7 @@ test('ralentissements non cumulables : le plus fort s’applique, la durée se r
 
 test('mise à l’échelle des PV et du butin (G10.2)', () => {
   const R = MONSTERS.raton.hp;
-  assert.equal(scaledHp(MONSTERS.raton, 'q1', 1, 1), R);
+  assert.ok(Math.abs(scaledHp(MONSTERS.raton, 'q1', 1, 1) - R * DISTRICT_FACTORS.hp.q1) < 1e-9, 'M_Q du Q1 (réglé en M20)');
   assert.ok(Math.abs(scaledHp(MONSTERS.raton, 'q2', 4, 2) - R * DISTRICT_FACTORS.hp.q2 * 1.36 * 1.35) < 1e-9, 'M_Q du Q2 (réglé en M16)');
   assert.ok(Math.abs(scaledHp(BOSSES.roi_raton, 'q1', 7, 3) - BOSSES.roi_raton.hp * 1.35 ** 2) < 1e-9);
   assert.equal(scaledLoot(MONSTERS.raton, 'q1', 1), 2);

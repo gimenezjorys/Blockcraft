@@ -1,7 +1,7 @@
 // Fort Boutique — stratégies du Matin pour les simulations (D2.2) : achats, améliorations, aménagement.
 import { Rng, seedFrom } from '../../src/core/rng.js';
 import { FURNITURE } from '../../src/data/furniture.js';
-import { MONSTERS } from '../../src/data/monsters.js';
+import { MONSTERS, BOSSES } from '../../src/data/monsters.js';
 import { districtDef } from '../../src/data/districts.js';
 import { catalogIds, canBuy, buyFurniture, findPlacement } from '../../src/game/catalog.js';
 import { canUpgrade, upgradeFurniture } from '../../src/game/economy.js';
@@ -87,6 +87,12 @@ export function morningActions(g, profile, o) {
     if (ex.ok && rng.chance(0.5)) expandShop(save, g.shopId);
     else if (ups.length) buyMerchantUpgrade(save, rng.pick(ups));
   }
+  // 1 bis. Boutique pleine : un joueur raisonnable l'agrandit d'abord (M20 : sinon, dans la boutique neuve d'un
+  // quartier, le Moyen gardait 3 000 pièces sans pouvoir rien poser pendant toute la première semaine).
+  if (profile.buy !== 'cheapest') {
+    const ex = expansionInfo(save, g.shopId);
+    if (ex.ok && save.player.coins >= ex.cost && !findPlacement(g.shopId, shop.expansion, shop.layout, 'etagere')) expandShop(save, g.shopId);
+  }
   // 2. Améliorations du marchand et recettes (moyen et fort).
   if (profile.buy !== 'cheapest') {
     const order = profile.buy === 'optimal' ? ['basket', 'shoes', 'whistle', 'broom', 'bell'] : ['basket', 'shoes', 'broom', 'bell', 'whistle'];
@@ -129,7 +135,9 @@ export function morningActions(g, profile, o) {
       } else {
         const air = hasFlyers(g.shopId);
         const dark = districtDef(g.shopId).dark;
-        const lit = (x) => (dark && FURNITURE[x].night.behavior === 'light' && countOf(shop, x) < 3 ? 3 : 1);
+        // Obscurité, ou boss qui chasse les lanternes (Reine Phalène, M20) : de la lumière d'abord.
+        const hunt = !!(BOSSES[districtDef(g.shopId).boss] || {}).lampHunt;
+        const lit = (x) => ((dark || hunt) && FURNITURE[x].night.behavior === 'light' && countOf(shop, x) < (hunt ? 4 : 3) ? 3 : 1);
         // Grignotins blindés (golems) : ce qui ignore l'armure (lumière, feu, poison) compte double.
         const pierce = (x) => (hasArmored(g.shopId) && PIERCING.includes(FURNITURE[x].night.element) ? 2 : 1);
         const val = (x) => defenseValue(x) * (air && FURNITURE[x].air ? 2 : 1) * lit(x) * pierce(x) / canBuy(save, g.shopId, x).price;
@@ -207,10 +215,11 @@ const PRIORITIES = {
     ['etagere', 3], ['lanterne', 2], ['etabli', 1], ['plante', 1], ['aimant', 1], ['comptoir', 2], ['enclume', 1],
     ['lanterne', 4], ['peinture', 1], ['etabli', 2], ['plante', 2], ['ventilo', 1], ['etagere', 5], ['aimant', 2], ['comptoir', 4],
   ],
-  // Phalènes (volants, attirées par les lampes) et tout le bestiaire : bonbons (plusieurs cibles), une lanterne-appât.
+  // Phalènes (volants, attirées par les lampes) et tout le bestiaire : bonbons (plusieurs cibles), des lanternes-appâts
+  // (la Reine Phalène les visite une à une avant la caisse, M20).
   q5: [
     ['etagere', 3], ['bonbons', 1], ['lanterne', 2], ['plante', 1], ['comptoir', 2], ['bonbons', 2], ['aimant', 1],
-    ['cristal', 1], ['lanterne', 3], ['horloge', 1], ['plante', 2], ['etagere', 5], ['pupitre', 1], ['comptoir', 4],
+    ['cristal', 1], ['lanterne', 4], ['horloge', 1], ['plante', 2], ['etagere', 5], ['pupitre', 1], ['comptoir', 4],
   ],
 };
 

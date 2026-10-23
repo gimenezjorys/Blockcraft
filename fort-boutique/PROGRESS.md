@@ -24,7 +24,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M17 — Quartier 3 : la Pharmacie | ✅ | 2026-10-21 | Pharmacie jouable, un test par comportement, lanterne prêtée du Festival, formations de corbeaux entières ; SIM_Q3 : tous les seuils D2.4 tenus sauf D2.4.4 (reporté en M20). |
 | M18 — Quartier 4 : la Quincaillerie | ✅ | 2026-10-21 | Un test par comportement, robots attentifs à l'armure, réglages −25 % ; SIM_Q4 : D2.4.2a, D2.4.4 et D2.4.5 non tenus (courbe des PV entre quartiers et Pleine Lune → M20). |
 | M19 — Quartier 5 : l'Emporium | ✅ | 2026-10-21 | Emporium jouable, un test par comportement ; Nuit sans fin (choix de la boutique, vagues sans fin, record, coffres, Rivaux simulés de la semaine) et Franchise (Lune rouge, étoiles) depuis la carte, testées au doigt ; réglages −25 % ; la Reine Phalène reste imbattable pour les robots → M20. |
-| M20 — Équilibrage global + P4 | ⬜ | | |
+| M20 — Équilibrage global + P4 | ✅ | 2026-10-23 | Aides de Mamie (Courage qui éclaircit la horde et monte sans mur, coup de main après une mauvaise nuit), semaines d'ouverture, Reine Phalène attirée par les lanternes, dégâts +20 %/niveau au-delà du 5, courbe M_Q, PV des boss ; repérages : seuils D2.4 tenus dans les 5 quartiers sauf D2.4.5 au Q5 (88 %) ; P4 : 1 bloquant et 2 majeurs corrigés. Simulations de 300 parties arrêtées sur consigne. |
 | M21 — Direction artistique complète | ⬜ | | |
 | M22 — Juice et options | ⬜ | | |
 | M23 — Audio complet | ⬜ | | |
@@ -175,10 +175,12 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
 
-- [ ] M16 — D2.4.4 au Q2 : une Pleine Lune perdue vide le Bocal ; trois défaites de suite = trois nuits basses → M20.
-- [ ] M17 — D2.4.4 au Q3 (48 %) : même cause → M20.
-- [ ] M18 — Q4 : D2.4.2a (Faible : 10 tentatives), D2.4.4 (2 %), D2.4.5 (69 %) : leviers du quartier au bout de leur marge ; revoir la courbe M_Q et la Pleine Lune → M20.
-- [ ] M19 — Q5 : la Reine Phalène vole droit à la caisse et ressort en 25 s ; aucun robot ne la bat → M20 (comportement de la Reine, courbe M_Q).
+- [x] M16 à M19 — D2.4.4 des Q2 à Q5, Q4 et Q5 trop durs, Reine imbattable → corrigés en M20 (repérages).
+- [ ] M20 — Rapports SIM_Q1 à Q5 de 300 parties à refaire avec les valeurs de M20 (arrêtés sur consigne) ; D2.4.5 au Q5 à 88 % au repérage.
+- [ ] P4 — Semaine 2+ du Q4 : 5 tentatives pour la Pleine Lune, semaine 3 dure (boucle facultative) → revoir au Playtest P5.
+- [ ] P4 — « Franchiser » seulement sur la façade de la boutique où l'on est.
+- [ ] P4 — Cycles de 4 à 7 min au Q4 (long pour Sam).
+- [ ] P4 — Toasts de paliers du bestiaire en rafale au premier cycle.
 - [ ] M19 — Enseignes de prestige de la Franchise (bois → lune) → M21 (direction artistique).
 - [ ] P3 — Flamme éteinte impossible à rallumer sans pub avec les rubis d'un joueur récent → M20 (économie des rubis).
 - [ ] P3 — Deux fenêtres de gains à la suite au retour (ticket puis calendrier) → M22.
@@ -221,3 +223,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-21 — M17 fait : la Pharmacie (docs/sim/SIM_Q3.md ; D2.4.4 du Q3 reporté en M20). Prochaine étape : M18 Quartier 4, la Quincaillerie.
 - 2026-10-21 — M18 fait : la Quincaillerie (docs/sim/SIM_Q4.md ; trois seuils reportés en M20). Prochaine étape : M19 l'Emporium, Nuit sans fin, Franchise.
 - 2026-10-23 — M19 fait : l'Emporium, Nuit sans fin, Franchise (jalon E terminé ; l'équilibre des Q4 et Q5 est le premier chantier de M20). Prochaine étape : M20 équilibrage global + Playtest P4.
+- 2026-10-23 — M20 fait : équilibrage global (règles d'aide, courbe), Playtest P4 (docs/playtests/P4.md). Sur consigne de l'utilisateur, tests et simulations ne sont plus lancés. Prochaine étape : M21 direction artistique.

@@ -9,7 +9,7 @@ import { bossOf } from '../../src/game/night/boss.js';
 import { enterDawn, leaveDawn, openDawnChest } from '../../src/game/cycle.js';
 import { generateNight } from '../../src/game/night/waves.js';
 import { districtOpen } from '../../src/game/progression.js';
-import { NIGHT } from '../../src/data/night.js';
+import { NIGHT, courageAssist } from '../../src/data/night.js';
 import { BOSSES } from '../../src/data/monsters.js';
 import { unlockCards } from '../../src/ui/screens/unlocks.js';
 import { districtStatus } from '../../src/ui/screens/map.js';
@@ -90,7 +90,8 @@ test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage 
   for (let i = 0; i < 6; i++) {
     g.shop.phase.dawnClaimed = false;
     startNight(g, { dayTakings: 200, waves: { waves: [{ groups: [], boss: null }], golden: -1, newTypes: [] } });
-    assert.ok(Math.abs(g.night.assist - Math.min(NIGHT.assistMax, NIGHT.assistPerFail * g.shop.bossAssist)) < 1e-9);
+    assert.ok(Math.abs(g.night.assist - courageAssist(g.shop.bossAssist)) < 1e-9);
+    assert.ok(g.night.assist >= Math.min(NIGHT.assistMax, NIGHT.assistPerFail * g.shop.bossAssist) - 1e-9, 'au moins la règle de G8.9');
     g.night.bossEscaped = true;
     finishNight(g, false);
     g.nightResult = g.night.result;
@@ -99,7 +100,9 @@ test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage 
   }
   g.shop.phase.dawnClaimed = false;
   startNight(g, { dayTakings: 200, waves: { waves: [{ groups: [], boss: null }], golden: -1, newTypes: [] } });
-  assert.equal(g.night.assist, NIGHT.assistMax, 'plafonné');
+  assert.equal(g.night.assist, courageAssist(g.shop.bossAssist));
+  assert.ok(g.night.assist >= NIGHT.assistMax, 'au moins le plafond de G8.9 (M20 : le Courage continue de monter)');
+  assert.ok(courageAssist(100) === Math.max(NIGHT.assistMax, NIGHT.assistRampMax), 'plafonné');
   assert.equal(NIGHT.assistMax, 0.75);
 });
 

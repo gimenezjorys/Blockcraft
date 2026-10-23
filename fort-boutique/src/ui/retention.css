@@ -81,3 +81,4 @@
 .map-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .map-extra { display: flex; align-items: center; gap: 10px; padding: 6px 2px; }
 .endless-shops { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.cat-full { margin: 0 4px 6px; padding: 6px 8px; border-radius: 8px; background: var(--corail); color: var(--encre); font-weight: 800; }

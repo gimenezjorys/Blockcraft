@@ -27,6 +27,8 @@ export function defaultShop(id) {
     bossAssist: 0,
     franchiseStars: 0,
     redMoon: false,
+    // M20 : la nuit d'avant a fini sous 50 % de Bocal : coup de main de Mamie à la suivante.
+    helpNext: false,
     expansion: 0,
     layout: [
       { id: 'caisse', x: 3, y: 4, rot: 0 },

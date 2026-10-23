@@ -91,6 +91,9 @@ export const ECONOMY = {
 /** Gains par niveau de meuble (G9.1). */
 export const FURNITURE_LEVEL = {
   dmgMult: 1.12, // M10 : 1,20 -> 1,12 (D2.5)
+  /** M20 (DECISIONS.md) : au-delà du niveau `dmgHighFrom`, chaque niveau multiplie les dégâts par `dmgMultHigh`. */
+  dmgHighFrom: 5,
+  dmgMultHigh: 1.2, // M20 : +20 % par niveau au-delà du niveau 5 (valeur de G9.1 avant M10)
   rateAdd: 0.03,
   hpMult: 1.15,
   rangeLevels: [4, 7, 10],
@@ -104,7 +107,7 @@ export const FURNITURE_LEVEL = {
 
 export const DISTRICT_FACTORS = {
   /** Multiplicateur de PV des Grignotins par quartier (G10.2). */
-  hp: { q1: 1.0, q2: 1.5, q3: 2.7, q4: 4.65, q5: 7.5 }, // M16-M19 (D2.5) : Q2 2,0 -> 1,5 ; Q3 3,6 -> 2,7 ; Q4 6,2 -> 4,65 ; Q5 10 -> 7,5
+  hp: { q1: 1.0, q2: 1.5, q3: 2.7, q4: 4.25, q5: 6.5 }, // M16-M18 (D2.5) : Q2 2,0 -> 1,5 ; Q3 3,6 -> 2,7 ; M20 (courbe justifiée) : Q4 6,2 -> 4,25 ; Q5 10 -> 6,5
   /** Multiplicateur de budget de menace par quartier (G8.3). */
   threat: { q1: 1.0, q2: 0.8625, q3: 0.975, q4: 1.0875, q5: 1.2 }, // M16-M19 (D2.5) : Q2 1,15 -> 0,8625 ; Q3 1,3 -> 0,975 ; Q4 1,45 -> 1,0875 ; Q5 1,6 -> 1,2
   /** Multiplicateur d'XP par quartier (G12.3). */

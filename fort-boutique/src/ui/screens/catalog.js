@@ -4,7 +4,8 @@ import { h, onTap, tagButton } from '../widgets.js';
 import { t, fmt } from '../i18n.js';
 import { SVG, furnitureIcon } from '../icons.js';
 import { FURNITURE } from '../../data/furniture.js';
-import { catalogIds, canBuy } from '../../game/catalog.js';
+import { catalogIds, canBuy, findPlacement } from '../../game/catalog.js';
+import { expansionInfo } from '../../game/upgrades.js';
 
 const FILTERS = ['all', 'sell', 'defend', 'decor'];
 
@@ -77,7 +78,11 @@ function mount(app, p, d) {
     }
   }
   render();
-  const el = h('div.panel.slate-full', [head, filters, grid]);
+  // Boutique pleine (P4) : les achats iraient dans la Réserve ; on dit quoi faire (agrandir ou aménager).
+  const shop = save.shops[shopId];
+  const full = !findPlacement(shopId, shop.expansion, shop.layout, 'comptoir');
+  const banner = full ? h('div.up-note.cat-full', { id: 'catalog-full', text: t(expansionInfo(save, shopId).ok ? 'catalog.fullExpand' : 'catalog.full') }) : null;
+  const el = h('div.panel.slate-full', [head, banner, filters, grid].filter(Boolean));
   return {
     el,
     onKey(key) {

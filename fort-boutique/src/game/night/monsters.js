@@ -78,6 +78,7 @@ export function spawnMonster(g, type, entranceKind, o = {}) {
   m.ghost = !!def.ghost;
   m.thief = false;
   m.carry = 0;
+  m.lampsSeen = null;
   m.cell = -1;
   m.next = -1;
   m.progress = 0;
@@ -278,7 +279,8 @@ function walkAir(g, m, dt) {
   const v = speedOf(g, m);
   let tx;
   let ty;
-  const lamp = m.def.lampDps ? targetLamp(g, m) : null;
+  // Phalènes : attirées par les lanternes ; Reine Phalène (M20) : les visite une à une avant la caisse.
+  const lamp = m.def.lampDps ? targetLamp(g, m) : m.def.lampHunt && !m.thief ? targetLamp(g, m, m.lampsSeen) : null;
   if (m.thief) {
     tx = m.spawnX;
     ty = m.spawnY;
@@ -293,6 +295,13 @@ function walkAir(g, m, dt) {
   const dy = ty - m.y;
   const dd = Math.hypot(dx, dy);
   if (!m.thief && lamp && dd < 0.7) {
+    if (m.def.lampHunt) {
+      if (!m.lampsSeen) m.lampsSeen = new Set();
+      m.lampsSeen.add(lamp);
+      lamp.doused = m.def.lampHunt.dur;
+      g.events.push('boss_douse', lamp.cx, lamp.cy);
+      return;
+    }
     damageFurniture(g, lamp, m.def.lampDps * dt, 'lamp');
     return;
   }
@@ -318,11 +327,11 @@ function walkAir(g, m, dt) {
 }
 
 /** Lanterne intacte la plus proche (phalènes, G10.1). */
-function targetLamp(g, m) {
+function targetLamp(g, m, skip = null) {
   let best = null;
   let bestD = 1e9;
   for (const f of g.furn) {
-    if (f.id !== 'lanterne' || f.broken || f.doused > 0) continue;
+    if (f.id !== 'lanterne' || f.broken || f.doused > 0 || (skip && skip.has(f))) continue;
     const d = Math.hypot(f.cx - m.x, f.cy - m.y);
     if (d < bestD) {
       bestD = d;

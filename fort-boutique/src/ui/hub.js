@@ -8,7 +8,7 @@ import { rebuildShop } from '../game/state.js';
 import { unlockCards } from './screens/unlocks.js';
 import { openEditor, commitEditor } from '../game/editor.js';
 import { createEditorScene } from './editor-scene.js';
-import { NIGHT } from '../data/night.js';
+import { NIGHT, courageThin, courageAssist } from '../data/night.js';
 import { countdown } from './screens/quests.js';
 import { refreshQuests, claimQuest, claimWeekly, rerollQuest } from '../game/quests.js';
 import { calendarState, claimCalendar } from '../game/calendar.js';
@@ -173,7 +173,8 @@ export function createHub(app, o) {
       app.router.push('moon', {
         boss: g.district.boss,
         nightsLeft: Math.max(1, 8 - g.shop.night),
-        courage: Math.min(NIGHT.assistMax, NIGHT.assistPerFail * (g.shop.bossAssist || 0)),
+        courage: courageAssist(g.shop.bossAssist || 0),
+        thin: 1 - courageThin(g.shop.bossAssist || 0),
         onClose: () => app.router.pop(),
       });
     },

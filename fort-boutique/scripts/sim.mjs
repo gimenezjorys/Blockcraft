@@ -15,6 +15,7 @@ const PROFILE_IDS = ['weak', 'medium', 'strong'];
 
 /** Réglages faits en M10 (aussi notés dans DECISIONS.md et GAME_DESIGN.md). */
 const TUNING = [
+  ['M20 — Roi Raton : PV (G10.3 ; M10 : 900 -> 1 125)', '1 125', '1 350', '+20 % (+50 % depuis G10.3, justifié)'],
   ['Budget de menace : base (G8.3)', '5', '6,25', '+25 %'],
   ['Budget de menace : par nuit (G8.3)', '2,5', '3,125', '+25 %'],
   ['PV raton / souris / gloubi / mini-gloubi / termite / raton doré (G10)', '20 / 9 / 50 / 14 / 34 / 40', '25 / 11 / 62 / 17 / 42 / 50', '+21 à +25 % (arrondis)'],
@@ -30,6 +31,15 @@ const TUNING = [
 
 /** Noms des quartiers pour les rapports. */
 const DISTRICT_TITLE = { q2: 'Quartier 2 (La Boulangerie)', q3: 'Quartier 3 (La Pharmacie de l\'Alchimiste)', q4: 'Quartier 4 (La Quincaillerie)', q5: 'Quartier 5 (L\'Emporium)' };
+/** Règles et courbes de l'équilibrage global (M20), communes à tous les quartiers (DECISIONS.md). */
+const GLOBAL_M20 = [
+  ['M20 — Courage de Mamie : horde de la Pleine Lune suivante (G8.9, règle)', '—', '−25 % par échec (−75 % au plus)', 'règle'],
+  ['M20 — Courage de Mamie : dégâts à partir du 3e échec (G8.9, règle)', '+18,75 % par échec (75 % au plus)', '+25 % de plus par échec (125 % au plus)', 'règle'],
+  ['M20 — Coup de main de Mamie après une nuit sous 50 % (G8.10, règle)', '—', 'horde −40 % la nuit suivante', 'règle'],
+  ['M20 — Semaines d\'ouverture des quartiers 2 à 5 (G8.3, règle)', '× 1', 'horde × 0,55 (semaine 1), × 0,8 (semaine 2)', 'règle'],
+  ['M20 — Escorte du boss (G8.3)', '50 % du budget', '37,5 %', '−25 %'],
+  ['M20 — Dégâts par niveau au-delà du niveau 5 (G9.1)', '× 1,12', '× 1,20 (valeur d\'avant M10)', '+7 % par niveau'],
+];
 /** Réglages faits par quartier (D2.5), pour le rapport. */
 const DISTRICT_CHANGES = {
   q2: [
@@ -43,22 +53,26 @@ const DISTRICT_CHANGES = {
     ['PV des Grignotins au Q3 (M_Q, G10.2)', '× 3,6', '× 2,7', '−25 %'],
     ['Budget de menace du Q3 (F_Q, G8.3)', '× 1,3', '× 0,975', '−25 %'],
     ['Vol : fantôme / lutin / gros gourmand (G10.1)', '5 / 6 / 15 %', '3,75 / 4,5 / 11,25 %', '−25 %'],
-    ['Dame Blanche : PV / vol (G10.3)', '1 500 / 35 %', '1 125 / 26,25 %', '−25 %'],
+    ['Dame Blanche : vol (G10.3)', '35 %', '26,25 %', '−25 %'],
+    ['Dame Blanche : PV (M17 : 1 125 ; M20, Courage qui monte)', '1 500', '1 500', '0'],
   ],
   q4: [
-    ['PV des Grignotins au Q4 (M_Q, G10.2)', '× 6,2', '× 4,65', '−25 %'],
+    ['PV des Grignotins au Q4 (M_Q, G10.2 ; M18 : × 4,65)', '× 6,2', '× 4,25', '−31 % (justifié, M20)'],
     ['Budget de menace du Q4 (F_Q, G8.3)', '× 1,45', '× 1,0875', '−25 %'],
     ['Poids au Q4 : gros gourmand / hérisson (G8.3)', '15 / 20', '11,25 / 15', '−25 %'],
     ['Vol du corbeau (G10.1)', '5 %', '3,75 %', '−25 %'],
     ['Golem : armure / vol (G10.1)', '8 / 20 %', '6 / 15 %', '−25 %'],
-    ['Ferrailleur : PV / armure / vitesse / vol (G10.3)', '3 400 / 10 / 0,4 / 40 %', '2 550 / 7,5 / 0,3 / 30 %', '−25 %'],
+    ['Ferrailleur : armure / vitesse / vol (G10.3)', '10 / 0,4 / 40 %', '7,5 / 0,3 / 30 %', '−25 %'],
+    ['Ferrailleur : PV (M18 : 2 550)', '3 400', '3 000', '−12 %'],
     ['Ferrailleur : écrasement (dégâts par s / rayon)', '30 / 1 case', '22,5 / 0,75 case', '−25 %'],
   ],
   q5: [
-    ['PV des Grignotins au Q5 (M_Q, G10.2)', '× 10,0', '× 7,5', '−25 %'],
+    ['PV des Grignotins au Q5 (M_Q, G10.2 ; M19 : × 7,5)', '× 10,0', '× 6,5', '−35 % (justifié, M20)'],
     ['Budget de menace du Q5 (F_Q, G8.3)', '× 1,6', '× 1,2', '−25 %'],
     ['Vol de la phalène (G10.1)', '4 %', '3 %', '−25 %'],
-    ['Reine Phalène : PV / vitesse / vol (G10.3)', '4 800 / 0,6 / 40 %', '3 600 / 0,45 / 30 %', '−25 %'],
+    ['Reine Phalène : vitesse / vol (G10.3)', '0,6 / 40 %', '0,45 / 30 %', '−25 %'],
+    ['Reine Phalène : PV (M19 : 3 600)', '4 800', '4 800', '0'],
+    ['Reine Phalène : visite chaque lanterne avant la caisse (G10.3, règle M20)', '—', 'oui', 'règle'],
   ],
 };
 
@@ -155,12 +169,12 @@ function report(res, o) {
     const lv = (p) => median(res.byProfile[p].map((g) => (g.cycles[c - 1] ? g.cycles[c - 1].level : NaN)));
     L.push(`| ${c} | ${lv('weak')} | ${lv('medium')} | ${lv('strong')} |`);
   }
-  L.push('', '## Changements faits (M10, M13 et M15, marges D2.5)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
-  for (const c of TUNING) L.push(`| ${c[0]} | ${c[1]} | ${c[2]} | ${c[3]} |`);
+  L.push('', '## Changements faits (M10, M13 et M15 dans les marges D2.5 ; M20 : règles communes, DECISIONS.md)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
+  for (const c of [...TUNING, ...GLOBAL_M20]) L.push(`| ${c[0]} | ${c[1]} | ${c[2]} | ${c[3]} |`);
   L.push('', 'Hors données : bots corrigés (itinéraire BFS, case d\'accès de la caisse, dépenses du Matin), trois bugs de jeu corrigés (emplacement d\'achat bloqué, pile bloquée par un produit sans étagère, produit d\'étagère modifiable dans l\'éditeur). Voir DECISIONS.md.');
   L.push('', '## Limites connues', '');
   L.push('- Les nuits 2 à 6 de la semaine 1 ne coûtent presque jamais d\'étoile, quel que soit le profil : les voleurs arrivent à la caisse très abîmés et meurent sur le chemin du retour. La difficulté du Q1 repose donc sur la première nuit (voleur scénarisé) et la Pleine Lune, où le Courage de Mamie évite le mur.');
-  L.push('- Le Moyen bat le Roi Raton au cycle 10 en médiane : dans la fenêtre 7–10, mais à son bord. Tenir à la fois ce seuil et « Fort ≤ 80 % de ★★★ » laisse peu de marge ; à revoir avec les vraies quêtes (M12) et lors de l\'équilibrage global (M20).');
+  L.push('- Le Moyen bat le Roi Raton au cycle 10 en médiane : dans la fenêtre 7–10, mais à son bord. Tenir à la fois ce seuil et « Fort ≤ 80 % de ★★★ » laisse peu de marge ; revu à l\'équilibrage global (M20) : les aides de Mamie (Courage, coup de main) rapprochent le Moyen du milieu de la fenêtre.');
   L.push('', `Verdict : ${ev.ok ? 'tous les seuils applicables sont tenus.' : 'au moins un seuil n\'est pas tenu.'}`, '');
   return L.join('\n') + '\n';
 }
@@ -191,8 +205,8 @@ async function runDistrict(id, runs, maxCycles) {
   L.push(`- Tentatives contre le boss (médiane) : Faible ${i.attempts.weak}, Moyen ${i.attempts.medium}, Fort ${i.attempts.strong}.`);
   L.push(`- Bocal gardé hors Pleine Lune (Moyen, médiane) : ${Math.round(i.keptMedium * 100)} %.`);
   L.push(`- Nuits à ★★★ au ${id.toUpperCase()} : Faible ${Math.round(i.starsShare.weak * 100)} %, Moyen ${Math.round(i.starsShare.medium * 100)} %, Fort ${Math.round(i.starsShare.strong * 100)} %.`);
-  L.push('', '## Changements faits (marges D2.5)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
-  for (const [a, b, c, d] of DISTRICT_CHANGES[id] || []) L.push(`| ${a} | ${b} | ${c} | ${d} |`);
+  L.push('', '## Changements faits (marges D2.5 ; au-delà et règles : M20, justifiés dans DECISIONS.md)', '', '| Valeur | Avant | Après | Écart |', '|---|---|---|---|');
+  for (const [a, b, c, d] of [...(DISTRICT_CHANGES[id] || []), ...GLOBAL_M20]) L.push(`| ${a} | ${b} | ${c} | ${d} |`);
   L.push('', 'Robots (D2.2) : le Moyen suit une liste de priorités propre au quartier (contre les volants, et une lanterne dans l\'obscurité) ; le Fort compte double ce qui touche les volants là où il y en a ; le Faible achète aussi au hasard l\'agrandissement ou une amélioration du marchand.', '');
   return { ev, md: L.join('\n') + '\n' };
 }

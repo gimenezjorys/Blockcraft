@@ -272,7 +272,8 @@ Valeur au début de la nuit = max(20 × Q, arrondi(0,5 × recette du jour)), Q �
 
 ### G8.3 Vagues
 - Nombre de vagues selon la nuit k de la semaine : N1 2 ; N2 3 ; N3 3 ; N4 4 ; N5 4 ; N6 4 ; N7 5 (la dernière contient le boss). Semaine 2 et suivantes : 5 (N7 : 6).
-- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 0,8625 / 0,975 / 1,0875 / 1,2 pour Q1 à Q5 (M16 : Q2 1,15 au départ ; M17 : Q3 1,3 ; M18 : Q4 1,45 ; M19 : Q5 1,6 ; −25 %, D2.5) et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
+- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 0,8625 / 0,975 / 1,0875 / 1,2 pour Q1 à Q5 (M16 : Q2 1,15 au départ ; M17 : Q3 1,3 ; M18 : Q4 1,45 ; M19 : Q5 1,6 ; −25 %, D2.5) et s le numéro de la semaine. La vague du boss n'a que 37,5 % de ce budget en escorte (M20 : 50 % au départ, −25 %, D2.5).
+- **Semaine d'ouverture** (M20, règle, DECISIONS.md) : chaque quartier a sa propre boutique, neuve (G13.1) ; pendant la semaine 1 des quartiers 2 à 5, le budget de chaque nuit est × 0,55, puis × 0,8 en semaine 2 (pas de falaise au passage en semaine 2, P4), le temps de la meubler (« Semaine d'ouverture : les Grignotins découvrent ta boutique », à la première nuit). Pas en Lune rouge (Franchise).
 - Chaque monstre coûte son « coût de menace » (G10). Le générateur, à graine (graine de partie, quartier, semaine, nuit), tire des groupes de 2 à 5 du même type parmi ceux autorisés à cette nuit, avec les pondérations de `data/waves.js`, et les répartit entre les entrées actives.
 - Un type nouveau apparaît d'abord **seul**, en petit groupe, dans la vague 1 de sa nuit d'introduction.
 - **Télégraphe** : 2,5 s avant chaque vague, chaque entrée active montre une bulle pulsante avec les icônes des types qui vont sortir (et une étiquette « NOUVEAU » pour un type jamais vu).
@@ -308,15 +309,18 @@ Une nuit sur 10 (tirage à graine), un Raton doré apparaît une fois dans une v
 ### G8.9 La Pleine Lune (nuit 7)
 - Une lune pleine grossit dans le HUD toute la semaine (compte à rebours en nuits).
 - La nuit 7 contient le boss du quartier (G10.3). **Victoire** = boss vaincu, même s'il avait volé (le vaincre pendant sa fuite rend tout). Récompenses : Coffre de Lune (au lieu du coffre d'étoiles), XP de boss, quartier suivant si le niveau requis est atteint, bannière et fanfare.
-- **Échec** = le boss sort avec le butin : ★ 0, pas de Coffre de Lune, la Pleine Lune revient la nuit suivante avec le **Courage de Mamie** (+18,75 % de dégâts des meubles par échec, max +75 %, affiché à l'écran d'intro ; M16 : +15 % / 60 % au départ, +25 %, D2.5). Option pub : « Rejouer tout de suite (+18,75 % de dégâts) » (M15).
+- **Échec** = le boss sort avec le butin : ★ 0, pas de Coffre de Lune, la Pleine Lune revient la nuit suivante avec le **Courage de Mamie** (+18,75 % de dégâts des meubles par échec, max +75 %, affiché à l'écran d'intro ; M16 : +15 % / 60 % au départ, +25 %, D2.5). *M20 (règle, DECISIONS.md) :* à partir du 3e échec, chaque échec ajoute +25 % de plus (max +125 %) ; et après chaque échec, la horde de la Pleine Lune suivante (vagues, escorte, invocations et scissions du boss) est réduite de 25 % (max −75 % ; « Pièges de Mamie » sur l'aperçu de la lune). Option pub : « Rejouer tout de suite (+18,75 % de dégâts) » (M15).
 - Après la victoire, la semaine 2 commence (G13.1).
+
+### G8.10 Coup de main de Mamie (M20, règle)
+- Une nuit finie sous 50 % de Bocal gardé : la nuit suivante de cette boutique a une horde réduite de 40 % (message « Coup de main de Mamie : moins de Grignotins ce soir » à la tombée de la nuit). Gratuit et automatique : une mauvaise nuit n'en entraîne pas d'autres (pas de mur, D2.4.4).
 
 ## G9. Les meubles (jour + nuit)
 
 ### G9.1 Règles générales
 - Chaque meuble a une **forme de jour** (vendre, produire, décorer) et une **forme de nuit** (tourelle, mur ou soutien).
 - **Niveaux 1 à 10**, améliorés avec des **plans** (propres à chaque meuble) + des pièces. Les niveaux sont **globaux** : un niveau gagné vaut pour tous les exemplaires de ce meuble, dans toutes les boutiques.
-- Gains par niveau : dégâts ×1,12 (M10 : ×1,20 au départ, D2.5) ; cadence +3 % ; PV ×1,15 ; portée +0,1 case aux niveaux 4, 7 et 10 ; effets (ralentissement, durée, poison) +5 % (max ×1,45) ; intervalle de production ×0,93 ; réserve +1 aux niveaux 3, 5, 7, 9 ; étagère : capacité 4 + (niveau − 1) ; caisse : encaissement −0,04 s.
+- Gains par niveau : dégâts ×1,12 jusqu'au niveau 5, puis ×1,20 par niveau au-delà (M10 : ×1,20 partout au départ, ramené à ×1,12 pour le Q1, D2.5 ; M20 : ×1,20 rétabli au-delà du niveau 5, justifié dans DECISIONS.md) ; cadence +3 % ; PV ×1,15 ; portée +0,1 case aux niveaux 4, 7 et 10 ; effets (ralentissement, durée, poison) +5 % (max ×1,45) ; intervalle de production ×0,93 ; réserve +1 aux niveaux 3, 5, 7, 9 ; étagère : capacité 4 + (niveau − 1) ; caisse : encaissement −0,04 s.
 - **Plafond de niveau** = min(10 ; 1 + arrondi supérieur(niveau de marchand ÷ 3)).
 - **Coût pour passer du niveau L à L+1** :
 
@@ -399,7 +403,7 @@ Chaque forme de nuit est un **comportement** paramétré par les données : `pro
 Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus de la tête quand il est visé pour la première fois (flamme pour le gloubi et le hérisson, soleil pour le fantôme).
 
 ### G10.2 Mise à l'échelle
-- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 1,5 / 2,7 / 4,65 / 7,5 pour Q1 à Q5 (M16 : Q2 2,0 au départ ; M17 : Q3 3,6 ; M18 : Q4 6,2 ; M19 : Q5 10,0 ; −25 %, D2.5), k la nuit de la semaine, s la semaine.
+- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 1,5 / 2,7 / 4,25 / 6,5 pour Q1 à Q5 (M16 : Q2 2,0 au départ ; M17 : Q3 3,6 ; −25 %, D2.5 ; M20 : Q4 6,2 et Q5 10,0 au départ, courbe corrigée de l'écart des dégâts par niveau, justifiée dans DECISIONS.md), k la nuit de la semaine, s la semaine.
 - Butin = butin de base × (1 + 0,6 × (Q − 1)) × (1 + 0,1 × (s − 1)).
 - Vitesse, armure et % de vol ne changent jamais. *M13 (D2.5) :* toutes les vitesses du tableau sont × 1,25 en jeu (hors boss), sauf pendant la nuit 1 scénarisée qui garde les vitesses ci-dessus (G19 « première victoire »).
 
@@ -407,11 +411,11 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 
 | Boss | Quartier | PV (semaine 1) | Armure | Vitesse | Vol | Butin | Capacités |
 |---|---|---|---|---|---|---|---|
-| Le Roi Raton | Q1 | 1 125 (M10 : 900) | 2 | 0,55 | 35 % | 150 | toutes les 4,8 s (M10 : 6 s), invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
+| Le Roi Raton | Q1 | 1 350 (M10 : 900 → 1 125 ; M20 : 1 350, justifié dans DECISIONS.md) | 2 | 0,55 | 35 % | 150 | toutes les 4,8 s (M10 : 6 s), invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
 | La Grande Pâte | Q2 | 1 275 | 0 | 0,375 | 26,25 % | 250 | à 66 % et 33 % de PV, se scinde et lâche 3 gloubis ; feu ×1,5 ; ralentissements ×0,5 (M16 : 1 700 / 0,5 / 35 % / 4 au départ, −25 %, D2.5) |
-| La Dame Blanche | Q3 | 1 125 (M17 : 1 500) | 0 | 0,6 | 26,25 % (M17 : 35 %) | 350 | traverse les meubles ; disparaît 3 s toutes les 7 s hors lumière ; invoque 2 fantômes toutes les 10 s ; lumière ×2 |
-| Le Ferrailleur | Q4 | 2 550 (M18 : 3 400) | 7,5 (M18 : 10) | 0,3 (M18 : 0,4) | 30 % (M18 : 40 %) | 500 | frappe les meubles voisins (22,5 dégâts/s à 0,75 case ; M18 : 30 à 1 case) ; immunisé au recul et à l'étourdissement ; métal |
-| La Reine Phalène | Q5 | 3 600 (M19 : 4 800) | 2 | 0,45 (M19 : 0,6) | 30 % (M19 : 40 %) | 800 | vole ; éteint les lanternes à ≤ 2 cases pendant 4 s toutes les 9 s ; invoque 4 chauves-souris toutes les 8 s |
+| La Dame Blanche | Q3 | 1 500 (M17 : 1 125 ; M20 : 1 500) | 0 | 0,6 | 26,25 % (M17 : 35 %) | 350 | traverse les meubles ; disparaît 3 s toutes les 7 s hors lumière ; invoque 2 fantômes toutes les 10 s ; lumière ×2 |
+| Le Ferrailleur | Q4 | 3 000 (M18 : 3 400 au départ, 2 550 ; M20 : 3 000) | 7,5 (M18 : 10) | 0,3 (M18 : 0,4) | 30 % (M18 : 40 %) | 500 | frappe les meubles voisins (22,5 dégâts/s à 0,75 case ; M18 : 30 à 1 case) ; immunisé au recul et à l'étourdissement ; métal |
+| La Reine Phalène | Q5 | 4 800 (M19 : 3 600 ; M20 : 4 800) | 2 | 0,45 (M19 : 0,6) | 30 % (M19 : 40 %) | 800 | vole ; *M20 (règle) :* visite chaque lanterne allumée (et l'éteint 4 s) avant d'aller à la caisse ; éteint les lanternes à ≤ 2 cases pendant 4 s toutes les 9 s ; invoque 4 chauves-souris toutes les 8 s |
 
 - Les PV des boss sont ceux de la semaine 1, × 1,35^(s − 1) ensuite (pas de multiplicateur de nuit).
 - Entrée d'un boss : ralenti de 0,4 s, zoom de caméra ×1,08, carte de présentation (silhouette + nom), changement de couche musicale.

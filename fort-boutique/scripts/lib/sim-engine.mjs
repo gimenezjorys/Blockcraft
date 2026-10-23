@@ -205,6 +205,11 @@ export function simulateGame(o) {
     });
     if (rr.bossWin && out.bossWonAt === null && g.shopId === 'q1') out.bossWonAt = c;
     if (out.bossWonAt !== null && out.nextLevelAt === null && districtOpen(save, nextDistrict)) out.nextLevelAt = c;
+    // Playtest P4 : on s'arrête dès que la sauvegarde voulue est atteinte, et on la rend.
+    if (o.until && o.until(save)) {
+      out.save = save;
+      break;
+    }
     if (o.through) {
       // Quartiers suivants (M16+) : on part dans le suivant dès qu'il est ouvert (boss vaincu ET niveau) ; pour chacun,
       // le cycle d'arrivée, la victoire sur son boss, les tentatives et le niveau du quartier d'après.

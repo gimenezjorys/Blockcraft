@@ -171,6 +171,7 @@ export function leaveDawn(g) {
   if (dawn && dawn.chest && !dawn.chest.opened) openDawnChest(g);
   if (dawn && dawn.extra) dawn.extra.forEach((c, i) => !c.opened && openExtraChest(g, i));
   const r = dawn ? dawn.result : null;
+  if (r) shop.helpNext = r.kept < NIGHT.helpBelow;
   if (r && r.bossNight) {
     if (r.bossWin) {
       shop.bossBeatenCount++;
@@ -192,7 +193,7 @@ export function leaveDawn(g) {
       if (shop.week - 1 >= 5) st.bossKillsW5[g.district.boss] = (st.bossKillsW5[g.district.boss] || 0) + 1;
       trackQuest(g.save, 'moon');
     } else {
-      shop.bossAssist = Math.min(Math.round(NIGHT.assistMax / NIGHT.assistPerFail), shop.bossAssist + 1);
+      shop.bossAssist = Math.min(NIGHT.maxFails, shop.bossAssist + 1);
     }
   } else {
     shop.night = Math.min(7, shop.night + 1);

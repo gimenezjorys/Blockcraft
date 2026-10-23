@@ -36,4 +36,31 @@ export const NIGHT = {
   // M16 (D2.5) : Courage de Mamie 15 % -> 18,75 % par échec, 60 % -> 75 % au plus.
   assistPerFail: 0.1875,
   assistMax: 0.75,
+  /** M20 (règle, DECISIONS.md) : à partir du 3e échec, chaque échec ajoute en plus `assistRamp` (Courage qui monte
+   *  vite pour qui bute sur le boss), plafond `assistRampMax`. 0 = règle de G8.9 seule. */
+  assistRampFrom: 2,
+  assistRamp: 0.25,
+  assistRampMax: 3,
+  /** Échecs comptés au plus (Courage et horde éclaircie). */
+  maxFails: 10,
+  /** M20 (règle, DECISIONS.md) : le Courage éclaircit aussi la horde de la Pleine Lune suivante (vagues, escorte,
+   *  invocations et scissions du boss) : −25 % par échec, jusqu'à −75 %. */
+  thinPerFail: 0.25,
+  thinMin: 0.25,
+  /** M20 (règle, DECISIONS.md) : coup de main de Mamie : après une nuit sous 50 % de Bocal gardé, la horde de la
+   *  nuit suivante de cette boutique est réduite de 40 % (pas de mur, D2.4.4). */
+  helpBelow: 0.5,
+  helpThin: 0.6,
 };
+
+/** Courage de Mamie après `fails` échecs : bonus de dégâts des meubles à la Pleine Lune (G8.9, M20). */
+export function courageAssist(fails) {
+  const f = fails || 0;
+  const base = Math.min(NIGHT.assistMax, NIGHT.assistPerFail * f);
+  return Math.min(Math.max(NIGHT.assistMax, NIGHT.assistRampMax), base + NIGHT.assistRamp * Math.max(0, f - NIGHT.assistRampFrom));
+}
+
+/** Part de la horde gardée à la Pleine Lune après `fails` échecs (G8.9, M20). */
+export function courageThin(fails) {
+  return Math.max(NIGHT.thinMin, 1 - NIGHT.thinPerFail * (fails || 0));
+}

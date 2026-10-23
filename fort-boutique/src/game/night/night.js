@@ -1,7 +1,7 @@
 // Fort Boutique — orchestration de la nuit (G8) : Bocal, vagues, télégraphe, fin de nuit, étoiles.
 import { WAVES, SCALING } from '../../data/waves.js';
 import { monsterDef } from '../../data/monsters.js';
-import { NIGHT } from '../../data/night.js';
+import { NIGHT, courageThin, courageAssist } from '../../data/night.js';
 import { XP_GAINS } from '../../data/xp.js';
 import { districtNumber } from '../../data/balance.js';
 import { generateNight, activeEntrances } from './waves.js';
@@ -71,6 +71,10 @@ export function startNight(g, opts = {}) {
   const learning = !tutorial && g.shopId === L.district && s === L.week && L.nights.includes(k);
   // Événement de la semaine (G13.5) : jamais pendant la nuit 1 scénarisée ni pendant le Défi du jour (graine commune).
   const ev = tutorial || opts.challenge ? null : eventNightMods();
+  // Coup de main de Mamie (M20) : la nuit d'avant a fini sous 50 % de Bocal.
+  const help = shop.helpNext && !tutorial && !opts.waves ? NIGHT.helpThin : 1;
+  // Semaines d'ouverture d'une boutique neuve (M20) : quartiers 2 à 5, pas en Lune rouge (Franchise).
+  const opening = Q >= 2 && !shop.redMoon ? (s === 1 ? WAVES.openingMult : s === 2 ? WAVES.openingWeek2 : 1) : 1;
   const mods = mergeMods(opts.mods || {}, ev);
   const gen = opts.waves || generateNight({
     seed: g.save.seed,
@@ -82,7 +86,7 @@ export function startNight(g, opts = {}) {
     tutorial,
     weightMult: mods.weightMult,
     goldenChance: mods.goldenChance,
-    budgetMult: learning ? L.budgetMult : 1,
+    budgetMult: (learning ? L.budgetMult : 1) * (isBoss ? courageThin(shop.bossAssist) : 1) * help * opening,
     starThief: learning && L.starThief,
   });
   const takings = opts.dayTakings ?? shop.phase.dayTakings ?? 0;
@@ -135,7 +139,10 @@ export function startNight(g, opts = {}) {
     repairRate: ms.repairRate,
     broomT: 0,
     repairTick: 0,
-    assist: isBoss ? Math.min(NIGHT.assistMax, NIGHT.assistPerFail * shop.bossAssist) + (opts.extraAssist || 0) : 0,
+    assist: isBoss ? courageAssist(shop.bossAssist) + (opts.extraAssist || 0) : 0,
+    thin: isBoss && !opts.waves ? courageThin(shop.bossAssist) * help : 1,
+    help: help < 1,
+    opening: !opts.waves && s === 1 && opening < 1,
     bestiaryBonus: bestiary,
     brokenCount: 0,
     firstHit: [],

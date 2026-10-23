@@ -410,6 +410,10 @@ export function createSession(app, o) {
         break;
       case 'night_start':
         save(true);
+        // Coup de main de Mamie (M20) : la nuit d'avant a mal fini, la horde de ce soir est plus petite.
+        if (g.night && g.night.help && app.services.toast) app.services.toast(t('night.help'), SVG.check);
+        // Semaine d'ouverture d'une boutique neuve (M20) : dit une fois, à la première nuit.
+        else if (g.night && g.night.opening && g.shop.night === 1 && app.services.toast) app.services.toast(t('night.opening'), SVG.check);
         break;
       case 'dawn':
         enterDawn(g);
