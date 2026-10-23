@@ -11,7 +11,7 @@ export const STEP = 1 / 60;
  * @param {(cb: FrameRequestCallback) => number} [opts.raf]
  * @param {number} [opts.maxSteps]
  */
-export function createLoop({ step, render, raf, maxSteps = 5 }) {
+export function createLoop({ step, render, raf, maxSteps = 5, onSlow }) {
   const pauses = new Set();
   let acc = 0;
   let last = -1;
@@ -79,6 +79,14 @@ export function createLoop({ step, render, raf, maxSteps = 5 }) {
         last = tNow;
         stats.frameMs = stats.frameMs * 0.95 + elapsed * 1000 * 0.05;
         stats.fps = 1000 / Math.max(1, stats.frameMs);
+        // Mode économie automatique (B5) : temps moyen d'image > 20 ms pendant 5 s (onglet visible, jeu en marche).
+        if (stats.frameMs > 20 && !loop.paused) {
+          if (stats.slowSince < 0) stats.slowSince = tNow;
+          else if (stats.slowSince !== Infinity && tNow - stats.slowSince > 5000) {
+            stats.slowSince = Infinity;
+            if (onSlow) onSlow();
+          }
+        } else if (stats.slowSince !== Infinity) stats.slowSince = -1;
         loop.runFor(elapsed, maxSteps);
         render(acc / STEP, elapsed);
         raf(frame);

@@ -174,6 +174,7 @@ export function createRenderer(env) {
       for (let i = 0; i < arr.length; i++) drawProjectile(ctx, arr[i], ox, oy);
     }
     if (o.after) o.after(ctx, ox, oy);
+    lighting.simple = !!o.economy;
     if (o.veil > 0) lighting.draw(ctx, g, { alpha: o.veil, ps, lights: o.lights || [], tint: o.tint, flashes: o.flashes });
     // Éléments lumineux par-dessus le voile.
     if (n) {

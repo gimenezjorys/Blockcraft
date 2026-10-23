@@ -109,6 +109,7 @@ export function createPlay(app, g, hooks = {}) {
       tickView(dt);
     },
     render(ctx) {
+      fx.density = app.economy ? 0.5 : 1;
       const name = g.phase.name;
       const night = name === 'night' || name === 'dawn' || (name === 'dusk' && g.phase.t > 2.6);
       const { veil, tint } = veilFor(g);
@@ -121,6 +122,7 @@ export function createPlay(app, g, hooks = {}) {
       ctx.scale(camera.base, camera.base);
       ctx.translate(-180, 0);
       renderer.draw(ctx, g, {
+        economy: !!app.economy,
         night,
         veil,
         tint,

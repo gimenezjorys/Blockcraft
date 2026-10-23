@@ -62,6 +62,7 @@ export default {
   'settings.leftHanded': 'Mode gaucher',
   'settings.bigText': 'Grand texte',
   'settings.economy': 'Mode économie',
+  'perf.economy': "Mode économie activé pour garder le jeu fluide",
   'settings.weaknessIcons': "Icônes de faiblesse des Grignotins",
   'settings.rooster': "Cocorico à l'aube",
   'settings.credits': "Crédits",

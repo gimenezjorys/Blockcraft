@@ -1,5 +1,5 @@
 // Fort Boutique — point d'entrée du navigateur : assemble l'interface, le jeu, le rendu et l'audio.
-import { setLang, detectLang } from './ui/i18n.js';
+import { setLang, detectLang, t } from './ui/i18n.js';
 import { createApp } from './ui/app.js';
 import { createDemoScene } from './render/demo-scene.js';
 import { createStorage } from './save/storage.js';
@@ -46,6 +46,7 @@ function boot() {
   const audio = createAudio(window);
   audio.attach();
   app.services.audio = audio;
+  app.services.t = t;
   const music = createMusic(audio);
   app.services.music = music;
   const toasts = createToasts(document.getElementById('app'));

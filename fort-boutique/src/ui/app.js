@@ -92,6 +92,13 @@ export function createApp({ testBuild, version }) {
 
   app.loop = createLoop({
     raf: testBuild ? undefined : (cb) => window.requestAnimationFrame(cb),
+    onSlow() {
+      if (app.economy) return;
+      app.economy = true;
+      app.autoEconomy = true;
+      fit();
+      if (app.services.toast) app.services.toast(app.services.t ? app.services.t('perf.economy') : 'Mode économie');
+    },
     step(dt) {
       app.input.update(dt);
       if (scene && scene.update) scene.update(dt);

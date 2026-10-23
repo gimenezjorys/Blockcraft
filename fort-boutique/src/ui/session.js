@@ -315,8 +315,9 @@ export function createSession(app, o) {
     const st = g.save.settings;
     if (app.services.audio) app.services.audio.setVolumes({ music: st.music, sfx: st.sfx });
     if (typeof document !== 'undefined') document.documentElement.style.setProperty('--ui-scale', st.bigText ? '1.15' : '1');
-    if (app.economy !== !!st.economy) {
-      app.economy = !!st.economy;
+    // Le mode économie automatique (images lentes, B5) reste actif jusqu'au rechargement.
+    if (app.economy !== (!!st.economy || !!app.autoEconomy)) {
+      app.economy = !!st.economy || !!app.autoEconomy;
       app.refit();
     }
     setLang(st.lang);

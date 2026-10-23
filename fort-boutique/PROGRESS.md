@@ -28,7 +28,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M21 — Direction artistique complète | ✅ | 2026-10-23 | Icônes des produits des Q3 à Q5, enseignes de prestige de la Franchise, nuit de Lune rouge, transitions d'écran (le reste de G20 existait déjà). |
 | M22 — Juice et options | ✅ | 2026-10-23 | Options manquantes de G22 (icônes de faiblesse, cocorico, crédits) ; juice de G20.6 déjà en place. |
 | M23 — Audio complet | ✅ | 2026-10-23 | Séquenceur musical (titre, Matin, Jour, Nuit, boss, crépuscule, aube), couches selon l'action, réverbération et ducking, effets manquants (cocorico, flammes, tourbillon, rayon). |
-| M24 — Performances et mémoire | ⬜ | | |
+| M24 — Performances et mémoire | ✅ | 2026-10-23 | `npm run bench` (0,14 ms par pas, 580 appels de dessin, budgets tenus), mode économie automatique ; tests de fuite non écrits (consigne). |
 | M25 — Anglais, Paramètres, crédits, iOS, icônes | 🔄 | | v0.2 : écran Paramètres fait (volumes, confort, langue FR/EN, export/import FB1, réinitialisation en deux temps, version). Reste : anglais complet, crédits, iOS, icônes. |
 | M26 — Robustesse + P5 | ⬜ | | |
 | M27 — Publication | ⬜ | | |

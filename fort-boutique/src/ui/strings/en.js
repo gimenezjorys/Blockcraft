@@ -62,6 +62,7 @@ export default {
   'settings.leftHanded': 'Left-handed',
   'settings.bigText': 'Large text',
   'settings.economy': 'Battery saver',
+  'perf.economy': "Saver mode on to keep the game smooth",
   'settings.weaknessIcons': "Nibbler weakness icons",
   'settings.rooster': "Rooster at dawn",
   'settings.credits': "Credits",
