@@ -54,6 +54,12 @@ const DISTRICT_CHANGES = {
     ['Ferrailleur : PV / armure / vitesse / vol (G10.3)', '3 400 / 10 / 0,4 / 40 %', '2 550 / 7,5 / 0,3 / 30 %', '−25 %'],
     ['Ferrailleur : écrasement (dégâts par s / rayon)', '30 / 1 case', '22,5 / 0,75 case', '−25 %'],
   ],
+  q5: [
+    ['PV des Grignotins au Q5 (M_Q, G10.2)', '× 10,0', '× 7,5', '−25 %'],
+    ['Budget de menace du Q5 (F_Q, G8.3)', '× 1,6', '× 1,2', '−25 %'],
+    ['Vol de la phalène (G10.1)', '4 %', '3 %', '−25 %'],
+    ['Reine Phalène : PV / vitesse / vol (G10.3)', '4 800 / 0,6 / 40 %', '3 600 / 0,45 / 30 %', '−25 %'],
+  ],
 };
 
 /** Résultat allégé (sans le détail des meubles), pour les messages entre workers. */

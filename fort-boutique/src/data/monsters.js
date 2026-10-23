@@ -23,7 +23,8 @@ export const MONSTERS = {
   // M18 (D2.5) : vol du corbeau 5 -> 3,75 % ; golem : armure 8 -> 6, vol 20 -> 15 %.
   corbeau: { id: 'corbeau', hp: 20, armor: 0, speed: 1.7, steal: 0.0375, loot: 3, threat: 1.5, group: [3, 3], flying: true, formation: 'V' },
   golem: { id: 'golem', hp: 360, armor: 6, speed: 0.45, steal: 0.15, loot: 25, threat: 10, group: [2, 5], metal: true, coldResist: 0.5 },
-  phalene: { id: 'phalene', hp: 24, armor: 0, speed: 1.2, steal: 0.04, loot: 3, threat: 1.5, group: [2, 5], flying: true, lampDps: 6 },
+  // M19 (D2.5) : vol de la phalène 4 -> 3 %.
+  phalene: { id: 'phalene', hp: 24, armor: 0, speed: 1.2, steal: 0.03, loot: 3, threat: 1.5, group: [2, 5], flying: true, lampDps: 6 },
   raton_dore: { id: 'raton_dore', hp: 50, armor: 0, speed: 1.5, steal: 0.04, loot: 20, threat: 0, golden: true },
 };
 
@@ -49,7 +50,8 @@ export const BOSSES = {
     metal: true, noKnockback: true, noStun: true, smash: { dps: 22.5, radius: 0.75 },
   },
   reine_phalene: {
-    id: 'reine_phalene', district: 'q5', hp: 4800, armor: 2, speed: 0.6, steal: 0.4, loot: 800, boss: true,
+    // M19 (D2.5) : PV 4 800 -> 3 600, vitesse 0,6 -> 0,45, vol 40 -> 30 % (−25 %).
+    id: 'reine_phalene', district: 'q5', hp: 3600, armor: 2, speed: 0.45, steal: 0.3, loot: 800, boss: true,
     flying: true, douse: { every: 9, radius: 2, dur: 4 }, summon: { type: 'chauvesouris', count: 4, every: 8 },
   },
 };
