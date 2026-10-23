@@ -527,3 +527,11 @@ Décision :
 - **Tests** : le test de migration compare commis et caissier un par un (V5 ajoute le poste vide `cashier2`).
 Raison : PROMPT v1.1, V5 et V6.
 
+## 2026-10-23 — V7 — Écran titre
+Décision :
+- **Façade partagée** : `render/facade.js` dessine la boutique vue de la rue (murs menthe, auvent rayé, vitrine, porte et carillon, lanternes, enseigne crénelée avec le logo lettre par lettre et deux yeux) ; l'écran titre la montre le soir, le hub du Matin (V8) en plein jour.
+- **Logo** : lettres posées une par une sur l'enseigne (rotation et hauteur tirées d'une fonction de hasard stable, donc identiques à chaque lancement), police arrondie du système (aucune police téléchargée, règle de la v1.0).
+- **Tap** : la porte s'ouvre et un voile de lumière chaude (élément DOM de 0,8 s) passe par-dessus l'écran suivant ; le jeu démarre tout de suite derrière (aucune attente ajoutée, les tests au doigt restent valables). La roue des paramètres lance la partie puis ouvre Paramètres par-dessus (ils ont besoin de la sauvegarde) ; le bouton son coupe ou remet le son pour la session.
+- **Saison** : feuilles l'automne et le reste de l'année, citrouilles à Halloween, neige en hiver (saisons existantes, `currentSeason`).
+Raison : PROMPT v1.1, V7.
+
