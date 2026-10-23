@@ -494,3 +494,14 @@ Décision :
 - **Tests** : 8 tests cassés par ces changements voulus ont été mis à jour (5 tests d'indices réécrits pour la flèche d'objectif, 2 tests des premières minutes pour la carte de Mamie et la flèche, le test de rechargement en journée compte la récompense de Mamie).
 Raison : PROMPT v1.1, V2 (A0 : décider sans demander).
 
+## 2026-10-23 — V3 — Emplacements prévus
+Décision :
+- **Plans en données** : chaque plan est une carte texte par taille (`data/shop-plans.js`), lue par un seul code générique (`game/plans.js`). L'Allée E0 est celle du document (3.3) ; les 11 autres cartes (Allée E1 à E3, Comptoir rapide et Forteresse E0 à E3) sont dessinées avec les règles 3.2 et vérifiées par un script de travail : disposition valide à 100 % de remplissage (accès, chemins de toutes les entrées, case devant la porte libre) et, pour chaque taille, trajets clients Comptoir < Allée < Forteresse et trajets des Grignotins Comptoir < Allée < Forteresse.
+- **Trappe** (quartiers 3 à 5, case (2, h − 4)) : seule l'Allée E0 l'occupait (É2) ; elle a une variante `trap` (présentoirs en (3,2), (4,2), puis (1,2)).
+- **Ordre des défenses de l'E0** : les numéros suivent l'ordre guidé du document (D1 à gauche, puis la défense à droite de la caisse, puis celle du bas à gauche).
+- **Types** : le type d'emplacement suit le rôle du meuble dans le jeu : tout meuble qui fabrique (y compris la vitrine à gâteaux et le distributeur de bonbons, producteurs ici) va sur un emplacement producteur ; les étagères sur les présentoirs ; le reste en défense. Les meubles de 2 cases prennent deux emplacements voisins du même type, à plat.
+- **Agrandissement** : la boutique reprend le même plan à la nouvelle taille ; chaque meuble garde son rang dans l'ordre de remplissage (les cartes de taille N+1 ne sont pas la carte N décalée : une rangée de producteurs au-dessus d'une autre n'aurait pas d'accès). Les meubles de la Réserve trouvent leur place s'il y en a.
+- **Migration v1 → v2** : plan Allée, chaque meuble posé va dans l'emplacement libre le plus proche de son type (les meubles de 2 cases d'abord), le trop-plein va dans la Réserve ; la Réserve, le personnel et tout le reste sont gardés ; si le rangement échouait (sauvegarde abîmée), la disposition reste telle quelle. Les comptoirs offerts des quartiers 2 à 5 sont posés dès l'ouverture.
+- **Tests** : 5 tests utilisaient les anciennes coordonnées de départ (cagette (0,1), étagère (0,4), P1 en (4,2)) ; ils visent les nouvelles places. Le test de rechargement de nuit regarde le premier raton dès qu'il entre (la cagette, près de la porte de derrière, l'abat plus vite). Ajouts : la fixture `save_v2.json` (chaîne des versions) et le test de migration v1 → v2 (fixture `save_v1_full.json`, une partie avancée), seul test ajouté (A2).
+Raison : PROMPT v1.1, V3.
+

@@ -1,0 +1,455 @@
+{
+  "version": 1,
+  "checksum": "",
+  "createdAt": 1761200000000,
+  "lastSeenAt": 1761200000000,
+  "seed": 4242,
+  "settings": {
+    "lang": "fr",
+    "music": 0.8,
+    "sfx": 0.9,
+    "vibration": true,
+    "shake": true,
+    "reducedFlash": false,
+    "leftHanded": false,
+    "bigText": false,
+    "economy": false,
+    "rooster": true,
+    "weaknessIcons": true
+  },
+  "player": {
+    "level": 14,
+    "xp": 120,
+    "coins": 3456,
+    "rubies": 37,
+    "kibble": 12,
+    "upgrades": {
+      "shoes": 3,
+      "basket": 4,
+      "broom": 2,
+      "whistle": 2,
+      "bell": 3
+    },
+    "cat": {
+      "unlocked": true,
+      "level": 3
+    }
+  },
+  "furniture": {
+    "etagere": {
+      "level": 4,
+      "plans": 3
+    },
+    "cagette": {
+      "level": 3,
+      "plans": 1
+    },
+    "caisse": {
+      "level": 2,
+      "plans": 0
+    },
+    "frigo": {
+      "level": 2,
+      "plans": 5
+    },
+    "comptoir": {
+      "level": 2,
+      "plans": 0
+    },
+    "plante": {
+      "level": 1,
+      "plans": 2
+    },
+    "chaudron": {
+      "level": 1,
+      "plans": 0
+    },
+    "four": {
+      "level": 2,
+      "plans": 4
+    },
+    "petrin": {
+      "level": 1,
+      "plans": 0
+    }
+  },
+  "shops": {
+    "q1": {
+      "unlocked": true,
+      "week": 4,
+      "night": 3,
+      "day": 3,
+      "bossBeatenCount": 2,
+      "bossAssist": 0,
+      "franchiseStars": 0,
+      "redMoon": false,
+      "helpNext": false,
+      "expansion": 1,
+      "layout": [
+        {
+          "id": "caisse",
+          "x": 3,
+          "y": 5,
+          "rot": 0
+        },
+        {
+          "id": "cagette",
+          "x": 0,
+          "y": 2,
+          "rot": 0
+        },
+        {
+          "id": "etagere",
+          "x": 0,
+          "y": 5,
+          "rot": 0
+        },
+        {
+          "id": "cagette",
+          "x": 1,
+          "y": 4,
+          "rot": 0
+        },
+        {
+          "id": "cagette",
+          "x": 2,
+          "y": 3,
+          "rot": 0
+        },
+        {
+          "id": "frigo",
+          "x": 3,
+          "y": 2,
+          "rot": 0
+        },
+        {
+          "id": "frigo",
+          "x": 4,
+          "y": 1,
+          "rot": 0
+        },
+        {
+          "id": "chaudron",
+          "x": 2,
+          "y": 0,
+          "rot": 0
+        },
+        {
+          "id": "etagere",
+          "x": 3,
+          "y": 6,
+          "rot": 0
+        },
+        {
+          "id": "etagere",
+          "x": 1,
+          "y": 6,
+          "rot": 0
+        },
+        {
+          "id": "etagere",
+          "x": 4,
+          "y": 4,
+          "rot": 0
+        },
+        {
+          "id": "etagere",
+          "x": 5,
+          "y": 3,
+          "rot": 0
+        },
+        {
+          "id": "plante",
+          "x": 2,
+          "y": 2,
+          "rot": 0
+        },
+        {
+          "id": "comptoir",
+          "x": 5,
+          "y": 4,
+          "rot": 0
+        },
+        {
+          "id": "comptoir",
+          "x": 4,
+          "y": 5,
+          "rot": 0
+        },
+        {
+          "id": "comptoir",
+          "x": 0,
+          "y": 1,
+          "rot": 0
+        }
+      ],
+      "storage": [
+        "etagere",
+        "plante"
+      ],
+      "staff": {
+        "clerks": [
+          {
+            "level": 2
+          },
+          {
+            "level": 1
+          }
+        ],
+        "cashier": {
+          "level": 3
+        }
+      },
+      "recipes": {
+        "pomme": 2,
+        "lait": 1
+      },
+      "pads": {
+        "done": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6"
+        ],
+        "active": null,
+        "paid": {}
+      },
+      "lastDayTakings": 640,
+      "lastDayDurationS": 90,
+      "lastNightStars": 3,
+      "phase": {
+        "name": "morning",
+        "dayTimeLeftS": 0,
+        "dayTakings": 0,
+        "daySales": 0,
+        "dayTips": 0,
+        "dayPile": 0,
+        "vipsSpawned": 0,
+        "rushDone": false,
+        "ordersSpawned": 0,
+        "orderChests": 0,
+        "order": null,
+        "rush": null,
+        "dawnClaimed": true,
+        "carried": [],
+        "firstSaleDone": false
+      }
+    },
+    "q2": {
+      "unlocked": true,
+      "week": 1,
+      "night": 5,
+      "day": 5,
+      "bossBeatenCount": 0,
+      "bossAssist": 0,
+      "franchiseStars": 0,
+      "redMoon": false,
+      "helpNext": false,
+      "expansion": 0,
+      "layout": [
+        {
+          "id": "caisse",
+          "x": 3,
+          "y": 4,
+          "rot": 0
+        },
+        {
+          "id": "four",
+          "x": 0,
+          "y": 1,
+          "rot": 0
+        },
+        {
+          "id": "etagere",
+          "x": 0,
+          "y": 4,
+          "rot": 0
+        },
+        {
+          "id": "petrin",
+          "x": 1,
+          "y": 3,
+          "rot": 0
+        },
+        {
+          "id": "etagere",
+          "x": 1,
+          "y": 5,
+          "rot": 0
+        },
+        {
+          "id": "comptoir",
+          "x": 2,
+          "y": 1,
+          "rot": 0
+        },
+        {
+          "id": "comptoir",
+          "x": 3,
+          "y": 2,
+          "rot": 0
+        }
+      ],
+      "storage": [],
+      "staff": {
+        "clerks": [
+          {
+            "level": 1
+          }
+        ],
+        "cashier": null
+      },
+      "recipes": {
+        "baguette": 1
+      },
+      "pads": {
+        "done": [],
+        "active": null,
+        "paid": {}
+      },
+      "lastDayTakings": 900,
+      "lastDayDurationS": 90,
+      "lastNightStars": 2,
+      "phase": {
+        "name": "morning",
+        "dayTimeLeftS": 0,
+        "dayTakings": 0,
+        "daySales": 0,
+        "dayTips": 0,
+        "dayPile": 0,
+        "vipsSpawned": 0,
+        "rushDone": false,
+        "ordersSpawned": 0,
+        "orderChests": 0,
+        "order": null,
+        "rush": null,
+        "dawnClaimed": true,
+        "carried": [],
+        "firstSaleDone": false
+      }
+    }
+  },
+  "currentShop": "q1",
+  "progress": {
+    "tutorialStep": 0,
+    "unlocksSeen": [],
+    "flags": {},
+    "learned": {},
+    "pendingUnlocks": [],
+    "pendingDistricts": []
+  },
+  "daily": {
+    "calendarIndex": 0,
+    "lastCalendarDay": -1,
+    "maxClaimDay": -1,
+    "quests": {
+      "day": -1,
+      "list": [],
+      "rerollsUsed": 0,
+      "adRerollsUsed": 0,
+      "allClaimed": false
+    },
+    "weekly": {
+      "week": -1,
+      "list": [],
+      "allClaimed": false
+    },
+    "streak": {
+      "count": 0,
+      "lastDay": -1,
+      "freezes": 0,
+      "best": 0,
+      "restoredWeek": -1,
+      "brokenAt": -1,
+      "brokenCount": 0
+    },
+    "challenge": {
+      "lastDay": -1,
+      "scoreToday": 0,
+      "history": [],
+      "streak": 0,
+      "lastStreakDay": -1
+    },
+    "eventProgress": {
+      "week": -1,
+      "value": 0,
+      "claimed": []
+    }
+  },
+  "endless": {
+    "best": 0,
+    "chestsToday": 0,
+    "day": -1
+  },
+  "collections": {
+    "bestiary": {
+      "raton": 0
+    },
+    "achievements": {},
+    "seenMonsters": [],
+    "bestiaryTiers": {}
+  },
+  "cosmetics": {
+    "owned": [
+      "apron_stripes",
+      "cat_bow",
+      "hat_chef"
+    ],
+    "equipped": {
+      "outfit": "apron_stripes",
+      "cat": "cat_bow",
+      "theme": "classic",
+      "coinFx": null,
+      "eyes": "round",
+      "sign": "wood"
+    }
+  },
+  "purchases": {
+    "noAds": true,
+    "cosmetics": [
+      "hat_chef"
+    ],
+    "receipts": [
+      "r-001"
+    ]
+  },
+  "ads": {
+    "day": -1,
+    "rewardedToday": 0,
+    "byPlacement": {},
+    "lastInterstitialAt": 0,
+    "cyclesSinceInterstitial": 0,
+    "lastRewardedAt": 0,
+    "interstitialsToday": 0
+  },
+  "stats": {
+    "playtimeMs": 0,
+    "cycles": 30,
+    "sessions": 0,
+    "nights": 30,
+    "sold": 1800,
+    "served": 900,
+    "kills": 0,
+    "thievesCaught": 0,
+    "nights3": 12,
+    "vipServed": 0,
+    "ordersDone": 0,
+    "bellUses": 0,
+    "upgradesDone": 0,
+    "chestsOpened": 0,
+    "bossKills": {
+      "roi_raton": 2
+    },
+    "bossKillsW5": {}
+  },
+  "offline": {
+    "lastCollectAt": 0,
+    "welcomeChestForDay": -1,
+    "pendingDelivery": null
+  },
+  "futureField": {
+    "kept": true
+  }
+}

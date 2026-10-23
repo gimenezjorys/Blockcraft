@@ -103,9 +103,13 @@ test('rechargement pendant la nuit : la nuit recommence au début, avec les mêm
     assert.equal(st.night.wave, 0, 'au début de la nuit');
     assert.equal(st.night.waves, firstWave.waves);
     assert.equal(st.night.jarInitial, firstWave.jarInitial, 'même Bocal');
-    g2.hooks.advance(4000);
-    const types = g2.hooks.getState().scene.night.monsters.map((m) => m.type);
-    assert.ok(types.length > 0 && types.every((t) => t === 'raton'));
+    // v1.1 (V3) : la cagette, posée près de la porte de derrière, abat vite le premier raton ; on regarde dès qu'il entre.
+    let types = [];
+    for (let i = 0; i < 40 && !types.length; i++) {
+      g2.hooks.advance(100);
+      types = g2.hooks.getState().scene.night.monsters.map((m) => m.type);
+    }
+    assert.ok(types.length > 0 && types.every((t) => t === 'raton'), JSON.stringify(types));
   } finally {
     g2.close();
   }

@@ -239,6 +239,9 @@ export function createHub(app, o) {
           // Acheter puis placer : le meuble se pose à la meilleure place libre ; sinon il attend dans la Réserve (Aménager).
           const spot = autoPlaceFromStorage(g.save, g.shopId, id);
           rebuildShop(g);
+          // v1.1 (V3) : il tombe à sa place prévue (animation de chute).
+          const f = spot && g.furn.find((x) => x.x === spot.x && x.y === spot.y);
+          if (f) f.jump = 1;
           toast(t(spot ? 'catalog.placed' : 'catalog.stored', { name: t(`furn.${id}`) }), spot ? SVG.check : SVG.lock);
           o.save(true);
           return true;

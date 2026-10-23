@@ -259,3 +259,43 @@ test('une copie illisible chargée n’entre jamais dans la rotation', () => {
   assert.equal(JSON.parse(st.get(BAK1_KEY)).player.coins, 70);
   assert.notEqual(st.get(BAK2_KEY), 'abîmé');
 });
+
+// v1.1 (V3) : le seul test ajouté de la v1.1 (A2) — une vraie partie v1.0 (placement libre) passe en v2 sans rien perdre.
+test('migration v1 -> v2 : meubles rangés dans les emplacements de l’Allée, rien n’est perdu', async () => {
+  const { planSlots, slotTypeOf } = await import('../../src/game/plans.js');
+  const { validateLayout, itemCells } = await import('../../src/game/shop.js');
+  const v1 = fixture('1_full');
+  assert.equal(v1.version, 1);
+  const { data, to } = migrate(cloneJson(v1));
+  assert.equal(to, CURRENT_VERSION);
+  const s = sanitizeSave(data, CTX);
+  const bag = (shop) => shop.layout.map((it) => it.id).concat(shop.storage).sort();
+  for (const id of ['q1', 'q2']) {
+    const a = v1.shops[id];
+    const b = s.shops[id];
+    assert.deepEqual(bag(b), bag(a), `${id} : chaque meuble est encore là (posé ou en Réserve)`);
+    assert.ok(validateLayout(id, b.expansion, b.layout).ok, `${id} : disposition valide`);
+    assert.equal(b.plan, 'allee');
+    assert.equal(b.autopilot, false);
+    const P = planSlots(id, b.expansion, 'allee');
+    for (const it of b.layout) {
+      const slot = P.slots.find((sl) => sl.x === it.x && sl.y === it.y);
+      assert.ok(slot && slot.type === slotTypeOf(it.id), `${id} : ${it.id} (${it.x}, ${it.y}) sur un emplacement de son type`);
+      for (const [x, y] of itemCells(it)) assert.ok(P.slots.some((sl) => sl.x === x && sl.y === y), `${id} : ${it.id} ne déborde pas`);
+    }
+    for (const k of ['staff', 'recipes', 'pads', 'week', 'night', 'day', 'bossBeatenCount', 'expansion', 'lastDayTakings', 'lastNightStars', 'unlocked']) {
+      assert.deepEqual(b[k], a[k], `${id}.${k} gardé`);
+    }
+  }
+  assert.ok(s.shops.q1.storage.length > v1.shops.q1.storage.length, 'q1 : le trop-plein va dans la Réserve');
+  for (const k of ['coins', 'rubies', 'kibble', 'level', 'xp', 'upgrades', 'cat']) assert.deepEqual(s.player[k], v1.player[k], `player.${k} gardé`);
+  assert.deepEqual(s.furniture, v1.furniture, 'niveaux et plans des meubles gardés');
+  assert.deepEqual(s.purchases, v1.purchases, 'achats gardés');
+  for (const c of v1.cosmetics.owned) assert.ok(s.cosmetics.owned.includes(c), `cosmétique ${c} gardé`);
+  assert.equal(s.stats.cycles, v1.stats.cycles);
+  assert.deepEqual(s.stats.bossKills, v1.stats.bossKills);
+  assert.deepEqual(s.futureField, { kept: true }, 'champ inconnu conservé');
+  assert.equal(s.settings.guideArrow, 'auto', 'nouveaux réglages par défaut');
+  assert.equal(s.settings.daySpeed, 1);
+  assert.equal(s.settings.nightSpeed, 1);
+});

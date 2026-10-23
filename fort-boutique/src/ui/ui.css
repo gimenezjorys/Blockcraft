@@ -585,8 +585,8 @@ button { font: inherit; color: inherit; }
 
 
 /* ---------- v1.1 (V2.3) : Objectifs de Mamie ---------- */
-.objective.mamie { max-width: 236px; }
-.objective .obj-text { display: block; font-size: 12.5px; line-height: 1.12; max-width: 170px; }
+.objective.mamie { max-width: 272px; min-height: 36px; padding-top: 2px; padding-bottom: 2px; }
+.objective .obj-text { display: block; font-size: 12.5px; line-height: 1.15; max-width: 216px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .objective .obj-row { display: flex; align-items: center; gap: 5px; }
 .objective .obj-row .obj-bar { flex: 1 1 auto; min-width: 54px; }
 .objective .obj-count { font-size: 12px; line-height: 1; white-space: nowrap; }

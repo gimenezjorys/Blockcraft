@@ -251,10 +251,11 @@ test('marchand : coup de balai, réparation d’un meuble cassé, Cloche', () =>
   const shelf = g.furn.find((f) => f.id === 'etagere');
   damageFurniture(g, shelf, 1e6, 'test');
   assert.equal(shelf.broken, true);
-  teleport(g, 1.45, 4.5);
-  run(g, 2.9, () => teleport(g, 1.45, 4.5));
+  // v1.1 (V3) : l'étagère de départ est en (1,2) (emplacement É1 du plan) ; le marchand se tient dessous.
+  teleport(g, 1.5, 3.45);
+  run(g, 2.9, () => teleport(g, 1.5, 3.45));
   assert.equal(shelf.broken, true);
-  run(g, 0.2, () => teleport(g, 1.45, 4.5));
+  run(g, 0.2, () => teleport(g, 1.5, 3.45));
   assert.equal(shelf.broken, false, 'revient en service après 3 s');
   assert.ok(Math.abs(shelf.hp - shelf.maxHp * 0.3) < shelf.maxHp * 0.05);
   const m = spawnMonster(g, 'raton', 'backdoor', { x: 2.5, y: 2.5 });

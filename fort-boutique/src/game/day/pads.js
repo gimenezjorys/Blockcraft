@@ -6,6 +6,7 @@ import { initShelves } from './shelves.js';
 import { initRegister } from './register.js';
 import { goToCell } from './customers.js';
 import { validateLayout } from '../shop.js';
+import { nextSlotSpot, syncSlots } from '../plans.js';
 import { orderSpot } from './special-order.js';
 import { projectedLevel } from '../progression.js';
 
@@ -45,14 +46,17 @@ export function padsRemaining(g) {
 }
 
 /**
- * Case où poser l'emplacement : celle de G6.7 (décalée d'une ligne par agrandissement), ou, si elle est prise
- * (meuble déplacé dans l'éditeur, P1), la case libre valide la plus proche. Jamais une case qui bloquerait un chemin.
+ * Case où poser l'emplacement : l'emplacement prévu suivant du plan (V3) ; sinon (plan plein, aménagement libre)
+ * celle de G6.7, ou la case libre valide la plus proche. Jamais une case qui bloquerait un chemin.
  * @param {any} g
  * @param {any} def
  * @returns {{ x: number, y: number } | null}
  */
 export function padSpot(g, def) {
   const shop = g.shop;
+  // v1.1 (V3) : l'emplacement prévu suivant du plan (même type de meuble, ordre de remplissage).
+  const slot = nextSlotSpot(g.shopId, shop, def.furniture);
+  if (slot) return { x: slot.x, y: slot.y };
   const { w, h } = g.grid;
   const x0 = def.x;
   const y0 = def.y + (shop.expansion | 0);
@@ -109,6 +113,7 @@ export function stepPads(g, dt) {
 function build(g, pad) {
   const shop = g.shop;
   shop.layout.push({ id: pad.furniture, x: pad.x, y: pad.y, rot: 0 });
+  syncSlots(g.shopId, shop);
   shop.pads.done.push(pad.id);
   delete shop.pads.paid[pad.id];
   shop.pads.active = null;
