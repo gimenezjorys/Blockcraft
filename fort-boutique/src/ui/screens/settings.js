@@ -185,4 +185,27 @@ function mount(app, p, d) {
   };
 }
 
+/** Comment installer le jeu sur l'écran d'accueil, selon l'appareil (G22, M25). */
+function installCard(app, d) {
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  const win = typeof window !== 'undefined' ? window : {};
+  const standalone = !!nav.standalone || (typeof win.matchMedia === 'function' && win.matchMedia('(display-mode: standalone)').matches);
+  const ios = /iPhone|iPad|iPod/.test(nav.userAgent || '');
+  if (standalone) return h('div.up-note', { id: 'set-install', text: t('settings.installed') });
+  const prompt = app.services.installPrompt;
+  if (prompt) {
+    const b = tagButton({ label: t('settings.installNow'), small: true, variant: 'green', id: 'set-install' });
+    onTap(b, () => {
+      try {
+        prompt.prompt();
+      } catch {
+        /* le navigateur a refusé */
+      }
+      app.services.installPrompt = null;
+    }, d);
+    return h('div.set-actions', [b]);
+  }
+  return h('div.up-note', { id: 'set-install', text: t(ios ? 'settings.installIos' : 'settings.installOther') });
+}
+
 export default { mount, overlay: true };

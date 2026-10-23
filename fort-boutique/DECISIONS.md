@@ -467,3 +467,7 @@ Raison : PROMPT M26 ; consigne « stop les tests ».
 ## 2026-10-23 — M27 — Publication
 Décision : version 1.0.0 (package.json), README final, notes de version (docs/RELEASE_NOTES.md), dernière mise à jour de GAME_DESIGN.md. La page GitHub Pages est servie depuis `main` : la mettre à jour demande une fusion (pull request) et le tag `v1.0.0` se pose sur `main` ; ces deux étapes attendent l'accord de l'utilisateur (aucune pull request sans demande explicite).
 Raison : PROMPT M27 et F ; règles du dépôt (pas de PR sans demande).
+
+## 2026-10-23 — Correctif v1.0 : écran Paramètres
+Décision : l'écran Paramètres de la v1.0.0 plantait à l'ouverture (`installCard` appelé mais jamais écrit : l'ajout de M25 n'avait pas trouvé la fin du fichier, sans test pour le voir). La fonction est ajoutée ; les 5 tests d'interface des Paramètres et de la pause repassent.
+Raison : bug trouvé par le `npm test` de début de session (A1 du prompt v1.1).
