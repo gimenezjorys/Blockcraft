@@ -220,7 +220,10 @@ export function createPlay(app, g, hooks = {}) {
       if (view.bossIntro.t > 2.2) view.bossIntro = null;
     }
     view.jarBlink = Math.max(0, view.jarBlink - dt / 0.8);
-    for (const f of g.furn) if (f.jump > 0) f.jump = Math.max(0, f.jump - dt / 0.25);
+    for (const f of g.furn) {
+      if (f.jump > 0) f.jump = Math.max(0, f.jump - dt / 0.25);
+      if (f.slide && f.slide.t > 0) f.slide.t = Math.max(0, f.slide.t - dt / 0.45);
+    }
     g.player.lean = (g.player.lean || 0) + ((g.player.vx || 0) * -0.6 - (g.player.lean || 0)) * Math.min(1, dt * 12);
   }
 

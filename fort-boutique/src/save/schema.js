@@ -83,6 +83,8 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
       guideArrow: 'auto',
       daySpeed: 1,
       nightSpeed: 1,
+      // v1.1 (V4) : l'éditeur libre de l'ancien « Aménager » (option expert, désactivée).
+      freeLayout: false,
     },
     player: {
       level: 1,

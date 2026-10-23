@@ -135,9 +135,16 @@ export function createRenderer(env) {
       if (d.kind === 'f') {
         const f = d.ref;
         const s = furnitureSprite(f, night);
-        const jy = f.jump > 0 ? -Math.sin(Math.min(1, f.jump) * Math.PI) * 6 : 0;
-        const rx = f.recoil > 0 ? -(f.lookX || 0) * f.recoil * 2 : 0;
-        const ry = f.recoil > 0 ? -(f.lookY || 0) * f.recoil * 2 : 0;
+        let jy = f.jump > 0 ? -Math.sin(Math.min(1, f.jump) * Math.PI) * 6 : 0;
+        let rx = f.recoil > 0 ? -(f.lookX || 0) * f.recoil * 2 : 0;
+        let ry = f.recoil > 0 ? -(f.lookY || 0) * f.recoil * 2 : 0;
+        // v1.1 (V4) : glissement vers la nouvelle place après un changement de plan.
+        if (f.slide && f.slide.t > 0) {
+          const e = f.slide.t * f.slide.t;
+          rx += f.slide.dx * C * e;
+          ry += f.slide.dy * C * e;
+          jy -= Math.sin(f.slide.t * Math.PI) * 4;
+        }
         sprites.blit(ctx, s, ox + f.x * C + rx, oy + f.y * C + jy + ry);
         if (f.flash > 0) {
           ctx.globalAlpha = 0.5;

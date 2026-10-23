@@ -194,3 +194,64 @@ export function layoutInSlotOrder(shopId, shop) {
   const rank = new Map(P.slots.map((s) => [`${s.x},${s.y}`, s.n]));
   return shop.layout.slice().sort((a, b) => (rank.get(`${a.x},${a.y}`) ?? 99) - (rank.get(`${b.x},${b.y}`) ?? 99));
 }
+
+/**
+ * Aperçu d'un plan pour l'écran Plans (V4), sans toucher à la boutique : disposition et Réserve qu'elle aurait.
+ * @param {string} shopId
+ * @param {any} shop
+ * @param {string} planId
+ * @returns {{ layout: any[], storage: string[] }}
+ */
+export function planPreview(shopId, shop, planId) {
+  const copy = { ...shop, layout: shop.layout.map((it) => ({ ...it })), storage: (shop.storage || []).slice() };
+  if (!applyPlan(shopId, copy, planId)) return { layout: shop.layout.map((it) => ({ ...it })), storage: (shop.storage || []).slice() };
+  return { layout: copy.layout, storage: copy.storage };
+}
+
+/**
+ * Échanger deux meubles (V4.2) : le meuble `index` va sur l'emplacement `slotId` (même type). Si un meuble de même
+ * largeur l'occupe, ils échangent leurs places. Rend la nouvelle disposition, ou null si ce n'est pas possible.
+ * @param {string} shopId
+ * @param {number} expansion
+ * @param {string} planId
+ * @param {any[]} layout
+ * @param {number} index
+ * @param {string} slotId
+ */
+export function moveToSlot(shopId, expansion, planId, layout, index, slotId) {
+  const P = planSlots(shopId, expansion, planId);
+  const it = layout[index];
+  const s = P.slots.find((x) => x.id === slotId);
+  if (!it || !s || it.id === 'caisse' || s.type !== slotTypeOf(it.id)) return null;
+  const next = layout.map((x) => ({ ...x }));
+  const { occ } = occupancy(P.w, P.h, layout);
+  const j = occ[s.y * P.w + s.x];
+  if (j === index) return null;
+  if (j >= 0) {
+    const other = next[j];
+    if (other.id === 'caisse' || widthOf(other.id) !== widthOf(it.id) || other.x !== s.x || other.y !== s.y) return null;
+    [other.x, other.y, next[index].x, next[index].y] = [it.x, it.y, s.x, s.y];
+  } else {
+    if (widthOf(it.id) > 1) {
+      const r = rightOf(P.byType[s.type], s);
+      const k = r ? occ[r.y * P.w + r.x] : -2;
+      if (!r || (k >= 0 && k !== index)) return null;
+    }
+    next[index].x = s.x;
+    next[index].y = s.y;
+  }
+  return validateLayout(shopId, expansion, next).ok ? next : null;
+}
+
+/**
+ * Notes en étoiles (1 à 3) de plusieurs plans d'après leurs trajets : le meilleur 3, le moins bon 1 (égalité : même note).
+ * @param {number[]} values
+ * @param {boolean} higherBetter
+ */
+export function rankStars(values, higherBetter) {
+  const sorted = [...new Set(values.map((v) => Math.round(v * 10) / 10))].sort((a, b) => (higherBetter ? b - a : a - b));
+  return values.map((v) => {
+    const r = sorted.indexOf(Math.round(v * 10) / 10);
+    return sorted.length === 1 ? 2 : Math.max(1, 3 - Math.round((r * 2) / (sorted.length - 1)));
+  });
+}

@@ -505,3 +505,12 @@ Décision :
 - **Tests** : 5 tests utilisaient les anciennes coordonnées de départ (cagette (0,1), étagère (0,4), P1 en (4,2)) ; ils visent les nouvelles places. Le test de rechargement de nuit regarde le premier raton dès qu'il entre (la cagette, près de la porte de derrière, l'abat plus vite). Ajouts : la fixture `save_v2.json` (chaîne des versions) et le test de migration v1 → v2 (fixture `save_v1_full.json`, une partie avancée), seul test ajouté (A2).
 Raison : PROMPT v1.1, V3.
 
+## 2026-10-23 — V4 — Plans de boutique
+Décision :
+- **Bouton « Plans »** à la place d'« Aménager », au même niveau (3, « comme l'ancien aménagement ») : avant, seule l'Allée existe et il n'y a rien à choisir. Comptoir rapide et Forteresse se voient dès l'ouverture de l'écran, en grisé avec un cadenas « 3 » tant qu'ils sont fermés (ici toujours ouverts, puisque l'écran s'ouvre au niveau 3 ; le verrou reste dans les données pour un réglage futur).
+- **Notes en étoiles** : classement des 3 plans selon les trajets moyens réels (porte → meubles pour les clients, entrées → caisse pour les Grignotins), calculés avec les meubles du joueur à leur future place ; le meilleur a 3 étoiles, le moins bon 1, égalité = même note.
+- **Échange** : seulement entre meubles de même largeur (un four de 2 cases ne s'échange pas avec un pétrin) ; un meuble peut aussi aller sur une place libre de son type. Les places possibles s'allument quand un meuble est soulevé. « Annuler » revient à l'état d'ouverture et laisse l'écran ouvert ; la flèche de retour ferme sans rien changer.
+- **Choisir** compte pour l'Objectif de Mamie « Choisis un plan » (même si c'est le plan actuel) ; les échanges comptent comme déplacements pour la quête « Déplace N meubles ».
+- **Éditeur libre** : code gardé, bouton « Aménager » visible seulement avec l'option « Aménagement libre (expert) » (désactivée). Les 4 tests de l'éditeur activent l'option.
+Raison : PROMPT v1.1, V4.
+

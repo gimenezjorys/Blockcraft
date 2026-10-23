@@ -5,6 +5,7 @@ import { buyFurniture, autoPlaceFromStorage } from '../game/catalog.js';
 import { upgradeFurniture } from '../game/economy.js';
 import { buyMerchantUpgrade, upgradeRecipe, expandShop } from '../game/upgrades.js';
 import { rebuildShop } from '../game/state.js';
+import { syncSlots } from '../game/plans.js';
 import { unlockCards } from './screens/unlocks.js';
 import { openEditor, commitEditor } from '../game/editor.js';
 import { createEditorScene } from './editor-scene.js';
@@ -22,7 +23,7 @@ import { trackQuest } from '../game/quest-track.js';
 import { startFranchise } from '../game/franchise.js';
 
 /** Écrans du hub déjà branchés (les autres boutons disent « Bientôt »). */
-export const HUB_SCREENS = ['catalog', 'upgrades', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily', 'wardrobe', 'endless'];
+export const HUB_SCREENS = ['catalog', 'upgrades', 'plans', 'editor', 'map', 'moon', 'quests', 'calendar', 'daily', 'wardrobe', 'endless'];
 
 /** Quartiers dont le contenu est prêt (M16 à M19 ajoutent les suivants). */
 export const PLAYABLE_DISTRICTS = ['q1', 'q2', 'q3', 'q4', 'q5'];
@@ -44,6 +45,22 @@ export function createHub(app, o) {
   function close() {
     app.router.pop();
     o.refresh();
+  }
+
+  /** Après un changement de plan (V4) : chaque meuble glisse de son ancienne place vers la nouvelle. */
+  function slideFrom(g, before) {
+    const used = new Set();
+    const pick = (f) => {
+      let k = before.findIndex((b, i) => !used.has(i) && b.id === f.id && b.x === f.x && b.y === f.y);
+      if (k < 0) k = before.findIndex((b, i) => !used.has(i) && b.id === f.id);
+      if (k >= 0) used.add(k);
+      return k >= 0 ? before[k] : null;
+    };
+    for (const f of g.furn) {
+      const b = pick(f);
+      if (b && (b.x !== f.x || b.y !== f.y)) f.slide = { dx: b.x - f.x, dy: b.y - f.y, t: 1 };
+      else if (!b) f.jump = 1;
+    }
   }
 
   /** Pubs récompensées (ad-flow.js) ; sans elles, rien n'est proposé. */
@@ -229,6 +246,30 @@ export function createHub(app, o) {
           o.save(true);
           leave();
         },
+      });
+    },
+    /** Plans de boutique (V4) : choisir un plan, échanger deux meubles. Gratuit, au Matin. */
+    plans(g) {
+      app.router.push('plans', {
+        g,
+        onChoose: (planId, layout, storage, moves) => {
+          const shop = g.shop;
+          const before = shop.layout.map((it) => ({ ...it }));
+          shop.layout = layout.map((it) => ({ ...it }));
+          shop.storage = storage.slice();
+          shop.plan = planId;
+          syncSlots(g.shopId, shop);
+          g.save.progress.flags.planChosen = true;
+          if (moves > 0) {
+            g.save.stats.moved = (g.save.stats.moved || 0) + moves;
+            trackQuest(g.save, 'move', moves);
+          }
+          rebuildShop(g);
+          slideFrom(g, before);
+          o.save(true);
+          close();
+        },
+        onClose: close,
       });
     },
     catalog(g) {

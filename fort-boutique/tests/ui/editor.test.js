@@ -20,6 +20,8 @@ function editorSave(mutate) {
   s.progress.flags.firstChestDone = true;
   Object.assign(s.stats, { cycles: 3, nights: 3 });
   Object.assign(s.player, { level: 3, coins: 500 });
+  // v1.1 (V4) : l'éditeur libre n'est plus proposé qu'avec l'option « Aménagement libre (expert) ».
+  s.settings.freeLayout = true;
   const shop = s.shops.q1;
   Object.assign(shop, { day: 4, night: 4, lastNightStars: 3 });
   Object.assign(shop.phase, { name: 'morning', dawnClaimed: true });

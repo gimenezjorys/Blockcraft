@@ -486,4 +486,18 @@ export default {
   'mamie.q5_boss': "Beat the Moth Queen",
   'hud.closedSign': "CLOSED",
   'hud.openSign': "OPEN",
+  // v1.1 (V4) : plans de boutique.
+  'hub.plans': "Plans",
+  'plans.title': "Shop plans",
+  'plan.allee': "The Aisle",
+  'plan.comptoir': "Quick Counter",
+  'plan.forteresse': "The Fortress",
+  'plans.clients': "Customers",
+  'plans.defense': "Defense",
+  'plans.hint': "Tap a piece, then a spot of the same colour.",
+  'plans.hintStorage': "No room for {n} piece(s): they will go to Storage.",
+  'plans.choose': "Choose",
+  'plans.cancel': "Undo",
+  'plans.current': "Current",
+  'settings.freeLayout': "Free layout (expert)",
 };

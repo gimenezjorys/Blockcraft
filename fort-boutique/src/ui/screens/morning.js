@@ -14,7 +14,9 @@ import { countdown } from './quests.js';
 /** Raccourcis du hub et leur condition d'ouverture. */
 export const HUB_BUTTONS = [
   { id: 'catalog', label: 'hub.catalog', feature: null, needsPads: true },
-  { id: 'editor', label: 'hub.editor', feature: 'editor' },
+  // v1.1 (V4) : « Plans » remplace « Aménager » ; l'éditeur libre ne revient qu'avec l'option expert.
+  { id: 'plans', label: 'hub.plans', feature: 'editor' },
+  { id: 'editor', label: 'hub.editor', feature: 'editor', expert: true },
   { id: 'upgrades', label: 'hub.upgrades', feature: null },
   { id: 'quests', label: 'hub.quests', feature: 'quests' },
   { id: 'calendar', label: 'hub.calendar', feature: 'calendar' },
@@ -77,6 +79,7 @@ function mount(app, p, d) {
   const row2 = h('div.hub-row2', [mapBtn, objective ? h('div.hub-objective-slot', [objective.el]) : h('div.hub-objective-slot'), moon]);
   const grid = h('div.hub-grid');
   for (const b of HUB_BUTTONS) {
+    if (b.expert && !save.settings.freeLayout) continue;
     const unlockedByLevel = !b.feature || isUnlocked(save, b.feature);
     const padsLeft = b.needsPads ? padsRemaining(g) : 0;
     const open = unlockedByLevel && padsLeft === 0 && ready.has(b.id);

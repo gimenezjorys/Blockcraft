@@ -153,7 +153,8 @@ export function createSession(app, o) {
   function hubBadges(game) {
     const save = game.save;
     return {
-      editor: isUnlocked(save, 'editor') && !save.progress.flags.editorSeen,
+      editor: !!save.settings.freeLayout && isUnlocked(save, 'editor') && !save.progress.flags.editorSeen,
+      plans: isUnlocked(save, 'editor') && !save.progress.flags.planChosen,
       upgrades: unlockedFurniture(save).some((id) => canUpgrade(save, id).ok),
       quests: isUnlocked(save, 'quests') && questsClaimable(save, now()),
       daily: isUnlocked(save, 'daily') && dailyFirstAttempt(save, utcDay(now())),

@@ -15,6 +15,7 @@ const TOGGLES = [
   ['economy', 'settings.economy'],
   ['weaknessIcons', 'settings.weaknessIcons'],
   ['rooster', 'settings.rooster'],
+  ['freeLayout', 'settings.freeLayout'],
 ];
 
 /** Temps pour confirmer la réinitialisation (2e tap), en secondes. */

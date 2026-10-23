@@ -486,4 +486,18 @@ export default {
   'mamie.q5_boss': "Bats la Reine Phalène",
   'hud.closedSign': "FERMÉ",
   'hud.openSign': "OUVERT",
+  // v1.1 (V4) : plans de boutique.
+  'hub.plans': "Plans",
+  'plans.title': "Plans de boutique",
+  'plan.allee': "L'Allée",
+  'plan.comptoir': "Le Comptoir rapide",
+  'plan.forteresse': "La Forteresse",
+  'plans.clients': "Clients",
+  'plans.defense': "Défense",
+  'plans.hint': "Touche un meuble, puis une place de même couleur.",
+  'plans.hintStorage': "Plus de place pour {n} meuble(s) : ils iront dans la Réserve.",
+  'plans.choose': "Choisir",
+  'plans.cancel': "Annuler",
+  'plans.current': "Actuel",
+  'settings.freeLayout': "Aménagement libre (expert)",
 };

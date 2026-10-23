@@ -17,6 +17,7 @@ import morning from './ui/screens/morning.js';
 import dawn from './ui/screens/dawn.js';
 import pause from './ui/screens/pause.js';
 import catalog from './ui/screens/catalog.js';
+import plans from './ui/screens/plans.js';
 import upgrades from './ui/screens/upgrades.js';
 import unlocks from './ui/screens/unlocks.js';
 import editor from './ui/screens/editor.js';
@@ -140,7 +141,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon, quests, calendar, reward, daily, ad, wardrobe, endless });
+  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, plans, unlocks, editor, map, moon, quests, calendar, reward, daily, ad, wardrobe, endless });
   app.router.goto('title');
   app.loop.start();
 }
