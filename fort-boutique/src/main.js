@@ -6,6 +6,7 @@ import { createStorage } from './save/storage.js';
 import { now, setClock } from './core/time.js';
 import { createAudio } from './audio/audio.js';
 import { createMusic } from './audio/music.js';
+import { listen } from './core/events.js';
 import { buildCheats } from './debug/cheats.js';
 import { installTestHooks } from './debug/test-hooks.js';
 import { createSession } from './ui/session.js';
@@ -88,6 +89,11 @@ function boot() {
     } else audio.unmute('hidden');
   };
   app.services.onPageHide = () => session.flush();
+  // Android / Chrome : le navigateur propose l'installation ; on garde la demande pour le bouton des Paramètres.
+  listen(window, 'beforeinstallprompt', (e) => {
+    e.preventDefault();
+    app.services.installPrompt = e;
+  });
   app.stepHooks.push((dt) => {
     session.step(dt);
     toasts.update(dt);

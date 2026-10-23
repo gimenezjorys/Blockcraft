@@ -159,6 +159,9 @@ function mount(app, p, d) {
     box,
     msg,
     h('div.set-actions', [reset]),
+    // Carte « écran d'accueil » (G22, M25) : jouer en plein écran, comme une appli.
+    h('h3.set-h', { text: t('settings.install') }),
+    installCard(app, d),
     // Crédits (G22).
     h('h3.set-h', { text: t('settings.credits') }),
     h('div.up-note.set-credits', { id: 'set-credits', text: t('settings.creditsText') }),
