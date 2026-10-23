@@ -535,3 +535,13 @@ Décision :
 - **Saison** : feuilles l'automne et le reste de l'année, citrouilles à Halloween, neige en hiver (saisons existantes, `currentSeason`).
 Raison : PROMPT v1.1, V7.
 
+## 2026-10-23 — V8 — Hub du Matin
+Décision :
+- **Canvas + zones DOM** : la rue (ciel, toits, façade, objets, établi) est dessinée sur un canvas propre au hub ; chaque objet a une zone de tap DOM transparente posée dessus, avec sa petite étiquette kraft (lisible par les lecteurs d'écran, clavier, mêmes identifiants qu'avant : `#hub-open`, `#hub-catalog`, `.hub-map`, `.hub-moon`…). La table `HUB_OBJECTS` (render/hub-scene.js) sert aux deux.
+- **Ouvrir un écran** : la scène zoome sur l'objet (0,3 s) pendant que l'écran s'ouvre déjà (pas d'attente ajoutée) ; l'écran garde son contenu, seule sa matière change : livret à deux pages (Catalogue), plateau de boîte à outils (Améliorer), ardoise à cadre de bois (Quêtes), page de calendrier à anneaux (Calendrier).
+- **Notifications** : cachet de cire rouge à étoile (la classe `badge-dot` est gardée pour les outils et les tests).
+- **Intérieur dans la vitrine** : vue de dessus en miniature de la vraie disposition, avec le personnel embauché à son poste.
+- **Grain** : bruit de 128 × 128 px à 6 à 10 % d'opacité, généré une fois par code (`--grain`) et posé sur les écrans habillés ; rien si le navigateur ne sait pas le faire.
+- **Badge « Auto »** sur l'auvent quand la boutique est automatisée.
+Raison : PROMPT v1.1, V8.
+
