@@ -13,6 +13,8 @@ const TOGGLES = [
   ['leftHanded', 'settings.leftHanded'],
   ['bigText', 'settings.bigText'],
   ['economy', 'settings.economy'],
+  ['weaknessIcons', 'settings.weaknessIcons'],
+  ['rooster', 'settings.rooster'],
 ];
 
 /** Temps pour confirmer la réinitialisation (2e tap), en secondes. */
@@ -157,6 +159,9 @@ function mount(app, p, d) {
     box,
     msg,
     h('div.set-actions', [reset]),
+    // Crédits (G22).
+    h('h3.set-h', { text: t('settings.credits') }),
+    h('div.up-note.set-credits', { id: 'set-credits', text: t('settings.creditsText') }),
     version,
   ]);
   const el = h('div.panel.slate-full.settings', [head, body]);

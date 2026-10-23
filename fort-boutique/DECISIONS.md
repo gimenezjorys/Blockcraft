@@ -443,3 +443,7 @@ Raison : consigne explicite de l'utilisateur, qui prime sur les règles du docum
 ## 2026-10-23 — M21 — Direction artistique : ce qui manquait
 Décision : l'essentiel de G20 était en place depuis M2 à M19 (palette, logo à yeux, chiffres-tampons, ardoise / kraft / ticket, éclairage à demi-résolution, crépuscule en 4 s, sprites de tous les meubles et Grignotins). M21 ajoute : les icônes des 9 produits des Q3 à Q5 (pastilles, tisane, potion, clous, peinture, marteau, bonbons, boule de cristal, grimoire ; 3 couleurs chacune), les enseignes de prestige de la Franchise sur la carte (bois, bronze, argent, or, lune, G13.4), la nuit pourpre de la Lune rouge, et des transitions d'écran (ardoises qui glissent, fenêtres en fondu ; coupées avec `prefers-reduced-motion`). Pas de test ni de capture, sur consigne de l'utilisateur.
 Raison : G20, G13.4, consigne « fais tout le reste ».
+
+## 2026-10-23 — M22 — Juice et options
+Décision : le catalogue d'effets de G20.6 était déjà branché (pièces en arc, cœurs, recul, flash blanc, arrêt sur image, ralenti du dernier Grignotin, Cloche, yeux du crépuscule, étoiles et coffre de l'aube, confettis). M22 ajoute les options de G22 qui manquaient : icônes de faiblesse des Grignotins (flamme, soleil, flocon au-dessus de la tête : une forme, pas seulement une couleur), cocorico à l'aube (oui/non, le son arrive en M23) et les crédits. Pas de test, sur consigne de l'utilisateur.
+Raison : G20.6, G22.

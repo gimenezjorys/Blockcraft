@@ -166,6 +166,7 @@ export function createRenderer(env) {
         ctx.restore();
       } else {
         drawMonsterBody(ctx, d.ref, ox, oy, g.t);
+        if (g.save.settings.weaknessIcons !== false && d.ref.def.weak) drawWeakness(ctx, d.ref, ox, oy);
       }
     }
     if (n) {
@@ -217,6 +218,50 @@ export function createRenderer(env) {
         disc(ctx, x + Math.cos(a) * 9, y - 30 + Math.sin(a) * 3, 2, P.craieJaune, 0);
       }
     }
+  }
+
+  /**
+   * Icône de faiblesse au-dessus du Grignotin (G22, option) : flamme (feu), soleil (lumière), flocon (froid).
+   * Une forme, pas seulement une couleur (un danger n'est jamais signalé par la couleur seule).
+   */
+  function drawWeakness(ctx, m, ox, oy) {
+    const L = MONSTER_LOOK[m.type] || MONSTER_LOOK.raton;
+    const x = ox + m.x * C + L.r + 4;
+    const y = oy + m.y * C + 10 - L.r * 2 - (L.fly || 0) - 2;
+    const kinds = Object.keys(m.def.weak);
+    ctx.save();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = P.encre;
+    kinds.slice(0, 2).forEach((k, i) => {
+      const cx = x + i * 11;
+      disc(ctx, cx, y, 5.5, P.ticket, 1.5);
+      ctx.beginPath();
+      if (k === 'fire') {
+        ctx.moveTo(cx, y - 4);
+        ctx.quadraticCurveTo(cx + 4, y, cx, y + 3.5);
+        ctx.quadraticCurveTo(cx - 4, y, cx, y - 4);
+        ctx.fillStyle = P.lueur;
+        ctx.fill();
+        ctx.stroke();
+      } else if (k === 'light') {
+        disc(ctx, cx, y, 2.2, P.craieJaune, 1);
+        for (let a = 0; a < 6; a++) {
+          const u = (a / 6) * Math.PI * 2;
+          ctx.moveTo(cx + Math.cos(u) * 3, y + Math.sin(u) * 3);
+          ctx.lineTo(cx + Math.cos(u) * 4.5, y + Math.sin(u) * 4.5);
+        }
+        ctx.stroke();
+      } else {
+        for (let a = 0; a < 3; a++) {
+          const u = (a / 3) * Math.PI;
+          ctx.moveTo(cx - Math.cos(u) * 4, y - Math.sin(u) * 4);
+          ctx.lineTo(cx + Math.cos(u) * 4, y + Math.sin(u) * 4);
+        }
+        ctx.strokeStyle = P.craieBleue;
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
   }
 
   /** Flèche rouge pulsante au-dessus du voleur : dessinée APRÈS le voile de nuit, comme les yeux (P1, Léa). */
