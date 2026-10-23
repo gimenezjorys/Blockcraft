@@ -1064,3 +1064,7 @@ Chaque champ a une valeur par défaut dans `schema.js` ; au chargement, la sauve
 - [S23] itch.io — ShopFront : https://3d-engine.itch.io/shop-front
 
 *Fin de l'Annexe G. Fin du prompt : commence par l'Étape 1 (A1), puis la mission M0.*
+
+
+---
+*Version 1.0.0 (2026-10-23) : ce document décrit le jeu livré ; chaque valeur réglée garde sa valeur de départ entre parenthèses (Mn : …) et sa justification dans DECISIONS.md.*

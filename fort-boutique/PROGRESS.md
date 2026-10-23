@@ -31,7 +31,7 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M24 — Performances et mémoire | ✅ | 2026-10-23 | `npm run bench` (0,14 ms par pas, 580 appels de dessin, budgets tenus), mode économie automatique ; tests de fuite non écrits (consigne). |
 | M25 — Anglais, Paramètres, crédits, iOS, icônes | ✅ | 2026-10-23 | Paramètres complets (G22), anglais complet (443 clés), crédits, carte « Écran d'accueil » (iOS, bouton Installer ailleurs), manifeste et icônes. |
 | M26 — Robustesse + P5 | ✅ | 2026-10-23 | Boucle protégée contre les erreurs (sauvegarde + message, le jeu continue) ; sauvegardes déjà réparées depuis M4/M6. Fuzz, 500 sauvegardes altérées et P5 non faits (consigne). |
-| M27 — Publication | ⬜ | | |
+| M27 — Publication | ✅ | 2026-10-23 | v1.0.0 : README final, notes de version (docs/RELEASE_NOTES.md). Mise en ligne (fusion dans `main`) et tag `v1.0.0` en attente de l'accord de l'utilisateur. |
 
 
 ## v0.2 jouable — 2026-10-21 (UTC)

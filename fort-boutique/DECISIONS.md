@@ -463,3 +463,7 @@ Raison : G22 ; PROMPT M25.
 ## 2026-10-23 — M26 — Robustesse
 Décision : (1) La boucle du navigateur ne peut plus être figée par une erreur : une exception pendant une image est attrapée, la partie est sauvegardée tout de suite et un message rassurant s'affiche une fois (« Oups, un petit souci ! Ta partie est sauvegardée. ») ; le jeu continue à l'image suivante. Le mode test (`advance`) laisse remonter les erreurs. (2) Les sauvegardes abîmées étaient déjà couvertes depuis M4 et M6 : somme de contrôle CRC32, copie de secours, remise en état champ par champ (`sanitizeSave`), message « sauvegarde réparée ». (3) Non faits, sur consigne de l'utilisateur : les 10 minutes d'entrées au hasard, les 500 sauvegardes altérées et le Playtest final P5.
 Raison : PROMPT M26 ; consigne « stop les tests ».
+
+## 2026-10-23 — M27 — Publication
+Décision : version 1.0.0 (package.json), README final, notes de version (docs/RELEASE_NOTES.md), dernière mise à jour de GAME_DESIGN.md. La page GitHub Pages est servie depuis `main` : la mettre à jour demande une fusion (pull request) et le tag `v1.0.0` se pose sur `main` ; ces deux étapes attendent l'accord de l'utilisateur (aucune pull request sans demande explicite).
+Raison : PROMPT M27 et F ; règles du dépôt (pas de PR sans demande).
