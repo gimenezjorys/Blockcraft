@@ -500,4 +500,8 @@ export default {
   'plans.cancel': "Annuler",
   'plans.current': "Actuel",
   'settings.freeLayout': "Aménagement libre (expert)",
+  // v1.1 (V5, V6) : personnel en boutique, pilote automatique, vitesse.
+  'staff.hireInShop': "Embauche dans la boutique : un carré doré apparaît au bon poste.",
+  'hud.auto': "Auto",
+  'hud.speedDown': "Vitesse réduite",
 };

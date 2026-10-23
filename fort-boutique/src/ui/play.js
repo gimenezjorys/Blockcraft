@@ -9,8 +9,13 @@ import { lightSources } from '../game/night/light.js';
 import { bossOf } from '../game/night/boss.js';
 import { WAVES } from '../data/waves.js';
 import { DAY } from '../data/balance.js';
+import { SPEED } from '../data/merchant.js';
+import { STEP } from '../core/loop.js';
+import { perfNow } from '../core/time.js';
+import { stepAutopilot, currentSpeed, maxSpeed, cycleSpeed, stepDownSpeed, toggleAutopilot, startSkipDay, autopilotAvailable, autopilotOn, canSkipDay } from '../game/autopilot.js';
 import {
   drawJoystick, drawSunBar, drawCoinCounter, drawPauseButton, drawPadLabel, drawCoinPile, drawDoorSign,
+  drawSpeedButton, drawAutoButton, drawSkipButton, drawSkipBanner,
   hudHit, heart, drawWavePips, drawJarGauge, drawBellButton, drawTelegraph, drawBanner, drawBossBar, drawBossCard,
 } from '../render/hud.js';
 import { drawWantBubble, drawProduct, drawStatusBubble, drawUpgradeBadge } from '../render/sprites/products.js';
@@ -89,23 +94,47 @@ export function createPlay(app, g, hooks = {}) {
     camera,
     view,
     update(dt) {
-      g.input.x = app.input.move.x;
-      g.input.y = app.input.move.y;
-      if (app.input.bellPresses > 0) {
-        app.input.bellPresses = 0;
-        if (g.phase.name === 'night') g.input.bell = 1;
+      const t0 = perfNow();
+      // v1.1 : vitesse ×1/×2/×3 (V6) = plusieurs pas fixes par image, jamais un pas plus grand ; « Passer la
+      // journée » (V5.3) = beaucoup de pas par image, sans effets, jusqu'à la fin du jour.
+      const skipping = !!g.skip;
+      const n = skipping ? g.skip.perFrame : currentSpeed(g);
+      for (let k = 0; k < n; k++) {
+        const touching = !skipping && Math.hypot(app.input.move.x, app.input.move.y) > 0.15;
+        g.input.x = skipping ? 0 : app.input.move.x;
+        g.input.y = skipping ? 0 : app.input.move.y;
+        if (app.input.bellPresses > 0) {
+          app.input.bellPresses = 0;
+          if (g.phase.name === 'night') g.input.bell = 1;
+        }
+        stepAutopilot(g, dt, touching);
+        stepGame(g, dt);
+        if (k === 0) cosmeticFx(dt);
+        // Indices des 10 premières minutes (G19) et flèche d'objectif (V2) : ils lisent les événements de ce pas.
+        stepHints(g, dt);
+        stepGuide(g, dt);
+        for (let i = 0; i < g.events.length; i++) {
+          const e = g.events.items[i];
+          if (!skipping) onFx(e);
+          if (hooks.onEvent) hooks.onEvent(e);
+        }
+        g.events.clear();
+        if (skipping && g.phase.name !== 'day' && g.phase.name !== 'closing') {
+          g.skip = null;
+          break;
+        }
+        if (k > 0 && g.phase.name !== 'day' && g.phase.name !== 'closing' && g.phase.name !== 'night') break;
       }
-      stepGame(g, dt);
-      cosmeticFx(dt);
-      // Indices des 10 premières minutes (G19) et flèche d'objectif (V2) : ils lisent les événements de ce pas.
-      stepHints(g, dt);
-      stepGuide(g, dt);
-      for (let i = 0; i < g.events.length; i++) {
-        const e = g.events.items[i];
-        onFx(e);
-        if (hooks.onEvent) hooks.onEvent(e);
+      if (skipping) view.coins = Math.round(view.coins + (g.save.player.coins - view.coins) * 0.2);
+      // Image trop lente en accéléré : on redescend d'un cran, avec une petite icône (V6).
+      if (!skipping && n > 1) {
+        view.slowFrames = perfNow() - t0 > SPEED.slowFrameMs ? (view.slowFrames || 0) + 1 : 0;
+        if (view.slowFrames >= SPEED.slowFrames && stepDownSpeed(g)) {
+          view.slowFrames = 0;
+          view.speedDrop = 2;
+        }
       }
-      g.events.clear();
+      view.speedDrop = Math.max(0, (view.speedDrop || 0) - dt);
       fx.update(dt);
       floaters.update(dt);
       camera.baseTarget = baseZoomFor();
@@ -153,10 +182,22 @@ export function createPlay(app, g, hooks = {}) {
       drawJoystick(ctx, app.input.joystick);
     },
     hitTest(x, y) {
-      return hudHit(x, y, { bell: g.phase.name === 'night' && !!g.night && !g.night.tutorial });
+      return hudHit(x, y, { bell: g.phase.name === 'night' && !!g.night && !g.night.tutorial, ...hudExtras(g) });
     },
     onButton(id, phase) {
-      if (id === 'pause' && phase === 'up' && hooks.onPause) hooks.onPause();
+      if (phase !== 'up') return;
+      if (id === 'pause' && hooks.onPause) hooks.onPause();
+      const tap = () => app.services.audio && app.services.audio.play('ui_tap');
+      if (id === 'speed') {
+        cycleSpeed(g);
+        view.slowFrames = 0;
+        tap();
+      } else if (id === 'auto') {
+        if (toggleAutopilot(g)) tap();
+        if (hooks.onEvent) hooks.onEvent({ type: 'save' });
+      } else if (id === 'skip' && startSkipDay(g, STEP)) {
+        if (app.services.audio) app.services.audio.play('rush');
+      }
     },
     onTap(x, y) {
       if (hooks.onTap) hooks.onTap(x, y);
@@ -319,6 +360,7 @@ function drawWorldOverlay(ctx, g, ox, oy) {
       }
       drawPadLabel(ctx, d.pad, ox, oy, g.t);
     }
+    if (d.hirePad) drawPadLabel(ctx, d.hirePad, ox, oy, g.t);
     if (g.register && d.pile > 0) drawCoinPile(ctx, ox + g.register.x * C + 12, oy + g.register.y * C + 4, d.pile);
     if (d.order && d.order.waiting) {
       const o = d.order;
@@ -396,10 +438,27 @@ function drawAfterLight(ctx, g, view, ox, oy) {
   }
 }
 
+/** Boutons du HUD visibles maintenant (V5.3, V6) : vitesse, pilote automatique, passer la journée. */
+function hudExtras(g) {
+  const name = g.phase.name;
+  const day = name === 'day' || name === 'closing';
+  const night = name === 'night' && !!g.night && !g.night.ended;
+  return {
+    speed: !g.skip && ((day && maxSpeed(g, false) > 1) || (night && maxSpeed(g, true) > 1)),
+    auto: day && !g.skip && autopilotAvailable(g),
+    skip: day && canSkipDay(g),
+  };
+}
+
 function drawHud(ctx, g, view, app) {
   const name = g.phase.name;
   // Au Matin et à l'Aube, l'interface DOM porte les compteurs.
   if (name === 'morning' || name === 'dawn') return;
+  const ex = hudExtras(g);
+  if (ex.speed) drawSpeedButton(ctx, currentSpeed(g), view.speedDrop > 0);
+  if (ex.auto) drawAutoButton(ctx, autopilotOn(g), g.t);
+  if (ex.skip) drawSkipButton(ctx, g.t);
+  if (g.skip) drawSkipBanner(ctx, g.t);
   const d = g.day;
   if (d && (name === 'day' || name === 'closing')) {
     drawSunBar(ctx, 1 - Math.max(0, d.timeLeft) / d.duration);

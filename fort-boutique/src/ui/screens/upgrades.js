@@ -106,23 +106,21 @@ function mount(app, p, d) {
     }
   }
 
-  /** Personnel (G11.3, niveau 10) : embaucher, puis monter chaque employé. */
+  /** Personnel (v1.1, V5) : on l'embauche dans la boutique (carré doré) ; ici, on monte chaque employé. */
   function staffRows() {
     if (!p.onStaff) return;
     const s = staffInfo(save, g.shopId);
-    if (!s.unlocked) {
-      list.appendChild(h('div.up-note', { text: t('staff.lockedAt', { n: FEATURE_LEVELS.staff }) }));
-      return;
-    }
     const money = (c) => c !== null && save.player.coins >= c;
     const ico = () => h('span.up-emoji', { html: SVG.check });
     s.clerks.forEach((c, i) => {
       const st = clerkStats(c.level);
       list.appendChild(row(ico(), `${t('staff.clerk')} ${i + 1} · ${t('common.lvl')} ${c.level}/5`, t('staff.clerkDetail', { n: st.carry, s: fmt(st.speed) }), c.cost, money(c.cost), () => p.onStaff('up', 'clerk', i), `clerk-${i}`));
     });
-    if (s.hireClerk !== null) list.appendChild(row(ico(), t('staff.hireClerk'), t('staff.clerkDetail', { n: 3, s: fmt(2.2) }), s.hireClerk, money(s.hireClerk), () => p.onStaff('hire', 'clerk'), 'hire-clerk'));
-    if (s.cashier) list.appendChild(row(ico(), `${t('staff.cashier')} · ${t('common.lvl')} ${s.cashier.level}/5`, t('staff.cashierDetail', { s: fmt(cashierTime(s.cashier.level)) }), s.cashier.cost, money(s.cashier.cost), () => p.onStaff('up', 'cashier'), 'cashier'));
-    else list.appendChild(row(ico(), t('staff.hireCashier'), t('staff.cashierDetail', { s: fmt(0.9) }), s.hireCashier, money(s.hireCashier), () => p.onStaff('hire', 'cashier'), 'hire-cashier'));
+    [['cashier', s.cashier, 1], ['cashier2', s.cashier2, 2]].forEach(([role, c, n]) => {
+      if (!c) return;
+      list.appendChild(row(ico(), `${t('staff.cashier')} ${n} · ${t('common.lvl')} ${c.level}/5`, t('staff.cashierDetail', { s: fmt(cashierTime(c.level)) }), c.cost, money(c.cost), () => p.onStaff('up', role), role));
+    });
+    if (s.canHireMore) list.appendChild(h('div.up-note', { text: t('staff.hireInShop') }));
   }
   render();
   void FURNITURE;

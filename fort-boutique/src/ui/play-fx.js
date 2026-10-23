@@ -83,6 +83,13 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
         view.hearts.push({ x: px(e.x), y: py(e.y) - 30, t: 0 });
         play('cat');
         break;
+      case 'hire_pop':
+        play('build_pop');
+        play('happy');
+        vibrate(15);
+        fx.burst('spark', px(e.x), py(e.y) - 10, 10, '#FFD23F', 90, 0.7, 3);
+        floaters.add(t(e.s === 'clerk' ? 'staff.clerk' : 'staff.cashier'), px(e.x), py(e.y) - 34, { color: P.orReflet, size: 13 });
+        break;
       case 'shop_open':
         play('door_bell');
         break;

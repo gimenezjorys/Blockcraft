@@ -43,7 +43,7 @@ export function defaultShop(id) {
     plan: DEFAULT_PLAN,
     slots: {},
     autopilot: false,
-    staff: { clerks: [], cashier: null },
+    staff: { clerks: [], cashier: null, cashier2: null },
     recipes: {},
     pads: { done: [], active: null, paid: {} },
     lastDayTakings: 0,

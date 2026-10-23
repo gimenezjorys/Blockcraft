@@ -514,3 +514,16 @@ Décision :
 - **Éditeur libre** : code gardé, bouton « Aménager » visible seulement avec l'option « Aménagement libre (expert) » (désactivée). Les 4 tests de l'éditeur activent l'option.
 Raison : PROMPT v1.1, V4.
 
+## 2026-10-23 — V5 et V6 — Personnel, automatisation, vitesse
+Décision :
+- **Un seul commit pour V5 et V6** : la vitesse et « Passer la journée » partagent la même boucle (plusieurs pas fixes par image, `ui/play.js`).
+- **Embauche** : emplacements d'embauche séparés des emplacements de meubles (un de chaque à la fois au sol), sur les postes du plan (`staff` des cartes de `data/shop-plans.js`) : caissier derrière la caisse, 2e caissier à sa droite, commis au coin réserve ; si le poste est pris (aménagement libre), la case libre la plus proche de la dernière ligne. Prix payés au même débit que les meubles ; une embauche commencée est gardée (`pads.paid`).
+- **Quartiers 2 à 5** : mêmes postes, prix × m_Q, calendrier décalé pour commencer au jour 2 (caissier jour 2, commis jours 3 et 4, 3e et 4e commis jours 6 et 8, 2e caissier jour 6 avec E1). Au-delà du 2e commis (non chiffré dans le document) : 1 400 puis 2 800 (× 2 à chaque fois), jours 9 et 12 au Q1, toujours dans la limite « 1 commis pour 2 producteurs ».
+- **2e caissier** : la 2e caisse sert le client suivant de la file en même temps (pas de second meuble caisse : la file et les chemins restent ceux d'aujourd'hui). Il garde sa place de personnage à droite du 1er.
+- **Personnel** : plus de niveau requis (la carte « Personnel » du niveau 10 disparaît) ; l'écran Améliorer ne fait plus qu'améliorer (prix 300/700/1 500/3 000 et 400/900/1 800/3 600 × m_Q) et rappelle que l'on embauche dans la boutique. Les employés déjà embauchés en v1.0 sont gardés.
+- **Pilote automatique** : interrupteur « AUTO » (engrenage doré, qui sert aussi de badge de la boutique automatisée) dans le HUD du jour. Il ne joue pas à la place du joueur : le personnel fait déjà tout ; sans geste depuis 1 s, le marchand revient à côté de la caisse (il y encaisse plus vite que le caissier) et y reste. L'Objectif de Mamie « journée en pilote automatique » compte si le pilote est resté en marche la moitié du jour au moins, ou si la journée a été passée.
+- **Passer la journée** : le reste du jour est joué avec les mêmes pas fixes et le pilote automatique, sans gestes ni effets, réparti sur 1,5 s (≈ 100 pas par image ; 8 600 pas en 83 ms de calcul sur ce serveur) ; le soleil file, le compteur de pièces défile.
+- **Vitesse** : boutons ×1/×2/×3 le jour, ×1/×2 la nuit, sous la pause ; seuls le jour, la fermeture et la nuit accélèrent (crépuscule et aube gardent leur rythme). Image trop lente (plus de 14 ms pour 20 images de suite en accéléré) : un cran de moins et une petite flèche rouge sur le bouton.
+- **Tests** : le test de migration compare commis et caissier un par un (V5 ajoute le poste vide `cashier2`).
+Raison : PROMPT v1.1, V5 et V6.
+

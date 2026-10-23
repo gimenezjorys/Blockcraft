@@ -105,7 +105,12 @@ export function pay(g, c) {
     const rate = (c.type === 'hurried' ? CUSTOMERS.tipHurried : CUSTOMERS.tip) * (d.tipMult || 1);
     tip = Math.max(1, Math.round(amount * rate));
   }
-  d.pile += amount + tip;
+  // v1.1 (V5.2) : avec un caissier, les pièces vont droit au porte-monnaie (plus de tas à ramasser).
+  if (d.staffCashier && d.staffCashier.present) {
+    g.save.player.coins += amount + tip;
+    d.collected += amount + tip;
+    g.events.push('coins', g.register.cx, g.register.cy, amount + tip, 1);
+  } else d.pile += amount + tip;
   d.takings += amount + tip;
   d.sales += amount;
   d.tips += tip;
@@ -138,22 +143,37 @@ export function pay(g, c) {
 export function stepRegister(g, dt) {
   const d = g.day;
   const front = d.queue[0];
+  const sc = d.staffCashier && d.staffCashier.present ? d.staffCashier : null;
+  const merchant = !!g.register && distToFurniture(g.register, g.player.x, g.player.y) <= PLAYER.cashRange;
   if (front && front.state === 'queue' && cashierPresent(g)) {
     front.paying = true;
     d.cashT += dt;
-    const need = d.staffCashier && d.staffCashier.present && distToFurniture(g.register, g.player.x, g.player.y) > PLAYER.cashRange
-      ? d.staffCashier.cashTime
-      : d.cashTime;
+    const need = sc && !merchant ? sc.cashTime : d.cashTime;
     if (d.cashT >= need) {
       d.cashT = 0;
-      pay(g, front);
-      leaveQueue(g, front);
-      leave(g, front, false);
+      cashOut(g, front);
     }
   } else if (front) {
     front.paying = false;
   }
+  // 2e caissier (V5.1) : la 2e caisse sert le client suivant en même temps.
+  const second = d.queue[1];
+  if (sc && sc.lanes && sc.lanes.length > 1 && second && second.state === 'queue') {
+    second.paying = true;
+    d.cashT2 = (d.cashT2 || 0) + dt;
+    if (d.cashT2 >= sc.lanes[1]) {
+      d.cashT2 = 0;
+      cashOut(g, second);
+    }
+  } else d.cashT2 = 0;
   collectPile(g, false);
+}
+
+function cashOut(g, c) {
+  pay(g, c);
+  leaveQueue(g, c);
+  leave(g, c, false);
+  if (g.staff) for (const s of g.staff) if (s.kind === 'cashier') s.workT = 0.35;
 }
 
 /**

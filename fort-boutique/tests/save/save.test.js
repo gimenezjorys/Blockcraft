@@ -283,7 +283,10 @@ test('migration v1 -> v2 : meubles rangés dans les emplacements de l’Allée, 
       assert.ok(slot && slot.type === slotTypeOf(it.id), `${id} : ${it.id} (${it.x}, ${it.y}) sur un emplacement de son type`);
       for (const [x, y] of itemCells(it)) assert.ok(P.slots.some((sl) => sl.x === x && sl.y === y), `${id} : ${it.id} ne déborde pas`);
     }
-    for (const k of ['staff', 'recipes', 'pads', 'week', 'night', 'day', 'bossBeatenCount', 'expansion', 'lastDayTakings', 'lastNightStars', 'unlocked']) {
+    // Personnel gardé (V5 ajoute seulement le poste vide du 2e caissier).
+    assert.deepEqual(b.staff.clerks, a.staff.clerks, `${id} : commis gardés`);
+    assert.deepEqual(b.staff.cashier, a.staff.cashier, `${id} : caissier gardé`);
+    for (const k of ['recipes', 'pads', 'week', 'night', 'day', 'bossBeatenCount', 'expansion', 'lastDayTakings', 'lastNightStars', 'unlocked']) {
       assert.deepEqual(b[k], a[k], `${id}.${k} gardé`);
     }
   }

@@ -125,15 +125,17 @@ export function mamieTarget(g, def) {
   switch (def.kind) {
     case 'shelfFill':
       return c(furn.find((f) => f.def.day.kind === 'shelf' && (f.product === def.product || !f.product)));
+    case 'cashier':
+    case 'clerks':
+      if (g.day && g.day.hirePad) return { x: g.day.hirePad.x + 0.5, y: g.day.hirePad.y + 0.5 };
+      return c(g.register);
     case 'served':
     case 'dayTakings':
-    case 'cashier':
       return c(g.register);
     case 'owned':
       if (pad && pad.furniture === def.furniture) return { x: pad.x + 0.5, y: pad.y + 0.5 };
       return c(furn.find((f) => f.id === def.furniture));
     case 'soldBy':
-    case 'clerks':
       return c(furn.find((f) => f.def.day.kind === 'producer' && (!def.product || f.def.day.product === def.product)));
     case 'level':
       return c(furn.find((f) => f.id === def.furniture));

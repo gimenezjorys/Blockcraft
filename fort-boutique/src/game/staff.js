@@ -1,11 +1,13 @@
-// Fort Boutique — personnel (G11.3, niveau 10, par boutique). Commis (2 au plus) : porte 3 articles à 2,2 cases/s et
-// remplit d'abord l'étagère la plus vide ; Caissier (1) : encaisse en 0,9 s. +1 article et +0,2 case/s, ou −0,1 s,
-// par niveau (5 au plus). Coûts × Q. Le jour ils travaillent ; la nuit ils dorment dans un coin (« Zzz »).
+// Fort Boutique — personnel (G11.3 ; v1.1, V5 : embauché dans la boutique, par boutique). Commis (1 pour 2 producteurs,
+// 4 au plus) : porte 3 articles à 2,2 cases/s et remplit l'étagère la plus vide, sans jamais viser celle d'un autre
+// commis ; Caissiers (2 au plus) : encaissent en 0,9 s, les pièces vont droit au porte-monnaie. +1 article et
+// +0,2 case/s, ou −0,1 s (0,4 s au moins), par niveau (5 au plus). Coûts × m_Q. La nuit, ils dorment dans un coin.
 import { STAFF } from '../data/merchant.js';
-import { districtNumber } from '../data/balance.js';
-import { isUnlocked } from './progression.js';
+import { mQ } from '../data/balance.js';
 import { goToCell } from './day/customers.js';
 import { putOnShelf } from './day/shelves.js';
+import { planSlots, shopPlanId } from './plans.js';
+import { FURNITURE } from '../data/furniture.js';
 
 /** Commis : articles portés et vitesse. */
 export function clerkStats(level) {
@@ -19,48 +21,82 @@ export function cashierTime(level) {
   return Math.max(c.cashTimeMin, Math.round((c.cashTime - c.cashTimePerLevel * (level - 1)) * 100) / 100);
 }
 
-/** Coûts et possibilités pour l'écran Améliorer (onglet Boutique). */
+/** Producteurs posés dans une boutique. */
+export function producerCount(shop) {
+  return shop.layout.filter((it) => FURNITURE[it.id] && FURNITURE[it.id].day && FURNITURE[it.id].day.kind === 'producer').length;
+}
+
+/** Commis possibles : 1 pour 2 producteurs (arrondi au-dessus), entre 1 et 4. */
+export function clerkCap(shop) {
+  return Math.max(1, Math.min(STAFF.clerk.max, Math.ceil(producerCount(shop) / STAFF.clerk.perProducers)));
+}
+
+/** Caissiers embauchés (0 à 2). */
+export function cashiers(shop) {
+  const st = shop.staff || {};
+  return [st.cashier, st.cashier2].filter(Boolean);
+}
+
+/** Boutique automatisée (V5.3) : au moins un caissier et assez de commis (1 pour 2 producteurs). */
+export function isAutomated(shop) {
+  const st = shop && shop.staff;
+  if (!st || !st.cashier) return false;
+  return st.clerks.length >= Math.max(1, Math.ceil(producerCount(shop) / STAFF.clerk.perProducers));
+}
+
+/** Coûts des améliorations pour l'écran Améliorer (onglet Personnel) ; l'embauche se fait dans la boutique. */
 export function staffInfo(save, shopId) {
   const shop = save.shops[shopId];
-  const q = districtNumber(shopId);
-  const unlocked = isUnlocked(save, 'staff');
+  const q = mQ(shopId);
   const st = shop.staff;
-  const next = (role, level) => (level >= STAFF[role].maxLevel ? null : STAFF[role].levels[level - 1] * q);
+  const next = (role, level) => (level >= STAFF[role].maxLevel ? null : Math.round(STAFF[role].levels[level - 1] * q));
   return {
-    unlocked,
+    unlocked: true,
     clerks: st.clerks.map((c) => ({ level: c.level, cost: next('clerk', c.level) })),
     cashier: st.cashier ? { level: st.cashier.level, cost: next('cashier', st.cashier.level) } : null,
-    hireClerk: st.clerks.length < STAFF.clerk.max ? STAFF.clerk.hire * q : null,
-    hireCashier: st.cashier ? null : STAFF.cashier.hire * q,
+    cashier2: st.cashier2 ? { level: st.cashier2.level, cost: next('cashier', st.cashier2.level) } : null,
+    canHireMore: st.clerks.length < clerkCap(shop) || cashiers(shop).length < STAFF.cashier.max,
   };
 }
 
-/** Embauche (role : clerk | cashier). */
+/** Embauche directe (emplacement d'embauche payé ; role : clerk | cashier). */
 export function hireStaff(save, shopId, role) {
-  const info = staffInfo(save, shopId);
-  const cost = role === 'clerk' ? info.hireClerk : info.hireCashier;
-  if (!info.unlocked || cost === null || save.player.coins < cost) return false;
-  save.player.coins -= cost;
-  const st = save.shops[shopId].staff;
-  if (role === 'clerk') st.clerks.push({ level: 1 });
-  else st.cashier = { level: 1 };
+  const shop = save.shops[shopId];
+  const st = shop.staff;
+  if (role === 'clerk') {
+    if (st.clerks.length >= STAFF.clerk.max) return false;
+    st.clerks.push({ level: 1 });
+  } else if (!st.cashier) st.cashier = { level: 1 };
+  else if (!st.cashier2) st.cashier2 = { level: 1 };
+  else return false;
   return true;
 }
 
-/** Niveau suivant d'un employé (i : indice du commis). */
+/** Niveau suivant d'un employé (role : clerk | cashier | cashier2 ; i : indice du commis). */
 export function upgradeStaff(save, shopId, role, i = 0) {
   const info = staffInfo(save, shopId);
-  const it = role === 'clerk' ? info.clerks[i] : info.cashier;
-  if (!info.unlocked || !it || it.cost === null || save.player.coins < it.cost) return false;
+  const it = role === 'clerk' ? info.clerks[i] : info[role];
+  if (!it || it.cost === null || save.player.coins < it.cost) return false;
   save.player.coins -= it.cost;
   const st = save.shops[shopId].staff;
-  (role === 'clerk' ? st.clerks[i] : st.cashier).level++;
+  (role === 'clerk' ? st.clerks[i] : st[role]).level++;
   return true;
 }
 
-/** Le personnel de cette boutique travaille-t-il ? (embauché, et fonction débloquée) */
+/** Le personnel embauché dans cette boutique. */
 function hired(g) {
-  return isUnlocked(g.save, 'staff') ? g.shop.staff : { clerks: [], cashier: null };
+  return g.shop.staff;
+}
+
+/** Postes du personnel (plan) : caissier derrière la caisse, commis au coin réserve. */
+export function staffPosts(g) {
+  const P = planSlots(g.shopId, g.shop.expansion, shopPlanId(g.shop));
+  const [cx, cy] = P.staff.cashier;
+  const [kx, ky] = P.staff.clerk;
+  const reg = g.register;
+  // La caisse peut avoir été déplacée (aménagement libre) : le caissier se met alors juste sous elle.
+  const cash = reg && !(reg.x === cx && reg.y === cy - 1) ? { x: reg.x, y: Math.min(g.grid.h - 1, reg.y + 1) } : { x: cx, y: cy };
+  return { cashier: cash, cashier2: { x: Math.min(g.grid.w - 1, cash.x + 1), y: cash.y }, clerk: { x: kx, y: ky } };
 }
 
 /**
@@ -81,18 +117,56 @@ export function initStaff(g) {
     }
   }
   ph.staffCarry = [];
-  const door = g.grid.door;
-  g.staff = st.clerks.map((c, i) => ({
-    kind: 'clerk', i, level: c.level, ...clerkStats(c.level),
-    x: door.x + 0.5, y: Math.min(g.grid.h - 0.5, door.y + 0.5), path: [], pathI: 0, moving: false, target: -1,
-    state: 'idle', waitT: 0.5 + i * 0.7, hold: 0, product: null, from: -1, to: -1, sleep: false,
-  }));
+  const posts = staffPosts(g);
+  const apron = g.district && g.district.accent;
+  g.staff = st.clerks.map((c, i) => makeClerk(g, c, i, posts, apron));
   const reg = g.register;
-  if (st.cashier && reg) {
-    const time = cashierTime(st.cashier.level);
-    g.staff.push({ kind: 'cashier', level: st.cashier.level, x: reg.cx, y: reg.y - 0.2, state: 'work', sleep: false, cashTime: time });
-    g.day.staffCashier = { present: true, cashTime: time };
+  const cs = [st.cashier, st.cashier2].filter(Boolean);
+  if (cs.length && reg) {
+    const times = cs.map((c) => cashierTime(c.level));
+    cs.forEach((c, k) => {
+      const post = k === 0 ? posts.cashier : posts.cashier2;
+      g.staff.push({ kind: 'cashier', k, level: c.level, x: post.x + 0.5, y: post.y + 0.5, state: 'work', sleep: false, cashTime: times[k], workT: 0, apron });
+    });
+    g.day.staffCashier = { present: true, cashTime: times[0], lanes: times };
   } else g.day.staffCashier = null;
+}
+
+function makeClerk(g, c, i, posts, apron) {
+  const post = posts || staffPosts(g);
+  return {
+    kind: 'clerk', i, level: c.level, ...clerkStats(c.level),
+    x: post.clerk.x + 0.5, y: post.clerk.y + 0.5, path: [], pathI: 0, moving: false, target: -1,
+    state: 'idle', waitT: 0.5 + i * 0.7, hold: 0, product: null, from: -1, to: -1, sleep: false, idleT: 0, zzz: false,
+    apron: apron || (g.district && g.district.accent),
+  };
+}
+
+/**
+ * Nouvel employé en pleine journée (emplacement d'embauche payé) : il prend son poste tout de suite.
+ * @param {any} g
+ * @param {'clerk' | 'cashier'} role
+ */
+export function staffArrives(g, role) {
+  if (!g.staff) g.staff = [];
+  const st = hired(g);
+  if (role === 'clerk') {
+    const i = st.clerks.length - 1;
+    const c = makeClerk(g, st.clerks[i], i);
+    g.staff.push(c);
+    return c;
+  }
+  // Caissiers : on recompose la file des caisses.
+  g.staff = g.staff.filter((s) => s.kind !== 'cashier');
+  const posts = staffPosts(g);
+  const cs = cashiers(g.shop);
+  const times = cs.map((c) => cashierTime(c.level));
+  cs.forEach((c, k) => {
+    const post = k === 0 ? posts.cashier : posts.cashier2;
+    g.staff.push({ kind: 'cashier', k, level: c.level, x: post.x + 0.5, y: post.y + 0.5, state: 'work', sleep: false, cashTime: times[k], workT: 0, apron: g.district && g.district.accent });
+  });
+  if (g.day) g.day.staffCashier = { present: true, cashTime: times[0], lanes: times };
+  return g.staff[g.staff.length - 1];
 }
 
 /** Garde dans la sauvegarde ce que portent les commis (rechargement en pleine journée). */
@@ -100,12 +174,21 @@ function syncCarry(g) {
   g.shop.phase.staffCarry = g.staff.filter((s) => s.kind === 'clerk' && s.hold > 0 && s.from >= 0).map((s) => [s.from, s.hold]);
 }
 
-/** Étagère qui accepte ce produit, la plus vide d'abord. */
-function emptiestShelf(g, product) {
+/** Étagères visées par les autres commis (V5.2 : deux commis ne visent jamais la même étagère). */
+function reserved(g, self) {
+  const out = new Set();
+  for (const s of g.staff) if (s !== self && s.kind === 'clerk' && s.to >= 0 && (s.state === 'toProducer' || s.state === 'toShelf')) out.add(s.to);
+  return out;
+}
+
+/** Étagère qui accepte ce produit, la plus vide d'abord (hors étagères réservées). */
+function emptiestShelf(g, product, self = null) {
   let best = null;
   let bestFill = 2;
+  const taken = self ? reserved(g, self) : null;
   for (const f of g.furn) {
     if (f.def.day.kind !== 'shelf' || f.access < 0 || f.count >= f.capacity) continue;
+    if (taken && taken.has(f.idx)) continue;
     if (f.product && f.product !== product) continue;
     const fill = f.count / Math.max(1, f.capacity);
     if (fill < bestFill) {
@@ -116,12 +199,12 @@ function emptiestShelf(g, product) {
   return best ? { shelf: best, fill: bestFill } : null;
 }
 
-/** Prochain travail : le producteur dont le produit a l'étagère la plus vide. */
-function findJob(g) {
+/** Prochain travail : le producteur dont le produit a l'étagère la plus vide (non réservée). */
+function findJob(g, self) {
   let best = null;
   for (const f of g.furn) {
     if (f.def.day.kind !== 'producer' || f.stock <= 0 || f.access < 0) continue;
-    const s = emptiestShelf(g, f.def.day.product);
+    const s = emptiestShelf(g, f.def.day.product, self);
     if (s && (!best || s.fill < best.fill)) best = { producer: f, shelf: s.shelf, fill: s.fill };
   }
   return best;
@@ -156,16 +239,33 @@ function walk(g, s, dt) {
 export function stepStaff(g, dt) {
   if (!g.staff) return;
   for (const s of g.staff) {
+    if (s.kind === 'cashier') {
+      s.workT = Math.max(0, (s.workT || 0) - dt);
+      continue;
+    }
     if (s.kind !== 'clerk' || s.sleep) continue;
     if (s.state === 'idle') {
+      // Rien à faire depuis 2 s : petite bulle « Zzz » (V5.2) ; il rentre au coin réserve.
+      s.idleT = (s.idleT || 0) + dt;
+      s.zzz = s.idleT > 2;
+      if (s.home && s.pathI < s.path.length) walk(g, s, dt);
       s.waitT -= dt;
       if (s.waitT > 0) continue;
-      const job = findJob(g);
+      const job = findJob(g, s);
       if (!job) {
         s.waitT = 0.8;
+        if (!s.home) {
+          s.home = true;
+          const post = staffPosts(g).clerk;
+          goToCell(g, s, post.y * g.grid.w + post.x);
+        }
         continue;
       }
+      s.idleT = 0;
+      s.zzz = false;
+      s.home = false;
       s.from = job.producer.idx;
+      s.to = job.shelf.idx;
       s.state = 'toProducer';
       goToCell(g, s, job.producer.access);
     } else if (s.state === 'toProducer') {
@@ -189,11 +289,14 @@ export function stepStaff(g, dt) {
       const f = g.furn[s.to];
       while (s.hold > 0 && f && putOnShelf(f, s.product)) s.hold--;
       if (f) g.events.push('staff_drop', f.cx, f.cy, f.count, 0, s.product);
-      if (s.hold > 0) toShelf(g, s);
-      else {
+      if (s.hold > 0) {
+        s.to = -1;
+        toShelf(g, s);
+      } else {
         s.state = 'idle';
         s.waitT = 0.2;
         s.from = -1;
+        s.to = -1;
       }
       syncCarry(g);
     }
@@ -202,7 +305,9 @@ export function stepStaff(g, dt) {
 
 /** Vers l'étagère la plus vide du produit porté ; sinon, rapporte le reste au producteur. */
 function toShelf(g, s) {
-  const target = emptiestShelf(g, s.product);
+  const mine = s.to >= 0 ? g.furn[s.to] : null;
+  const keep = mine && mine.count < mine.capacity && (!mine.product || mine.product === s.product) ? { shelf: mine } : null;
+  const target = keep || emptiestShelf(g, s.product, s);
   if (target) {
     s.to = target.shelf.idx;
     s.state = 'toShelf';
@@ -252,7 +357,7 @@ export function staffToBed(g) {
   if (!g.staff) {
     const st = hired(g);
     g.staff = [...st.clerks.map((c, i) => ({ kind: 'clerk', i, level: c.level, hold: 0, from: -1 })),
-      ...(st.cashier ? [{ kind: 'cashier', level: st.cashier.level }] : [])];
+      ...cashiers(g.shop).map((c, k) => ({ kind: 'cashier', k, level: c.level }))];
   }
   sleepStaff(g);
 }

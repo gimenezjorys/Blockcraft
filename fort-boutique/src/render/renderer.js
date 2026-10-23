@@ -111,6 +111,15 @@ export function createRenderer(env) {
       const pad = g.day.pad;
       drawPad(ctx, ox + pad.x * C, oy + pad.y * C, C, pad.paid / pad.price, g.t);
     }
+    // Emplacement d'embauche (V5.1) : carré doré et silhouette du futur employé.
+    if (g.day && g.day.hirePad && (g.phase.name === 'day' || g.phase.name === 'closing')) {
+      const hp = g.day.hirePad;
+      drawPad(ctx, ox + hp.x * C, oy + hp.y * C, C, hp.paid / hp.price, g.t);
+      ctx.save();
+      ctx.translate(ox + (hp.x + 0.5) * C, oy + (hp.y + 0.5) * C + 12);
+      drawStaff(ctx, { kind: hp.role, ghost: true, apron: g.district && g.district.accent }, g.t);
+      ctx.restore();
+    }
     const n = g.night && !g.night.ended && g.phase.name === 'night' ? g.night : null;
     if (n) drawAura(ctx, g, ox, oy);
     drawList.length = 0;

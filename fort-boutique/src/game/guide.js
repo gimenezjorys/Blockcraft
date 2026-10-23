@@ -53,6 +53,9 @@ function dayTarget(g) {
   const coins = g.save.player.coins;
   // 1. Emplacement d'achat payable.
   if (d.pad && coins >= d.pad.price - d.pad.paid) return { x: d.pad.x + 0.5, y: d.pad.y + 0.5, kind: 'pad', ref: d.pad };
+  // 1 bis. Emplacement d'embauche payable (V5).
+  const hp = d.hirePad;
+  if (hp && coins >= hp.price - hp.paid) return { x: hp.x + 0.5, y: hp.y + 0.5, kind: 'pad', ref: hp };
   // 2. Le marchand porte des articles : l'étagère la plus vide de ce produit (à égalité, la plus proche).
   if (p.stack.length) {
     let best = null;
@@ -162,9 +165,12 @@ export function stepGuide(g, dt) {
     }
   }
   // Nouvel emplacement payable : 3 s de flèche.
-  if (day && g.day.pad && g.save.player.coins >= g.day.pad.price - g.day.pad.paid && s.padId !== g.day.pad.id) {
-    s.padId = g.day.pad.id;
-    s.showT = GUIDE.newPadS;
+  for (const pad of day ? [g.day.pad, g.day.hirePad] : []) {
+    if (pad && g.save.player.coins >= pad.price - pad.paid && s.padId !== pad.id && s.padId2 !== pad.id) {
+      if (pad === g.day.pad) s.padId = pad.id;
+      else s.padId2 = pad.id;
+      s.showT = GUIDE.newPadS;
+    }
   }
   const mode = g.save.settings.guideArrow || 'auto';
   let reason = '';
@@ -184,7 +190,7 @@ export function stepGuide(g, dt) {
 /** La cible gardée a-t-elle encore un sens ? */
 function stillValid(g, t) {
   if (!t || !t.ref) return false;
-  if (t.kind === 'pad') return g.day && g.day.pad === t.ref;
+  if (t.kind === 'pad') return g.day && (g.day.pad === t.ref || g.day.hirePad === t.ref);
   if (t.kind === 'shelf') return t.ref.count < t.ref.capacity && g.player.stack.length > 0;
   if (t.kind === 'producer') return t.ref.stock > 0;
   if (t.kind === 'register') return g.day && g.day.queue.length > 0;

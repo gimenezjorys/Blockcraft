@@ -8,7 +8,6 @@ import { seedFrom } from '../core/rng.js';
 import { utcDay } from '../core/time.js';
 import { dayStats } from './stats.js';
 import { furnState } from './state.js';
-import { isUnlocked } from './progression.js';
 import { rollChest, applyChest } from './chests.js';
 
 const MIN = 60000;
@@ -25,7 +24,8 @@ function fillShop(save, shop) {
 
 /** Gains du personnel pendant l'absence pour une boutique (0 sans commis ET caissier). */
 export function staffIncome(save, shop, minutes) {
-  if (!isUnlocked(save, 'staff') || !shop.staff.clerks.length || !shop.staff.cashier) return 0;
+  // v1.1 (V5.3) : dès qu'une boutique a un caissier et un commis (plus de niveau requis).
+  if (!shop.staff || !shop.staff.clerks.length || !shop.staff.cashier) return 0;
   const dayMin = Math.max(1, (shop.lastDayDurationS || 90) / 60);
   return Math.round(OFFLINE.staffShare * ((shop.lastDayTakings || 0) / dayMin) * Math.min(minutes, OFFLINE.capHours * 60));
 }

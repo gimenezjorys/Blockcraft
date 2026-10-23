@@ -177,8 +177,8 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 - [x] V2 — Un jour clair et guidé : flèche d'objectif, bulles d'état, Objectifs de Mamie, ouverture, Moka (2026-10-23)
 - [x] V3 — Emplacements prévus : la boutique se range toute seule (+ sauvegarde v2) (2026-10-23)
 - [x] V4 — Plans de boutique (3 plans), échanger deux meubles ; éditeur libre en option expert (2026-10-23)
-- [ ] V5 — Personnel en boutique (emplacements d'embauche), boutique automatisée, pilote automatique, passer la journée
-- [ ] V6 — Vitesse ×1 / ×2 / ×3
+- [x] V5 — Personnel en boutique (emplacements d'embauche), boutique automatisée, pilote automatique, passer la journée (2026-10-23)
+- [x] V6 — Vitesse ×1 / ×2 / ×3 (2026-10-23)
 - [ ] V7 — Écran titre animé
 - [ ] V8 — Hub du matin vivant (façade, objets, établi)
 - [ ] V9 — Musique : thème écrit, ukulélé, glockenspiel, sifflement
@@ -241,3 +241,4 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-23 — V2 fait : flèche d'objectif (game/guide.js), bulles d'état, Objectifs de Mamie (data/mamie.js, game/mamie.js, carte kraft avec tampon), ouverture de 2 s, Moka dès le jour 1, option « Flèche d'aide ». Prochaine étape : V3 emplacements prévus + sauvegarde v2.
 - 2026-10-23 — V3 fait : emplacements prévus (data/shop-plans.js, game/plans.js), 3 plans × 4 tailles vérifiés à 100 % de remplissage, sauvegarde v2 et sa migration (test de fixture tests/fixtures/save_v1_full.json). Prochaine étape : V4 écran Plans.
 - 2026-10-23 — V4 fait : écran Plans (ui/screens/plans.js) : mini-cartes dessinées, notes Clients/Défense par les vrais trajets, échange de deux meubles, Annuler/Choisir, glissement des meubles ; « Aménager » caché derrière l'option expert. Prochaine étape : V5 personnel en boutique, pilote automatique.
+- 2026-10-23 — V5 et V6 faits : emplacements d'embauche (game/day/hire-pads.js), 2e caissier, réservation des étagères entre commis, boutique automatisée, pilote automatique et « Passer la journée » (game/autopilot.js), vitesse ×1/×2/×3 par pas fixes multiples. Prochaine étape : V7 écran titre animé.

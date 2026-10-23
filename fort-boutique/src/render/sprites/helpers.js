@@ -79,26 +79,40 @@ function drawCatHat(ctx, id) {
 
 /** Commis ou caissier ; endormi : assis, « Zzz ». */
 export function drawStaff(ctx, s, t) {
-  const bob = s.moving ? Math.abs(Math.sin(t * 10)) * 1.5 : 0;
+  // Petit geste de travail (V5.2) : le caissier sautille quand il encaisse.
+  const bob = s.moving ? Math.abs(Math.sin(t * 10)) * 1.5 : s.workT > 0 ? Math.sin((s.workT / 0.35) * Math.PI) * 3 : 0;
   shadow(ctx, 0, 0, 9, 3.5);
   ctx.save();
+  if (s.ghost) ctx.globalAlpha = 0.35;
   ctx.translate(0, s.sleep ? 6 : -bob);
   ctx.beginPath();
   ctx.moveTo(0, -28);
   ctx.bezierCurveTo(10, -21, 10, -6, 0, -5);
   ctx.bezierCurveTo(-10, -6, -10, -21, 0, -28);
   fillInk(ctx, '#FFE3C4', 2.2);
-  // Tablier vert (commis) ou gilet bleu (caissier).
+  // Tablier de la couleur du quartier (V5.2) ; le caissier a en plus un nœud papillon.
   ctx.beginPath();
   ctx.moveTo(-6, -15);
   ctx.lineTo(6, -15);
   ctx.lineTo(7, -6);
   ctx.lineTo(-7, -6);
   ctx.closePath();
-  fillInk(ctx, s.kind === 'cashier' ? '#5B7CFA' : '#46D39A', 1.6);
+  fillInk(ctx, s.apron || (s.kind === 'cashier' ? '#5B7CFA' : '#46D39A'), 1.6);
+  if (s.kind === 'cashier') {
+    ctx.beginPath();
+    ctx.moveTo(0, -15);
+    ctx.lineTo(-3.5, -17.5);
+    ctx.lineTo(-3.5, -12.5);
+    ctx.closePath();
+    ctx.moveTo(0, -15);
+    ctx.lineTo(3.5, -17.5);
+    ctx.lineTo(3.5, -12.5);
+    ctx.closePath();
+    fillInk(ctx, '#2B1A33', 1);
+  }
   ctx.strokeStyle = P.encre;
   ctx.lineWidth = 1.4;
-  if (s.sleep) {
+  if (s.sleep || s.zzz) {
     ctx.beginPath();
     ctx.moveTo(-4, -20);
     ctx.lineTo(-1, -20);

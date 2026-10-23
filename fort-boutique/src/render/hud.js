@@ -7,6 +7,10 @@ import { stickerText, shortNumber } from './numerals.js';
 export const HUD_BUTTONS = {
   pause: { x: 314, y: 2, w: 44, h: 44 },
   bell: { x: 288, y: 568, r: 32 },
+  // v1.1 : vitesse (V6), sous la pause ; pilote automatique et « Passer la journée » (V5.3) en dessous.
+  speed: { x: 312, y: 46, w: 46, h: 44 },
+  auto: { x: 298, y: 92, w: 60, h: 44 },
+  skip: { x: 298, y: 138, w: 60, h: 44 },
 };
 
 /** Position du compteur de pièces (cible des pièces qui volent). */
@@ -160,9 +164,13 @@ export function heart(ctx, x, y, s) {
 }
 
 /** Teste les boutons du HUD (renvoie l'identifiant ou null). */
-export function hudHit(x, y, { bell = false } = {}) {
+export function hudHit(x, y, { bell = false, speed = false, auto = false, skip = false } = {}) {
+  const inside = (b) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
   const p = HUD_BUTTONS.pause;
-  if (x >= p.x && x <= p.x + p.w && y >= p.y && y <= p.y + p.h) return 'pause';
+  if (inside(p)) return 'pause';
+  if (speed && inside(HUD_BUTTONS.speed)) return 'speed';
+  if (auto && inside(HUD_BUTTONS.auto)) return 'auto';
+  if (skip && inside(HUD_BUTTONS.skip)) return 'skip';
   if (bell) {
     const b = HUD_BUTTONS.bell;
     if (Math.hypot(x - b.x, y - b.y) <= b.r + 8) return 'bell';
@@ -381,5 +389,84 @@ export function drawBossCard(ctx, silhouette, name, t, courage) {
   ctx.restore();
   stickerText(ctx, name, 0, 36, 20, P.orReflet);
   if (courage) stickerText(ctx, courage, 0, 64, 13, P.yeuxGrignotins);
+  ctx.restore();
+}
+
+/** Étiquette kraft de la vitesse (V6) : « ×1 », « ×2 », « ×3 » ; une petite flèche bas si elle vient de redescendre. */
+export function drawSpeedButton(ctx, speed, dropped) {
+  const b = HUD_BUTTONS.speed;
+  const x = b.x + 4;
+  const y = b.y + 8;
+  rr(ctx, x, y, b.w - 8, 28, 9);
+  fillInk(ctx, speed > 1 ? '#FFE066' : P.kraft, 2.5);
+  stickerText(ctx, `×${speed}`, x + (b.w - 8) / 2, y + 14, 15, speed > 1 ? P.orReflet : P.craie);
+  if (dropped) {
+    ctx.fillStyle = P.danger;
+    ctx.beginPath();
+    ctx.moveTo(x + b.w - 14, y + 24);
+    ctx.lineTo(x + b.w - 4, y + 24);
+    ctx.lineTo(x + b.w - 9, y + 31);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+/** Engrenage. */
+function gear(ctx, cx, cy, r, fill, t) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(t);
+  ctx.beginPath();
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    const rad = i % 2 ? r : r * 1.3;
+    ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+  }
+  ctx.closePath();
+  fillInk(ctx, fill, 1.8);
+  disc(ctx, 0, 0, r * 0.4, P.encre, 0);
+  ctx.restore();
+}
+
+/** Badge « Auto » de la boutique automatisée, qui sert d'interrupteur du pilote automatique (V5.3). */
+export function drawAutoButton(ctx, on, t) {
+  const b = HUD_BUTTONS.auto;
+  const x = b.x + 2;
+  const y = b.y + 8;
+  rr(ctx, x, y, b.w - 4, 28, 9);
+  fillInk(ctx, on ? '#FFD23F' : P.kraft, 2.5);
+  gear(ctx, x + 13, y + 14, 6, on ? '#FFF3B0' : '#E0C58F', on ? t * 2 : 0);
+  stickerText(ctx, 'AUTO', x + 37, y + 14, 11, on ? P.orReflet : P.craie);
+}
+
+/** « Passer la journée » : double flèche (seulement en pilote automatique). */
+export function drawSkipButton(ctx, t) {
+  const b = HUD_BUTTONS.skip;
+  const x = b.x + 2;
+  const y = b.y + 8;
+  rr(ctx, x, y, b.w - 4, 28, 9);
+  fillInk(ctx, '#46D39A', 2.5);
+  const k = Math.sin(t * 4) * 1.5;
+  ctx.fillStyle = P.encre;
+  for (const dx of [0, 12]) {
+    ctx.beginPath();
+    ctx.moveTo(x + 15 + dx + k, y + 7);
+    ctx.lineTo(x + 27 + dx + k, y + 14);
+    ctx.lineTo(x + 15 + dx + k, y + 21);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+/** Pendant « Passer la journée » : un voile doré léger et le soleil qui file. */
+export function drawSkipBanner(ctx, t) {
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#FFD23F';
+  ctx.fillRect(0, 0, 360, 640);
+  ctx.globalAlpha = 1;
+  const x = 180 + Math.cos(t * 9) * 120;
+  const y = 120 - Math.abs(Math.sin(t * 9)) * 60;
+  disc(ctx, x, y, 16, '#FFD23F', 2.5);
   ctx.restore();
 }

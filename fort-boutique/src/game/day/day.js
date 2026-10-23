@@ -6,6 +6,8 @@ import { stepCarry } from './carry.js';
 import { arrivalInterval, maxCustomers, spawnCustomer, stepCustomers, dismissAll } from './customers.js';
 import { initRegister, stepRegister, collectPile } from './register.js';
 import { stepPads } from './pads.js';
+import { stepHirePads } from './hire-pads.js';
+import { noteAutopilotDay } from '../autopilot.js';
 import { initDayEvents, stepDayEvents } from './day-events.js';
 import { placePlayerAtStart } from '../state.js';
 import { initStaff, stepStaff, sleepStaff } from '../staff.js';
@@ -51,6 +53,7 @@ function freshDay(g, duration) {
     spawnT: 2.5,
     nextId: 0,
     pad: null,
+    hirePad: null,
     closing: false,
     closingT: 0,
     scratch: new Int16Array(g.grid.n),
@@ -144,6 +147,7 @@ export function stepDay(g, dt) {
   stepCustomers(g, dt);
   stepRegister(g, dt);
   stepPads(g, dt);
+  stepHirePads(g, dt);
 }
 
 function spawnLogic(g, dt) {
@@ -197,6 +201,7 @@ export function endDay(g) {
   collectPile(g, true);
   // Le personnel range ce qu'il porte et va dormir (G11.3).
   sleepStaff(g);
+  noteAutopilotDay(g);
   const shop = g.shop;
   shop.lastDayTakings = d.takings;
   shop.lastDayDurationS = d.duration;

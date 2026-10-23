@@ -16,7 +16,8 @@ export const FEATURE_LEVELS = {
   q2: 7,
   weeklyQuests: 8,
   expansion2: 9,
-  staff: 10,
+  // v1.1 (V5) : le personnel s'embauche dans la boutique dès le jour 4 (plus de niveau requis, plus de carte).
+  staff: 1,
   q3: 12,
   expansion3: 14,
   endless: 16,
@@ -27,5 +28,5 @@ export const FEATURE_LEVELS = {
 
 /** Ordre d'affichage des cartes de déblocage (au Matin suivant, 3 cartes au plus). */
 export const UNLOCK_CARD_ORDER = ['q2', 'q3', 'q4', 'q5', 'editor', 'quests', 'daily', 'cat', 'calendar', 'merchantUpgrades',
-  'recipes', 'expansion1', 'wardrobe', 'bestiary', 'achievements', 'weeklyQuests', 'expansion2', 'staff', 'expansion3',
+  'recipes', 'expansion1', 'wardrobe', 'bestiary', 'achievements', 'weeklyQuests', 'expansion2', 'expansion3',
   'endless', 'franchise'];
