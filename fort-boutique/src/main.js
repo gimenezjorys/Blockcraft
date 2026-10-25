@@ -144,6 +144,32 @@ function boot() {
   app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, plans, unlocks, editor, map, moon, quests, calendar, reward, daily, ad, wardrobe, endless });
   app.router.goto('title');
   app.loop.start();
+  checkUpdate();
+}
+
+/**
+ * En ligne, au démarrage : si une version plus récente est publiée (dist/version.json), on recharge une fois l'adresse
+ * propre à cette version. Le navigateur ne peut donc pas garder une ancienne version en cache. La partie est dans le
+ * stockage local : rien n'est perdu. Hors ligne ou en fichier local, rien ne se passe.
+ */
+function checkUpdate() {
+  if (__FB_TEST_BUILD__ || typeof fetch !== 'function' || !/^https?:$/.test(window.location.protocol)) return;
+  fetch(`version.json?t=${Math.floor(now())}`, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((v) => {
+      if (!v || typeof v.version !== 'string' || (v.version === VERSION.version && v.hash === VERSION.hash)) return;
+      const tag = `${v.version}-${v.hash}`;
+      try {
+        if (window.sessionStorage.getItem('fb.update') === tag) return;
+        window.sessionStorage.setItem('fb.update', tag);
+      } catch {
+        return;
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', tag);
+      window.location.replace(url.toString());
+    })
+    .catch(() => {});
 }
 
 boot();
