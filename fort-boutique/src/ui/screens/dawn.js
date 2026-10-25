@@ -25,7 +25,8 @@ const RIBBON_WAIT_S = 6;
 /**
  * @param {any} app
  * @param {{ dawn: any, save: any, onOpenChest: () => any, onUpgrade: (id: string) => boolean, onContinue: () => void,
- *   onDouble?: () => void, adReady?: () => boolean }} p
+ *   onDouble?: () => void, adReady?: () => boolean,
+ *   extraAds?: Array<{ id: string, label: string, visible: () => boolean, ready: () => boolean, onWatch: () => void }> }} p
  */
 function mount(app, p, d) {
   const dawn = p.dawn;
@@ -61,7 +62,19 @@ function mount(app, p, d) {
   const cards = h('div.dawn-cards');
   const doubleBtn = tagButton({ label: t('ads.double'), variant: 'gold', icon: SVG.tv, small: true, id: 'dawn-double' });
   const contBtn = tagButton({ label: t('common.continue'), variant: 'green', id: 'dawn-continue' });
-  const actions = h('div.dawn-actions', [doubleBtn, contBtn]);
+  // Autres pubs récompensées de l'aube (G18.1) : +1 coffre après ★★★, revanche après une Pleine Lune perdue.
+  const extraBtns = (p.extraAds || []).map((a) => {
+    const b = tagButton({ label: a.label, variant: 'gold', icon: SVG.tv, small: true, id: `dawn-${a.id}` });
+    onTap(b, () => {
+      if (b.classList.contains('disabled')) {
+        if (app.services.toast) app.services.toast(t('ads.unavailable'), SVG.tvOff);
+        return;
+      }
+      a.onWatch();
+    }, d);
+    return { a, b };
+  });
+  const actions = h('div.dawn-actions', [doubleBtn, ...extraBtns.map((x) => x.b), contBtn]);
   actions.hidden = true;
   // Ruban de niveau (G19 2:57) : gros chiffre-sticker, barre d'XP, confettis CSS.
   const lv = dawn.level && dawn.level.to > dawn.level.from ? dawn.level.to : 0;
@@ -111,6 +124,12 @@ function mount(app, p, d) {
     doubleBtn.querySelector('.tag-icon').innerHTML = ready ? SVG.tv : SVG.tvOff;
     // G18.3 : jamais de proposition de pub pendant les 10 premières minutes.
     doubleBtn.hidden = dawn.adDoubled || r.coins <= 0 || (p.adOffer ? !p.adOffer() : false);
+    for (const { a, b } of extraBtns) {
+      b.hidden = !a.visible();
+      const ok = a.ready();
+      b.classList.toggle('disabled', !ok);
+      b.querySelector('.tag-icon').innerHTML = ok ? SVG.tv : SVG.tvOff;
+    }
   }
 
   function planCard(id, n) {
@@ -212,6 +231,12 @@ function mount(app, p, d) {
     el,
     update(dt) {
       st.t += dt * (st.fast ? 4 : 1);
+      // Les boutons de pub suivent l'état (pub vue, plafond atteint).
+      st.adT = (st.adT || 0) + dt;
+      if (st.adT >= 0.5) {
+        st.adT = 0;
+        refreshDouble();
+      }
       stepHand(dt);
       // Lignes du ticket.
       const all = [...lineEls, totalEl];

@@ -1,7 +1,7 @@
 // M8 : l'éditeur d'aménagement au doigt (G6.5) — vrais touchstart / touchmove / touchend sur le canvas.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadGame } from '../helpers/dom.js';
+import { loadGame, calendarDoneToday } from '../helpers/dom.js';
 import { TouchBot } from '../helpers/bot.js';
 import { defaultSave } from '../../src/save/schema.js';
 import { serialize, parseAndVerify, SAVE_KEY } from '../../src/save/save.js';
@@ -20,13 +20,15 @@ function editorSave(mutate) {
   s.progress.flags.firstChestDone = true;
   Object.assign(s.stats, { cycles: 3, nights: 3 });
   Object.assign(s.player, { level: 3, coins: 500 });
+  // v1.1 (V4) : l'éditeur libre n'est plus proposé qu'avec l'option « Aménagement libre (expert) ».
+  s.settings.freeLayout = true;
   const shop = s.shops.q1;
   Object.assign(shop, { day: 4, night: 4, lastNightStars: 3 });
   Object.assign(shop.phase, { name: 'morning', dawnClaimed: true });
   shop.pads.done = districtDef('q1').pads.map((p) => p.id);
   shop.storage = ['comptoir'];
   if (mutate) mutate(s);
-  return { [SAVE_KEY]: serialize(s) };
+  return { [SAVE_KEY]: serialize(calendarDoneToday(s)) };
 }
 
 function openEditor(g, bot) {

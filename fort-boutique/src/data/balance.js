@@ -34,6 +34,10 @@ export const DAY = {
   clockBonusS: 10,
   closingS: 6,
   duskS: 4,
+  // v1.1 (V2.4) : ouverture (panneau « Ouvert », carillon), puis 2 ou 3 clients qui attendaient devant la porte.
+  openS: 2,
+  openBurst: [2, 3],
+  openBurstGapS: 0.35,
 };
 
 export const CUSTOMERS = {
@@ -91,6 +95,9 @@ export const ECONOMY = {
 /** Gains par niveau de meuble (G9.1). */
 export const FURNITURE_LEVEL = {
   dmgMult: 1.12, // M10 : 1,20 -> 1,12 (D2.5)
+  /** M20 (DECISIONS.md) : au-delà du niveau `dmgHighFrom`, chaque niveau multiplie les dégâts par `dmgMultHigh`. */
+  dmgHighFrom: 5,
+  dmgMultHigh: 1.2, // M20 : +20 % par niveau au-delà du niveau 5 (valeur de G9.1 avant M10)
   rateAdd: 0.03,
   hpMult: 1.15,
   rangeLevels: [4, 7, 10],
@@ -104,9 +111,9 @@ export const FURNITURE_LEVEL = {
 
 export const DISTRICT_FACTORS = {
   /** Multiplicateur de PV des Grignotins par quartier (G10.2). */
-  hp: { q1: 1.0, q2: 2.0, q3: 3.6, q4: 6.2, q5: 10.0 },
+  hp: { q1: 1.0, q2: 1.5, q3: 2.7, q4: 4.25, q5: 6.5 }, // M16-M18 (D2.5) : Q2 2,0 -> 1,5 ; Q3 3,6 -> 2,7 ; M20 (courbe justifiée) : Q4 6,2 -> 4,25 ; Q5 10 -> 6,5
   /** Multiplicateur de budget de menace par quartier (G8.3). */
-  threat: { q1: 1.0, q2: 1.15, q3: 1.3, q4: 1.45, q5: 1.6 },
+  threat: { q1: 1.0, q2: 0.8625, q3: 0.975, q4: 1.0875, q5: 1.2 }, // M16-M19 (D2.5) : Q2 1,15 -> 0,8625 ; Q3 1,3 -> 0,975 ; Q4 1,45 -> 1,0875 ; Q5 1,6 -> 1,2
   /** Multiplicateur d'XP par quartier (G12.3). */
   xp: { q1: 1, q2: 2, q3: 3.2, q4: 4.6, q5: 6.4 },
 };
@@ -138,5 +145,35 @@ export const DAY_AURAS = {
 
 /** Publicités (G18) : aucune proposition pendant les 10 premières minutes de jeu cumulé. */
 export const ADS = {
+  /** Aucune pub pendant les 10 premières minutes de jeu (G18.3). */
   quietPlaytimeMs: 10 * 60 * 1000,
+  /** Placements récompensés (G18.1) : plafond et période (night = par nuit, day = par jour UTC, week, return = par retour). */
+  rewarded: {
+    rw_double_night: { cap: 1, per: 'night' },
+    rw_bonus_chest: { cap: 3, per: 'day' },
+    rw_morning_delivery: { cap: 1, per: 'return' },
+    rw_daily_rubies: { cap: 1, per: 'day', rubies: 3 },
+    rw_quest_reroll: { cap: 1, per: 'day' },
+    rw_streak_restore: { cap: 1, per: 'week' },
+    // M15 (D2.5) : +25 % -> +18,75 % de dégâts pour la revanche, pour tenir D2.4.7 (1,25 × au lieu de 1,43 ×).
+    rw_boss_retry: { cap: 2, per: 'day', dmgBonus: 0.1875 },
+  },
+  /** Plafond global : 12 pubs récompensées par jour UTC. */
+  rewardedPerDay: 12,
+  /** Interstitielle it_dawn (G18.2). */
+  interstitial: { minLevel: 5, minPlaytimeMs: 15 * 60 * 1000, minCycles: 3, minGapMs: 4 * 60 * 1000, quietAfterRewardedMs: 3 * 60 * 1000, perDay: 6 },
+  /** Délais maximum avant un échec propre (B10). */
+  rewardedTimeoutMs: 45000,
+  interstitialTimeoutMs: 20000,
+  /** Adaptateur « sim » : écran de 3 s. */
+  simDurationS: 3,
 };
+
+/** Hors ligne et retour (G16). */
+export const OFFLINE = { minAbsenceMin: 15, capHours: 8, staffShare: 0.2, welcomeDays: 3 };
+
+/** Nuit sans fin (G13.2, niveau 16). */
+export const ENDLESS = { budgetBase: 6, budgetGrowth: 1.12, hpGrowth: 1.08, jar: 1000, chestEvery: 5, chestsPerDay: 3, rivals: 15 };
+
+/** Franchise de quartier (G13.4, niveau 16) : Lune rouge, étoiles (5 au plus), +10 % de ventes et de butin par étoile. */
+export const FRANCHISE = { maxStars: 5, redMoonBase: 1.5, redMoonPerStar: 0.5, salesPerStar: 0.1, lootPerStar: 0.1 };

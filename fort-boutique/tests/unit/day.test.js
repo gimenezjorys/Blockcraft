@@ -70,7 +70,7 @@ test('pile du marchand : prise à 6/s jusqu’à 4, dépose à 8/s sur l’étag
   startDay(g);
   const c = crateOf(g);
   c.stock = 6;
-  teleport(g, 1.4, 1.5); // à côté de la cagette (0,1)
+  teleport(g, 1.4, 0.5); // v1.1 : à droite de la cagette (0,0), emplacement P1 du plan (loin de l'étagère)
   run(g, 0.34);
   assert.equal(g.player.stack.length, 2, '6 articles/s');
   run(g, 1);
@@ -78,7 +78,7 @@ test('pile du marchand : prise à 6/s jusqu’à 4, dépose à 8/s sur l’étag
   assert.equal(c.stock, 2);
   const s = shelfOf(g);
   assert.equal(s.product, null);
-  teleport(g, 1.4, 4.5); // à côté de l'étagère (0,4)
+  teleport(g, 1.5, 3.4); // v1.1 : sous l'étagère (1,2), emplacement É1 du plan
   run(g, 0.26);
   assert.equal(s.count, 2, '8 articles/s');
   run(g, 1);
@@ -176,23 +176,25 @@ test('emplacement P1 : apparaît après la 1re vente, se paie au bon débit, l�
   assert.equal(padFillSeconds(40), 1.0);
   assert.equal(padFillSeconds(150), 2.5);
   g.save.player.coins = 25;
-  teleport(g, 4.5, 2.5);
+  // v1.1 (V3) : P1 est posé sur l'emplacement prévu suivant, É2 (2,2), à côté de la première étagère.
+  assert.deepEqual([pad.x, pad.y], [2, 2]);
+  teleport(g, 2.5, 2.5);
   run(g, 0.3);
   assert.ok(Math.abs(pad.paid - 12) <= 1, `40 pièces/s : ${pad.paid}`);
   run(g, 1);
   assert.equal(pad.paid, 25, 'paiement partiel quand les pièces manquent');
   assert.equal(g.save.player.coins, 0);
-  teleport(g, 2.5, 2.5);
+  teleport(g, 4.5, 3.5);
   g.save.player.coins = 100;
   run(g, 0.5);
   assert.equal(pad.paid, 25, 'rien ne se paie hors du carré');
-  teleport(g, 4.5, 2.5);
+  teleport(g, 2.5, 2.5);
   const ev = run(g, 1);
   assert.equal(count(ev, 'build_pop'), 1);
   assert.equal(g.save.player.coins, 85);
-  assert.ok(g.furn.some((f) => f.id === 'etagere' && f.x === 4 && f.y === 2));
+  assert.ok(g.furn.some((f) => f.id === 'etagere' && f.x === 2 && f.y === 2));
   assert.deepEqual(g.shop.pads.done, ['P1']);
-  assert.ok(!(Math.floor(g.player.x) === 4 && Math.floor(g.player.y) === 2), 'le marchand est poussé hors du meuble');
+  assert.ok(!(Math.floor(g.player.x) === 2 && Math.floor(g.player.y) === 2), 'le marchand est poussé hors du meuble');
   assert.equal(g.day.pad === null || g.day.pad.id === 'P2', true);
 });
 

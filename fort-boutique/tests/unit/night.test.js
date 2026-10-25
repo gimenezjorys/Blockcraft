@@ -13,6 +13,7 @@ import { computeFields } from '../../src/game/state.js';
 import { districtEntrances } from '../../src/game/shop.js';
 import { MONSTERS, BOSSES } from '../../src/data/monsters.js';
 import { WAVES } from '../../src/data/waves.js';
+import { DISTRICT_FACTORS } from '../../src/data/balance.js';
 
 const ENT = districtEntrances('q1', 5, 6);
 
@@ -47,7 +48,7 @@ test('nombre de vagues et budget de menace (G8.3)', () => {
   // Formule de G8.3 avec les valeurs de data/waves.js (réglées en M10, D2.5).
   const W = WAVES;
   assert.ok(Math.abs(waveBudget({ k: 1, i: 1, s: 1, districtId: 'q1' }) - W.budgetBase * W.budgetWaveBase) < 1e-9);
-  assert.ok(Math.abs(waveBudget({ k: 4, i: 3, s: 2, districtId: 'q2' }) - (W.budgetBase + 3 * W.budgetPerNight) * (W.budgetWaveBase + 2 * W.budgetPerWave) * 1.15 * (1 + W.budgetPerWeek)) < 1e-9);
+  assert.ok(Math.abs(waveBudget({ k: 4, i: 3, s: 2, districtId: 'q2' }) - (W.budgetBase + 3 * W.budgetPerNight) * (W.budgetWaveBase + 2 * W.budgetPerWave) * DISTRICT_FACTORS.threat.q2 * (1 + W.budgetPerWeek)) < 1e-9, 'F_Q du Q2 (réglé en M16)');
   // Chaque vague dépense au plus son budget.
   for (let k = 1; k <= 6; k++) {
     const night = generateNight({ seed: k, districtId: 'q1', week: 1, night: k, entrances: ENT });
@@ -200,8 +201,8 @@ test('ralentissements non cumulables : le plus fort s’applique, la durée se r
 
 test('mise à l’échelle des PV et du butin (G10.2)', () => {
   const R = MONSTERS.raton.hp;
-  assert.equal(scaledHp(MONSTERS.raton, 'q1', 1, 1), R);
-  assert.ok(Math.abs(scaledHp(MONSTERS.raton, 'q2', 4, 2) - R * 2 * 1.36 * 1.35) < 1e-9);
+  assert.ok(Math.abs(scaledHp(MONSTERS.raton, 'q1', 1, 1) - R * DISTRICT_FACTORS.hp.q1) < 1e-9, 'M_Q du Q1 (réglé en M20)');
+  assert.ok(Math.abs(scaledHp(MONSTERS.raton, 'q2', 4, 2) - R * DISTRICT_FACTORS.hp.q2 * 1.36 * 1.35) < 1e-9, 'M_Q du Q2 (réglé en M16)');
   assert.ok(Math.abs(scaledHp(BOSSES.roi_raton, 'q1', 7, 3) - BOSSES.roi_raton.hp * 1.35 ** 2) < 1e-9);
   assert.equal(scaledLoot(MONSTERS.raton, 'q1', 1), 2);
   assert.equal(scaledLoot(MONSTERS.gourmand, 'q3', 2), Math.round(15 * 2.2 * 1.1));
@@ -250,10 +251,11 @@ test('marchand : coup de balai, réparation d’un meuble cassé, Cloche', () =>
   const shelf = g.furn.find((f) => f.id === 'etagere');
   damageFurniture(g, shelf, 1e6, 'test');
   assert.equal(shelf.broken, true);
-  teleport(g, 1.45, 4.5);
-  run(g, 2.9, () => teleport(g, 1.45, 4.5));
+  // v1.1 (V3) : l'étagère de départ est en (1,2) (emplacement É1 du plan) ; le marchand se tient dessous.
+  teleport(g, 1.5, 3.45);
+  run(g, 2.9, () => teleport(g, 1.5, 3.45));
   assert.equal(shelf.broken, true);
-  run(g, 0.2, () => teleport(g, 1.45, 4.5));
+  run(g, 0.2, () => teleport(g, 1.5, 3.45));
   assert.equal(shelf.broken, false, 'revient en service après 3 s');
   assert.ok(Math.abs(shelf.hp - shelf.maxHp * 0.3) < shelf.maxHp * 0.05);
   const m = spawnMonster(g, 'raton', 'backdoor', { x: 2.5, y: 2.5 });

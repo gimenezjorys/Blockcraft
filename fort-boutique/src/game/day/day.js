@@ -6,8 +6,16 @@ import { stepCarry } from './carry.js';
 import { arrivalInterval, maxCustomers, spawnCustomer, stepCustomers, dismissAll } from './customers.js';
 import { initRegister, stepRegister, collectPile } from './register.js';
 import { stepPads } from './pads.js';
+import { stepHirePads } from './hire-pads.js';
+import { noteAutopilotDay } from '../autopilot.js';
 import { initDayEvents, stepDayEvents } from './day-events.js';
 import { placePlayerAtStart } from '../state.js';
+import { initStaff, stepStaff, sleepStaff } from '../staff.js';
+import { initCat } from '../cat.js';
+import { eventDayMods } from '../weekly-events.js';
+import { franchiseSalesBonus } from '../franchise.js';
+import { trackQuest } from '../quest-track.js';
+import { streakCheck, streakBonus } from '../streak.js';
 
 /**
  * Durée de la journée : 90 s (jour 1), 120 s (jour 2), puis 150 s ; +10 s avec l'Horloge de Mamie (G5.1).
@@ -45,11 +53,14 @@ function freshDay(g, duration) {
     spawnT: 2.5,
     nextId: 0,
     pad: null,
+    hirePad: null,
     closing: false,
     closingT: 0,
     scratch: new Int16Array(g.grid.n),
     firstCustomerPending: g.shopId === 'q1' && g.shop.day === 1 && g.save.stats.cycles === 0,
     vipTimes: [],
+    openT: 0,
+    openBurst: 0,
   };
 }
 
@@ -82,13 +93,29 @@ export function startDay(g, opts = {}) {
     ph.order = null;
     ph.rush = null;
     ph.dawnClaimed = false;
+    // Ouverture (V2.4) : 2 s sans chrono, puis les clients qui attendaient entrent (pas au tout premier jour guidé).
+    g.day.openT = DAY.openS;
+    // 2 ou 3 clients, en alternance d'un jour à l'autre (sans tirage : les graines des journées ne changent pas).
+    const [lo, hi] = DAY.openBurst;
+    g.day.openBurst = g.day.firstCustomerPending ? 0 : lo + (g.shop.day % (hi - lo + 1));
   }
+  // Flamme de la boutique (G15.2) : jours manqués d'abord (gels), puis +2 % de pièces par jour de série.
+  streakCheck(g.save);
+  // + franchise : +10 % de ventes par étoile (G13.4).
+  g.day.salesMult = 1 + streakBonus(g.save) + franchiseSalesBonus(g.shop);
+  // Événement de la semaine et saison (G13.5, G13.6).
+  const em = eventDayMods(g.shopId);
+  g.day.cheap = em.cheap;
+  g.day.cheapMult = em.cheapMult;
+  g.day.xpMult = (g.day.xpMult || 1) * em.xpMult;
   g.player.stack = Array.isArray(ph.carried) ? ph.carried.slice(0, 14) : [];
   initProducers(g);
   initShelves(g);
   initRegister(g);
   initDayEvents(g);
+  initStaff(g);
   placePlayerAtStart(g);
+  initCat(g);
   g.phase = { name: 'day', t: 0 };
   g.events.push('day_start', 0, 0, duration);
 }
@@ -98,6 +125,16 @@ export function stepDay(g, dt) {
   const d = g.day;
   stepProducers(g, dt);
   stepCarry(g, dt);
+  stepStaff(g, dt);
+  if (d.openT > 0) {
+    // Ouverture (V2.4) : le panneau se retourne pendant que le chrono tourne déjà (rien ne ralentit).
+    d.openT -= dt;
+    if (d.openT <= 0) {
+      d.openT = 0;
+      if (d.openBurst > 0) d.spawnT = 0;
+      g.events.push('shop_open', g.grid.door.x + 0.5, g.grid.door.y + 0.5);
+    }
+  }
   if (!d.closing) {
     d.timeLeft -= dt;
     g.shop.phase.dayTimeLeftS = Math.max(0, d.timeLeft);
@@ -110,6 +147,7 @@ export function stepDay(g, dt) {
   stepCustomers(g, dt);
   stepRegister(g, dt);
   stepPads(g, dt);
+  stepHirePads(g, dt);
 }
 
 function spawnLogic(g, dt) {
@@ -128,6 +166,13 @@ function spawnLogic(g, dt) {
   }
   d.spawnT -= dt;
   if (d.spawnT > 0) return;
+  if (d.openBurst > 0) {
+    // Les clients qui attendaient devant la porte entrent l'un après l'autre.
+    d.openBurst--;
+    spawnCustomer(g);
+    d.spawnT = d.openBurst > 0 ? DAY.openBurstGapS : arrivalInterval(g);
+    return;
+  }
   if (d.customers.length >= maxCustomers(g)) {
     d.spawnT = 0.5;
     return;
@@ -154,11 +199,15 @@ export function endDay(g) {
   const d = g.day;
   dismissAll(g);
   collectPile(g, true);
+  // Le personnel range ce qu'il porte et va dormir (G11.3).
+  sleepStaff(g);
+  noteAutopilotDay(g);
   const shop = g.shop;
   shop.lastDayTakings = d.takings;
   shop.lastDayDurationS = d.duration;
   shop.phase.dayTimeLeftS = 0;
   shop.phase.dayTakings = d.takings;
+  trackQuest(g.save, 'takings', d.takings);
   return {
     takings: d.takings,
     sales: d.sales,

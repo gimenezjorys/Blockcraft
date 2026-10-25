@@ -82,6 +82,7 @@ export function createApp({ testBuild, version }) {
         move: { x: app.input.move.x, y: app.input.move.y },
         joystick: { active: app.input.joystick.active, x: app.input.joystick.ox, y: app.input.joystick.oy },
         bellPresses: app.input.bellPresses,
+        audioMuted: !!(app.services.audio && app.services.audio.muted),
         scene: scene && scene.snapshot ? scene.snapshot() : null,
       };
     },
@@ -91,10 +92,28 @@ export function createApp({ testBuild, version }) {
 
   app.loop = createLoop({
     raf: testBuild ? undefined : (cb) => window.requestAnimationFrame(cb),
+    onError(err, count) {
+      // Première erreur : trace, sauvegarde et message ; ensuite, silence (le jeu continue).
+      if (count > 1) return;
+      try {
+        console.error(err);
+        if (app.services.session) app.services.session.flush();
+        if (app.services.toast) app.services.toast(app.services.t ? app.services.t('error.frame') : 'Oups !');
+      } catch {
+        /* rien de plus à faire */
+      }
+    },
+    onSlow() {
+      if (app.economy) return;
+      app.economy = true;
+      app.autoEconomy = true;
+      fit();
+      if (app.services.toast) app.services.toast(app.services.t ? app.services.t('perf.economy') : 'Mode économie');
+    },
     step(dt) {
       app.input.update(dt);
       if (scene && scene.update) scene.update(dt);
-      for (const fn of app.stepHooks) fn(dt);
+      for (const fn of app.stepHooks.slice()) fn(dt);
       app.router.update(dt);
       if (app.debug) app.debug.update(dt);
     },

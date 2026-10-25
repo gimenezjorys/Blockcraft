@@ -1,0 +1,82 @@
+{
+  "runs": 300,
+  "rows": [
+    {
+      "id": "D2.4.1",
+      "label": "Moyen : Ferrailleur battu entre les cycles 35 et 46 (médiane, depuis le début)",
+      "value": "cycle 39",
+      "ok": true
+    },
+    {
+      "id": "D2.4.2a",
+      "label": "Faible : boss battu en 4 tentatives au plus (médiane)",
+      "value": "10 tentative(s)",
+      "ok": false
+    },
+    {
+      "id": "D2.4.2b",
+      "label": "Faible : durée du quartier ≤ 1,6 × celle du Moyen",
+      "value": "1.36 ×",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3a",
+      "label": "Fort : pas plus de 1,35 × plus rapide que le Moyen (durée du quartier)",
+      "value": "1.22 ×",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3b",
+      "label": "Fort : ★★★ sur 70 % des nuits au plus (Q4)",
+      "value": "1 %",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3c",
+      "label": "Fort : boss battu du premier coup 85 % des fois au plus",
+      "value": "18 %",
+      "ok": true
+    },
+    {
+      "id": "D2.4.4",
+      "label": "Moyen : jamais 3 nuits de suite sous 50 % (95 % des parties)",
+      "value": "2 %",
+      "ok": false
+    },
+    {
+      "id": "D2.4.5",
+      "label": "Moyen : achat utile en 2 cycles au plus, sans inflation (90 % des parties)",
+      "value": "69 % (accessible 69 %, inflation 0 %)",
+      "ok": false
+    },
+    {
+      "id": "D2.4.6",
+      "label": "Moyen : niveau 24 au plus tard 2 cycles après le boss (80 %)",
+      "value": "100 %",
+      "ok": true
+    }
+  ],
+  "info": {
+    "durations": {
+      "weak": 15,
+      "medium": 11,
+      "strong": 9
+    },
+    "start": {
+      "weak": 33,
+      "medium": 28,
+      "strong": 26
+    },
+    "attempts": {
+      "weak": 10,
+      "medium": 5,
+      "strong": 3
+    },
+    "keptMedium": 0.4317998385794996,
+    "starsShare": {
+      "weak": 0.01078731283207213,
+      "medium": 0.0009526077637532746,
+      "strong": 0.012161223071577484
+    }
+  }
+}

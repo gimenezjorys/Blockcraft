@@ -9,7 +9,7 @@ import { bossOf } from '../../src/game/night/boss.js';
 import { enterDawn, leaveDawn, openDawnChest } from '../../src/game/cycle.js';
 import { generateNight } from '../../src/game/night/waves.js';
 import { districtOpen } from '../../src/game/progression.js';
-import { NIGHT } from '../../src/data/night.js';
+import { NIGHT, courageAssist } from '../../src/data/night.js';
 import { BOSSES } from '../../src/data/monsters.js';
 import { unlockCards } from '../../src/ui/screens/unlocks.js';
 import { districtStatus } from '../../src/ui/screens/map.js';
@@ -47,7 +47,8 @@ test('Roi Raton : invoque 3 ratons toutes les 6 s, immunisé au recul', () => {
   teleport(g, 0.5, 5.5);
   const ev = run(g, 12.2);
   assert.equal(count(ev, 'boss_summon'), 2);
-  const ratons = g.night.monsters.active.filter((x) => x.type === 'raton').length + g.night.kills;
+  // Ratons apparus (M13 : plus rapides, certains volent et repartent avant la fin : on compte les apparitions).
+  const ratons = ev.filter((e) => e.type === 'monster_spawn' && e.s === 'raton').length;
   assert.ok(ratons >= 6, `${ratons} ratons invoqués`);
   assert.equal(knockbackAmount(m, 1), 0);
 });
@@ -73,7 +74,7 @@ test('le boss vole 35 % du Bocal et fuit à 0,75 case/s ; le vaincre pendant sa 
   assert.ok(n.jar >= n.jarInitial, 'le sac revient au Bocal (+10 %)');
 });
 
-test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage de Mamie (+15 % par échec, 60 % au plus)', () => {
+test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage de Mamie (+18,75 % par échec, 75 % au plus, M16)', () => {
   const g = bossNight();
   g.night.bossEscaped = true;
   finishNight(g, false);
@@ -89,7 +90,8 @@ test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage 
   for (let i = 0; i < 6; i++) {
     g.shop.phase.dawnClaimed = false;
     startNight(g, { dayTakings: 200, waves: { waves: [{ groups: [], boss: null }], golden: -1, newTypes: [] } });
-    assert.ok(Math.abs(g.night.assist - Math.min(NIGHT.assistMax, NIGHT.assistPerFail * g.shop.bossAssist)) < 1e-9);
+    assert.ok(Math.abs(g.night.assist - courageAssist(g.shop.bossAssist)) < 1e-9);
+    assert.ok(g.night.assist >= Math.min(NIGHT.assistMax, NIGHT.assistPerFail * g.shop.bossAssist) - 1e-9, 'au moins la règle de G8.9');
     g.night.bossEscaped = true;
     finishNight(g, false);
     g.nightResult = g.night.result;
@@ -98,7 +100,10 @@ test('échec : 0 étoile, pas de coffre, la Pleine Lune revient avec le Courage 
   }
   g.shop.phase.dawnClaimed = false;
   startNight(g, { dayTakings: 200, waves: { waves: [{ groups: [], boss: null }], golden: -1, newTypes: [] } });
-  assert.equal(g.night.assist, 0.6, 'plafonné à +60 %');
+  assert.equal(g.night.assist, courageAssist(g.shop.bossAssist));
+  assert.ok(g.night.assist >= NIGHT.assistMax, 'au moins le plafond de G8.9 (M20 : le Courage continue de monter)');
+  assert.ok(courageAssist(100) === Math.max(NIGHT.assistMax, NIGHT.assistRampMax), 'plafonné');
+  assert.equal(NIGHT.assistMax, 0.75);
 });
 
 test('victoire : Coffre de Lune, semaine 2 (nuit 1), PV du boss × 1,35, Courage remis à zéro', () => {

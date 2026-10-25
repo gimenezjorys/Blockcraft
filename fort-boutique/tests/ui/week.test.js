@@ -1,11 +1,12 @@
 // M9 au doigt : lune du Matin, carte des quartiers, et une vraie nuit de Pleine Lune jouée par le robot.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadGame } from '../helpers/dom.js';
+import { loadGame, calendarDoneToday } from '../helpers/dom.js';
 import { TouchBot } from '../helpers/bot.js';
 import { defaultSave } from '../../src/save/schema.js';
 import { serialize, parseAndVerify, SAVE_KEY } from '../../src/save/save.js';
 import { districtDef } from '../../src/data/districts.js';
+import { NIGHT } from '../../src/data/night.js';
 
 /** Matin du jour 7 : la nuit qui vient est la Pleine Lune. */
 function fullMoonSave(mutate) {
@@ -23,7 +24,7 @@ function fullMoonSave(mutate) {
   Object.assign(shop.phase, { name: 'morning', dawnClaimed: true });
   shop.pads.done = districtDef('q1').pads.map((p) => p.id);
   if (mutate) mutate(s);
-  return { [SAVE_KEY]: serialize(s) };
+  return { [SAVE_KEY]: serialize(calendarDoneToday(s)) };
 }
 
 function playUntil(g, bot, pred, maxMs = 600000) {
@@ -47,7 +48,7 @@ test('Matin : la lune montre le boss et « cette nuit » ; la carte des quartier
     assert.equal(g.hooks.getState().screen, 'moon');
     assert.match(g.$('.moon-name').textContent, /Roi Raton/);
     assert.match(g.$('.moon-when').textContent, /cette nuit/);
-    assert.match(g.$('.moon-courage').textContent, /15/);
+    assert.match(g.$('.moon-courage').textContent, new RegExp(String(Math.round(NIGHT.assistPerFail * 100))), 'Courage de Mamie après un échec (M16 : 18,75 %)');
     bot.tapEl('.overlay');
     g.hooks.advance(800);
     assert.equal(g.hooks.getState().screen, 'morning');

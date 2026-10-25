@@ -1,7 +1,7 @@
 // v0.2 : Paramètres au doigt — réglages gardés, export puis import = même partie, réinitialisation en deux temps.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadGame } from '../helpers/dom.js';
+import { loadGame, calendarDoneToday } from '../helpers/dom.js';
 import { TouchBot } from '../helpers/bot.js';
 import { defaultSave } from '../../src/save/schema.js';
 import { serialize, parseAndVerify, SAVE_KEY } from '../../src/save/save.js';
@@ -15,7 +15,7 @@ function morningSave() {
   Object.assign(s.player, { level: 4, coins: 777 });
   Object.assign(s.shops.q1, { day: 3, night: 3 });
   Object.assign(s.shops.q1.phase, { name: 'morning', dawnClaimed: true });
-  return { [SAVE_KEY]: serialize(s) };
+  return { [SAVE_KEY]: serialize(calendarDoneToday(s)) };
 }
 
 const saved = (g) => parseAndVerify(g.window.localStorage.getItem(SAVE_KEY)).data;

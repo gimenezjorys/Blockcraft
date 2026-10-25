@@ -105,6 +105,10 @@ export class Particles {
       const p = arr[i];
       if (p.t < 0) continue;
       const k = 1 - Math.min(1, p.t / p.life);
+      if (p.kind === 'coin' && this.coinStyle) {
+        drawCoinFx(ctx, p.x, p.y, this.coinStyle);
+        continue;
+      }
       if (p.kind === 'coin') {
         ctx.fillStyle = P.or;
         ctx.strokeStyle = P.encre;
@@ -148,4 +152,28 @@ export function star(ctx, x, y, r, rot = 0) {
   }
   ctx.closePath();
   ctx.fill();
+}
+
+/** Pièces de la Garde-robe (G17) : étoiles, cœurs, feuilles. */
+function drawCoinFx(ctx, x, y, style) {
+  ctx.strokeStyle = P.encre;
+  ctx.lineWidth = 1.5;
+  if (style === 'coins_stars') {
+    ctx.fillStyle = P.or;
+    star(ctx, x, y, 7, 0);
+    return;
+  }
+  ctx.beginPath();
+  if (style === 'coins_hearts' || style === 'cal_coins_hearts') {
+    ctx.fillStyle = '#FF4F6E';
+    ctx.arc(x - 2.5, y - 1.5, 3, Math.PI, 0);
+    ctx.arc(x + 2.5, y - 1.5, 3, Math.PI, 0);
+    ctx.lineTo(x, y + 5);
+    ctx.closePath();
+  } else {
+    ctx.fillStyle = '#7BC950';
+    ctx.ellipse(x, y, 6, 3.5, 0.6, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.stroke();
 }

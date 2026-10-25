@@ -1,6 +1,7 @@
 // Fort Boutique — stratégies du Matin pour les simulations (D2.2) : achats, améliorations, aménagement.
 import { Rng, seedFrom } from '../../src/core/rng.js';
 import { FURNITURE } from '../../src/data/furniture.js';
+import { MONSTERS, BOSSES } from '../../src/data/monsters.js';
 import { districtDef } from '../../src/data/districts.js';
 import { catalogIds, canBuy, buyFurniture, findPlacement } from '../../src/game/catalog.js';
 import { canUpgrade, upgradeFurniture } from '../../src/game/economy.js';
@@ -78,6 +79,20 @@ export function morningActions(g, profile, o) {
     if (!upgradeFurniture(save, id)) break;
     out.upgraded.push(id);
   }
+  // 2 bis. Le Faible achète aussi « au hasard » ce qui est au Matin : l'agrandissement ou une amélioration du marchand,
+  // une fois de temps en temps (M16 : sans cela il gardait 19 000 pièces dans une boutique pleine).
+  if (profile.buy === 'cheapest' && rng.chance(0.5)) {
+    const ex = expansionInfo(save, g.shopId);
+    const ups = ['basket', 'shoes', 'broom', 'bell', 'whistle'].filter((id) => merchantUpgradeInfo(save, id).ok);
+    if (ex.ok && rng.chance(0.5)) expandShop(save, g.shopId);
+    else if (ups.length) buyMerchantUpgrade(save, rng.pick(ups));
+  }
+  // 1 bis. Boutique pleine : un joueur raisonnable l'agrandit d'abord (M20 : sinon, dans la boutique neuve d'un
+  // quartier, le Moyen gardait 3 000 pièces sans pouvoir rien poser pendant toute la première semaine).
+  if (profile.buy !== 'cheapest') {
+    const ex = expansionInfo(save, g.shopId);
+    if (ex.ok && save.player.coins >= ex.cost && !findPlacement(g.shopId, shop.expansion, shop.layout, 'etagere')) expandShop(save, g.shopId);
+  }
   // 2. Améliorations du marchand et recettes (moyen et fort).
   if (profile.buy !== 'cheapest') {
     const order = profile.buy === 'optimal' ? ['basket', 'shoes', 'whistle', 'broom', 'bell'] : ['basket', 'shoes', 'broom', 'bell', 'whistle'];
@@ -116,9 +131,17 @@ export function morningActions(g, profile, o) {
         buyable.sort((a, b) => canBuy(save, g.shopId, a).price - canBuy(save, g.shopId, b).price);
         id = buyable[rng.int(Math.min(2, buyable.length))];
       } else if (profile.buy === 'priority') {
-        id = priorityPick(shop, buyable, profile);
+        id = priorityPick(shop, buyable, profile, g.shopId);
       } else {
-        id = buyable.sort((a, b) => defenseValue(b) / canBuy(save, g.shopId, b).price - defenseValue(a) / canBuy(save, g.shopId, a).price)[0];
+        const air = hasFlyers(g.shopId);
+        const dark = districtDef(g.shopId).dark;
+        // Obscurité, ou boss qui chasse les lanternes (Reine Phalène, M20) : de la lumière d'abord.
+        const hunt = !!(BOSSES[districtDef(g.shopId).boss] || {}).lampHunt;
+        const lit = (x) => ((dark || hunt) && FURNITURE[x].night.behavior === 'light' && countOf(shop, x) < (hunt ? 4 : 3) ? 3 : 1);
+        // Grignotins blindés (golems) : ce qui ignore l'armure (lumière, feu, poison) compte double.
+        const pierce = (x) => (hasArmored(g.shopId) && PIERCING.includes(FURNITURE[x].night.element) ? 2 : 1);
+        const val = (x) => defenseValue(x) * (air && FURNITURE[x].air ? 2 : 1) * lit(x) * pierce(x) / canBuy(save, g.shopId, x).price;
+        id = buyable.sort((a, b) => val(b) - val(a))[0];
         const sellNeed = needsSelling(shop);
         if (sellNeed && buyable.includes(sellNeed)) id = sellNeed;
       }
@@ -170,12 +193,45 @@ function needsSelling(shop) {
   return null;
 }
 
-/** Liste de priorités « raisonnable » du profil moyen. */
-function priorityPick(shop, buyable, profile) {
-  const want = [
+/** Listes de priorités « raisonnables » du profil moyen, par quartier (M16 : la Boulangerie a ses volants). */
+const PRIORITIES = {
+  q1: [
     ['etagere', 3], ['cagette', 2], ['frigo', 1], ['plante', 1], ['comptoir', 3], ['chaudron', 1], ['etagere', 4],
     ['frigo', 2], ['plante', 2], ['chaudron', 2], ['etagere', 6], ['plante', 3], ['comptoir', 5],
-  ];
+  ],
+  // Chauves-souris par la cheminée : étagères et vitrine (contre les volants) d'abord, puis four et pétrin.
+  q2: [
+    ['etagere', 3], ['four', 1], ['plante', 1], ['comptoir', 2], ['vitrine', 1], ['etagere', 4], ['petrin', 1], ['cafe', 1],
+    ['four', 2], ['vitrine', 2], ['etagere', 6], ['plante', 2], ['petrin', 2], ['comptoir', 4],
+  ],
+  // Obscurité : une lanterne tout de suite (les fantômes ne se voient qu'à la lumière), le pilulier contre les volants.
+  q3: [
+    ['lanterne', 1], ['etagere', 3], ['pilulier', 1], ['herbier', 1], ['lanterne', 2], ['plante', 1], ['comptoir', 2],
+    ['pilulier', 2], ['alambic', 1], ['etagere', 5], ['lanterne', 3], ['herbier', 2], ['cafe', 1], ['comptoir', 4],
+  ],
+  // Corbeaux (volants) et golems (blindés, métal) : des lanternes (la lumière ignore l'armure), l'établi et l'enclume
+  // qui frappent fort, l'aimant contre le métal, le pistolet à peinture contre les volants.
+  q4: [
+    ['etagere', 3], ['lanterne', 2], ['etabli', 1], ['plante', 1], ['aimant', 1], ['comptoir', 2], ['enclume', 1],
+    ['lanterne', 4], ['peinture', 1], ['etabli', 2], ['plante', 2], ['ventilo', 1], ['etagere', 5], ['aimant', 2], ['comptoir', 4],
+  ],
+  // Phalènes (volants, attirées par les lampes) et tout le bestiaire : bonbons (plusieurs cibles), des lanternes-appâts
+  // (la Reine Phalène les visite une à une avant la caisse, M20).
+  q5: [
+    ['etagere', 3], ['bonbons', 1], ['lanterne', 2], ['plante', 1], ['comptoir', 2], ['bonbons', 2], ['aimant', 1],
+    ['cristal', 1], ['lanterne', 4], ['horloge', 1], ['plante', 2], ['etagere', 5], ['pupitre', 1], ['comptoir', 4],
+  ],
+};
+
+/** Le quartier fait-il venir des volants ? (leur valeur contre les volants compte alors double) */
+/** Le quartier fait-il venir des Grignotins blindés (armure 6 et plus) ? */
+const PIERCING = ['light', 'fire', 'poison'];
+const hasArmored = (districtId) => Object.keys(districtDef(districtId).weights || {}).some((t) => MONSTERS[t] && MONSTERS[t].armor >= 6);
+const hasFlyers = (districtId) => Object.keys(districtDef(districtId).weights || {}).some((t) => ['chauvesouris', 'corbeau', 'phalene'].includes(t));
+
+/** Liste de priorités « raisonnable » du profil moyen. */
+function priorityPick(shop, buyable, profile, districtId = 'q1') {
+  const want = PRIORITIES[districtId] || PRIORITIES.q1;
   for (const [id, n] of want) if (countOf(shop, id) + shop.storage.filter((s) => s === id).length < n && buyable.includes(id)) return id;
   void profile;
   return buyable.sort((a, b) => defenseValue(b) - defenseValue(a))[0];

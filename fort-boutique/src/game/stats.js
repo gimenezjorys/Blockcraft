@@ -27,12 +27,20 @@ export function nightStats(def, level) {
   const n = def.night;
   const L = Math.max(1, level);
   const effect = Math.min(FL.effectMax, 1 + FL.effectAdd * (L - 1));
+  const growth = dmgGrowth(L);
   return {
-    dmg: (n.dmg || 0) * Math.pow(FL.dmgMult, L - 1),
-    dps: (n.dps || 0) * Math.pow(FL.dmgMult, L - 1),
+    dmg: (n.dmg || 0) * growth,
+    dps: (n.dps || 0) * growth,
     rate: (n.rate || 0) * (1 + FL.rateAdd * (L - 1)),
     range: (n.range || n.radius || n.length || 0) + FL.rangeAdd * stepsReached(FL.rangeLevels, L),
     hp: def.hp ? def.hp * Math.pow(FL.hpMult, L - 1) : 0,
     effect,
   };
+}
+
+/** Multiplicateur de dégâts du niveau L (G9.1) : × dmgMult par niveau jusqu'à dmgHighFrom, puis × dmgMultHigh. */
+export function dmgGrowth(L) {
+  const lo = Math.min(L, FL.dmgHighFrom) - 1;
+  const hi = Math.max(0, L - FL.dmgHighFrom);
+  return Math.pow(FL.dmgMult, lo) * Math.pow(FL.dmgMultHigh, hi);
 }

@@ -17,6 +17,9 @@ export const HUMAN = {
   levelLook: 3000,
   noLevelLook: 2500,
   unlocksLook: 3500,
+  /** Calendrier (M12) : regarder les étiquettes, taper celle du jour, lire les gains. */
+  calendarLook: 2500,
+  rewardLook: 1500,
   /** Premier Matin : un écran neuf plein de boutons (G19 3:02 → 3:15) ; ensuite on va plus vite. */
   firstMorningLook: 8000,
   morningLook: 5000,
@@ -150,6 +153,10 @@ export class HumanBot extends TouchBot {
     else if (s === 'dawn') this.dawnH();
     else if (s === 'unlocks') {
       if (this.screenT >= HUMAN.unlocksLook) this.tapEl('#unlock-ok');
+    } else if (s === 'calendar') {
+      if (this.screenT >= HUMAN.calendarLook) this.tapEl(this.g.$('#calendar-today') ? '#calendar-today' : '#calendar-close');
+    } else if (s === 'reward') {
+      if (this.screenT >= HUMAN.rewardLook) this.tapEl('.reward');
     } else if (s === 'morning') this.morningH(sc);
     else if (s === 'editor') this.editorH(st);
     else if (sc && (sc.phase === 'day' || sc.phase === 'closing')) this.dayH(sc);

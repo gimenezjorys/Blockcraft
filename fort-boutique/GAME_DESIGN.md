@@ -1,6 +1,8 @@
 # Fort Boutique — Game Design Document
 
 > Copie intégrale et fidèle de l'Annexe G du prompt (docs/PROMPT.md). Toute modification de valeur est justifiée dans DECISIONS.md et signalée ici par une note « (réglé : … ) ».
+>
+> **v1.1** : les règles du chapitre G26 (juste avant les sources) remplacent celles d'avant là où elles diffèrent : placement des meubles (G6.4 à G6.7), personnel (G11.3), objectif visible (G3.5), indices des premières minutes (G19), écran titre et hub (G20.8), musique (G21.2), sauvegarde (G23, version 2).
 
 # ANNEXE G — GAME DESIGN DOCUMENT
 *(À copier intégralement dans GAME_DESIGN.md dès M0, puis à tenir à jour. Les renvois [S1]…[S23] pointent vers les sources de G25.)*
@@ -272,11 +274,12 @@ Valeur au début de la nuit = max(20 × Q, arrondi(0,5 × recette du jour)), Q �
 
 ### G8.3 Vagues
 - Nombre de vagues selon la nuit k de la semaine : N1 2 ; N2 3 ; N3 3 ; N4 4 ; N5 4 ; N6 4 ; N7 5 (la dernière contient le boss). Semaine 2 et suivantes : 5 (N7 : 6).
-- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 1,15 / 1,3 / 1,45 / 1,6 pour Q1 à Q5 et s le numéro de la semaine. La vague du boss n'a que 50 % de ce budget en escorte.
+- Budget de menace de la vague i (1 à W) : **B = (6,25 + 3,125 × (k − 1)) × (0,7 + 0,15 × (i − 1)) × F_Q × (1 + 0,1 × (s − 1))** (M10 : 5 et 2,5 au départ, +25 %, D2.5), avec F_Q = 1,0 / 0,8625 / 0,975 / 1,0875 / 1,2 pour Q1 à Q5 (M16 : Q2 1,15 au départ ; M17 : Q3 1,3 ; M18 : Q4 1,45 ; M19 : Q5 1,6 ; −25 %, D2.5) et s le numéro de la semaine. La vague du boss n'a que 37,5 % de ce budget en escorte (M20 : 50 % au départ, −25 %, D2.5).
+- **Semaine d'ouverture** (M20, règle, DECISIONS.md) : chaque quartier a sa propre boutique, neuve (G13.1) ; pendant la semaine 1 des quartiers 2 à 5, le budget de chaque nuit est × 0,55, puis × 0,8 en semaine 2 (pas de falaise au passage en semaine 2, P4), le temps de la meubler (« Semaine d'ouverture : les Grignotins découvrent ta boutique », à la première nuit). Pas en Lune rouge (Franchise).
 - Chaque monstre coûte son « coût de menace » (G10). Le générateur, à graine (graine de partie, quartier, semaine, nuit), tire des groupes de 2 à 5 du même type parmi ceux autorisés à cette nuit, avec les pondérations de `data/waves.js`, et les répartit entre les entrées actives.
 - Un type nouveau apparaît d'abord **seul**, en petit groupe, dans la vague 1 de sa nuit d'introduction.
 - **Télégraphe** : 2,5 s avant chaque vague, chaque entrée active montre une bulle pulsante avec les icônes des types qui vont sortir (et une étiquette « NOUVEAU » pour un type jamais vu).
-- Rythme : 0,35 s entre deux membres d'un groupe, 0,9 s entre deux groupes (0,7 s à partir du Q3), 3,5 s de pause entre deux vagues (bannière « Vague 2/4 »).
+- Rythme : 0,2625 s entre deux membres d'un groupe, 0,675 s entre deux groupes (0,525 s à partir du Q3), 3,5 s de pause entre deux vagues (bannière « Vague 2/4 ») (M13 : 0,35 / 0,9 / 0,7 au départ, −25 %, D2.5, avec l'arrivée de Moka).
 - *M11 (rythme des premières nuits, DECISIONS.md) :* la nuit 1 scénarisée suit G19 (bulle 3 s, 2 s entre deux ratons, 5 s de pause, ratons à 20 PV comme avant M10 : ≈ 34 s) ; les nuits 2 et 3 de la semaine 1 au Q1 sont des « nuits d'apprentissage » : budget × 1,5, 0,8 s entre membres, 2,0 s entre groupes, 3,5 s de pause (nuit 2 ≈ 58 s au lieu de 28 s, G19 ≈ 60 s), et un « voleur vedette » (de préférence un raton, jamais plus de PV que d'habitude, 20 au plus) que les meubles ne visent pas : seul le balai du marchand le rattrape, sans le ralenti de la nuit 1. Un marchand immobile y perd une étoile ; à la nuit 1, le voleur scénarisé lâche son sac sur le seuil (les pièces reviennent, sans bonus). Dès la nuit 4, le rythme et le budget ci-dessus s'appliquent.
 
 ### G8.4 Vol et fuite
@@ -308,15 +311,18 @@ Une nuit sur 10 (tirage à graine), un Raton doré apparaît une fois dans une v
 ### G8.9 La Pleine Lune (nuit 7)
 - Une lune pleine grossit dans le HUD toute la semaine (compte à rebours en nuits).
 - La nuit 7 contient le boss du quartier (G10.3). **Victoire** = boss vaincu, même s'il avait volé (le vaincre pendant sa fuite rend tout). Récompenses : Coffre de Lune (au lieu du coffre d'étoiles), XP de boss, quartier suivant si le niveau requis est atteint, bannière et fanfare.
-- **Échec** = le boss sort avec le butin : ★ 0, pas de Coffre de Lune, la Pleine Lune revient la nuit suivante avec le **Courage de Mamie** (+15 % de dégâts des meubles par échec, max +60 %, affiché à l'écran d'intro). Option pub : « Rejouer tout de suite (+25 % de dégâts) ».
+- **Échec** = le boss sort avec le butin : ★ 0, pas de Coffre de Lune, la Pleine Lune revient la nuit suivante avec le **Courage de Mamie** (+18,75 % de dégâts des meubles par échec, max +75 %, affiché à l'écran d'intro ; M16 : +15 % / 60 % au départ, +25 %, D2.5). *M20 (règle, DECISIONS.md) :* à partir du 3e échec, chaque échec ajoute +25 % de plus (max +125 %) ; et après chaque échec, la horde de la Pleine Lune suivante (vagues, escorte, invocations et scissions du boss) est réduite de 25 % (max −75 % ; « Pièges de Mamie » sur l'aperçu de la lune). Option pub : « Rejouer tout de suite (+18,75 % de dégâts) » (M15).
 - Après la victoire, la semaine 2 commence (G13.1).
+
+### G8.10 Coup de main de Mamie (M20, règle)
+- Une nuit finie sous 50 % de Bocal gardé : la nuit suivante de cette boutique a une horde réduite de 40 % (message « Coup de main de Mamie : moins de Grignotins ce soir » à la tombée de la nuit). Gratuit et automatique : une mauvaise nuit n'en entraîne pas d'autres (pas de mur, D2.4.4).
 
 ## G9. Les meubles (jour + nuit)
 
 ### G9.1 Règles générales
 - Chaque meuble a une **forme de jour** (vendre, produire, décorer) et une **forme de nuit** (tourelle, mur ou soutien).
 - **Niveaux 1 à 10**, améliorés avec des **plans** (propres à chaque meuble) + des pièces. Les niveaux sont **globaux** : un niveau gagné vaut pour tous les exemplaires de ce meuble, dans toutes les boutiques.
-- Gains par niveau : dégâts ×1,12 (M10 : ×1,20 au départ, D2.5) ; cadence +3 % ; PV ×1,15 ; portée +0,1 case aux niveaux 4, 7 et 10 ; effets (ralentissement, durée, poison) +5 % (max ×1,45) ; intervalle de production ×0,93 ; réserve +1 aux niveaux 3, 5, 7, 9 ; étagère : capacité 4 + (niveau − 1) ; caisse : encaissement −0,04 s.
+- Gains par niveau : dégâts ×1,12 jusqu'au niveau 5, puis ×1,20 par niveau au-delà (M10 : ×1,20 partout au départ, ramené à ×1,12 pour le Q1, D2.5 ; M20 : ×1,20 rétabli au-delà du niveau 5, justifié dans DECISIONS.md) ; cadence +3 % ; PV ×1,15 ; portée +0,1 case aux niveaux 4, 7 et 10 ; effets (ralentissement, durée, poison) +5 % (max ×1,45) ; intervalle de production ×0,93 ; réserve +1 aux niveaux 3, 5, 7, 9 ; étagère : capacité 4 + (niveau − 1) ; caisse : encaissement −0,04 s.
 - **Plafond de niveau** = min(10 ; 1 + arrondi supérieur(niveau de marchand ÷ 3)).
 - **Coût pour passer du niveau L à L+1** :
 
@@ -388,30 +394,30 @@ Chaque forme de nuit est un **comportement** paramétré par les données : `pro
 | chauvesouris | Chauve-souris | 14 | 0 | 1,4 | 3 % | 2 | 1 | vole : ignore le labyrinthe | Q2 N1 |
 | herisson | Hérisson | 44 | 3 | 0,9 | 5 % | 4 | 2 | armure ; feu et poison l'ignorent | Q2 N2 |
 | champiboum | Champiboum | 18 | 0 | 1,1 | 0 % | 2 | 1 | explose au contact d'un meuble : 40 dégâts aux meubles à ≤ 1 case ; étourdit le marchand 0,8 s s'il est à ≤ 1 case | Q2 N4 |
-| fantome | Fantôme | 26 | 0 | 0,9 | 5 % | 4 | 2 | invisible et non ciblable hors lumière ; traverse les meubles ; lumière ×2 | Q3 N1 |
-| lutin | Lutin farceur | 30 | 0 | 1,0 | 6 % | 4 | 2 | toutes les 4 s, se téléporte 2 cases plus loin sur son chemin (signalé 0,5 s avant) | Q3 N3 |
-| gourmand | Gros Gourmand | 200 | 4 | 0,5 | 15 % | 15 | 6 | lent et costaud ; immunisé au recul | Q3 N5 |
-| corbeau | Corbeau voleur | 20 | 0 | 1,7 | 5 % | 3 | 1,5 | vole ; arrive en V de 3 | Q4 N1 |
-| golem | Golem de ferraille | 360 | 8 | 0,45 | 20 % | 25 | 10 | métal (l'aimant le ralentit) ; ralentissements de froid ×0,5 | Q4 N3 |
-| phalene | Phalène | 24 | 0 | 1,2 | 4 % | 3 | 1,5 | vole ; attirée par les lanternes, qu'elle attaque (6 dégâts/s) | Q5 N1 |
+| fantome | Fantôme | 26 | 0 | 0,9 | 3,75 % (M17 : 5 %) | 4 | 2 | invisible et non ciblable hors lumière ; traverse les meubles ; lumière ×2 | Q3 N1 |
+| lutin | Lutin farceur | 30 | 0 | 1,0 | 4,5 % (M17 : 6 %) | 4 | 2 | toutes les 4 s, se téléporte 2 cases plus loin sur son chemin (signalé 0,5 s avant) | Q3 N3 |
+| gourmand | Gros Gourmand | 200 | 4 | 0,5 | 11,25 % (M17 : 15 %) | 15 | 6 | lent et costaud ; immunisé au recul | Q3 N5 |
+| corbeau | Corbeau voleur | 20 | 0 | 1,7 | 3,75 % (M18 : 5 %) | 3 | 1,5 | vole ; arrive en V de 3 | Q4 N1 |
+| golem | Golem de ferraille | 360 | 6 (M18 : 8) | 0,45 | 15 % (M18 : 20 %) | 25 | 10 | métal (l'aimant le ralentit) ; ralentissements de froid ×0,5 | Q4 N3 |
+| phalene | Phalène | 24 | 0 | 1,2 | 3 % (M19 : 4 %) | 3 | 1,5 | vole ; attirée par les lanternes, qu'elle attaque (6 dégâts/s) | Q5 N1 |
 | raton_dore | Raton doré | 50 (M10 : 40) | 0 | 1,5 | 4 % | 20 | 0 | rare (G8.8) ; traînée d'étincelles | tous |
 
 Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus de la tête quand il est visé pour la première fois (flamme pour le gloubi et le hérisson, soleil pour le fantôme).
 
 ### G10.2 Mise à l'échelle
-- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 2,0 / 3,6 / 6,2 / 10,0 pour Q1 à Q5, k la nuit de la semaine, s la semaine.
+- PV = PV de base × M_Q × (1 + 0,12 × (k − 1)) × 1,35^(s − 1), avec M_Q = 1,0 / 1,5 / 2,7 / 4,25 / 6,5 pour Q1 à Q5 (M16 : Q2 2,0 au départ ; M17 : Q3 3,6 ; −25 %, D2.5 ; M20 : Q4 6,2 et Q5 10,0 au départ, courbe corrigée de l'écart des dégâts par niveau, justifiée dans DECISIONS.md), k la nuit de la semaine, s la semaine.
 - Butin = butin de base × (1 + 0,6 × (Q − 1)) × (1 + 0,1 × (s − 1)).
-- Vitesse, armure et % de vol ne changent jamais.
+- Vitesse, armure et % de vol ne changent jamais. *M13 (D2.5) :* toutes les vitesses du tableau sont × 1,25 en jeu (hors boss), sauf pendant la nuit 1 scénarisée qui garde les vitesses ci-dessus (G19 « première victoire »).
 
 ### G10.3 Les boss (Pleine Lune)
 
 | Boss | Quartier | PV (semaine 1) | Armure | Vitesse | Vol | Butin | Capacités |
 |---|---|---|---|---|---|---|---|
-| Le Roi Raton | Q1 | 1 125 (M10 : 900) | 2 | 0,55 | 35 % | 150 | toutes les 4,8 s (M10 : 6 s), invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
-| La Grande Pâte | Q2 | 1 700 | 0 | 0,5 | 35 % | 250 | à 66 % et 33 % de PV, se scinde et lâche 4 gloubis ; feu ×1,5 ; ralentissements ×0,5 |
-| La Dame Blanche | Q3 | 1 500 | 0 | 0,6 | 35 % | 350 | traverse les meubles ; disparaît 3 s toutes les 7 s hors lumière ; invoque 2 fantômes toutes les 10 s ; lumière ×2 |
-| Le Ferrailleur | Q4 | 3 400 | 10 | 0,4 | 40 % | 500 | frappe les meubles voisins (30 dégâts/s) ; immunisé au recul et à l'étourdissement ; métal |
-| La Reine Phalène | Q5 | 4 800 | 2 | 0,6 | 40 % | 800 | vole ; éteint les lanternes à ≤ 2 cases pendant 4 s toutes les 9 s ; invoque 4 chauves-souris toutes les 8 s |
+| Le Roi Raton | Q1 | 1 350 (M10 : 900 → 1 125 ; M20 : 1 350, justifié dans DECISIONS.md) | 2 | 0,55 | 35 % | 150 | toutes les 4,8 s (M10 : 6 s), invoque 3 ratons ; immunisé au recul ; fuit à 0,75 case/s |
+| La Grande Pâte | Q2 | 1 275 | 0 | 0,375 | 26,25 % | 250 | à 66 % et 33 % de PV, se scinde et lâche 3 gloubis ; feu ×1,5 ; ralentissements ×0,5 (M16 : 1 700 / 0,5 / 35 % / 4 au départ, −25 %, D2.5) |
+| La Dame Blanche | Q3 | 1 500 (M17 : 1 125 ; M20 : 1 500) | 0 | 0,6 | 26,25 % (M17 : 35 %) | 350 | traverse les meubles ; disparaît 3 s toutes les 7 s hors lumière ; invoque 2 fantômes toutes les 10 s ; lumière ×2 |
+| Le Ferrailleur | Q4 | 3 000 (M18 : 3 400 au départ, 2 550 ; M20 : 3 000) | 7,5 (M18 : 10) | 0,3 (M18 : 0,4) | 30 % (M18 : 40 %) | 500 | frappe les meubles voisins (22,5 dégâts/s à 0,75 case ; M18 : 30 à 1 case) ; immunisé au recul et à l'étourdissement ; métal |
+| La Reine Phalène | Q5 | 4 800 (M19 : 3 600 ; M20 : 4 800) | 2 | 0,45 (M19 : 0,6) | 30 % (M19 : 40 %) | 800 | vole ; *M20 (règle) :* visite chaque lanterne allumée (et l'éteint 4 s) avant d'aller à la caisse ; éteint les lanternes à ≤ 2 cases pendant 4 s toutes les 9 s ; invoque 4 chauves-souris toutes les 8 s |
 
 - Les PV des boss sont ceux de la semaine 1, × 1,35^(s − 1) ensuite (pas de multiplicateur de nuit).
 - Entrée d'un boss : ralenti de 0,4 s, zoom de caméra ×1,08, carte de présentation (silhouette + nom), changement de couche musicale.
@@ -434,7 +440,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 | Q1 | raton 40, souris 25, gloubi 20, termite 15 |
 | Q2 | raton 15, souris 15, chauve-souris 20, hérisson 20, champiboum 15, gloubi 15 |
 | Q3 | fantôme 25, lutin 20, gros gourmand 10, chauve-souris 15, hérisson 15, termite 15 |
-| Q4 | corbeau 20, golem 10, gros gourmand 15, hérisson 20, champiboum 15, lutin 20 |
+| Q4 | corbeau 20, golem 10, gros gourmand 11,25 (M18 : 15), hérisson 15 (M18 : 20), champiboum 15, lutin 20 |
 | Q5 | phalène 25, corbeau 15, fantôme 15, golem 10, lutin 15, gloubi 10, champiboum 10 |
 
 ## G11. Le marchand, Moka et le personnel
@@ -452,7 +458,7 @@ Faiblesses visibles : chaque Grignotin a une petite icône d'élément au-dessus
 ### G11.2 Moka, le chat de Mamie (niveau 5)
 - Arrivée : Moka saute sur la caisse, s'étire, miaule, puis suit le marchand (retard 0,4 s, décalage 0,6 case).
 - Jour : toutes les 8 s, il rapporte au marchand un tas de pièces situé à ≤ 3 cases.
-- Nuit : bondit sur le Grignotin le plus proche de lui à ≤ 2,0 cases : 9 dégâts, 1,0/s, touche les volants. Il ne peut pas être blessé.
+- Nuit : bondit sur le Grignotin le plus proche de lui à ≤ 2,0 cases : 3,375 dégâts, 0,75/s, touche les volants (M13 : 9 dégâts, 1,0/s au départ ; −62,5 % et −25 %, D2.5, justifié dans DECISIONS.md). Il ne peut pas être blessé.
 - Niveaux 1 à 10 avec des **croquettes** : 5, 10, 20, 35, 55, 80, 110, 150, 200 croquettes pour les niveaux 2 à 10. Dégâts ×1,18 par niveau ; portée +0,1 case aux niveaux 4, 7 et 10.
 - Cosmétiques propres (G17).
 
@@ -716,7 +722,7 @@ Les achats sont enregistrés dans `purchases` et `cosmetics` (G23) et ne sont ja
 | rw_daily_rubies | Garde-robe | +3 rubis | 1 par jour |
 | rw_quest_reroll | Quêtes | relancer une quête | 1 par jour |
 | rw_streak_restore | Série | rallumer la flamme | 1 par semaine |
-| rw_boss_retry | Échec de Pleine Lune | rejouer tout de suite avec +25 % de dégâts | 2 par jour |
+| rw_boss_retry | Échec de Pleine Lune | rejouer tout de suite avec +18,75 % de dégâts (M15 : +25 % au départ, D2.5) | 2 par jour |
 
 Plafond global : 12 pubs récompensées par jour UTC. Bouton : étiquette dorée avec une petite télé et la récompense (« ×2 »).
 
@@ -1034,6 +1040,47 @@ Chaque champ a une valeur par défaut dans `schema.js` ; au chargement, la sauve
 - Les statistiques restent sur l'appareil (aucune donnée envoyée). Elles servent aux playtests, aux succès et aux simulations.
 - La logique expose une interface sans DOM pour les simulations : `createGame({ seed, save })`, `step(dtMs)`, `setInput({ x, y, bell })`, `getState()`, plus des actions de menu (`buy`, `upgrade`, `placeFurniture`, `openChest`…). Les **simulations** (D2) l'utilisent directement ; les **playtests** (D3) passent toujours par de vrais événements DOM.
 
+## G26. La v1.1 « Plus simple, plus clair, plus joli » (docs/PROMPT_V1_1.md)
+
+### G26.1 La flèche d'objectif et les bulles d'état (V2)
+- Une seule cible, une flèche dorée qui flotte au-dessus (36 px, rebond de 6 px en 0,8 s, anneau au sol) ; jamais de chemin.
+- Le jour, par priorité : emplacement payable (meuble ou embauche) → étagère la plus vide du produit porté → caisse si un client attend sans caissier → producteur d'une étagère à moins de 25 % → tas de pièces de 20 ou plus sans caissier → producteur le plus plein → (tout début du jour) producteur le plus proche. La nuit : le voleur qui fuit avec un sac. Recalculée toutes les 0,25 s, gardée 1,5 s au moins.
+- Visible pendant l'apprentissage (3 fois prendre, poser, encaisser, payer un emplacement), puis seulement après 4 s sans action utile, lors d'un imprévu (client devant une étagère vide, 3 clients ou plus en file, voleur) et 3 s quand un emplacement devient payable. Option Auto / Toujours / Jamais ; un tap sur l'objectif la montre 3 s même en « Jamais ».
+- Bulles : étagère vide (produit + « ! »), à moins de 50 % (produit grisé), producteur plein (coche + nombre), file à la caisse (nombre + horloge), patience du client (bulle blanche → orange → rouge), meuble améliorable (flèche verte qui pulse, jour et nuit).
+
+### G26.2 Les Objectifs de Mamie (V2.3)
+- Carte kraft en haut à gauche (icône, 6 mots au plus, nombre, barre), à la place du « Prochain objectif » tant qu'il en reste ; un par un, dans l'ordre ; tampon « Fait ! », récompense qui vole vers le compteur, l'objectif suivant glisse en place. Mesures absolues : déjà fait = validé dès qu'il apparaît.
+- Quartier 1 (14) : étagère de pommes 4/4 (10 pièces) ; servir 3 clients (15) ; 2e étagère (20) ; 100 pièces dans la journée (2 plans Étagère) ; première nuit (30) ; améliorer une étagère (20) ; frigo à lait (2 plans Frigo) ; 10 bouteilles de lait (40) ; caissier (50) ; choisir un plan (2 plans Comptoir) ; commis (60) ; journée en pilote automatique (coffre en bois) ; nuit ★★★ (3 plans) ; Roi Raton (coffre d'argent).
+- Quartiers 2 à 5 (5 chacun) : vendre le premier produit, acheter les nouveaux meubles, battre le boss (pièces × m_Q) ; liste dans `src/data/mamie.js`. Index gardé par boutique (`progress.mamieObjective`).
+
+### G26.3 Ouverture et Moka (V2.4)
+- Ouverture : 2 s de panneau « Fermé » → « Ouvert » à la porte et le carillon ; le chrono tourne déjà ; puis 2 ou 3 clients entrent à 0,35 s d'écart (sauf au tout premier jour guidé).
+- Moka est là dès le jour 1 ; il ne rapporte les pièces et ne se bat qu'à partir du niveau 5. À chaque nouvel objectif, il trotte jusqu'à la cible (4 cases/s), s'y assoit 2 s et miaule.
+
+### G26.4 Emplacements prévus et plans (V3, V4)
+- Types : producteur (tout meuble qui fabrique), présentoir (étagère), défense (le reste), caisse (fixe), postes du personnel (personnages, ne bloquent rien). Les meubles de 2 cases prennent deux emplacements voisins du même type.
+- Plans en données (`src/data/shop-plans.js`) : L'Allée (équilibrée, par défaut), Le Comptoir rapide (clients ★★★, défense ★), La Forteresse (clients ★, défense ★★★), pour E0 à E3, vérifiés à 100 % de remplissage. Un achat (emplacement au sol ou Catalogue) se pose dans le premier emplacement libre de son type ; plus de place = Réserve (« Plus de place : agrandis ou change de plan »).
+- Écran Plans (Matin, niveau 3, gratuit) : 3 mini-cartes avec les meubles du joueur et les notes tirées des trajets réels ; « Choisir » range tout (même type, ordre de remplissage) avec un glissement ; échange de deux meubles de même largeur ; « Annuler ». L'agrandissement reprend le même plan à la nouvelle taille.
+
+### G26.5 Personnel et automatisation (V5)
+- Emplacements d'embauche sur les postes du plan. Q1 : caissier jour 4 (250), commis jour 5 (350), commis jour 7 (700), 2e caissier avec E1 et jour 10 (1 200), 3e et 4e commis jours 9 et 12 (1 400, 2 800) ; 1 commis pour 2 producteurs, 4 au plus. Q2 à Q5 : prix × m_Q, dès le jour 2.
+- Caissier : 0,9 s par client (−0,1 s par niveau, 0,4 s au moins), pièces droit au porte-monnaie ; le 2e sert le client suivant en même temps. Commis : 3 articles (+1 par niveau), 2,2 cases/s (+0,2), étagère la plus vide dont le producteur a du stock, jamais celle d'un autre commis, étagères vides gardées aux produits qui n'en ont pas. Améliorations : caissier 300/700/1 500/3 000, commis 400/900/1 800/3 600 (× m_Q).
+- Boutique automatisée = 1 caissier et 1 commis pour 2 producteurs : badge « AUTO » (HUD, façade). Pilote automatique : interrupteur du HUD ; sans geste depuis 1 s, le marchand revient à la caisse. « Passer la journée » : le reste du jour joué en pas fixes sans intervention, en 1,5 s. Une boutique automatisée sans aide rapporte environ 90 % d'un bon joueur actif. Gains hors ligne dès un caissier et un commis.
+
+### G26.6 Vitesse (V6)
+- Bouton sous la pause : ×1 → ×2 → ×3 le jour, ×1 → ×2 la nuit ; ×2 dès le jour 2, ×3 dès le jour 4 ou une boutique automatisée. Plusieurs pas fixes par image (jamais un pas plus grand) ; image trop lente = un cran de moins (petite flèche). Mémorisée (`settings.daySpeed`, `settings.nightSpeed`).
+
+### G26.7 Écran titre et hub (V7, V8)
+- Titre : la boutique au soir (dégradé #2A2466 → #F59E6B, 40 étoiles, lune et halo, toits en parallaxe), lucioles, feuilles / citrouilles / neige selon la saison, yeux dans le buisson, raton qui passe la tête ; entrée de 1,6 s (caméra qui descend, enseigne qui tombe, lanternes, yeux qui s'ouvrent) ; « Touche pour jouer » sur une étiquette suspendue ; au tap, la porte s'ouvre et la lumière chaude envahit l'écran.
+- Hub : la même façade en plein jour ; objets → écrans (porte : OUVRIR ; ardoise : Quêtes ; calendrier ; boîte aux lettres : Défi du jour ; poteau : Carte ; Moka : Garde-robe ; lune : Pleine Lune ; établi : Catalogue, Améliorer, Plans) ; notifications en cachets de cire ; écrans habillés comme leurs objets ; ombres « tampon » nettes, grain de papier et de bois.
+
+### G26.8 Musique (V9)
+- Thème écrit (`src/data/music-score.js`) : fa majeur, 112 BPM, swing 56 %, parties A et B de 8 mesures. Titre : A à la boîte à musique, 90 BPM ; Matin : sifflement, ukulélé, contrebasse, 100 BPM ; Jour : 36 mesures (intro, A, B, A', pont, reprise), 3 habillages qui tournent et une respiration une boucle sur quatre ; Nuit : ré mineur, 92 BPM ; Boss : 100 BPM, timbales et chœur ; Aube : fin de A en ré majeur et oiseaux.
+- Couches : plus de clients = plus d'instruments ; Rush et vitesse = percussions. Musique à 0,28 par défaut, panoramique, saturation douce, filtre au-dessus de 9 kHz, −5 dB sous les gros effets.
+
+### G26.9 Sauvegarde v2
+- Nouveaux champs : `settings.guideArrow`, `settings.daySpeed`, `settings.nightSpeed`, `settings.freeLayout`, `progress.mamieObjective`, `progress.mastery`, `stats.soldBy` ; par boutique `plan`, `slots`, `autopilot`, `staff.cashier2`. Migration v1 → v2 : plan Allée, meubles posés dans l'emplacement libre le plus proche de leur type, trop-plein dans la Réserve, tout le reste gardé (test de fixture `tests/fixtures/save_v1_full.json`).
+
 ## G25. Sources
 - [S1] Sensor Tower — State of Gaming 2026 : https://sensortower.com/press/press-release-sensor-tower-state-of-gaming-gaming-drove-52-billion-downloads-82b-iap-revenue-on-mobile-and-12b-premium-revenue-on-steam
 - [S2] GameAnalytics — benchmarks mobile 2026 (via GameDev Reports) : https://gamedevreports.substack.com/p/gameanalytics-mobile-and-pc-game
@@ -1060,3 +1107,7 @@ Chaque champ a une valeur par défaut dans `schema.js` ; au chargement, la sauve
 - [S23] itch.io — ShopFront : https://3d-engine.itch.io/shop-front
 
 *Fin de l'Annexe G. Fin du prompt : commence par l'Étape 1 (A1), puis la mission M0.*
+
+
+---
+*Version 1.0.0 (2026-10-23) : ce document décrit le jeu livré ; chaque valeur réglée garde sa valeur de départ entre parenthèses (Mn : …) et sa justification dans DECISIONS.md.*

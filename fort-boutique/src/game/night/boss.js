@@ -17,23 +17,26 @@ export function bossStep(g, m, dt) {
     m.summonT -= dt;
     if (m.summonT <= 0) {
       m.summonT = def.summon.every;
-      for (let i = 0; i < def.summon.count; i++) {
-        const a = (i / def.summon.count) * Math.PI * 2;
+      // Courage de Mamie (M20) : moins d'invocations après une Pleine Lune perdue.
+      const count = Math.max(1, Math.round(def.summon.count * (g.night.thin || 1)));
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * Math.PI * 2;
         const c = spawnMonster(g, def.summon.type, m.entrance, { x: m.x + Math.cos(a) * 0.35, y: m.y + Math.sin(a) * 0.35, wave: m.wave });
         if (c) {
           c.entering = false;
           c.summoned = true;
         }
       }
-      g.events.push('boss_summon', m.x, m.y, def.summon.count, 0, def.summon.type);
+      g.events.push('boss_summon', m.x, m.y, count, 0, def.summon.type);
     }
   }
   // Grande Pâte : se scinde à 66 % et 33 % de ses PV et lâche 4 gloubis.
   if (def.splitAt) {
     while (m.splitDone < def.splitAt.length && m.hp <= m.maxHp * def.splitAt[m.splitDone]) {
       m.splitDone++;
-      for (let i = 0; i < def.splitSpawn.count; i++) {
-        const a = (i / def.splitSpawn.count) * Math.PI * 2;
+      const count = Math.max(1, Math.round(def.splitSpawn.count * (g.night.thin || 1)));
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * Math.PI * 2;
         const c = spawnMonster(g, def.splitSpawn.type, m.entrance, { x: m.x + Math.cos(a) * 0.4, y: m.y + Math.sin(a) * 0.4, wave: m.wave });
         if (c) c.entering = false;
       }

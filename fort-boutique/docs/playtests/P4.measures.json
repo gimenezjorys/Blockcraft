@@ -1,0 +1,181 @@
+{
+  "start": {
+    "level": 25,
+    "coins": 66,
+    "shop": "q4",
+    "shops": [
+      "q1",
+      "q2",
+      "q3",
+      "q4"
+    ],
+    "cycles": 39,
+    "seed": 1002
+  },
+  "cycles": [
+    {
+      "ms": 224400,
+      "shop": "q4",
+      "week": 2,
+      "night": 1,
+      "stars": 3,
+      "kept": 100,
+      "boss": false,
+      "bossWin": false,
+      "coins": 5795,
+      "level": 25
+    },
+    {
+      "ms": 253000,
+      "shop": "q4",
+      "week": 2,
+      "night": 2,
+      "stars": 2,
+      "kept": 91,
+      "boss": false,
+      "bossWin": false,
+      "coins": 6102,
+      "level": 25
+    },
+    {
+      "ms": 293300,
+      "shop": "q4",
+      "week": 2,
+      "night": 3,
+      "stars": 1,
+      "kept": 54,
+      "boss": false,
+      "bossWin": false,
+      "coins": 5047,
+      "level": 25
+    },
+    {
+      "ms": 303000,
+      "shop": "q4",
+      "week": 2,
+      "night": 4,
+      "stars": 1,
+      "kept": 0,
+      "boss": false,
+      "bossWin": false,
+      "coins": 4030,
+      "level": 26
+    },
+    {
+      "ms": 268400,
+      "shop": "q4",
+      "week": 2,
+      "night": 5,
+      "stars": 1,
+      "kept": 44,
+      "boss": false,
+      "bossWin": false,
+      "coins": 4740,
+      "level": 26
+    },
+    {
+      "ms": 304000,
+      "shop": "q4",
+      "week": 2,
+      "night": 6,
+      "stars": 1,
+      "kept": 52,
+      "boss": false,
+      "bossWin": false,
+      "coins": 5282,
+      "level": 26
+    },
+    {
+      "ms": 375500,
+      "shop": "q4",
+      "week": 2,
+      "night": 7,
+      "stars": 0,
+      "kept": 0,
+      "boss": true,
+      "bossWin": false,
+      "coins": 4546,
+      "level": 26
+    },
+    {
+      "ms": 352000,
+      "shop": "q4",
+      "week": 2,
+      "night": 7,
+      "stars": 0,
+      "kept": 26,
+      "boss": true,
+      "bossWin": false,
+      "coins": 4737,
+      "level": 27
+    },
+    {
+      "ms": 335200,
+      "shop": "q4",
+      "week": 2,
+      "night": 7,
+      "stars": 0,
+      "kept": 60,
+      "boss": true,
+      "bossWin": false,
+      "coins": 5585,
+      "level": 27
+    },
+    {
+      "ms": 305000,
+      "shop": "q4",
+      "week": 2,
+      "night": 7,
+      "stars": 0,
+      "kept": 67,
+      "boss": true,
+      "bossWin": false,
+      "coins": 5859,
+      "level": 27
+    }
+  ],
+  "minutes": 50.23,
+  "screens": {
+    "title": 1.4,
+    "unlocks": 7,
+    "morning": 53,
+    "editor": 5,
+    "hud": 2796.6,
+    "dawn": 150.7
+  },
+  "toasts": [
+    "Hérisson : palier du bestiaire ! +2 rubis",
+    "Chauve-souris : palier du bestiaire ! +2 rubis",
+    "Lutin farceur : palier du bestiaire ! +2 rubis",
+    "Succès ! +10 rubis",
+    "Étagère : rangé dans la Réserve",
+    "Comptoir : posé dans la boutique",
+    "Coup de main de Mamie : moins de Grignotins ce soir",
+    "Champiboum : palier du bestiaire ! +2 rubis",
+    "Machine à café : posé dans la boutique"
+  ],
+  "map": {
+    "endless": true,
+    "franchise": [
+      "q4"
+    ],
+    "open": [
+      "q1",
+      "q2",
+      "q3",
+      "q4",
+      "q5"
+    ]
+  },
+  "purchases": {
+    "upgrades": 17,
+    "furniture": 12
+  },
+  "end": {
+    "level": 27,
+    "coins": 5859,
+    "rubies": 327,
+    "endlessBest": 0
+  },
+  "errors": []
+}

@@ -87,3 +87,67 @@ export function evaluateQ1(r, maxCycles) {
   };
   return { rows, ok: rows.every((x) => x.ok), info };
 }
+
+/**
+ * Seuils D2.4 du Quartier 2 (M16) : parties jouées depuis le début (through: 'q2'), cycles comptés depuis le début.
+ * @param {{ weak: any[], medium: any[], strong: any[] }} r
+ * @param {number} maxCycles
+ */
+export function evaluateQ2(r, maxCycles) {
+  return evaluateDistrict(r, 'q2', maxCycles);
+}
+
+/** Fenêtre du boss du Moyen (D2.4.1, cycles depuis le début), boss et niveau du quartier suivant. */
+const WINDOWS = { q2: [15, 20], q3: [24, 32], q4: [35, 46], q5: [48, 62] };
+const BOSS_NAME = { q2: 'Grande Pâte battue', q3: 'Dame Blanche battue', q4: 'Ferrailleur battu', q5: 'Reine Phalène battue' };
+const NEXT_LEVEL = { q2: 12, q3: 18, q4: 24 };
+
+/**
+ * Seuils D2.4 d'un quartier après le premier (parties jouées depuis le début, `through`).
+ * @param {{ weak: any[], medium: any[], strong: any[] }} r
+ * @param {string} id
+ * @param {number} maxCycles
+ */
+export function evaluateDistrict(r, id, maxCycles) {
+  const dd = (g) => (g.d ? g.d[id] : null);
+  const won = (g) => (dd(g) && dd(g).bossWonAt !== null ? dd(g).bossWonAt : maxCycles + 1);
+  const dur = (g) => won(g) - (dd(g) ? dd(g).start : maxCycles) + 1;
+  const M = median(r.medium.map(won));
+  const Md = median(r.medium.map(dur));
+  const Wd = median(r.weak.map(dur));
+  const Sd = median(r.strong.map(dur));
+  const q2Nights = (games) => games.flatMap((g) => g.cycles.filter((c) => c.district === id));
+  const strongNights = q2Nights(r.strong);
+  const lowRun = (g) => {
+    let run = 0;
+    let worst = 0;
+    for (const c of g.cycles.filter((x) => x.district === id)) {
+      run = c.kept < 0.5 ? run + 1 : 0;
+      worst = Math.max(worst, run);
+    }
+    return worst;
+  };
+  const eco = r.medium.map((g) => economyOk({ cycles: g.cycles.filter((c) => c.district === id) }));
+  const nextGap = r.medium.filter((g) => dd(g) && dd(g).bossWonAt !== null).map((g) => (dd(g).nextLevelAt === null ? Infinity : dd(g).nextLevelAt - dd(g).bossWonAt));
+  const attemptsW = median(r.weak.map((g) => (dd(g) ? dd(g).attempts : NaN)));
+  const [lo, hi] = WINDOWS[id];
+  const rows = [
+    { id: 'D2.4.1', label: `Moyen : ${BOSS_NAME[id]} entre les cycles ${lo} et ${hi} (médiane, depuis le début)`, value: `cycle ${M}`, ok: M >= lo && M <= hi },
+    { id: 'D2.4.2a', label: 'Faible : boss battu en 4 tentatives au plus (médiane)', value: `${attemptsW} tentative(s)`, ok: attemptsW <= 4 && share(r.weak, (g) => dd(g) && dd(g).bossWonAt !== null) >= 0.5 },
+    { id: 'D2.4.2b', label: 'Faible : durée du quartier ≤ 1,6 × celle du Moyen', value: `${(Wd / Md).toFixed(2)} ×`, ok: Wd / Md <= 1.6 },
+    { id: 'D2.4.3a', label: 'Fort : pas plus de 1,35 × plus rapide que le Moyen (durée du quartier)', value: `${(Md / Sd).toFixed(2)} ×`, ok: Md / Sd <= 1.35 },
+    { id: 'D2.4.3b', label: `Fort : ★★★ sur 70 % des nuits au plus (${id.toUpperCase()})`, value: pct(share(strongNights, (c) => c.stars === 3)), ok: share(strongNights, (c) => c.stars === 3) <= 0.7 },
+    { id: 'D2.4.3c', label: 'Fort : boss battu du premier coup 85 % des fois au plus', value: pct(share(r.strong, (g) => dd(g) && dd(g).bossWonAt !== null && dd(g).attempts === 1)), ok: share(r.strong, (g) => dd(g) && dd(g).bossWonAt !== null && dd(g).attempts === 1) <= 0.85 },
+    { id: 'D2.4.4', label: 'Moyen : jamais 3 nuits de suite sous 50 % (95 % des parties)', value: pct(share(r.medium, (g) => lowRun(g) < 3)), ok: share(r.medium, (g) => lowRun(g) < 3) >= 0.95 },
+    { id: 'D2.4.5', label: 'Moyen : achat utile en 2 cycles au plus, sans inflation (90 % des parties)', value: `${pct(share(eco, (e) => e.ok))} (accessible ${pct(share(eco, (e) => e.accessible))}, inflation ${pct(share(eco, (e) => e.inflation))})`, ok: share(eco, (e) => e.ok) >= 0.9 },
+    ...(NEXT_LEVEL[id] ? [{ id: 'D2.4.6', label: `Moyen : niveau ${NEXT_LEVEL[id]} au plus tard 2 cycles après le boss (80 %)`, value: pct(share(nextGap, (x) => x <= 2)), ok: share(nextGap, (x) => x <= 2) >= 0.8 }] : []),
+  ];
+  const info = {
+    durations: { weak: Wd, medium: Md, strong: Sd },
+    start: { weak: median(r.weak.map((g) => (dd(g) ? dd(g).start : NaN))), medium: median(r.medium.map((g) => (dd(g) ? dd(g).start : NaN))), strong: median(r.strong.map((g) => (dd(g) ? dd(g).start : NaN))) },
+    attempts: { weak: attemptsW, medium: median(r.medium.map((g) => (dd(g) ? dd(g).attempts : NaN))), strong: median(r.strong.map((g) => (dd(g) ? dd(g).attempts : NaN))) },
+    keptMedium: median(q2Nights(r.medium).filter((c) => !c.bossNight).map((c) => c.kept)),
+    starsShare: { weak: share(q2Nights(r.weak), (c) => c.stars === 3), medium: share(q2Nights(r.medium), (c) => c.stars === 3), strong: share(strongNights, (c) => c.stars === 3) },
+  };
+  return { rows, ok: rows.every((x) => x.ok), info };
+}

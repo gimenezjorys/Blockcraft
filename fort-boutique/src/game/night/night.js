@@ -1,7 +1,7 @@
 // Fort Boutique — orchestration de la nuit (G8) : Bocal, vagues, télégraphe, fin de nuit, étoiles.
-import { WAVES } from '../../data/waves.js';
+import { WAVES, SCALING } from '../../data/waves.js';
 import { monsterDef } from '../../data/monsters.js';
-import { NIGHT } from '../../data/night.js';
+import { NIGHT, courageThin, courageAssist } from '../../data/night.js';
 import { XP_GAINS } from '../../data/xp.js';
 import { districtNumber } from '../../data/balance.js';
 import { generateNight, activeEntrances } from './waves.js';
@@ -14,6 +14,12 @@ import { updateVisibility } from './light.js';
 import { jarValue, keptRatio, starsFor } from './theft.js';
 import { addXp, xpFactor } from '../progression.js';
 import { computeFields } from '../state.js';
+import { trackQuest } from '../quest-track.js';
+import { staffToBed } from '../staff.js';
+import { redMoonMult } from '../franchise.js';
+import { FRANCHISE } from '../../data/balance.js';
+import { initCat } from '../cat.js';
+import { eventNightMods, trackEvent } from '../weekly-events.js';
 
 /** Bonus de dégâts du bestiaire (G14.4) : seul le palier le plus haut compte. */
 export function bestiaryBonus(count) {
@@ -21,6 +27,32 @@ export function bestiaryBonus(count) {
   if (count >= 250) return 0.06;
   if (count >= 25) return 0.03;
   return 0;
+}
+
+/** Lanternes prêtées du Festival : au centre, et près de la porte à la Pharmacie. */
+function loanLights(g) {
+  const { w, h } = g.grid;
+  const r = 2.5;
+  const out = [{ x: w / 2, y: h / 2 - 0.5, r }];
+  if (g.shopId === 'q3') out.push({ x: w / 2, y: h - 1, r });
+  return out;
+}
+
+/** Fusionne les effets du mode de jeu et ceux de l'événement de la semaine. */
+function mergeMods(a, ev) {
+  if (!ev) return a;
+  const weightMult = { ...(a.weightMult || {}) };
+  for (const [k, v] of Object.entries(ev.weightMult || {})) weightMult[k] = (weightMult[k] || 1) * v;
+  return {
+    ...a,
+    weightMult,
+    speedMult: (a.speedMult || 1) * ev.speedMult,
+    lootMult: (a.lootMult || 1) * ev.lootMult,
+    goldenChance: ev.goldenChance ?? a.goldenChance,
+    lootType: ev.lootType || a.lootType || null,
+    lantern: ev.lantern || a.lantern || false,
+    xpMult: (a.xpMult || 1) * ev.xpMult,
+  };
 }
 
 /**
@@ -37,7 +69,13 @@ export function startNight(g, opts = {}) {
   const tutorial = g.shopId === 'q1' && s === 1 && k === 1 && g.save.stats.nights === 0;
   const L = WAVES.learning;
   const learning = !tutorial && g.shopId === L.district && s === L.week && L.nights.includes(k);
-  const mods = opts.mods || {};
+  // Événement de la semaine (G13.5) : jamais pendant la nuit 1 scénarisée ni pendant le Défi du jour (graine commune).
+  const ev = tutorial || opts.challenge ? null : eventNightMods();
+  // Coup de main de Mamie (M20) : la nuit d'avant a fini sous 50 % de Bocal.
+  const help = shop.helpNext && !tutorial && !opts.waves ? NIGHT.helpThin : 1;
+  // Semaines d'ouverture d'une boutique neuve (M20) : quartiers 2 à 5, pas en Lune rouge (Franchise).
+  const opening = Q >= 2 && !shop.redMoon ? (s === 1 ? WAVES.openingMult : s === 2 ? WAVES.openingWeek2 : 1) : 1;
+  const mods = mergeMods(opts.mods || {}, ev);
   const gen = opts.waves || generateNight({
     seed: g.save.seed,
     districtId: g.shopId,
@@ -48,15 +86,17 @@ export function startNight(g, opts = {}) {
     tutorial,
     weightMult: mods.weightMult,
     goldenChance: mods.goldenChance,
-    budgetMult: learning ? L.budgetMult : 1,
+    budgetMult: (learning ? L.budgetMult : 1) * (isBoss ? courageThin(shop.bossAssist) : 1) * help * opening,
     starThief: learning && L.starThief,
   });
   const takings = opts.dayTakings ?? shop.phase.dayTakings ?? 0;
-  const jar = opts.jar ?? jarValue(Q, takings);
+  // Revanche de la Pleine Lune (pub rw_boss_retry, G18.1) : Bocal vide (le premier a déjà été compté), dégâts +25 %.
+  const retry = shop.phase.retryDmg > 1 && isBoss;
+  const jar = opts.jar ?? (retry ? 0 : jarValue(Q, takings));
   const ms = merchantNightStats(g.save.player.upgrades);
   const bestiary = {};
   for (const [type, c] of Object.entries(g.save.collections.bestiary)) bestiary[type] = bestiaryBonus(c);
-  const redMoon = shop.redMoon ? 1.5 + 0.5 * shop.franchiseStars : 1;
+  const redMoon = redMoonMult(shop);
   g.night = {
     k,
     s,
@@ -99,7 +139,10 @@ export function startNight(g, opts = {}) {
     repairRate: ms.repairRate,
     broomT: 0,
     repairTick: 0,
-    assist: isBoss ? Math.min(NIGHT.assistMax, NIGHT.assistPerFail * shop.bossAssist) + (opts.extraAssist || 0) : 0,
+    assist: isBoss ? courageAssist(shop.bossAssist) + (opts.extraAssist || 0) : 0,
+    thin: isBoss && !opts.waves ? courageThin(shop.bossAssist) * help : 1,
+    help: help < 1,
+    opening: !opts.waves && s === 1 && opening < 1,
     bestiaryBonus: bestiary,
     brokenCount: 0,
     firstHit: [],
@@ -109,8 +152,16 @@ export function startNight(g, opts = {}) {
     bossEscaped: false,
     bossKilled: false,
     hpMult: redMoon * (mods.hpMult || 1) * (tutorial ? WAVES.tutorialHpMult : 1),
-    lootMult: (mods.lootMult || 1) * (1 + 0.1 * shop.franchiseStars),
+    lootMult: (mods.lootMult || 1) * (1 + FRANCHISE.lootPerStar * shop.franchiseStars),
     speedMult: mods.speedMult || 1,
+    dmgMult: (mods.dmgMult || 1) * (retry ? shop.phase.retryDmg : 1),
+    // Nuit sans fin (G13.2) : vagues ajoutées une à une, PV qui montent, fin quand le Bocal est vide.
+    endless: opts.endless ? { ...opts.endless, held: 0, baseHp: 1 } : null,
+    lootType: mods.lootType || null,
+    // Festival des lanternes : une lanterne prêtée au centre de la boutique, deux à la Pharmacie (G13.5).
+    loanLights: mods.lantern ? loanLights(g) : [],
+    xpMult: mods.xpMult || 1,
+    monsterSpeed: tutorial ? 1 : SCALING.monsterSpeed,
     groupGap: learning ? WAVES.learning.groupGapS : Q >= 3 ? WAVES.groupGapLateS : WAVES.groupGapS,
     memberGap: tutorial ? WAVES.tutorialMemberGapS : learning ? WAVES.learning.memberGapS : WAVES.memberGapS,
     pauseS: tutorial ? WAVES.tutorialPauseS : learning ? WAVES.learning.pauseS : WAVES.pauseS,
@@ -123,6 +174,9 @@ export function startNight(g, opts = {}) {
   };
   initTowers(g);
   computeFields(g);
+  // Le personnel dort ; Moka reste aux côtés du marchand (G11.2, G11.3).
+  staffToBed(g);
+  if (!g.cat) initCat(g);
   g.phase = { name: 'night', t: 0 };
   g.events.push('night_start', 0, 0, g.night.waves.length);
 }
@@ -182,7 +236,10 @@ export function stepNight(g, dt) {
   } else if (n.state === 'active') {
     if (aliveCount(g) === 0) {
       g.events.push('wave_clear', 0, 0, n.waveIndex, n.waves.length);
-      if (n.waveIndex >= n.waves.length - 1) {
+      if (n.endless) {
+        n.endless.held = n.waveIndex + 1;
+        if (n.waveIndex >= n.waves.length - 1) n.waves.push(n.endless.next(g, n.waveIndex + 2));
+      } else if (n.waveIndex >= n.waves.length - 1) {
         finishNight(g, false);
         return;
       }
@@ -198,7 +255,8 @@ export function stepNight(g, dt) {
   stepTowers(g, dt);
   stepProjectiles(g, dt);
   stepMerchantNight(g, dt);
-  if (n.t >= WAVES.maxNightS) finishNight(g, true);
+  if (n.endless && n.jar <= 0) finishNight(g, false);
+  else if (!n.endless && n.t >= WAVES.maxNightS) finishNight(g, true);
 }
 
 /** Voleur scénarisé de la nuit 1 : rapide jusqu'au vol, ralenti de moitié après 3 s sans réaction (G19 2:08). */
@@ -243,7 +301,7 @@ export function finishNight(g, timeout) {
   const bossWin = bossNight && n.bossKilled;
   if (bossNight && !bossWin) stars = 0;
   const xq = xpFactor(g.shopId);
-  const xp = XP_GAINS.nightPerStar * stars * xq + (bossWin ? XP_GAINS.boss * xq : 0);
+  const xp = (XP_GAINS.nightPerStar * stars * xq + (bossWin ? XP_GAINS.boss * xq : 0)) * (n.xpMult || 1);
   const coins = Math.max(0, Math.round(n.jar)) + n.loot;
   const waves = n.waves.map((_, i) => ((n.lostWave[i] || 0) > 0 ? 'lost' : (n.theftWave[i] || 0) > 0 ? 'caught' : 'clean'));
   n.result = {
@@ -269,6 +327,7 @@ export function finishNight(g, timeout) {
     timeout,
     bellUses: n.bellUses,
     tutorial: !!n.tutorial,
+    endlessHeld: n.endless ? n.endless.held : 0,
   };
   g.events.push('night_end', 0, 0, stars, bossWin ? 1 : 0);
   return n.result;
@@ -292,6 +351,16 @@ export function claimNight(g, result, { doubleCoins = false } = {}) {
   }
   g.save.stats.nights++;
   if (result.stars === 3) g.save.stats.nights3++;
+  // Quêtes (G14.1, G14.2) : comptées ici, une seule fois par nuit.
+  trackQuest(g.save, 'kill', result.kills || 0);
+  trackQuest(g.save, 'thief', result.caught || 0);
+  trackQuest(g.save, 'bell', result.bellUses || 0);
+  trackQuest(g.save, 'loot', result.loot || 0);
+  trackQuest(g.save, 'stars', result.stars || 0);
+  if (result.stars === 3) trackQuest(g.save, 'night3');
+  // Défi de la semaine (G13.5).
+  for (const [type, c] of Object.entries(result.killsByType || {})) trackEvent(g.save, 'kill', c, type);
+  if (result.stars >= 2) trackEvent(g.save, 'nights2', 1);
   shop.lastNightStars = result.stars;
   return true;
 }

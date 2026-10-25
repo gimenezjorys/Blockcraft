@@ -1,10 +1,12 @@
 // Fort Boutique — point d'entrée du navigateur : assemble l'interface, le jeu, le rendu et l'audio.
-import { setLang, detectLang } from './ui/i18n.js';
+import { setLang, detectLang, t } from './ui/i18n.js';
 import { createApp } from './ui/app.js';
 import { createDemoScene } from './render/demo-scene.js';
 import { createStorage } from './save/storage.js';
 import { now, setClock } from './core/time.js';
 import { createAudio } from './audio/audio.js';
+import { createMusic } from './audio/music.js';
+import { listen } from './core/events.js';
 import { buildCheats } from './debug/cheats.js';
 import { installTestHooks } from './debug/test-hooks.js';
 import { createSession } from './ui/session.js';
@@ -15,11 +17,20 @@ import morning from './ui/screens/morning.js';
 import dawn from './ui/screens/dawn.js';
 import pause from './ui/screens/pause.js';
 import catalog from './ui/screens/catalog.js';
+import plans from './ui/screens/plans.js';
 import upgrades from './ui/screens/upgrades.js';
 import unlocks from './ui/screens/unlocks.js';
 import editor from './ui/screens/editor.js';
 import map from './ui/screens/map.js';
 import moon from './ui/screens/moon.js';
+import quests from './ui/screens/quests.js';
+import calendar from './ui/screens/calendar.js';
+import reward from './ui/screens/reward.js';
+import daily from './ui/screens/daily.js';
+import ad from './ui/screens/ad.js';
+import wardrobe from './ui/screens/wardrobe.js';
+import endless from './ui/screens/endless.js';
+import { createAds } from './ads/ads.js';
 import hud from './ui/screens/hud.js';
 import intro from './ui/screens/intro.js';
 import settings from './ui/screens/settings.js';
@@ -37,6 +48,9 @@ function boot() {
   const audio = createAudio(window);
   audio.attach();
   app.services.audio = audio;
+  app.services.t = t;
+  const music = createMusic(audio);
+  app.services.music = music;
   const toasts = createToasts(document.getElementById('app'));
   app.services.toast = (text, icon) => toasts.show(text, icon);
   app.services.toasts = toasts;
@@ -76,9 +90,16 @@ function boot() {
     } else audio.unmute('hidden');
   };
   app.services.onPageHide = () => session.flush();
+  // Android / Chrome : le navigateur propose l'installation ; on garde la demande pour le bouton des Paramètres.
+  listen(window, 'beforeinstallprompt', (e) => {
+    e.preventDefault();
+    app.services.installPrompt = e;
+  });
   app.stepHooks.push((dt) => {
     session.step(dt);
     toasts.update(dt);
+    // Musique (G21.2) : ambiance d'après l'écran et la phase, notes planifiées juste à temps.
+    music.update(session.game(), app.router.baseId());
   });
   // Outils debug (?debug=1).
   let clockShift = 0;
@@ -106,6 +127,10 @@ function boot() {
     snap.storageKind = storage.kind;
     return snap;
   };
+  // Pubs (B10) : sans régie par défaut ; `?ads=sim` active l'adaptateur de test.
+  app.services.ads = createAds(app);
+  const adsParam = /[?&]ads=(none|sim|poki|crazygames)(?:&|$)/.exec(window.location.search);
+  if (adsParam) app.services.ads.setAdapter(adsParam[1]);
   const demo = /[?&]demo=1(?:&|$)/.test(window.location.search);
   app.onTitleTap = () => {
     if (demo) {
@@ -116,7 +141,7 @@ function boot() {
     }
     session.start();
   };
-  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, unlocks, editor, map, moon });
+  app.router.register({ title, blank, hud, intro, settings, morning, dawn, pause, catalog, upgrades, plans, unlocks, editor, map, moon, quests, calendar, reward, daily, ad, wardrobe, endless });
   app.router.goto('title');
   app.loop.start();
 }

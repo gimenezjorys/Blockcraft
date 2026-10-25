@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { loadGame } from '../tests/helpers/dom.js';
 import { TouchBot } from '../tests/helpers/bot.js';
 import { HumanBot } from './lib/human-bot.mjs';
+import { runP3, toMarkdownP3 } from './lib/playtest-p3.mjs';
+import { runP4, toMarkdownP4 } from './lib/playtest-p4.mjs';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const which = (process.argv[2] || 'P1').toUpperCase();
@@ -229,6 +231,10 @@ function objectiveVisible(g, st) {
       return visible('.dawn-chest') || g.$$('.card-up').some((b) => !b.hidden) || visible('.dawn-actions');
     case 'unlocks':
       return visible('#unlock-ok');
+    case 'calendar':
+      return visible('#calendar-today') || visible('#calendar-close');
+    case 'reward':
+      return visible('.reward');
     case 'editor':
       return visible('#ed-validate');
     case 'intro': {
@@ -458,13 +464,13 @@ function toMarkdownP2(r) {
   return lines.join('\n') + '\n';
 }
 
-const runners = { P1: runP1, P2: () => ({ ...runP2(), hesitant: runP2Hesitant(), passive: runP2Passive() }) };
+const runners = { P1: runP1, P2: () => ({ ...runP2(), hesitant: runP2Hesitant(), passive: runP2Passive() }), P3: runP3, P4: runP4 };
 if (!runners[which]) {
   process.stderr.write(`playtest inconnu : ${which} (disponibles : ${Object.keys(runners).join(', ')})\n`);
   process.exit(1);
 }
 const result = runners[which]();
-const md = which === 'P2' ? toMarkdownP2(result) : toMarkdown(result);
+const md = which === 'P2' ? toMarkdownP2(result) : which === 'P3' ? toMarkdownP3(result) : which === 'P4' ? toMarkdownP4(result) : toMarkdown(result);
 mkdirSync(join(ROOT, 'docs/playtests'), { recursive: true });
 writeFileSync(join(ROOT, `docs/playtests/${which}.measures.json`), JSON.stringify(result, null, 2) + '\n');
 writeFileSync(join(ROOT, `docs/playtests/${which}.measures.md`), md);

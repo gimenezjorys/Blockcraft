@@ -13,6 +13,9 @@ const TOGGLES = [
   ['leftHanded', 'settings.leftHanded'],
   ['bigText', 'settings.bigText'],
   ['economy', 'settings.economy'],
+  ['weaknessIcons', 'settings.weaknessIcons'],
+  ['rooster', 'settings.rooster'],
+  ['freeLayout', 'settings.freeLayout'],
 ];
 
 /** Temps pour confirmer la réinitialisation (2e tap), en secondes. */
@@ -60,6 +63,23 @@ function mount(app, p, d) {
     }, d);
     return h('div.set-row', [h('span.set-label', { text: t(label) }), b]);
   });
+
+  // v1.1 (V2.1) : flèche d'aide Auto / Toujours / Jamais.
+  const ARROW = ['auto', 'always', 'never'];
+  const arrowBtns = ARROW.map((mode) => tagButton({ label: t(`settings.arrow.${mode}`), small: true, id: `set-arrow-${mode}` }));
+  const paintArrow = () => arrowBtns.forEach((b, i) => {
+    const on = (s.guideArrow || 'auto') === ARROW[i];
+    b.dataset.variant = on ? 'green' : 'kraft';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  arrowBtns.forEach((b, i) => onTap(b, () => {
+    s.guideArrow = ARROW[i];
+    paintArrow();
+    sfx('ui_tap');
+    p.onChange();
+  }, d));
+  paintArrow();
+  const arrowRow = h('div.set-row', [h('span.set-label', { text: t('settings.arrow') }), h('div.set-langs', arrowBtns)]);
 
   // Langue.
   const langs = h('div.set-langs', ['fr', 'en'].map((lang) => {
@@ -149,6 +169,7 @@ function mount(app, p, d) {
     slider('music', 'settings.music'),
     slider('sfx', 'settings.sfx'),
     h('h3.set-h', { text: t('settings.comfort') }),
+    arrowRow,
     ...toggles,
     h('h3.set-h', { text: t('settings.lang') }),
     langs,
@@ -157,6 +178,12 @@ function mount(app, p, d) {
     box,
     msg,
     h('div.set-actions', [reset]),
+    // Carte « écran d'accueil » (G22, M25) : jouer en plein écran, comme une appli.
+    h('h3.set-h', { text: t('settings.install') }),
+    installCard(app, d),
+    // Crédits (G22).
+    h('h3.set-h', { text: t('settings.credits') }),
+    h('div.up-note.set-credits', { id: 'set-credits', text: t('settings.creditsText') }),
     version,
   ]);
   const el = h('div.panel.slate-full.settings', [head, body]);
@@ -175,6 +202,29 @@ function mount(app, p, d) {
       return true;
     },
   };
+}
+
+/** Comment installer le jeu sur l'écran d'accueil, selon l'appareil (G22, M25). */
+function installCard(app, d) {
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  const win = typeof window !== 'undefined' ? window : {};
+  const standalone = !!nav.standalone || (typeof win.matchMedia === 'function' && win.matchMedia('(display-mode: standalone)').matches);
+  const ios = /iPhone|iPad|iPod/.test(nav.userAgent || '');
+  if (standalone) return h('div.up-note', { id: 'set-install', text: t('settings.installed') });
+  const prompt = app.services.installPrompt;
+  if (prompt) {
+    const b = tagButton({ label: t('settings.installNow'), small: true, variant: 'green', id: 'set-install' });
+    onTap(b, () => {
+      try {
+        prompt.prompt();
+      } catch {
+        /* le navigateur a refusé */
+      }
+      app.services.installPrompt = null;
+    }, d);
+    return h('div.set-actions', [b]);
+  }
+  return h('div.up-note', { id: 'set-install', text: t(ios ? 'settings.installIos' : 'settings.installOther') });
 }
 
 export default { mount, overlay: true };

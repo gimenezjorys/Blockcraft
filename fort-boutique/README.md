@@ -7,11 +7,30 @@ Fort Boutique est un jeu web mobile (portrait, jouable d'un pouce, aussi à la s
 
 ## Jouer en ligne
 
-**https://gimenezjorys.github.io/Blockcraft/fort-boutique/** (GitHub Pages du dépôt Blockcraft, branche `main` ; DECISIONS.md, v0.2).
+**https://gimenezjorys.github.io/Blockcraft/fort-boutique/** (GitHub Pages du dépôt Blockcraft, branche `main` : la page en ligne montre ce qui a été fusionné dans `main`).
 
 ## Jouer hors ligne
 
 Télécharger [`dist/index.html`](dist/index.html) et l'ouvrir par un double-clic : le jeu tient dans ce seul fichier, sans connexion, sans police, image ni son externes.
+
+## Nouveau dans la v1.1
+
+- Une flèche d'objectif et des bulles d'état : on sait toujours quoi faire ; les Objectifs de Mamie guident les premières heures.
+- La boutique se range toute seule (emplacements prévus) ; 3 plans au choix, échange de deux meubles.
+- Personnel embauché dans la boutique, boutique automatisée, pilote automatique, « Passer la journée », vitesse ×2 et ×3.
+- Écran titre animé, hub du Matin dessiné comme une rue, un vrai thème musical.
+
+Détail : [CHANGELOG.md](CHANGELOG.md).
+
+## Ce qu'il y a dans le jeu (v1.0)
+
+- 5 quartiers et leurs boss, des semaines sans fin, 24 meubles qui vendent le jour et se battent la nuit, 13 Grignotins.
+- Les aides de Mamie (Courage, coup de main, semaines d'ouverture) : on n'est jamais bloqué.
+- Quêtes, calendrier, flamme, succès, bestiaire, Défi du jour à partager, événements, saisons.
+- Nuit sans fin, Franchise de quartier, Garde-robe ; pubs uniquement récompensées.
+- Musique et sons générés en direct, français et anglais, options d'accessibilité.
+
+Détail : [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md). Décisions et réglages : [DECISIONS.md](DECISIONS.md). Avancement : [PROGRESS.md](PROGRESS.md).
 
 ## Commandes
 
@@ -23,7 +42,7 @@ npm run build     # produit dist/index.html autonome (≤ 600 Ko), le manifest e
 npm run check     # vérifications maison (taille des fichiers, Math.random, dates, URL, traductions)
 npm run sim       # simulations d'équilibrage par bots (ex. npm run sim -- --runs 300 --district all)
 npm run playtest  # playtests simulés dans jsdom avec de vrais événements (ex. npm run playtest -- P2)
-npm run bench     # mesures de performance
+npm run bench     # mesures de performance (docs/sim/BENCH.md)
 ```
 
 ## Structure du code
@@ -44,7 +63,7 @@ npm run bench     # mesures de performance
 
 ## Brancher une régie publicitaire
 
-Voir `src/ads/` (complété en M15).
+`src/ads/` : la règle (`ad-policy.js`, plafonds et moments permis), l'interface (`ads.js`) et les adaptateurs. Par défaut `none` (aucune pub, boutons grisés) ; `?ads=sim` affiche une pub de test de 3 s ; des squelettes Poki et CrazyGames sont prêts à compléter. Une récompense n'est donnée que si la pub est vue jusqu'au bout.
 
 ## Licence
 

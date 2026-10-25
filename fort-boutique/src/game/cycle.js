@@ -11,6 +11,11 @@ import { fillAllProducers } from './day/producers.js';
 import { DISTRICTS, DISTRICT_IDS } from '../data/districts.js';
 import { districtOpen, applyLevelUps } from './progression.js';
 import { defaultShop } from '../save/schema.js';
+import { trackQuest } from './quest-track.js';
+import { recordNight } from './streak.js';
+import { now, utcDay, utcWeekday } from '../core/time.js';
+import { currentEvent } from './weekly-events.js';
+import { franchiseBossWin } from './franchise.js';
 
 /**
  * Où reprendre une partie chargée (G5.2) : jour avec le temps restant, nuit depuis le début, aube, matin.
@@ -94,9 +99,20 @@ export function enterDawn(g) {
     })),
   };
   ph.orderChests = 0;
+  ph.retryDmg = 0;
+  // Fête de Mamie (G13.5) : un coffre d'argent en plus à la première aube du dimanche (une fois par dimanche).
+  const ev = currentEvent();
+  const today = utcDay();
+  const ep = g.save.daily.eventProgress;
+  if (ev.sundayChest && utcWeekday() === 6 && ep.sundayDay !== today && !result.tutorial) {
+    ep.sundayDay = today;
+    ph.dawn.extra.push({ type: ev.sundayChest, first: false, opened: false, seed: seedFrom(g.save.seed, 'dimanche', today) });
+  }
   ph.name = 'dawn';
   const levelFrom = g.save.player.level;
   claimNight(g, result);
+  // La flamme de la boutique avance une fois par jour UTC (G15.2).
+  ph.dawn.streak = recordNight(g.save, now());
   // G19 2:57 : la première aube fête toujours le niveau 2 ; il ne manque au plus que quelques XP à un joueur hésitant
   // (P2, Léa), on les complète une seule fois.
   if (result.tutorial && g.save.player.level === 1) g.save.player.xp = Math.max(g.save.player.xp, xpToNext(1));
@@ -155,9 +171,12 @@ export function leaveDawn(g) {
   if (dawn && dawn.chest && !dawn.chest.opened) openDawnChest(g);
   if (dawn && dawn.extra) dawn.extra.forEach((c, i) => !c.opened && openExtraChest(g, i));
   const r = dawn ? dawn.result : null;
+  if (r) shop.helpNext = r.kept < NIGHT.helpBelow;
   if (r && r.bossNight) {
     if (r.bossWin) {
       shop.bossBeatenCount++;
+      // Franchise (G13.4) : le boss battu en Lune rouge donne une étoile ; la semaine continue normalement.
+      franchiseBossWin(shop);
       shop.week++;
       // Quartier suivant : sa carte se fête au Matin s'il est vraiment ouvert (boss vaincu ET niveau, G12.4).
       const next = DISTRICT_IDS.find((id) => DISTRICTS[id].previousBoss === g.shopId);
@@ -168,10 +187,13 @@ export function leaveDawn(g) {
       }
       shop.night = 1;
       shop.bossAssist = 0;
-      const bk = g.save.stats.bossKills;
-      bk[g.district.boss] = (bk[g.district.boss] || 0) + 1;
+      const st = g.save.stats;
+      st.bossKills[g.district.boss] = (st.bossKills[g.district.boss] || 0) + 1;
+      // Succès « vaincu en semaine 5 » (G14.3) : la semaine du combat, avant le passage à la suivante.
+      if (shop.week - 1 >= 5) st.bossKillsW5[g.district.boss] = (st.bossKillsW5[g.district.boss] || 0) + 1;
+      trackQuest(g.save, 'moon');
     } else {
-      shop.bossAssist = Math.min(Math.round(NIGHT.assistMax / NIGHT.assistPerFail), shop.bossAssist + 1);
+      shop.bossAssist = Math.min(NIGHT.maxFails, shop.bossAssist + 1);
     }
   } else {
     shop.night = Math.min(7, shop.night + 1);
@@ -188,4 +210,46 @@ export function leaveDawn(g) {
 /** Livraison du matin après une absence (G16) : réserves pleines. */
 export function morningDelivery(g) {
   fillAllProducers(g);
+}
+
+/**
+ * Revanche tout de suite après une Pleine Lune perdue (pub rw_boss_retry, G18.1) : la même nuit recommence avec +25 %
+ * de dégâts et un Bocal vide (les pièces de la première tentative sont déjà gagnées). Le Courage de Mamie n'avance pas.
+ * @param {any} g
+ * @param {number} bonus 0,25
+ * @returns {boolean}
+ */
+export function retryBossNight(g, bonus) {
+  const ph = g.shop.phase;
+  const r = ph.dawn && ph.dawn.result;
+  if (!r || !r.bossNight || r.bossWin) return false;
+  if (ph.dawn.chest && !ph.dawn.chest.opened) openDawnChest(g);
+  ph.dawn = null;
+  ph.dawnClaimed = false;
+  ph.name = 'night';
+  ph.retryDmg = 1 + bonus;
+  for (const f of g.furn) {
+    f.broken = false;
+    f.eyes = 1;
+  }
+  return true;
+}
+
+/**
+ * Crée la boutique de chaque quartier ouvert (boss précédent vaincu ET niveau) qui n'existe pas encore : un niveau
+ * atteint après la victoire sur le boss ouvre aussi le quartier (G12.4). Sa carte se fête au Matin suivant.
+ * @param {any} save
+ * @returns {string[]} quartiers ouverts maintenant
+ */
+export function openReadyDistricts(save) {
+  const opened = [];
+  for (const id of DISTRICT_IDS) {
+    if (save.shops[id] && save.shops[id].unlocked) continue;
+    if (!districtOpen(save, id)) continue;
+    save.shops[id] = save.shops[id] || defaultShop(id);
+    save.shops[id].unlocked = true;
+    if (!save.progress.pendingDistricts.includes(id)) save.progress.pendingDistricts.push(id);
+    opened.push(id);
+  }
+  return opened;
 }

@@ -5,6 +5,7 @@ import { buyPrice, ownedCount } from './economy.js';
 import { districtOpen } from './progression.js';
 import { validateLayout, gridSize, districtEntrances, occupancy, registerAccessCells } from './shop.js';
 import { bfs } from './pathfinding.js';
+import { nextSlotSpot, syncSlots } from './plans.js';
 
 /**
  * Meubles proposés dans le catalogue d'une boutique (dans l'ordre d'affichage).
@@ -139,16 +140,18 @@ export function findPlacement(districtId, expansion, layout, id) {
 }
 
 /**
- * Pose un meuble de la Réserve à la meilleure place (s'il y en a une).
+ * Pose un meuble de la Réserve dans le prochain emplacement prévu de son type (s'il y en a un).
  * @returns {{ x: number, y: number, rot: number } | null}
  */
 export function autoPlaceFromStorage(save, shopId, id) {
   const shop = save.shops[shopId];
   const i = shop.storage.indexOf(id);
   if (i < 0) return null;
-  const spot = findPlacement(shopId, shop.expansion, shop.layout, id);
+  // v1.1 (V3) : le premier emplacement libre de son type, dans l'ordre du plan ; sinon il reste dans la Réserve.
+  const spot = nextSlotSpot(shopId, shop, id);
   if (!spot) return null;
   shop.storage.splice(i, 1);
   shop.layout.push({ id, x: spot.x, y: spot.y, rot: spot.rot });
+  syncSlots(shopId, shop);
   return spot;
 }

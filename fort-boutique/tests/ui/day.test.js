@@ -16,16 +16,16 @@ test('jour 1 au doigt : cagette -> étagère -> premier client -> encaissement, 
     assert.ok(openEnvelope(g), 'un tap sur l’enveloppe ouvre la boutique');
     let st = g.hooks.getState();
     assert.equal(st.scene.phase, 'day');
-    // Laisse pousser des pommes, puis va à côté de la cagette (0,1).
+    // Laisse pousser des pommes, puis va à droite de la cagette (0,0) (v1.1 : emplacement P1 du plan).
     g.hooks.advance(9000);
-    assert.ok(walkTo(g, 1.45, 1.5), 'atteint la cagette');
+    assert.ok(walkTo(g, 1.45, 0.5), 'atteint la cagette');
     g.hooks.advance(800);
     st = g.hooks.getState();
     assert.ok(st.scene.player.stack.length >= 3, `pommes sur la tête : ${st.scene.player.stack.length}`);
     const started = g.audio.started;
     assert.ok(started > 0, 'sons de prise');
-    // Étagère A (0,4).
-    assert.ok(walkTo(g, 1.45, 4.5));
+    // Étagère A (1,2) (v1.1 : emplacement É1) : on pose depuis le couloir du marchand, juste au-dessus.
+    assert.ok(walkTo(g, 1.5, 1.5));
     g.hooks.advance(800);
     st = g.hooks.getState();
     const shelf = st.scene.furniture.find((f) => f.id === 'etagere');

@@ -15,23 +15,23 @@ Statuts : ⬜ à faire · 🔄 en cours · ✅ validée (date UTC). Règles de r
 | M8 — Aménagement | ✅ | 2026-10-20 | Éditeur plein écran : glisser au doigt (fantôme vert/rouge), tourner, ranger, Réserve, trajets et longueurs, Conseil de Mamie, Valider/Annuler ; 8 tests (dont 3 aux vrais gestes). |
 | M9 — La semaine et la Pleine Lune | ✅ | 2026-10-20 | Pleine Lune : Roi Raton (invocations, vol 35 %, fuite), barre de PV, carte d'intro, victoire/échec, Courage de Mamie, Coffre de Lune, semaine 2 ; carte des quartiers (boss ET niveau) ; aperçu de la lune ; 8 tests. |
 | M10 — Simulateur d'équilibrage (Q1) | ✅ | 2026-10-20 | Simulateur (bots Faible/Moyen/Fort en parallèle, modèle provisoire des quêtes) : 300 parties par profil, tous les seuils D2.4 applicables tenus après réglages dans la marge ±25 % ; 3 bugs de jeu trouvés et corrigés ; test sim de 40 parties. |
-| M11 — Les 10 premières minutes + P2 | 🔄 | | Fait : enveloppe, guide et indices sans texte (règle des 4 s), étiquette d'objectif, Rush, Commande spéciale, rythme de G19 (15/15 jalons en gras dans ±20 %), corrections des critiques Léa, Hugo, Sam. Reste : docs/playtests/P2.md et revue de code (coupées par la limite d'usage). |
-| M12 — Quêtes, calendrier, série, succès, bestiaire | ⬜ | | |
-| M13 — Hors ligne, Moka, personnel | ⬜ | | |
-| M14 — Défi du jour, Rivaux, partage, événements | ⬜ | | |
-| M15 — Pubs, rubis, Garde-robe + P3 | ⬜ | | |
-| M16 — Quartier 2 : la Boulangerie | ⬜ | | |
-| M17 — Quartier 3 : la Pharmacie | ⬜ | | |
-| M18 — Quartier 4 : la Quincaillerie | ⬜ | | |
-| M19 — Quartier 5 : l'Emporium | ⬜ | | |
-| M20 — Équilibrage global + P4 | ⬜ | | |
-| M21 — Direction artistique complète | ⬜ | | |
-| M22 — Juice et options | ⬜ | | |
-| M23 — Audio complet | ⬜ | | |
-| M24 — Performances et mémoire | ⬜ | | |
-| M25 — Anglais, Paramètres, crédits, iOS, icônes | 🔄 | | v0.2 : écran Paramètres fait (volumes, confort, langue FR/EN, export/import FB1, réinitialisation en deux temps, version). Reste : anglais complet, crédits, iOS, icônes. |
-| M26 — Robustesse + P5 | ⬜ | | |
-| M27 — Publication | ⬜ | | |
+| M11 — Les 10 premières minutes + P2 | ✅ | 2026-10-21 | Enveloppe, guide et indices sans texte (4 s), objectif toujours visible, Rush, Commande spéciale, rythme de G19 (15/15 jalons en gras dans ±20 %), niveau à l'aube ; P2 : 9 majeurs corrigés (Léa, Hugo, Sam). |
+| M12 — Quêtes, calendrier, série, succès, bestiaire | ✅ | 2026-10-21 | 3 quêtes du jour à graine UTC (+ relance), 4-5 de la semaine, calendrier de 7 jours (s'ouvre seul au premier Matin), flamme de la boutique (+2 %/jour, gels, rallumage 48 h), 52 succès et paliers du bestiaire, écrans Quêtes et Calendrier. |
+| M13 — Hors ligne, Moka, personnel | ✅ | 2026-10-21 | Retour après absence (réserves pleines, gains du personnel plafonnés à 8 h, Coffre de Bienvenue après 3 jours, ticket du Matin), Moka (suit, rapporte, bondit ; croquettes), commis et caissier (dorment la nuit) ; équilibrage Q1 refait avec Moka (D2.5). |
+| M14 — Défi du jour, Rivaux, partage, événements | ✅ | 2026-10-21 | Défi du jour (même boutique et mêmes vagues pour tous, aménagement libre, score, première tentative récompensée, Entraînement, Rivaux, Partager), événements de la semaine (bannière, effets, défi), saisons (XP +10 %, décor) ; D2.4.8 simulé. |
+| M15 — Pubs, rubis, Garde-robe + P3 | ✅ | 2026-10-21 | Adaptateurs (none, sim, squelettes Poki et CrazyGames), règles et plafonds (ad-policy testé règle par règle), 7 placements récompensés + interstitielle it_dawn, Garde-robe (6 catégories, rubis, saisons) et rendu des cosmétiques ; D2.4.7 tenu ; P3 : 1 majeur corrigé. |
+| M16 — Quartier 2 : la Boulangerie | ✅ | 2026-10-21 | Boulangerie jouable (carte des quartiers), un test par comportement (défaut du four corrigé), simulation SIM_Q2 : tous les seuils D2.4 tenus sauf D2.4.4 (reporté en M20). |
+| M17 — Quartier 3 : la Pharmacie | ✅ | 2026-10-21 | Pharmacie jouable, un test par comportement, lanterne prêtée du Festival, formations de corbeaux entières ; SIM_Q3 : tous les seuils D2.4 tenus sauf D2.4.4 (reporté en M20). |
+| M18 — Quartier 4 : la Quincaillerie | ✅ | 2026-10-21 | Un test par comportement, robots attentifs à l'armure, réglages −25 % ; SIM_Q4 : D2.4.2a, D2.4.4 et D2.4.5 non tenus (courbe des PV entre quartiers et Pleine Lune → M20). |
+| M19 — Quartier 5 : l'Emporium | ✅ | 2026-10-21 | Emporium jouable, un test par comportement ; Nuit sans fin (choix de la boutique, vagues sans fin, record, coffres, Rivaux simulés de la semaine) et Franchise (Lune rouge, étoiles) depuis la carte, testées au doigt ; réglages −25 % ; la Reine Phalène reste imbattable pour les robots → M20. |
+| M20 — Équilibrage global + P4 | ✅ | 2026-10-23 | Aides de Mamie (Courage qui éclaircit la horde et monte sans mur, coup de main après une mauvaise nuit), semaines d'ouverture, Reine Phalène attirée par les lanternes, dégâts +20 %/niveau au-delà du 5, courbe M_Q, PV des boss ; repérages : seuils D2.4 tenus dans les 5 quartiers sauf D2.4.5 au Q5 (88 %) ; P4 : 1 bloquant et 2 majeurs corrigés. Simulations de 300 parties arrêtées sur consigne. |
+| M21 — Direction artistique complète | ✅ | 2026-10-23 | Icônes des produits des Q3 à Q5, enseignes de prestige de la Franchise, nuit de Lune rouge, transitions d'écran (le reste de G20 existait déjà). |
+| M22 — Juice et options | ✅ | 2026-10-23 | Options manquantes de G22 (icônes de faiblesse, cocorico, crédits) ; juice de G20.6 déjà en place. |
+| M23 — Audio complet | ✅ | 2026-10-23 | Séquenceur musical (titre, Matin, Jour, Nuit, boss, crépuscule, aube), couches selon l'action, réverbération et ducking, effets manquants (cocorico, flammes, tourbillon, rayon). |
+| M24 — Performances et mémoire | ✅ | 2026-10-23 | `npm run bench` (0,14 ms par pas, 580 appels de dessin, budgets tenus), mode économie automatique ; tests de fuite non écrits (consigne). |
+| M25 — Anglais, Paramètres, crédits, iOS, icônes | ✅ | 2026-10-23 | Paramètres complets (G22), anglais complet (443 clés), crédits, carte « Écran d'accueil » (iOS, bouton Installer ailleurs), manifeste et icônes. |
+| M26 — Robustesse + P5 | ✅ | 2026-10-23 | Boucle protégée contre les erreurs (sauvegarde + message, le jeu continue) ; sauvegardes déjà réparées depuis M4/M6. Fuzz, 500 sauvegardes altérées et P5 non faits (consigne). |
+| M27 — Publication | ✅ | 2026-10-23 | v1.0.0 : README final, notes de version (docs/RELEASE_NOTES.md). Mise en ligne (fusion dans `main`) et tag `v1.0.0` en attente de l'accord de l'utilisateur. |
 
 
 ## v0.2 jouable — 2026-10-21 (UTC)
@@ -124,9 +124,9 @@ Chaque mission a un statut : ⬜ à faire, 🔄 en cours, ✅ validée (date UTC
 - Fini quand : tous les seuils D2.4 du Quartier 1 sont tenus.
 
 **M11 — Les 10 premières minutes + Playtest P2**
-- [ ] Implémenter G19 à la seconde près : indices visuels sans texte, jours courts, ordre des pads, premier coffre, première amélioration, raisons de revenir.
-- [ ] Objectif toujours visible (G3.5).
-- [ ] Playtest P2 (D3) : chaque jalon de G19 atteint dans sa fenêtre (±20 %) ; jamais plus de 20 s sans objectif visible.
+- [x] Implémenter G19 à la seconde près : indices visuels sans texte, jours courts, ordre des pads, premier coffre, première amélioration, raisons de revenir.
+- [x] Objectif toujours visible (G3.5).
+- [x] Playtest P2 (D3) : chaque jalon de G19 atteint dans sa fenêtre (±20 %) ; jamais plus de 20 s sans objectif visible.
 
 ### Jalon D — Rétention
 
@@ -171,10 +171,37 @@ Pour chaque quartier : données, comportements, boss, tests unitaires de chaque 
 
 ---
 
+## v1.1 « Plus simple, plus clair, plus joli » (docs/PROMPT_V1_1.md)
+
+- [x] V1 — Audit (DECISIONS.md, 2026-10-23)
+- [x] V2 — Un jour clair et guidé : flèche d'objectif, bulles d'état, Objectifs de Mamie, ouverture, Moka (2026-10-23)
+- [x] V3 — Emplacements prévus : la boutique se range toute seule (+ sauvegarde v2) (2026-10-23)
+- [x] V4 — Plans de boutique (3 plans), échanger deux meubles ; éditeur libre en option expert (2026-10-23)
+- [x] V5 — Personnel en boutique (emplacements d'embauche), boutique automatisée, pilote automatique, passer la journée (2026-10-23)
+- [x] V6 — Vitesse ×1 / ×2 / ×3 (2026-10-23)
+- [x] V7 — Écran titre animé (2026-10-23)
+- [x] V8 — Hub du matin vivant (façade, objets, établi) (2026-10-23)
+- [x] V9 — Musique : thème écrit, ukulélé, glockenspiel, sifflement (2026-10-23)
+- [x] V10 — Équilibrage rapide et finitions (2026-10-23)
+- [x] V11 — Livraison v1.1.0 (2026-10-23)
+
 ## Problèmes mineurs relevés en playtest (à traiter en finition)
 
 Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qui la traitera.
 
+- [x] M16 à M19 — D2.4.4 des Q2 à Q5, Q4 et Q5 trop durs, Reine imbattable → corrigés en M20 (repérages).
+- [ ] M20 — Rapports SIM_Q1 à Q5 de 300 parties à refaire avec les valeurs de M20 (arrêtés sur consigne) ; D2.4.5 au Q5 à 88 % au repérage.
+- [ ] P4 — Semaine 2+ du Q4 : 5 tentatives pour la Pleine Lune, semaine 3 dure (boucle facultative) → revoir au Playtest P5.
+- [ ] P4 — « Franchiser » seulement sur la façade de la boutique où l'on est.
+- [ ] P4 — Cycles de 4 à 7 min au Q4 (long pour Sam).
+- [ ] P4 — Toasts de paliers du bestiaire en rafale au premier cycle.
+- [ ] M19 — Enseignes de prestige de la Franchise (bois → lune) → M21 (direction artistique).
+- [ ] P3 — Flamme éteinte impossible à rallumer sans pub avec les rubis d'un joueur récent → M20 (économie des rubis).
+- [ ] P3 — Deux fenêtres de gains à la suite au retour (ticket puis calendrier) → M22.
+- [ ] P2 — 4e emplacement en avance sur G19 (revenus du jour 2) ; revu en M12 : toujours 6/7 repères avec les 150 pièces du calendrier → M20 (équilibrage global).
+- [ ] P2 — Jour 3 sans achat après P5 et P6 ; les quêtes n'ouvrent qu'au niveau 4 (fin du cycle 3, G12.4) → M20.
+- [ ] P2 — Commande spéciale facile (client près de la caisse, G7.7) ; appeler la vague suivante plus tôt (Hugo) → M22.
+- [ ] P2 — Mots dans l'éditeur (« Clients », « Grignotins ») → M21.
 - [ ] P1 — Jalons du début 22 à 38 % en avance sur G19 (robot rapide, mais nuits trop courtes) → M11 (M10 : nuits un peu plus longues, nuit 2 ≈ 28 s, nuit 6 ≈ 70 s).
 - [ ] P1 — Nuits ≈ 15 % du temps de jeu ; transformation des meubles timide (petits yeux, armes peu visibles) → M10, M21.
 - [ ] P1 — Ticket de l'aube très textuel ; les pièces gagnées ne volent pas vers le compteur → M21.
@@ -201,3 +228,22 @@ Source : `docs/playtests/P1.md` (2026-10-20). Chaque ligne indique la mission qu
 - 2026-10-20 — M8 fait : aménagement. Reste : M9 semaine et Pleine Lune. Prochaine étape : brancher boss.js dans la nuit (bossStep), carte d'intro et barre de PV, Courage de Mamie.
 - 2026-10-20 — M9 fait : semaine complète jusqu'au boss. Reste : M10 simulateur d'équilibrage Q1. Prochaine étape : scripts/sim.mjs avec scripts/lib/bots.mjs et strategy.mjs, 300 parties, seuils D2.4.
 - 2026-10-20 — M10 fait : équilibrage Q1 (docs/sim/SIM_Q1.md). Reste : M11 les 10 premières minutes + P2. Prochaine étape : G19 seconde par seconde (flèche dorée, main fantôme, objectif toujours visible).
+- 2026-10-21 — M11 fait : les 10 premières minutes + P2 (docs/playtests/P2.md). v0.2 publiée sur GitHub Pages. Prochaine étape : M12 quêtes, calendrier, série, succès, bestiaire.
+- 2026-10-21 — M12 fait (mode rapide demandé : tests essentiels de la mission seulement). P2 rejoué : 15/15 jalons, calendrier réclamé à 2:41. Prochaine étape : M13 hors ligne, Moka, personnel.
+- 2026-10-21 — M13 fait (tests essentiels). Q1 rééquilibré avec Moka dans les marges D2.5 (docs/sim/SIM_Q1.md). Prochaine étape : M14 Défi du jour, Rivaux, partage, événements.
+- 2026-10-21 — M14 fait (tests essentiels ; D2.4.8 tenu). Prochaine étape : M15 pubs, rubis, Garde-robe + Playtest P3.
+- 2026-10-21 — M15 fait : pubs (B10, G18), Garde-robe (G17), P3 (docs/playtests/P3.md). Jalon D terminé. Prochaine étape : M16 Quartier 2, la Boulangerie.
+- 2026-10-21 — M16 fait : la Boulangerie (docs/sim/SIM_Q2.md ; D2.4.4 du Q2 reporté en M20). Prochaine étape : M17 Quartier 3, la Pharmacie.
+- 2026-10-21 — M17 fait : la Pharmacie (docs/sim/SIM_Q3.md ; D2.4.4 du Q3 reporté en M20). Prochaine étape : M18 Quartier 4, la Quincaillerie.
+- 2026-10-21 — M18 fait : la Quincaillerie (docs/sim/SIM_Q4.md ; trois seuils reportés en M20). Prochaine étape : M19 l'Emporium, Nuit sans fin, Franchise.
+- 2026-10-23 — M19 fait : l'Emporium, Nuit sans fin, Franchise (jalon E terminé ; l'équilibre des Q4 et Q5 est le premier chantier de M20). Prochaine étape : M20 équilibrage global + Playtest P4.
+- 2026-10-23 — M20 fait : équilibrage global (règles d'aide, courbe), Playtest P4 (docs/playtests/P4.md). Sur consigne de l'utilisateur, tests et simulations ne sont plus lancés. Prochaine étape : M21 direction artistique.
+- 2026-10-23 — V2 fait : flèche d'objectif (game/guide.js), bulles d'état, Objectifs de Mamie (data/mamie.js, game/mamie.js, carte kraft avec tampon), ouverture de 2 s, Moka dès le jour 1, option « Flèche d'aide ». Prochaine étape : V3 emplacements prévus + sauvegarde v2.
+- 2026-10-23 — V3 fait : emplacements prévus (data/shop-plans.js, game/plans.js), 3 plans × 4 tailles vérifiés à 100 % de remplissage, sauvegarde v2 et sa migration (test de fixture tests/fixtures/save_v1_full.json). Prochaine étape : V4 écran Plans.
+- 2026-10-23 — V4 fait : écran Plans (ui/screens/plans.js) : mini-cartes dessinées, notes Clients/Défense par les vrais trajets, échange de deux meubles, Annuler/Choisir, glissement des meubles ; « Aménager » caché derrière l'option expert. Prochaine étape : V5 personnel en boutique, pilote automatique.
+- 2026-10-23 — V5 et V6 faits : emplacements d'embauche (game/day/hire-pads.js), 2e caissier, réservation des étagères entre commis, boutique automatisée, pilote automatique et « Passer la journée » (game/autopilot.js), vitesse ×1/×2/×3 par pas fixes multiples. Prochaine étape : V7 écran titre animé.
+- 2026-10-23 — V7 fait : écran titre en canvas (render/title-scene.js, façade partagée render/facade.js) : ciel du soir, toits en parallaxe, enseigne qui tombe et ouvre les yeux, lucioles, saison, étiquette suspendue, porte qui s'ouvre au tap. Prochaine étape : V8 hub du Matin.
+- 2026-10-23 — V8 fait : hub du Matin dessiné (render/hub-scene.js) : façade au jour avec l'intérieur réel du joueur dans la vitrine, objets du monde, établi, cachets de cire ; écrans habillés (livret, boîte à outils, ardoise, page de calendrier) ; grain de papier généré. Prochaine étape : V9 musique écrite.
+- 2026-10-23 — V9 fait : thème écrit (data/music-score.js), séquenceur réécrit (audio/music.js) avec ukulélé Karplus-Strong pré-rendu, glockenspiel, sifflement, piano FM, contrebasse, batterie ; 6 habillages, 3 habillages du jour + respiration ; saturation douce et filtre chaleur. Prochaine étape : V10 équilibrage rapide.
+- 2026-10-23 — V10 fait : simulation courte (50 parties, Q1 et Q2) : Roi Raton battu au cycle 8, pas de mur, pas d'inflation ; commis qui gardent les étagères vides aux produits sans étagère (boutique automatisée à 92 % d'un bon joueur) ; 60 images/s en ×3 sur une boutique E3 pleine. Prochaine étape : V11 livraison v1.1.0.
+- 2026-10-23 — V11 fait : GAME_DESIGN (chapitre G26), CHANGELOG, README, version 1.1.0, tag v1.1.0. La page GitHub Pages (branche `main`) passe en v1.1.0 à la fusion de la branche de travail.

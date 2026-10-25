@@ -1,0 +1,243 @@
+{
+  "start": {
+    "level": 4,
+    "day": 4,
+    "coins": 1655,
+    "streak": 1,
+    "calendar": 1
+  },
+  "returns": [
+    {
+      "days": 1,
+      "screens": [
+        {
+          "screen": "title",
+          "at": 0
+        },
+        {
+          "screen": "reward",
+          "at": 1.4
+        },
+        {
+          "screen": "calendar",
+          "at": 2.9
+        },
+        {
+          "screen": "reward",
+          "at": 5.4
+        },
+        {
+          "screen": "calendar",
+          "at": 6.9
+        },
+        {
+          "screen": "morning",
+          "at": 9.4
+        },
+        {
+          "screen": "hud",
+          "at": 14.4
+        },
+        {
+          "screen": "dawn",
+          "at": 240.4
+        },
+        {
+          "screen": "unlocks",
+          "at": 262.3
+        },
+        {
+          "screen": "morning",
+          "at": 265.8
+        },
+        {
+          "screen": "hud",
+          "at": 270.8
+        }
+      ],
+      "toasts": [],
+      "firstOpenAt": 14.4,
+      "coins": [
+        1655,
+        2689
+      ],
+      "rubies": [
+        4,
+        6
+      ],
+      "level": [
+        4,
+        5
+      ],
+      "streak": {
+        "before": 1,
+        "after": 2,
+        "brokenCount": 0,
+        "freezes": 0
+      },
+      "calendar": [
+        1,
+        2
+      ],
+      "welcome": false,
+      "reliefOffered": false,
+      "quests": 3,
+      "errors": []
+    },
+    {
+      "days": 3,
+      "screens": [
+        {
+          "screen": "title",
+          "at": 0
+        },
+        {
+          "screen": "reward",
+          "at": 1.4
+        },
+        {
+          "screen": "calendar",
+          "at": 2.9
+        },
+        {
+          "screen": "reward",
+          "at": 5.4
+        },
+        {
+          "screen": "calendar",
+          "at": 6.9
+        },
+        {
+          "screen": "morning",
+          "at": 9.4
+        },
+        {
+          "screen": "hud",
+          "at": 14.4
+        },
+        {
+          "screen": "dawn",
+          "at": 240.4
+        },
+        {
+          "screen": "unlocks",
+          "at": 262.3
+        },
+        {
+          "screen": "morning",
+          "at": 265.8
+        },
+        {
+          "screen": "hud",
+          "at": 270.8
+        }
+      ],
+      "toasts": [],
+      "firstOpenAt": 14.4,
+      "coins": [
+        1655,
+        2839
+      ],
+      "rubies": [
+        4,
+        11
+      ],
+      "level": [
+        4,
+        5
+      ],
+      "streak": {
+        "before": 1,
+        "after": 1,
+        "brokenCount": 1,
+        "freezes": 0
+      },
+      "calendar": [
+        1,
+        2
+      ],
+      "welcome": true,
+      "reliefOffered": true,
+      "quests": 3,
+      "errors": []
+    },
+    {
+      "days": 8,
+      "screens": [
+        {
+          "screen": "title",
+          "at": 0
+        },
+        {
+          "screen": "reward",
+          "at": 1.4
+        },
+        {
+          "screen": "calendar",
+          "at": 2.9
+        },
+        {
+          "screen": "reward",
+          "at": 5.4
+        },
+        {
+          "screen": "calendar",
+          "at": 6.9
+        },
+        {
+          "screen": "morning",
+          "at": 9.4
+        },
+        {
+          "screen": "hud",
+          "at": 14.4
+        },
+        {
+          "screen": "dawn",
+          "at": 240.4
+        },
+        {
+          "screen": "unlocks",
+          "at": 262.3
+        },
+        {
+          "screen": "morning",
+          "at": 265.8
+        },
+        {
+          "screen": "hud",
+          "at": 270.8
+        }
+      ],
+      "toasts": [],
+      "firstOpenAt": 14.4,
+      "coins": [
+        1655,
+        3119
+      ],
+      "rubies": [
+        4,
+        11
+      ],
+      "level": [
+        4,
+        5
+      ],
+      "streak": {
+        "before": 1,
+        "after": 1,
+        "brokenCount": 1,
+        "freezes": 0
+      },
+      "calendar": [
+        1,
+        2
+      ],
+      "welcome": true,
+      "reliefOffered": true,
+      "quests": 3,
+      "errors": []
+    }
+  ],
+  "errors": []
+}

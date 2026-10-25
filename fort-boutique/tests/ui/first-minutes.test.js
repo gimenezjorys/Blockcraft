@@ -37,12 +37,16 @@ test('Jour 1 : l’étiquette d’objectif est là dès le début (P1, 40) ; mai
     for (let i = 0; i < 80 && !(g.hooks.getState().scene && g.hooks.getState().scene.phase === 'day'); i++) bot.tick(100);
     g.hooks.advance(600);
     assert.ok(visible(g, '#objective'), 'objectif visible');
-    assert.equal(g.$('#objective').dataset.kind, 'pad');
-    assert.match(g.$('#objective').textContent, /40/);
-    assert.equal(g.$('#objective').getAttribute('aria-label'), 'Prochain objectif', 'le nom n’est que pour les lecteurs d’écran');
-    const h = g.hooks.getState().scene.hints;
-    assert.ok(h.hand, 'main fantôme (G19 0:06)');
-    assert.equal(h.arrow, 'gold', 'flèche dorée vers la cagette');
+    // v1.1 (V2.3) : le premier Objectif de Mamie remplace l'ancien « Prochain objectif » (6 mots au plus).
+    assert.equal(g.$('#objective').dataset.kind, 'mamie');
+    assert.match(g.$('#objective').textContent, /Remplis l’étagère de pommes|Remplis l'étagère de pommes/);
+    assert.match(g.$('#objective').textContent, /0\/4/);
+    assert.ok(g.$('#objective').textContent.replace(/\d+\/\d+/, '').trim().split(/\s+/).length <= 6, '6 mots au plus');
+    const sc = g.hooks.getState().scene;
+    assert.ok(sc.hints.hand, 'main fantôme : seulement le geste du joystick (V2.5)');
+    // v1.1 (V2.1) : la flèche d'objectif montre la cagette pendant l'apprentissage.
+    assert.ok(sc.guide && sc.guide.visible, 'flèche d’objectif visible (apprentissage)');
+    assert.equal(sc.guide.target.kind, 'producer', 'flèche vers la cagette');
   } finally {
     g.close();
   }
@@ -65,7 +69,11 @@ test('tap sur l’objectif pendant le Jour : la flèche montre l’emplacement ;
     g.hooks.advance(100);
     const pad = g.hooks.getState().scene.day.pad;
     // (copie JSON : les objets de jsdom ne sont pas ceux de Node)
-    assert.deepEqual(JSON.parse(JSON.stringify(g.hooks.getState().scene.hints.to)), { x: pad.x + 0.5, y: pad.y + 0.5 }, 'la flèche dorée montre l’emplacement');
+    // v1.1 (V2.1) : la flèche d'objectif se montre sur demande ; elle vise l'emplacement payable, sinon l'action utile.
+    const gd = g.hooks.getState().scene.guide;
+    assert.ok(gd.visible && gd.reason === 'tap', 'la flèche d’objectif se montre après le tap');
+    assert.ok(gd.target, 'elle a une cible');
+    if (g.hooks.getState().scene.coins >= pad.price - pad.paid) assert.deepEqual(JSON.parse(JSON.stringify({ x: gd.target.x, y: gd.target.y })), { x: pad.x + 0.5, y: pad.y + 0.5 }, 'la flèche montre l’emplacement');
     // Jusqu’à l’aube : la pluie de pièces passe avant le ticket.
     for (let i = 0; i < 4000 && g.hooks.getState().scene.phase !== 'dawn'; i++) bot.tick(100);
     assert.equal(g.hooks.getState().screen, 'hud', 'pluie de pièces avant l’écran de l’aube');

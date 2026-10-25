@@ -9,6 +9,8 @@ import { itemPrice, syncDayPhase } from './register.js';
 import { addXp, xpFactor } from '../progression.js';
 import { neighbors } from '../pathfinding.js';
 import { PRODUCTS } from '../../data/products.js';
+import { trackQuest } from '../quest-track.js';
+import { trackEvent } from '../weekly-events.js';
 
 /** Commande en cours sauvegardée avec la journée, si elle est lisible (sauvegarde abîmée = pas de commande). */
 function savedOrder(ph) {
@@ -106,7 +108,12 @@ function finish(g, ok) {
     const st = g.save.stats;
     st.served++;
     st.sold += o.need;
+    if (st.soldBy) st.soldBy[o.product] = (st.soldBy[o.product] || 0) + o.need;
     st.ordersDone = (st.ordersDone || 0) + 1;
+    trackQuest(g.save, 'order');
+    trackEvent(g.save, 'order', 1);
+    trackQuest(g.save, 'serve');
+    trackQuest(g.save, 'sell', o.need, o.product);
     addXp(g, (XP_GAINS.itemSold * o.need + XP_GAINS.customerServed) * xpFactor(g.shopId));
     // Le coffre en bois est gardé dans la journée sauvegardée : il attend l'aube, même après un rechargement.
     g.shop.phase.orderChests = (g.shop.phase.orderChests || 0) + 1;

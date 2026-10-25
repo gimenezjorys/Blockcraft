@@ -75,7 +75,8 @@ export async function buildGame({ test = TEST, quiet = QUIET } = {}) {
   // Un « </script> » dans une chaîne fermerait la balise : on l'échappe.
   code = code.replace(/<\/script/gi, '<\\/script');
 
-  const cssSrc = readFileSync(join(ROOT, 'src/ui/ui.css'), 'utf8');
+  // Feuilles de style dans l'ordre (chaque fichier reste sous 600 lignes).
+  const cssSrc = ['src/ui/ui.css', 'src/ui/retention.css', 'src/ui/v11.css'].map((f) => readFileSync(join(ROOT, f), 'utf8')).join('\n');
   const css = (await transform(cssSrc, { loader: 'css', minify: true })).code.trim();
   const favicon = 'data:image/svg+xml,' + encodeURIComponent(faviconSvg());
 
@@ -102,7 +103,8 @@ export async function buildGame({ test = TEST, quiet = QUIET } = {}) {
 </html>
 `;
   const bytes = Buffer.byteLength(html);
-  if (bytes > BUDGET) {
+  // Budget B5 : le fichier publié (minifié). Le build de test, lisible, n'est pas minifié et peut le dépasser.
+  if (!test && bytes > BUDGET) {
     throw new Error(`dist/index.html dépasse le budget : ${(bytes / 1024).toFixed(1)} Ko > 600 Ko`);
   }
   mkdirSync(join(out, 'icons'), { recursive: true });

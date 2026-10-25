@@ -69,6 +69,52 @@ export function drawShopShell(ctx, grid, o = {}) {
   ctx.lineTo(dx + C - 4, oy + H + WALL_FRONT);
   ctx.stroke();
   box(ctx, dx + 8, oy + H - 12, C - 16, 10, 3, P.pomme, 1.8);
+  if (o.season) drawSeason(ctx, o.season, ox, oy, W, H);
+}
+
+/** Décor de saison (G13.6) : citrouilles, neige, fleurs, soleil, posés sur le mur du haut et dans les coins. */
+function drawSeason(ctx, season, ox, oy, W, H) {
+  const top = oy - 8;
+  const corners = [[ox + 10, top], [ox + W - 10, top], [ox + 10, oy + H - 6], [ox + W - 10, oy + H - 6]];
+  if (season === 'halloween') {
+    for (const [x, y] of corners) {
+      ctx.beginPath();
+      ctx.ellipse(x, y, 8, 6.5, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#FF8A3D';
+      ctx.fill();
+      ctx.strokeStyle = P.encre;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+      ctx.fillStyle = '#46D39A';
+      ctx.fillRect(x - 1, y - 9, 2.5, 4);
+      ctx.fillStyle = P.encre;
+      ctx.fillRect(x - 4, y - 2, 2, 2);
+      ctx.fillRect(x + 2, y - 2, 2, 2);
+    }
+  } else if (season === 'winter') {
+    ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < 24; i++) ctx.fillRect(ox + ((i * 37) % W), top - 10 + ((i * 13) % 9), 3, 3);
+    ctx.strokeStyle = '#FF4F5E';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 12) ctx.lineTo(ox + x, top + 2 + Math.sin(x / 12) * 3);
+    ctx.stroke();
+  } else {
+    const color = season === 'spring' ? '#FF8FB1' : '#FFD23F';
+    for (const [x, y] of corners) {
+      for (let k = 0; k < 5; k++) {
+        const a = (k / 5) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(a) * 4, y + Math.sin(a) * 4, 3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFDF6';
+      ctx.fill();
+    }
+  }
 }
 
 function drawEntrance(ctx, e, ox, oy, C, w, h, night) {
@@ -128,6 +174,10 @@ export const THEMES = {
   neon: { floorA: '#3B2F66', floorB: '#2E2452', wall: '#2EC4B6', wallShade: '#1E8C82' },
   halloween: { floorA: '#F2A65A', floorB: '#D98940', wall: '#6A4C93', wallShade: '#4F3670' },
   hiver: { floorA: '#EAF4FF', floorB: '#D2E6FA', wall: '#9FD0F0', wallShade: '#7AB4DC' },
+  theme_spring: { floorA: '#E9F7D8', floorB: '#D4EFBC', wall: '#FFC9DE', wallShade: '#F2A7C4' },
+  theme_summer: { floorA: '#FFF1C2', floorB: '#FFE3A0', wall: '#7FD8FF', wallShade: '#5AB8E6' },
+  cal_theme_autumn: { floorA: '#E8B98A', floorB: '#D9A06E', wall: '#B5562F', wallShade: '#8F3F20' },
+  week_theme_night: { floorA: '#3A4A7A', floorB: '#2F3D66', wall: '#1A1446', wallShade: '#120E33' },
 };
 
 /** Fond derrière la boutique (bandeau du HUD) : ardoise. */

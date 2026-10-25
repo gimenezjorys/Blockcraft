@@ -8,6 +8,8 @@ import { NIGHT } from '../../data/night.js';
  */
 export function lightSources(g, out) {
   let n = putLight(out, 0, g.player.x, g.player.y, NIGHT.merchantLight, 'merchant');
+  // Festival des lanternes (G13.5) : lanternes prêtées pour la nuit (lumière seulement, sans occuper de case).
+  for (const L of (g.night && g.night.loanLights) || []) n = putLight(out, n, L.x, L.y, L.r, 'lantern');
   for (const f of g.furn) {
     if (f.broken) continue;
     const nd = f.def.night;

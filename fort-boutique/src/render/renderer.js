@@ -5,9 +5,11 @@ import { SpriteCache, disc } from './sprites/draw.js';
 import { drawShopShell, drawBackdrop, drawPad } from './sprites/shop.js';
 import { drawFurniture } from './sprites/furniture.js';
 import { drawMerchant, drawCustomer } from './sprites/characters.js';
+import { drawCat, drawStaff } from './sprites/helpers.js';
 import { drawMonster, drawMonsterEyes, MONSTER_LOOK } from './sprites/monsters.js';
 import { drawProjectile } from './sprites/projectiles.js';
 import { Lighting } from './lighting.js';
+import { currentSeason } from '../game/weekly-events.js';
 
 const C = 48;
 
@@ -37,10 +39,13 @@ export function createRenderer(env) {
     drawList.push(o);
   }
   const byY = (a, b) => a.y - b.y;
+  /** Style des yeux des meubles (Garde-robe) pour l'image en cours. */
+  let eyesStyle = 'round';
 
   function ensureShell(g, night) {
     const ps = Math.min(3, env.pixelScale());
-    const key = `${g.layoutVersion}|${g.grid.w}x${g.grid.h}|${night ? 1 : 0}|${g.save.cosmetics.equipped.theme}|${ps}`;
+    const season = currentSeason();
+    const key = `${g.layoutVersion}|${g.grid.w}x${g.grid.h}|${night ? 1 : 0}|${g.save.cosmetics.equipped.theme}|${ps}|${season ? season.id : ''}`;
     if (key === shellKey && shell) return ps;
     if (Math.abs(ps - spriteScale) > 0.01) {
       spriteScale = ps;
@@ -51,7 +56,7 @@ export function createRenderer(env) {
     shell = env.makeCanvas(Math.ceil(360 * ps), Math.ceil(640 * ps));
     const c = shell.getContext('2d');
     c.setTransform(ps, 0, 0, ps, 0, 0);
-    drawShopShell(c, g.grid, { night, theme: g.save.cosmetics.equipped.theme });
+    drawShopShell(c, g.grid, { night, theme: g.save.cosmetics.equipped.theme, season: season ? season.id : null });
     return ps;
   }
 
@@ -60,7 +65,8 @@ export function createRenderer(env) {
     const h = f.h * C;
     const eyesQ = f.eyes > 0 ? Math.round(f.eyes * 4) : 0;
     const look = f.eyes > 0.4 ? Math.round(((Math.atan2(f.lookY, f.lookX) + Math.PI) / (Math.PI * 2)) * 8) % 8 : 0;
-    const key = `${f.id}|${f.w}${f.h}|${night ? 1 : 0}|${f.product || ''}|${f.count}|${Math.min(f.stock, 9)}|${eyesQ}|${look}|${f.broken ? 1 : 0}|${f.capacity || 0}|${f.jarQ ?? ''}`;
+    const eyeStyle = eyesStyle;
+    const key = `${f.id}|${f.w}${f.h}|${night ? 1 : 0}|${f.product || ''}|${f.count}|${Math.min(f.stock, 9)}|${eyesQ}|${look}|${f.broken ? 1 : 0}|${f.capacity || 0}|${f.jarQ ?? ''}|${eyeStyle}`;
     return sprites.get(key, w + 8, h + 30, 4, 26, (ctx) => {
       const a = (look / 8) * Math.PI * 2 - Math.PI;
       drawFurniture(ctx, f.id, 0, 0, w, h, {
@@ -74,6 +80,7 @@ export function createRenderer(env) {
         lookY: Math.sin(a),
         broken: f.broken,
         jar: f.jarQ === undefined ? 1 : f.jarQ / 6,
+        eyeStyle,
       });
     });
   }
@@ -94,6 +101,7 @@ export function createRenderer(env) {
    */
   function draw(ctx, g, o = {}) {
     const night = !!o.night;
+    eyesStyle = g.save.cosmetics.equipped.eyes || 'round';
     const ps = ensureShell(g, night);
     drawBackdrop(ctx);
     ctx.drawImage(shell, 0, 0, 360, 640);
@@ -103,12 +111,23 @@ export function createRenderer(env) {
       const pad = g.day.pad;
       drawPad(ctx, ox + pad.x * C, oy + pad.y * C, C, pad.paid / pad.price, g.t);
     }
+    // Emplacement d'embauche (V5.1) : carré doré et silhouette du futur employé.
+    if (g.day && g.day.hirePad && (g.phase.name === 'day' || g.phase.name === 'closing')) {
+      const hp = g.day.hirePad;
+      drawPad(ctx, ox + hp.x * C, oy + hp.y * C, C, hp.paid / hp.price, g.t);
+      ctx.save();
+      ctx.translate(ox + (hp.x + 0.5) * C, oy + (hp.y + 0.5) * C + 12);
+      drawStaff(ctx, { kind: hp.role, ghost: true, apron: g.district && g.district.accent }, g.t);
+      ctx.restore();
+    }
     const n = g.night && !g.night.ended && g.phase.name === 'night' ? g.night : null;
     if (n) drawAura(ctx, g, ox, oy);
     drawList.length = 0;
     poolN = 0;
     for (const f of g.furn) item('f', f.y + f.h - 0.05, f);
     item('p', g.player.y, g.player);
+    if (g.cat) item('k', g.cat.y, g.cat);
+    if (g.staff) for (const s of g.staff) item('s', s.y, s);
     if (g.day && (g.phase.name === 'day' || g.phase.name === 'closing')) for (const c of g.day.customers) item('c', c.y, c);
     stats.monsters = 0;
     if (n) {
@@ -125,9 +144,16 @@ export function createRenderer(env) {
       if (d.kind === 'f') {
         const f = d.ref;
         const s = furnitureSprite(f, night);
-        const jy = f.jump > 0 ? -Math.sin(Math.min(1, f.jump) * Math.PI) * 6 : 0;
-        const rx = f.recoil > 0 ? -(f.lookX || 0) * f.recoil * 2 : 0;
-        const ry = f.recoil > 0 ? -(f.lookY || 0) * f.recoil * 2 : 0;
+        let jy = f.jump > 0 ? -Math.sin(Math.min(1, f.jump) * Math.PI) * 6 : 0;
+        let rx = f.recoil > 0 ? -(f.lookX || 0) * f.recoil * 2 : 0;
+        let ry = f.recoil > 0 ? -(f.lookY || 0) * f.recoil * 2 : 0;
+        // v1.1 (V4) : glissement vers la nouvelle place après un changement de plan.
+        if (f.slide && f.slide.t > 0) {
+          const e = f.slide.t * f.slide.t;
+          rx += f.slide.dx * C * e;
+          ry += f.slide.dy * C * e;
+          jy -= Math.sin(f.slide.t * Math.PI) * 4;
+        }
         sprites.blit(ctx, s, ox + f.x * C + rx, oy + f.y * C + jy + ry);
         if (f.flash > 0) {
           ctx.globalAlpha = 0.5;
@@ -141,6 +167,13 @@ export function createRenderer(env) {
         ctx.translate(ox + p.x * C, oy + p.y * C + 12);
         drawMerchant(ctx, p, night, g.save.cosmetics.equipped.outfit);
         ctx.restore();
+      } else if (d.kind === 'k' || d.kind === 's') {
+        const r = d.ref;
+        ctx.save();
+        ctx.translate(ox + r.x * C, oy + r.y * C + 10);
+        if (d.kind === 'k') drawCat(ctx, r, g.t, g.save.cosmetics.equipped.cat);
+        else drawStaff(ctx, r, g.t);
+        ctx.restore();
       } else if (d.kind === 'c') {
         const c = d.ref;
         ctx.save();
@@ -149,6 +182,7 @@ export function createRenderer(env) {
         ctx.restore();
       } else {
         drawMonsterBody(ctx, d.ref, ox, oy, g.t);
+        if (g.save.settings.weaknessIcons !== false && d.ref.def.weak) drawWeakness(ctx, d.ref, ox, oy);
       }
     }
     if (n) {
@@ -156,6 +190,7 @@ export function createRenderer(env) {
       for (let i = 0; i < arr.length; i++) drawProjectile(ctx, arr[i], ox, oy);
     }
     if (o.after) o.after(ctx, ox, oy);
+    lighting.simple = !!o.economy;
     if (o.veil > 0) lighting.draw(ctx, g, { alpha: o.veil, ps, lights: o.lights || [], tint: o.tint, flashes: o.flashes });
     // Éléments lumineux par-dessus le voile.
     if (n) {
@@ -200,6 +235,50 @@ export function createRenderer(env) {
         disc(ctx, x + Math.cos(a) * 9, y - 30 + Math.sin(a) * 3, 2, P.craieJaune, 0);
       }
     }
+  }
+
+  /**
+   * Icône de faiblesse au-dessus du Grignotin (G22, option) : flamme (feu), soleil (lumière), flocon (froid).
+   * Une forme, pas seulement une couleur (un danger n'est jamais signalé par la couleur seule).
+   */
+  function drawWeakness(ctx, m, ox, oy) {
+    const L = MONSTER_LOOK[m.type] || MONSTER_LOOK.raton;
+    const x = ox + m.x * C + L.r + 4;
+    const y = oy + m.y * C + 10 - L.r * 2 - (L.fly || 0) - 2;
+    const kinds = Object.keys(m.def.weak);
+    ctx.save();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = P.encre;
+    kinds.slice(0, 2).forEach((k, i) => {
+      const cx = x + i * 11;
+      disc(ctx, cx, y, 5.5, P.ticket, 1.5);
+      ctx.beginPath();
+      if (k === 'fire') {
+        ctx.moveTo(cx, y - 4);
+        ctx.quadraticCurveTo(cx + 4, y, cx, y + 3.5);
+        ctx.quadraticCurveTo(cx - 4, y, cx, y - 4);
+        ctx.fillStyle = P.lueur;
+        ctx.fill();
+        ctx.stroke();
+      } else if (k === 'light') {
+        disc(ctx, cx, y, 2.2, P.craieJaune, 1);
+        for (let a = 0; a < 6; a++) {
+          const u = (a / 6) * Math.PI * 2;
+          ctx.moveTo(cx + Math.cos(u) * 3, y + Math.sin(u) * 3);
+          ctx.lineTo(cx + Math.cos(u) * 4.5, y + Math.sin(u) * 4.5);
+        }
+        ctx.stroke();
+      } else {
+        for (let a = 0; a < 3; a++) {
+          const u = (a / 3) * Math.PI;
+          ctx.moveTo(cx - Math.cos(u) * 4, y - Math.sin(u) * 4);
+          ctx.lineTo(cx + Math.cos(u) * 4, y + Math.sin(u) * 4);
+        }
+        ctx.strokeStyle = P.craieBleue;
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
   }
 
   /** Flèche rouge pulsante au-dessus du voleur : dessinée APRÈS le voile de nuit, comme les yeux (P1, Léa). */

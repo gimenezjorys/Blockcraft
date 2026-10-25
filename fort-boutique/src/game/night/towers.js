@@ -86,7 +86,7 @@ export function dealDamage(g, m, base, element, source) {
   if (!m.alive || base <= 0) return 0;
   const n = g.night;
   const bonus = { bestiary: n.bestiaryBonus[m.type] || 0, assist: source && source.def ? n.assist : 0 };
-  const dmg = armorReduce(base * damageMultiplier(m, element, bonus), m.armor, element);
+  const dmg = armorReduce(base * (n.dmgMult || 1) * damageMultiplier(m, element, bonus), m.armor, element);
   const done = hurtRaw(g, m, dmg, element, source);
   if (done > 0) {
     g.events.push(m.armor > 0 && !['fire', 'burn', 'poison', 'light'].includes(element) ? 'hit_armor' : 'hit', m.x, m.y, Math.round(done), done > m.maxHp * NIGHT.bigHitRatio ? 1 : 0);
@@ -320,7 +320,9 @@ function stepCone(g, f, dt, rate) {
     return;
   }
   f.firing = 0.15;
-  f.cd -= dt * (rate / Math.max(1e-6, f.n.rate || 1));
+  // Le four n'a pas de cadence propre (5 ticks/s) : seules l'aura et la machine à café l'accélèrent (M16 : correction,
+  // l'ancienne formule divisait par une cadence nulle et le four ne tirait qu'une fois).
+  f.cd -= dt * rateMultiplier(g, f);
   if (f.cd > 0) return;
   f.cd += 1 / nd.ticks;
   for (let i = arr.length - 1; i >= 0; i--) {

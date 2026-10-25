@@ -12,12 +12,13 @@ export const WAVES = {
   budgetWaveBase: 0.7,
   budgetPerWave: 0.15,
   budgetPerWeek: 0.1,
-  bossEscort: 0.5,
+  bossEscort: 0.375, // M20 (D2.5) : 0,5 -> 0,375
   /** Rythme (s). */
   telegraphS: 2.5,
-  memberGapS: 0.35,
-  groupGapS: 0.9,
-  groupGapLateS: 0.7,
+  // M13 (D2.5) : écarts × 0,75 (0,35 / 0,9 / 0,7) avec Moka, pour tenir « Fort ≤ 80 % de ★★★ ».
+  memberGapS: 0.2625,
+  groupGapS: 0.675,
+  groupGapLateS: 0.525,
   pauseS: 3.5,
   /** Plafond de sécurité d'une nuit (s). */
   maxNightS: 240,
@@ -37,6 +38,10 @@ export const WAVES = {
    *  (P2, Hugo) ; et un « voleur vedette » que seuls le marchand et son balai rattrapent : un marchand immobile perd une
    *  étoile. Dès la nuit 4 : rythme et budget normaux (G8.3). */
   learning: { district: 'q1', week: 1, nights: [2, 3], memberGapS: 0.8, groupGapS: 2.0, pauseS: 3.5, budgetMult: 1.5, starThief: true },
+  /** M20 (règle, DECISIONS.md) : semaines d'ouverture d'une boutique neuve (quartiers 2 à 5, hors Lune rouge) : la
+   *  horde de chaque nuit × openingMult en semaine 1, × openingWeek2 en semaine 2 (pas de falaise en semaine 2, P4). */
+  openingMult: 0.55,
+  openingWeek2: 0.8,
 };
 
 /** Mise à l'échelle des PV (G10.2) : M_Q × (1 + 0,12 (k − 1)) × 1,35^(s − 1). */
@@ -46,6 +51,8 @@ export const SCALING = {
   lootPerDistrict: 0.6,
   lootPerWeek: 0.1,
   thiefSpeed: 1.5, // M10 : 1,2 -> 1,5 (D2.5)
+  /** M13 (D2.5) : Grignotins (hors boss) × 1,25 de vitesse, sauf la nuit tutoriel, pour tenir « Fort ≤ 80 % de ★★★ » avec Moka. */
+  monsterSpeed: 1.25,
   recoverBonus: 1.1,
 };
 

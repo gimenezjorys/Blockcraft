@@ -6,7 +6,7 @@ import { SVG, monsterIcon } from '../icons.js';
 
 /**
  * @param {any} app
- * @param {{ boss: string, nightsLeft: number, courage: number, onClose: () => void }} p
+ * @param {{ boss: string, nightsLeft: number, courage: number, thin?: number, onClose: () => void }} p
  */
 function mount(app, p, d) {
   const when = p.nightsLeft <= 1 ? t('moon.tonight') : t('moon.in', { n: p.nightsLeft });
@@ -18,6 +18,7 @@ function mount(app, p, d) {
     h('div.moon-when', { text: when }),
     dots,
     p.courage > 0 ? h('div.moon-courage', { text: t('night.courage', { n: Math.round(p.courage * 100) }) }) : null,
+    p.thin > 0 ? h('div.moon-courage', { text: t('night.thin', { n: Math.round(p.thin * 100) }) }) : null,
   ]);
   const el = h('div.overlay', [panel]);
   onTap(el, () => p.onClose(), d);

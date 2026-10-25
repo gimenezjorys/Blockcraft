@@ -1,0 +1,82 @@
+{
+  "runs": 50,
+  "rows": [
+    {
+      "id": "D2.4.1",
+      "label": "Moyen : Grande Pâte battue entre les cycles 15 et 20 (médiane, depuis le début)",
+      "value": "cycle 15",
+      "ok": true
+    },
+    {
+      "id": "D2.4.2a",
+      "label": "Faible : boss battu en 4 tentatives au plus (médiane)",
+      "value": "1.5 tentative(s)",
+      "ok": true
+    },
+    {
+      "id": "D2.4.2b",
+      "label": "Faible : durée du quartier ≤ 1,6 × celle du Moyen",
+      "value": "1.07 ×",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3a",
+      "label": "Fort : pas plus de 1,35 × plus rapide que le Moyen (durée du quartier)",
+      "value": "1.00 ×",
+      "ok": true
+    },
+    {
+      "id": "D2.4.3b",
+      "label": "Fort : ★★★ sur 70 % des nuits au plus (Q2)",
+      "value": "81 %",
+      "ok": false
+    },
+    {
+      "id": "D2.4.3c",
+      "label": "Fort : boss battu du premier coup 85 % des fois au plus",
+      "value": "82 %",
+      "ok": true
+    },
+    {
+      "id": "D2.4.4",
+      "label": "Moyen : jamais 3 nuits de suite sous 50 % (95 % des parties)",
+      "value": "100 %",
+      "ok": true
+    },
+    {
+      "id": "D2.4.5",
+      "label": "Moyen : achat utile en 2 cycles au plus, sans inflation (90 % des parties)",
+      "value": "100 % (accessible 100 %, inflation 0 %)",
+      "ok": true
+    },
+    {
+      "id": "D2.4.6",
+      "label": "Moyen : niveau 12 au plus tard 2 cycles après le boss (80 %)",
+      "value": "100 %",
+      "ok": true
+    }
+  ],
+  "info": {
+    "durations": {
+      "weak": 7.5,
+      "medium": 7,
+      "strong": 7
+    },
+    "start": {
+      "weak": 9,
+      "medium": 9,
+      "strong": 10
+    },
+    "attempts": {
+      "weak": 1.5,
+      "medium": 1,
+      "strong": 1
+    },
+    "keptMedium": 1,
+    "starsShare": {
+      "weak": 0.5699745547073791,
+      "medium": 0.7098591549295775,
+      "strong": 0.8111111111111111
+    }
+  }
+}

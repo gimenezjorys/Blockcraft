@@ -1,9 +1,12 @@
-// Fort Boutique — schéma de sauvegarde G23 (version 1) et valeurs par défaut.
+// Fort Boutique — schéma de sauvegarde G23 (version 2 depuis la v1.1 : plans de boutique) et valeurs par défaut.
 // Au chargement, la sauvegarde est fusionnée avec ces valeurs (compatibilité ascendante) :
 // un champ absent ou d'un mauvais type reprend sa valeur par défaut, un champ inconnu est conservé.
 
-/** Version courante du format. */
-export const CURRENT_VERSION = 1;
+import { arrangeInPlan } from '../game/plans.js';
+import { DEFAULT_PLAN } from '../data/shop-plans.js';
+
+/** Version courante du format (v2 : emplacements prévus, plan de boutique, pilote automatique). */
+export const CURRENT_VERSION = 2;
 
 /** Quartiers (identifiants de boutique). */
 export const SHOP_IDS = ['q1', 'q2', 'q3', 'q4', 'q5'];
@@ -18,6 +21,10 @@ const FIRST_PRODUCER = { q1: 'cagette', q2: 'four', q3: 'pilulier', q4: 'etabli'
 export function defaultShop(id) {
   const isQ1 = id === 'q1';
   const prod = FIRST_PRODUCER[id] || 'cagette';
+  // v1.1 (V3) : la boutique de départ est rangée dans les emplacements du plan par défaut (l'Allée) ;
+  // les comptoirs offerts des quartiers 2 à 5 sont déjà posés.
+  const start = [{ id: 'caisse' }, { id: prod }, { id: 'etagere' }].concat(isQ1 ? [] : [{ id: 'comptoir' }, { id: 'comptoir' }]);
+  const { layout, overflow } = arrangeInPlan(id, 0, DEFAULT_PLAN, start);
   return {
     unlocked: isQ1,
     week: 1,
@@ -27,14 +34,16 @@ export function defaultShop(id) {
     bossAssist: 0,
     franchiseStars: 0,
     redMoon: false,
+    // M20 : la nuit d'avant a fini sous 50 % de Bocal : coup de main de Mamie à la suivante.
+    helpNext: false,
     expansion: 0,
-    layout: [
-      { id: 'caisse', x: 3, y: 4, rot: 0 },
-      { id: prod, x: 0, y: 1, rot: 0 },
-      { id: 'etagere', x: 0, y: 4, rot: 0 },
-    ],
-    storage: isQ1 ? [] : ['comptoir', 'comptoir'],
-    staff: { clerks: [], cashier: null },
+    layout,
+    storage: overflow,
+    // v1.1 : plan choisi, emplacement -> meuble (recalculé depuis la disposition), pilote automatique.
+    plan: DEFAULT_PLAN,
+    slots: {},
+    autopilot: false,
+    staff: { clerks: [], cashier: null, cashier2: null },
     recipes: {},
     pads: { done: [], active: null, paid: {} },
     lastDayTakings: 0,
@@ -70,6 +79,12 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
       economy: false,
       rooster: true,
       weaknessIcons: true,
+      // v1.1 : flèche d'aide (auto | always | never), vitesses du jour et de la nuit.
+      guideArrow: 'auto',
+      daySpeed: 1,
+      nightSpeed: 1,
+      // v1.1 (V4) : l'éditeur libre de l'ancien « Aménager » (option expert, désactivée).
+      freeLayout: false,
     },
     player: {
       level: 1,
@@ -87,7 +102,8 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
     },
     shops: { q1: defaultShop('q1') },
     currentShop: 'q1',
-    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, learned: {}, pendingUnlocks: [], pendingDistricts: [] },
+    // v1.1 : mamieObjective = index de l'objectif en cours, par boutique ; mastery = actions de base apprises (V2.1).
+    progress: { tutorialStep: 0, unlocksSeen: [], flags: {}, learned: {}, pendingUnlocks: [], pendingDistricts: [], mamieObjective: {}, mastery: {} },
     daily: {
       calendarIndex: 0,
       lastCalendarDay: -1,
@@ -122,6 +138,9 @@ export function defaultSave({ seed, now, lang = 'fr' }) {
       upgradesDone: 0,
       chestsOpened: 0,
       bossKills: {},
+      bossKillsW5: {},
+      // v1.1 : ventes cumulées par produit (Objectifs de Mamie).
+      soldBy: {},
     },
     offline: { lastCollectAt: 0, welcomeChestForDay: -1, pendingDelivery: null },
   };

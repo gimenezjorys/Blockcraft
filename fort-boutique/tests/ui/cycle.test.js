@@ -48,7 +48,7 @@ test('deux cycles complets jouables au doigt (Matin -> Jour -> Nuit -> Aube -> M
   }
 });
 
-test('rechargement en pleine journée : même temps restant, même recette', () => {
+test('rechargement en pleine journée : même temps restant, même recette', async () => {
   const g = loadGame();
   let saved;
   let before;
@@ -72,7 +72,10 @@ test('rechargement en pleine journée : même temps restant, même recette', () 
     assert.equal(st.phase, 'day');
     assert.ok(Math.abs(st.day.timeLeft - before.day.timeLeft) < 0.2, `${st.day.timeLeft} vs ${before.day.timeLeft}`);
     assert.equal(st.day.takings, before.day.takings);
-    assert.equal(st.coins, before.coins + before.day.pile, 'pièces conservées (le tas ramassé à la sauvegarde ou gardé)');
+    // v1.1 : un Objectif de Mamie validé après le rechargement ajoute sa récompense (pièces) ; rien d'autre ne change.
+    const { MAMIE } = await import('../../src/data/mamie.js');
+    const bonus = MAMIE.q1.slice(before.mamie.q1 || 0, st.mamie.q1 || 0).reduce((a, o) => a + (o.reward.coins || 0), 0);
+    assert.equal(st.coins, before.coins + before.day.pile + bonus, 'pièces conservées (le tas ramassé à la sauvegarde ou gardé)');
     assert.deepEqual(g2.errors, []);
   } finally {
     g2.close();
@@ -100,9 +103,13 @@ test('rechargement pendant la nuit : la nuit recommence au début, avec les mêm
     assert.equal(st.night.wave, 0, 'au début de la nuit');
     assert.equal(st.night.waves, firstWave.waves);
     assert.equal(st.night.jarInitial, firstWave.jarInitial, 'même Bocal');
-    g2.hooks.advance(4000);
-    const types = g2.hooks.getState().scene.night.monsters.map((m) => m.type);
-    assert.ok(types.length > 0 && types.every((t) => t === 'raton'));
+    // v1.1 (V3) : la cagette, posée près de la porte de derrière, abat vite le premier raton ; on regarde dès qu'il entre.
+    let types = [];
+    for (let i = 0; i < 40 && !types.length; i++) {
+      g2.hooks.advance(100);
+      types = g2.hooks.getState().scene.night.monsters.map((m) => m.type);
+    }
+    assert.ok(types.length > 0 && types.every((t) => t === 'raton'), JSON.stringify(types));
   } finally {
     g2.close();
   }

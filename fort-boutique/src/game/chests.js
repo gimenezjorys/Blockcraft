@@ -6,6 +6,7 @@ import { Rng, seedFrom } from '../core/rng.js';
 import { furnState } from './state.js';
 import { upgradeCost } from './economy.js';
 import { unlockedFurniture } from './progression.js';
+import { trackQuest } from './quest-track.js';
 
 /** Monte le coffre d'un rang (Raton doré, G8.8) : Bois -> Argent -> Or. */
 export function upgradeChestRank(type) {
@@ -89,4 +90,5 @@ export function applyChest(save, content) {
   for (const [id, n] of content.plans) furnState(save, id).plans += n;
   if (content.cosmetic && !save.cosmetics.owned.includes(content.cosmetic)) save.cosmetics.owned.push(content.cosmetic);
   save.stats.chestsOpened = (save.stats.chestsOpened || 0) + 1;
+  trackQuest(save, 'chest');
 }

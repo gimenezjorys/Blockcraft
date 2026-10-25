@@ -8,13 +8,21 @@ import { PALETTE as P, NIGHT_VEIL } from '../data/palette.js';
 import { lightSources } from '../game/night/light.js';
 import { bossOf } from '../game/night/boss.js';
 import { WAVES } from '../data/waves.js';
+import { DAY } from '../data/balance.js';
+import { SPEED } from '../data/merchant.js';
+import { STEP } from '../core/loop.js';
+import { perfNow } from '../core/time.js';
+import { stepAutopilot, currentSpeed, maxSpeed, cycleSpeed, stepDownSpeed, toggleAutopilot, startSkipDay, autopilotAvailable, autopilotOn, canSkipDay } from '../game/autopilot.js';
 import {
   drawJoystick, drawSunBar, drawCoinCounter, drawPauseButton, drawPadLabel, drawCoinPile, drawDoorSign,
+  drawSpeedButton, drawAutoButton, drawSkipButton, drawSkipBanner,
   hudHit, heart, drawWavePips, drawJarGauge, drawBellButton, drawTelegraph, drawBanner, drawBossBar, drawBossCard,
 } from '../render/hud.js';
-import { drawWantBubble, drawProduct } from '../render/sprites/products.js';
-import { drawHintsWorld, drawGhostHand, drawOrderCard, drawEntranceWarning, drawOrderBubble } from '../render/hints.js';
+import { drawWantBubble, drawProduct, drawStatusBubble, drawUpgradeBadge } from '../render/sprites/products.js';
+import { drawHintsWorld, drawGhostHand, drawOrderCard, drawEntranceWarning, drawOrderBubble, drawGuideArrow, drawOpenSign } from '../render/hints.js';
 import { stepHints } from '../game/tutorial.js';
+import { stepGuide } from '../game/guide.js';
+import { canUpgrade } from '../game/economy.js';
 import { SPECIAL_ORDER } from '../data/tutorial.js';
 import { drawMonster } from '../render/sprites/monsters.js';
 import { drawFurniture } from '../render/sprites/furniture.js';
@@ -50,6 +58,29 @@ export function createPlay(app, g, hooks = {}) {
   };
   const onFx = createFxHandler({ app, g, fx, floaters, camera, view });
 
+  /** Effets de la Garde-robe (G17) : pièces-étoiles/cœurs/feuilles, traînée de pas, confettis de victoire. */
+  const COIN_STYLES = new Set(['coins_stars', 'coins_hearts', 'cal_coins_hearts', 'evt_coins_leaves', 'week_coins_leaves']);
+  let trailT = 0;
+  function cosmeticFx(dt) {
+    const eq = g.save.cosmetics.equipped.coinFx;
+    fx.coinStyle = COIN_STYLES.has(eq) ? eq : null;
+    if (eq === 'fx_trail' && (Math.abs(g.input.x) + Math.abs(g.input.y) > 0.2)) {
+      trailT -= dt;
+      if (trailT <= 0) {
+        trailT = 0.12;
+        const ox = g.grid.origin.x;
+        const oy = g.grid.origin.y;
+        fx.burst('dust', ox + g.player.x * 48, oy + g.player.y * 48 + 10, 1, '#FFE066', 10, 0.5, 2);
+      }
+    }
+    if (eq === 'fx_confetti') {
+      for (let i = 0; i < g.events.length; i++) {
+        const e = g.events.items[i];
+        if (e.type === 'night_end' && e.a === 3) for (const c of ['#FF4F5E', '#FFD23F', '#46D39A', '#7FD8FF']) fx.burst('spark', 180, 200, 10, c, 160, 1.2, 3);
+      }
+    }
+  }
+
   const scene = {
     /** Le joystick n'est actif que lorsque le marchand peut marcher. */
     get joystick() {
@@ -63,21 +94,47 @@ export function createPlay(app, g, hooks = {}) {
     camera,
     view,
     update(dt) {
-      g.input.x = app.input.move.x;
-      g.input.y = app.input.move.y;
-      if (app.input.bellPresses > 0) {
-        app.input.bellPresses = 0;
-        if (g.phase.name === 'night') g.input.bell = 1;
+      const t0 = perfNow();
+      // v1.1 : vitesse ×1/×2/×3 (V6) = plusieurs pas fixes par image, jamais un pas plus grand ; « Passer la
+      // journée » (V5.3) = beaucoup de pas par image, sans effets, jusqu'à la fin du jour.
+      const skipping = !!g.skip;
+      const n = skipping ? g.skip.perFrame : currentSpeed(g);
+      for (let k = 0; k < n; k++) {
+        const touching = !skipping && Math.hypot(app.input.move.x, app.input.move.y) > 0.15;
+        g.input.x = skipping ? 0 : app.input.move.x;
+        g.input.y = skipping ? 0 : app.input.move.y;
+        if (app.input.bellPresses > 0) {
+          app.input.bellPresses = 0;
+          if (g.phase.name === 'night') g.input.bell = 1;
+        }
+        stepAutopilot(g, dt, touching);
+        stepGame(g, dt);
+        if (k === 0) cosmeticFx(dt);
+        // Indices des 10 premières minutes (G19) et flèche d'objectif (V2) : ils lisent les événements de ce pas.
+        stepHints(g, dt);
+        stepGuide(g, dt);
+        for (let i = 0; i < g.events.length; i++) {
+          const e = g.events.items[i];
+          if (!skipping) onFx(e);
+          if (hooks.onEvent) hooks.onEvent(e);
+        }
+        g.events.clear();
+        if (skipping && g.phase.name !== 'day' && g.phase.name !== 'closing') {
+          g.skip = null;
+          break;
+        }
+        if (k > 0 && g.phase.name !== 'day' && g.phase.name !== 'closing' && g.phase.name !== 'night') break;
       }
-      stepGame(g, dt);
-      // Indices des 10 premières minutes (G19) : ils lisent les événements de ce pas, avant qu'on vide la file.
-      stepHints(g, dt);
-      for (let i = 0; i < g.events.length; i++) {
-        const e = g.events.items[i];
-        onFx(e);
-        if (hooks.onEvent) hooks.onEvent(e);
+      if (skipping) view.coins = Math.round(view.coins + (g.save.player.coins - view.coins) * 0.2);
+      // Image trop lente en accéléré : on redescend d'un cran, avec une petite icône (V6).
+      if (!skipping && n > 1) {
+        view.slowFrames = perfNow() - t0 > SPEED.slowFrameMs ? (view.slowFrames || 0) + 1 : 0;
+        if (view.slowFrames >= SPEED.slowFrames && stepDownSpeed(g)) {
+          view.slowFrames = 0;
+          view.speedDrop = 2;
+        }
       }
-      g.events.clear();
+      view.speedDrop = Math.max(0, (view.speedDrop || 0) - dt);
       fx.update(dt);
       floaters.update(dt);
       camera.baseTarget = baseZoomFor();
@@ -85,6 +142,7 @@ export function createPlay(app, g, hooks = {}) {
       tickView(dt);
     },
     render(ctx) {
+      fx.density = app.economy ? 0.5 : 1;
       const name = g.phase.name;
       const night = name === 'night' || name === 'dawn' || (name === 'dusk' && g.phase.t > 2.6);
       const { veil, tint } = veilFor(g);
@@ -97,6 +155,7 @@ export function createPlay(app, g, hooks = {}) {
       ctx.scale(camera.base, camera.base);
       ctx.translate(-180, 0);
       renderer.draw(ctx, g, {
+        economy: !!app.economy,
         night,
         veil,
         tint,
@@ -123,10 +182,22 @@ export function createPlay(app, g, hooks = {}) {
       drawJoystick(ctx, app.input.joystick);
     },
     hitTest(x, y) {
-      return hudHit(x, y, { bell: g.phase.name === 'night' && !!g.night && !g.night.tutorial });
+      return hudHit(x, y, { bell: g.phase.name === 'night' && !!g.night && !g.night.tutorial, ...hudExtras(g) });
     },
     onButton(id, phase) {
-      if (id === 'pause' && phase === 'up' && hooks.onPause) hooks.onPause();
+      if (phase !== 'up') return;
+      if (id === 'pause' && hooks.onPause) hooks.onPause();
+      const tap = () => app.services.audio && app.services.audio.play('ui_tap');
+      if (id === 'speed') {
+        cycleSpeed(g);
+        view.slowFrames = 0;
+        tap();
+      } else if (id === 'auto') {
+        if (toggleAutopilot(g)) tap();
+        if (hooks.onEvent) hooks.onEvent({ type: 'save' });
+      } else if (id === 'skip' && startSkipDay(g, STEP)) {
+        if (app.services.audio) app.services.audio.play('rush');
+      }
     },
     onTap(x, y) {
       if (hooks.onTap) hooks.onTap(x, y);
@@ -190,24 +261,32 @@ export function createPlay(app, g, hooks = {}) {
       if (view.bossIntro.t > 2.2) view.bossIntro = null;
     }
     view.jarBlink = Math.max(0, view.jarBlink - dt / 0.8);
-    for (const f of g.furn) if (f.jump > 0) f.jump = Math.max(0, f.jump - dt / 0.25);
+    for (const f of g.furn) {
+      if (f.jump > 0) f.jump = Math.max(0, f.jump - dt / 0.25);
+      if (f.slide && f.slide.t > 0) f.slide.t = Math.max(0, f.slide.t - dt / 0.45);
+    }
     g.player.lean = (g.player.lean || 0) + ((g.player.vx || 0) * -0.6 - (g.player.lean || 0)) * Math.min(1, dt * 12);
   }
 
   return scene;
 }
 
+/** Teinte du voile de nuit en Lune rouge (M21). */
+const RED_MOON_VEIL = '#4A0F2A';
+
 /** Voile et teinte selon la phase (crépuscule : orange -> violet -> nuit en 4 s, G20.5). */
 function veilFor(g) {
   const name = g.phase.name;
   const full = g.district.dark ? NIGHT_VEIL.dark : NIGHT_VEIL.normal;
+  // Lune rouge (Franchise, G13.4) : la nuit tire sur le pourpre, pour qu'on la reconnaisse d'un coup d'œil.
+  const night = g.shop && g.shop.redMoon ? RED_MOON_VEIL : P.voileNuit;
   if (name === 'dusk') {
     const k = Math.min(1, g.phase.t / 4);
     if (k < 0.35) return { veil: 0.3 * (k / 0.35), tint: '#FFB36B' };
     if (k < 0.7) return { veil: 0.3 + (full - 0.3) * ((k - 0.35) / 0.35), tint: '#6A3FA8' };
-    return { veil: full, tint: P.voileNuit };
+    return { veil: full, tint: night };
   }
-  if (name === 'night') return { veil: full, tint: P.voileNuit };
+  if (name === 'night') return { veil: full, tint: night };
   if (name === 'dawn') return { veil: Math.max(0, full * (1 - g.phase.t / 2)), tint: '#6A3FA8' };
   return { veil: 0, tint: P.voileNuit };
 }
@@ -217,6 +296,53 @@ function duskLights(g, out) {
   out.length = 0;
   out.push({ x: g.player.x, y: g.player.y, r: 1.8, kind: 'merchant' });
   return out;
+}
+
+/** Améliorable maintenant ? (recalculé au plus une fois par seconde, V2.2) */
+const upCache = { t: -1, set: new Set(), save: null };
+function upgradableNow(g, id) {
+  if (upCache.save !== g.save || g.t - upCache.t > 1 || g.t < upCache.t) {
+    upCache.t = g.t;
+    upCache.save = g.save;
+    upCache.set.clear();
+    for (const f of g.furn) if (!upCache.set.has(f.id) && canUpgrade(g.save, f.id).ok) upCache.set.add(f.id);
+  }
+  return upCache.set.has(id);
+}
+
+/** Bulles d'état du jour (V2.2) : étagère vide ou à moitié, producteur plein, file à la caisse. */
+function drawStatusBubbles(ctx, g, ox, oy) {
+  const d = g.day;
+  for (const f of g.furn) {
+    const kind = f.def.day.kind;
+    const x = ox + (f.x + f.w / 2) * C;
+    const y = oy + f.y * C - 10;
+    if (kind === 'shelf' && f.product) {
+      const k = f.count / Math.max(1, f.capacity);
+      if (f.count === 0) {
+        ctx.save();
+        ctx.translate(x, y);
+        drawStatusBubble(ctx, 'empty', f.product, 0, g.t);
+        ctx.restore();
+      } else if (k < 0.5) {
+        ctx.save();
+        ctx.translate(x + 10, y + 4);
+        drawStatusBubble(ctx, 'low', f.product, 0, g.t);
+        ctx.restore();
+      }
+    } else if (kind === 'producer' && f.reserve > 0 && f.stock >= f.reserve) {
+      ctx.save();
+      ctx.translate(x, y);
+      drawStatusBubble(ctx, 'full', f.def.day.product, f.stock, g.t);
+      ctx.restore();
+    }
+  }
+  if (g.register && d.queue.length >= 2) {
+    ctx.save();
+    ctx.translate(ox + (g.register.x + 0.5) * C, oy + g.register.y * C - 12);
+    drawStatusBubble(ctx, 'queue', null, d.queue.length, g.t);
+    ctx.restore();
+  }
 }
 
 function drawWorldOverlay(ctx, g, ox, oy) {
@@ -234,6 +360,7 @@ function drawWorldOverlay(ctx, g, ox, oy) {
       }
       drawPadLabel(ctx, d.pad, ox, oy, g.t);
     }
+    if (d.hirePad) drawPadLabel(ctx, d.hirePad, ox, oy, g.t);
     if (g.register && d.pile > 0) drawCoinPile(ctx, ox + g.register.x * C + 12, oy + g.register.y * C + 4, d.pile);
     if (d.order && d.order.waiting) {
       const o = d.order;
@@ -244,10 +371,16 @@ function drawWorldOverlay(ctx, g, ox, oy) {
         const k = c.patienceFull ? Math.max(0, c.patience / c.patienceFull) : 1;
         ctx.save();
         ctx.translate(ox + c.x * C, oy + c.y * C - 34);
-        drawWantBubble(ctx, c.wants[c.got.length], 0.6 + 0.4 * k);
+        // V2.2 : la bulle passe du blanc à l'orange puis au rouge quand le client s'impatiente.
+        drawWantBubble(ctx, c.wants[c.got.length], 1, k > 0.6 ? P.ticket : k > 0.3 ? '#FFC58A' : '#FF8A8A');
         ctx.restore();
       }
     }
+    drawStatusBubbles(ctx, g, ox, oy);
+  }
+  // Meubles améliorables (plans et pièces suffisants) : flèche verte dans un coin, le jour comme la nuit (V2.2).
+  if (name === 'day' || name === 'closing' || name === 'night' || name === 'morning') {
+    for (const f of g.furn) if (upgradableNow(g, f.id)) drawUpgradeBadge(ctx, ox + (f.x + f.w) * C - 6, oy + f.y * C + 4, g.t);
   }
   drawDoorSign(ctx, ox + (g.grid.door.x + 0.5) * C, oy + g.grid.h * C + 22, name === 'day' || name === 'morning' || name === 'free');
 }
@@ -256,6 +389,16 @@ function drawWorldOverlay(ctx, g, ox, oy) {
 function drawAfterLight(ctx, g, view, ox, oy) {
   const ph = g.phase.name;
   if (g.hints && (ph === 'day' || ph === 'closing' || ph === 'night')) drawHintsWorld(ctx, g.hints, g.player, ox, oy, g.t);
+  // Flèche d'objectif (V2.1) : une seule cible, au-dessus du voile de nuit.
+  // Ouverture (V2.4) : le panneau de la porte se retourne, « Fermé » puis « Ouvert ».
+  if (ph === 'day' && g.day && g.phase.t < DAY.openS + 0.6) {
+    const door = g.grid.door;
+    const k = Math.min(1, g.phase.t / DAY.openS);
+    const fade = Math.max(0, Math.min(1, (DAY.openS + 0.6 - g.phase.t) / 0.6));
+    drawOpenSign(ctx, ox + (door.x + 0.5) * C, oy + (door.y + 0.95) * C, k, fade, t('hud.closedSign'), t('hud.openSign'));
+  }
+  const gd = g.guide;
+  if (gd && gd.visible && gd.target) drawGuideArrow(ctx, ox + gd.target.x * C, oy + gd.target.y * C, g.t, gd.target.kind === 'thief');
   // G19 10:10 : la nuit qui vient ouvre une nouvelle entrée ; on la montre dès la fermeture.
   if ((ph === 'closing' || ph === 'dusk') && g.shop.week === 1) {
     for (const e of g.grid.entrances) {
@@ -295,10 +438,27 @@ function drawAfterLight(ctx, g, view, ox, oy) {
   }
 }
 
+/** Boutons du HUD visibles maintenant (V5.3, V6) : vitesse, pilote automatique, passer la journée. */
+function hudExtras(g) {
+  const name = g.phase.name;
+  const day = name === 'day' || name === 'closing';
+  const night = name === 'night' && !!g.night && !g.night.ended;
+  return {
+    speed: !g.skip && ((day && maxSpeed(g, false) > 1) || (night && maxSpeed(g, true) > 1)),
+    auto: day && !g.skip && autopilotAvailable(g),
+    skip: day && canSkipDay(g),
+  };
+}
+
 function drawHud(ctx, g, view, app) {
   const name = g.phase.name;
   // Au Matin et à l'Aube, l'interface DOM porte les compteurs.
   if (name === 'morning' || name === 'dawn') return;
+  const ex = hudExtras(g);
+  if (ex.speed) drawSpeedButton(ctx, currentSpeed(g), view.speedDrop > 0);
+  if (ex.auto) drawAutoButton(ctx, autopilotOn(g), g.t);
+  if (ex.skip) drawSkipButton(ctx, g.t);
+  if (g.skip) drawSkipBanner(ctx, g.t);
   const d = g.day;
   if (d && (name === 'day' || name === 'closing')) {
     drawSunBar(ctx, 1 - Math.max(0, d.timeLeft) / d.duration);
@@ -309,7 +469,7 @@ function drawHud(ctx, g, view, app) {
     }
   } else if (g.night && (name === 'night' || name === 'dawn')) {
     const n = g.night;
-    drawWavePips(ctx, n.waveIndex, n.waves.length, view.cleared);
+    drawWavePips(ctx, n.waveIndex, n.waves.length, view.cleared, !!n.endless);
     drawJarGauge(ctx, n.jar / Math.max(1, n.jarInitial), Math.round(n.jar), view.jarBlink);
     const boss = bossOf(g);
     if (boss) drawBossBar(ctx, boss.hp / Math.max(1, boss.maxHp), boss.hitT || 0);
@@ -380,6 +540,9 @@ function snapshot(g, fx, renderer) {
     hints: g.hints
       ? { hand: !!g.hints.hand, arrow: g.hints.arrow ? g.hints.arrow.color : null, to: g.hints.arrow ? { x: g.hints.arrow.tx, y: g.hints.arrow.ty } : null, halo: !!g.hints.halo, shown: g.hints.shown }
       : null,
+    // v1.1 : flèche d'objectif (V2.1) et Objectifs de Mamie (V2.3).
+    guide: g.guide ? { visible: g.guide.visible, reason: g.guide.reason, target: g.guide.target ? { x: g.guide.target.x, y: g.guide.target.y, kind: g.guide.target.kind } : null } : null,
+    mamie: Object.assign({}, g.save.progress.mamieObjective || {}),
     order: d && d.order ? { product: d.order.product, need: d.order.need, got: d.order.got, timeLeft: d.order.timeLeft, waiting: d.order.waiting, x: d.order.c.x, y: d.order.c.y } : null,
     rush: !!(d && d.rush),
     newEntrance: (g.phase.name === 'closing' || g.phase.name === 'dusk') && g.shop.week === 1

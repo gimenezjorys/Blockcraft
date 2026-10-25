@@ -3,7 +3,30 @@ import { SFX } from './sfx.js';
 import { perfNow } from '../core/time.js';
 import { listen } from '../core/events.js';
 
-const MIX = { master: 0.8, music: 0.32, sfx: 0.7, ui: 0.5 };
+// v1.1 (V9) : musique à 0,28 avec le réglage par défaut (0,8 × 0,35).
+const MIX = { master: 0.8, music: 0.35, sfx: 0.7, ui: 0.5 };
+/** Gros sons sous lesquels la musique baisse de 5 dB pendant 350 ms (G21.3). */
+const DUCK = new Set(['chest_open', 'level_up', 'boss', 'bell', 'star']);
+const DUCK_K = Math.pow(10, -5 / 20);
+/** Réverbération (G21.3) : envois musique et effets. */
+const SEND = { music: 0.18, sfx: 0.08 };
+
+/** Réponse impulsionnelle générée : bruit stéréo, décroissance exponentielle de 1,4 s, pré-délai 15 ms. */
+function impulse(ctx) {
+  const rate = ctx.sampleRate;
+  const len = Math.floor(rate * 1.4);
+  const b = ctx.createBuffer(2, len, rate);
+  let s = 4242;
+  for (let c = 0; c < 2; c++) {
+    const d = b.getChannelData(c);
+    for (let i = 0; i < len; i++) {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      const pre = i < rate * 0.015 ? 0 : 1;
+      d[i] = pre * ((s / 0x7fffffff) * 2 - 1) * Math.exp((-6 * i) / len);
+    }
+  }
+  return b;
+}
 const MAX_VOICES = 24;
 
 /**
@@ -42,8 +65,46 @@ export function createAudio(win) {
     const music = ctx.createGain();
     sfx.connect(master);
     ui.connect(master);
-    music.connect(master);
-    buses = { master, comp, sfx, ui, music };
+    // v1.1 (V9) : bus musique → saturation douce (WaveShaper) → filtre « chaleur » au-dessus de 9 kHz → sortie.
+    let musicOut = music;
+    try {
+      const shaper = ctx.createWaveShaper();
+      const curve = new Float32Array(1024);
+      const k = 1.6;
+      for (let i = 0; i < curve.length; i++) {
+        const x = (i / (curve.length - 1)) * 2 - 1;
+        curve[i] = Math.tanh(k * x) / Math.tanh(k);
+      }
+      shaper.curve = curve;
+      const warm = ctx.createBiquadFilter();
+      warm.type = 'lowpass';
+      warm.frequency.value = 9000;
+      warm.Q.value = 0.5;
+      music.connect(shaper);
+      shaper.connect(warm);
+      musicOut = warm;
+    } catch {
+      /* sans saturation */
+    }
+    musicOut.connect(master);
+    // Réverbération partagée (si le navigateur la refuse, on s'en passe).
+    let verbIn = null;
+    try {
+      const verb = ctx.createConvolver();
+      verb.buffer = impulse(ctx);
+      verb.connect(master);
+      verbIn = verb;
+      for (const [k, v] of Object.entries(SEND)) {
+        const send = ctx.createGain();
+        send.gain.value = v;
+        (k === 'music' ? music : sfx).connect(send);
+        send.connect(verb);
+      }
+    } catch {
+      /* sans réverbération */
+    }
+    // verb : entrée de la réverbération partagée (envoi de plus pour la boîte à musique de l'écran titre).
+    buses = { master, comp, sfx, ui, music, verb: verbIn };
     applyVolumes();
   }
 
@@ -124,6 +185,11 @@ export function createAudio(win) {
       }
       voices.push(t + r.dur + 0.1);
       stats.played++;
+      if (DUCK.has(id)) {
+        const level = MIX.music * settings.music;
+        buses.music.gain.setTargetAtTime(level * DUCK_K, t, 0.02);
+        buses.music.gain.setTargetAtTime(level, t + 0.35, 0.08);
+      }
       return true;
     },
     /** @param {{ music?: number, sfx?: number }} s */

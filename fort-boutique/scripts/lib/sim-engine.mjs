@@ -3,11 +3,14 @@
 import { defaultSave } from '../../src/save/schema.js';
 import { createGame, rebuildShop } from '../../src/game/state.js';
 import { stepGame } from '../../src/game/phases.js';
-import { openShop, markNightPending, enterDawn, openDawnChest, leaveDawn } from '../../src/game/cycle.js';
+import { openShop, markNightPending, enterDawn, openDawnChest, leaveDawn, retryBossNight, openReadyDistricts } from '../../src/game/cycle.js';
+import { startNight } from '../../src/game/night/night.js';
+import { grantReward } from '../../src/game/rewards.js';
+import { ADS } from '../../src/data/balance.js';
 import { catalogIds, canBuy } from '../../src/game/catalog.js';
 import { canUpgrade } from '../../src/game/economy.js';
 import { unlockedFurniture, districtOpen } from '../../src/game/progression.js';
-import { DISTRICTS } from '../../src/data/districts.js';
+import { DISTRICTS, DISTRICT_IDS } from '../../src/data/districts.js';
 import { createPilot, PROFILES } from './bots.mjs';
 import { morningActions } from './strategy.mjs';
 import { applyQuestModel } from './quests-model.mjs';
@@ -23,12 +26,17 @@ import * as XP_DATA from '../../src/data/xp.js';
 import * as FURN_DATA from '../../src/data/furniture.js';
 import * as CHEST_DATA from '../../src/data/chests.js';
 import * as TUTO_DATA from '../../src/data/tutorial.js';
+import * as MERCHANT_DATA from '../../src/data/merchant.js';
+import { EVENTS_SWITCH } from '../../src/game/weekly-events.js';
+
+// L'équilibrage se mesure sans événement de la semaine ni saison (D2, DECISIONS.md M14).
+EVENTS_SWITCH.enabled = false;
 
 const REGISTRY = {
   WAVES: WAVES_DATA.WAVES, SCALING: WAVES_DATA.SCALING, MONSTERS: MONSTER_DATA.MONSTERS, BOSSES: MONSTER_DATA.BOSSES,
   CUSTOMERS: BALANCE.CUSTOMERS, ECONOMY: BALANCE.ECONOMY, DAY: BALANCE.DAY, NIGHT: NIGHT_DATA.NIGHT, XP_GAINS: XP_DATA.XP_GAINS,
   FURNITURE: FURN_DATA.FURNITURE, FURNITURE_LEVEL: BALANCE.FURNITURE_LEVEL, CHESTS: CHEST_DATA.CHESTS,
-  RUSH: TUTO_DATA.RUSH, SPECIAL_ORDER: TUTO_DATA.SPECIAL_ORDER, XP_TABLE: XP_DATA.XP_TABLE,
+  RUSH: TUTO_DATA.RUSH, SPECIAL_ORDER: TUTO_DATA.SPECIAL_ORDER, XP_TABLE: XP_DATA.XP_TABLE, CAT: MERCHANT_DATA.CAT, ADS: BALANCE.ADS, DISTRICT_FACTORS: BALANCE.DISTRICT_FACTORS, DISTRICTS,
 };
 
 /**
@@ -75,14 +83,17 @@ export function cheapestUseful(save, shopId) {
 
 /**
  * Joue une partie.
- * @param {{ seed: number, profile: string, maxCycles?: number, stopAfterBoss?: boolean }} o
+ * @param {{ seed: number, profile: string, maxCycles?: number, stopAfterBoss?: boolean, ads?: boolean, through?: string }} o
+ *   through : 'q2' pour continuer au Quartier 2 (M16) dès que la Boulangerie est ouverte (boss du Q1 et niveau 7).
+ *   ads : le bot regarde toutes les pubs récompensées utiles (D2.4.7) : × 2 de la nuit, coffre bonus après ★★★,
+ *   revanche d'une Pleine Lune perdue (au plus 2) ; un cycle compte comme un jour.
  */
 export function simulateGame(o) {
   const profile = PROFILES[o.profile];
   const save = defaultSave({ seed: o.seed, now: 0, lang: 'fr' });
   save.progress.flags.introDone = true;
-  const g = createGame({ save });
-  const pilot = createPilot(profile, o.seed);
+  let g = createGame({ save });
+  let pilot = createPilot(profile, o.seed);
   const maxCycles = o.maxCycles ?? 30;
   const cycles = [];
   const out = { seed: o.seed, profile: o.profile, cycles, bossWonAt: null, bossAttempts: 0, nextLevelAt: null, steps: 0 };
@@ -93,6 +104,20 @@ export function simulateGame(o) {
     let dayS = 0;
     let nightS = 0;
     let guard = 0;
+    const runNight = () => {
+      let gd = 0;
+      for (;;) {
+        pilot.tick(g, SIM_DT);
+        stepGame(g, SIM_DT);
+        out.steps++;
+        nightS += SIM_DT;
+        let dawn = false;
+        for (let i = 0; i < g.events.length; i++) if (g.events.items[i].type === 'dawn') dawn = true;
+        g.events.clear();
+        if (dawn) return;
+        if (++gd > 60 * 60 * 10) throw new Error(`revanche bloquée (cycle ${c})`);
+      }
+    };
     for (;;) {
       pilot.tick(g, SIM_DT);
       if (o.trace) o.trace(g, c, pilot);
@@ -119,6 +144,24 @@ export function simulateGame(o) {
     enterDawn(g);
     openDawnChest(g);
     if (r.bossNight) out.bossAttempts++;
+    if (r.bossNight && out.d && out.d[g.shopId]) out.d[g.shopId].attempts++;
+    let rr = r;
+    if (o.ads) {
+      save.player.coins += r.coins;
+      if (r.stars === 3 && !r.bossNight) grantReward(save, { chest: 'wood' }, { seed: o.seed * 31 + c });
+      for (let k = 0; k < ADS.rewarded.rw_boss_retry.cap && rr.bossNight && !rr.bossWin; k++) {
+        retryBossNight(g, ADS.rewarded.rw_boss_retry.dmgBonus);
+        startNight(g, { dayTakings: g.shop.phase.dayTakings || 0 });
+        runNight();
+        g.nightResult = g.night.result;
+        rr = g.nightResult;
+        enterDawn(g);
+        openDawnChest(g);
+        out.bossAttempts++;
+        if (out.d && out.d[g.shopId]) out.d[g.shopId].attempts++;
+        save.player.coins += rr.coins;
+      }
+    }
     leaveDawn(g);
     rebuildShop(g);
     const quests = o.quests === false ? 0 : applyQuestModel(g, o.profile, c);
@@ -136,7 +179,7 @@ export function simulateGame(o) {
       stars: r.stars,
       kept: r.kept,
       bossNight: !!r.bossNight,
-      bossWin: !!r.bossWin,
+      bossWin: !!rr.bossWin,
       dayS,
       nightS,
       kills: r.kills,
@@ -158,9 +201,40 @@ export function simulateGame(o) {
       nightWeek,
       furniture: Object.fromEntries(Object.entries(save.furniture).map(([k, v]) => [k, v.level])),
       layout: g.shop.layout.length,
+      district: g.shopId,
     });
-    if (r.bossWin && out.bossWonAt === null) out.bossWonAt = c;
+    if (rr.bossWin && out.bossWonAt === null && g.shopId === 'q1') out.bossWonAt = c;
     if (out.bossWonAt !== null && out.nextLevelAt === null && districtOpen(save, nextDistrict)) out.nextLevelAt = c;
+    // Playtest P4 : on s'arrête dès que la sauvegarde voulue est atteinte, et on la rend.
+    if (o.until && o.until(save)) {
+      out.save = save;
+      break;
+    }
+    if (o.through) {
+      // Quartiers suivants (M16+) : on part dans le suivant dès qu'il est ouvert (boss vaincu ET niveau) ; pour chacun,
+      // le cycle d'arrivée, la victoire sur son boss, les tentatives et le niveau du quartier d'après.
+      const chain = DISTRICT_IDS.slice(0, DISTRICT_IDS.indexOf(o.through) + 1);
+      out.d = out.d || {};
+      const cur = g.shopId;
+      const d = out.d[cur];
+      if (d) {
+        if (rr.bossWin && d.bossWonAt === null) d.bossWonAt = c;
+        const after = DISTRICT_IDS[DISTRICT_IDS.indexOf(cur) + 1];
+        if (d.bossWonAt !== null && d.nextLevelAt === null && (!after || districtOpen(save, after))) d.nextLevelAt = c;
+      }
+      const next = chain[chain.indexOf(cur) + 1];
+      openReadyDistricts(save);
+      if (next && !out.d[next] && districtOpen(save, next)) {
+        save.currentShop = next;
+        g = createGame({ save });
+        pilot = createPilot(profile, o.seed + 7919 * (chain.indexOf(next) + 1));
+        out.d[next] = { start: c + 1, bossWonAt: null, attempts: 0, nextLevelAt: null };
+        if (next === 'q2') out.q2 = out.d.q2;
+        continue;
+      }
+      if (cur === o.through && d && d.bossWonAt !== null && (d.nextLevelAt !== null || c >= d.bossWonAt + 4)) break;
+      continue;
+    }
     if (o.stopAfterBoss !== false && out.bossWonAt !== null && (out.nextLevelAt !== null || c >= out.bossWonAt + 4)) break;
   }
   return out;

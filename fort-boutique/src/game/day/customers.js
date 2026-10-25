@@ -199,6 +199,8 @@ export function leave(g, c, sad) {
   if (sad) {
     c.mood = -1;
     g.day.lost++;
+    if (g.day.rush) g.day.rush.bad = true;
+    if (g.shop.phase.rush) g.shop.phase.rush.bad = true;
     g.events.push('grumpy', c.x, c.y, c.id);
   }
   c.state = 'leave';

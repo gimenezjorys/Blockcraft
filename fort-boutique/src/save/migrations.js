@@ -2,6 +2,8 @@
 // Chaque migration est pure, conserve tous les champs inconnus et ne retire jamais
 // progression, monnaies, cosmétiques ni achats.
 import { CURRENT_VERSION, cloneJson } from './schema.js';
+import { applyPlan } from '../game/plans.js';
+import { DEFAULT_PLAN } from '../data/shop-plans.js';
 
 /**
  * v0 -> v1 : format « plat » des prototypes (synthétique, sert à tester la chaîne de migration).
@@ -29,9 +31,33 @@ function v0toV1(s) {
   return out;
 }
 
+/**
+ * v1 -> v2 (v1.1, V3) : le placement libre devient des emplacements prévus. Chaque boutique prend le plan par défaut
+ * (l'Allée) ; ses meubles posés vont dans l'emplacement libre le plus proche de leur type ; ce qui ne tient pas va dans
+ * la Réserve. Rien n'est perdu : Réserve, personnel, recettes, semaine, monnaies et tout le reste sont gardés.
+ * Si le rangement donnait une disposition invalide (sauvegarde abîmée), la disposition reste telle quelle.
+ * @param {any} s
+ */
+function v1toV2(s) {
+  const out = cloneJson(s);
+  const shops = out.shops && typeof out.shops === 'object' ? out.shops : {};
+  for (const [id, shop] of Object.entries(shops)) {
+    if (!shop || typeof shop !== 'object' || !Array.isArray(shop.layout)) continue;
+    if (!Array.isArray(shop.storage)) shop.storage = [];
+    if (!Number.isInteger(shop.expansion)) shop.expansion = 0;
+    shop.autopilot = false;
+    shop.slots = {};
+    shop.layout = shop.layout.filter((it) => it && typeof it.id === 'string');
+    if (!applyPlan(id, shop, DEFAULT_PLAN, { nearest: true, fromStorage: false })) shop.plan = DEFAULT_PLAN;
+  }
+  out.version = 2;
+  return out;
+}
+
 /** @type {Record<number, (save: any) => any>} */
 export const MIGRATIONS = {
   0: v0toV1,
+  1: v1toV2,
 };
 
 /**

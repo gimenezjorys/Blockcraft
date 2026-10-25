@@ -16,6 +16,21 @@ import { SVG } from './icons.js';
 import { createHub, HUB_SCREENS } from './hub.js';
 import { createObjective } from './objective.js';
 import { forceArrow } from '../game/tutorial.js';
+import { refreshQuests, questsClaimable } from '../game/quests.js';
+import { calendarState } from '../game/calendar.js';
+import { streakCheck } from '../game/streak.js';
+import { checkAchievements } from '../game/achievements.js';
+import { checkBestiary } from '../game/bestiary.js';
+import { collectOffline } from '../game/offline.js';
+import { dailyFirstAttempt } from '../game/daily.js';
+import { checkEvent, eventState } from '../game/weekly-events.js';
+import { createDailyFlow } from './daily-flow.js';
+import { createEndlessFlow } from './endless-flow.js';
+import { createAdFlow } from './ad-flow.js';
+import { canShowInterstitial, noteInterstitial, noteCycle } from '../ads/ad-policy.js';
+import { retryBossNight, openReadyDistricts } from '../game/cycle.js';
+import { grantReward } from '../game/rewards.js';
+import { utcDay } from '../core/time.js';
 
 /** G19 2:22 : la pluie de pièces se voit avant que le ticket de l'aube ne s'imprime (plus courte ensuite ; un tap l'abrège). */
 const DAWN_DELAY_S = 2.5;
@@ -95,7 +110,12 @@ export function createSession(app, o) {
       b.classList.add('hint-pulse');
       return null;
     };
-    if (o.kind === 'pad') pulse('#hub-open');
+    if (o.kind === 'mamie') {
+      // Objectif de Mamie : l'endroit où il se fait (améliorations, plans de boutique) ; sinon « Ouvrir ».
+      if (o.def.kind === 'level') hub.open('upgrades');
+      else if (o.def.flag === 'planChosen') pulse('#hub-plans');
+      else pulse('#hub-open');
+    } else if (o.kind === 'pad') pulse('#hub-open');
     else if (o.kind === 'upgrade') hub.open('upgrades');
     else if (o.kind === 'moon') hub.open('moon');
     else if (o.kind === 'quest') pulse('#hub-quests');
@@ -105,17 +125,40 @@ export function createSession(app, o) {
   function showMorning() {
     enterMorning(g);
     rebuildShop(g);
+    // Quartier ouvert plus tard (niveau atteint après la victoire sur le boss) : sa boutique et sa carte arrivent (G12.4).
+    openReadyDistricts(g.save);
+    // Rétention (G14, G15) : jours manqués (gels), quêtes du jour, succès et paliers du bestiaire gagnés.
+    const t0 = now();
+    streakCheck(g.save, t0);
+    refreshQuests(g.save, t0);
+    const achieved = checkAchievements(g.save, t0);
+    const tiers = checkBestiary(g.save);
+    const evWin = checkEvent(g.save, t0);
+    if (achieved.length || tiers.length || evWin) save(true);
     renderMorning();
-    // Les déblocages se fêtent au Matin suivant (G12.4).
-    hub.showUnlocks();
+    const toast = (text, icon) => app.services.toast && app.services.toast(text, icon);
+    for (const a of achieved) toast(t('ach.unlocked', { n: a.rubies }), SVG.star);
+    for (const b of tiers) toast(t('best.tier', { name: t(`mon.${b.type}`), n: b.rubies }), SVG.ruby);
+    if (evWin) toast(evWin.cosmetic ? t('event.won') : t('event.wonRubies', { n: evWin.rubies }), SVG.star);
+    // Les déblocages se fêtent au Matin suivant (G12.4), puis le ticket « Pendant ton absence » (G16), puis le
+    // calendrier s'ouvre seul s'il attend (G19 3:02).
+    const calendar = () => session.hubScreens.has('calendar') && isUnlocked(g.save, 'calendar') && hub.autoCalendar();
+    const away = () => {
+      if (!hub.showAway(calendar)) calendar();
+    };
+    if (!hub.showUnlocks(away)) away();
   }
 
   /** Pastilles du hub : Aménager qui vient d'ouvrir (G19 6:50), une amélioration possible. */
   function hubBadges(game) {
     const save = game.save;
     return {
-      editor: isUnlocked(save, 'editor') && !save.progress.flags.editorSeen,
+      editor: !!save.settings.freeLayout && isUnlocked(save, 'editor') && !save.progress.flags.editorSeen,
+      plans: isUnlocked(save, 'editor') && !save.progress.flags.planChosen,
       upgrades: unlockedFurniture(save).some((id) => canUpgrade(save, id).ok),
+      quests: isUnlocked(save, 'quests') && questsClaimable(save, now()),
+      daily: isUnlocked(save, 'daily') && dailyFirstAttempt(save, utcDay(now())),
+      calendar: calendarState(save, now()).canClaim,
     };
   }
 
@@ -136,11 +179,43 @@ export function createSession(app, o) {
       badges: hubBadges(g),
       onSettings: () => openSettings(),
       objective: (d) => createObjective(() => g, morningObjective, d),
+      event: eventState(g.save, now()),
       hintOpen: g.save.stats.cycles < 3,
     });
   }
 
-  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning() });
+  /** Scène de jeu de la boutique courante. */
+  function makePlay() {
+    return createPlay(app, g, {
+      onPause: pause,
+      onEvent,
+      // Un tap pendant la pluie de pièces passe directement au ticket.
+      onTap: () => {
+        if (dawnDelay > 0.15) dawnDelay = 0.15;
+      },
+    });
+  }
+
+  /**
+   * Aller dans une autre boutique (carte des quartiers, au Matin) : chaque boutique garde sa journée, sa semaine et sa
+   * disposition ; l'argent, le niveau et les meubles améliorés sont communs (G13.1).
+   */
+  function switchShop(id) {
+    if (!g || g.shopId === id || !g.save.shops[id] || !g.save.shops[id].unlocked) return;
+    if (g.phase.name !== 'morning') return;
+    g.save.currentShop = id;
+    g = createGame({ save: g.save });
+    play = makePlay();
+    app.setScene(play);
+    save(true);
+    route(resumePoint(g));
+  }
+
+  const adFlow = createAdFlow(app, { game: () => g, save });
+  const hub = createHub(app, { game: () => g, save, refresh: () => renderMorning(), daily: () => daily, endless: () => endless, ads: () => adFlow, switchShop: (id) => switchShop(id) });
+  const flowOpts = { game: () => g, play: () => play, save, renderMorning: () => renderMorning() };
+  const daily = createDailyFlow(app, flowOpts);
+  const endless = createEndlessFlow(app, flowOpts);
 
   function showDawn(resumed = false) {
     dawnDelay = -1;
@@ -171,12 +246,72 @@ export function createSession(app, o) {
         return ok;
       },
       onContinue: () => {
+        const r = g.shop.phase.dawn && g.shop.phase.dawn.result;
+        const bossWin = !!(r && r.bossWin);
         leaveDawn(g);
+        noteCycle(g.save);
         save(true);
-        showMorning();
+        const ad = afterDawnAd(bossWin);
+        if (ad) ad.then(() => showMorning());
+        else showMorning();
       },
-      adReady: () => !!(app.services.ads && app.services.ads.isRewardedReady('rw_double_night')),
-      adOffer: () => g.save.stats.playtimeMs >= ADS.quietPlaytimeMs,
+      // Pubs récompensées de l'aube (G18.1), toujours au choix du joueur.
+      adReady: () => adFlow.ready('rw_double_night'),
+      adOffer: () => adFlow.visible('rw_double_night', { night: g.save.stats.nights }),
+      onDouble: () => adFlow.watch('rw_double_night', { night: g.save.stats.nights }, () => {
+        const dw = g.shop.phase.dawn;
+        if (!dw || dw.adDoubled) return;
+        g.save.player.coins += dw.result.coins;
+        dw.adDoubled = true;
+      }),
+      extraAds: dawnAds(),
+    });
+  }
+
+  /** Pubs en plus à l'aube : +1 coffre en bois après ★★★ (3 par jour), revanche d'une Pleine Lune perdue (2 par jour). */
+  function dawnAds() {
+    const dw = () => g.shop.phase.dawn;
+    return [
+      {
+        id: 'bonus-chest',
+        label: t('ads.bonusChest'),
+        visible: () => !!dw() && dw().result.stars === 3 && !dw().result.bossNight && !dw().bonusChest && adFlow.visible('rw_bonus_chest'),
+        ready: () => adFlow.ready('rw_bonus_chest'),
+        onWatch: () => adFlow.watch('rw_bonus_chest', {}, () => {
+          const d = dw();
+          if (!d || d.bonusChest) return;
+          d.bonusChest = true;
+          const r = grantReward(g.save, { chest: 'wood' }, { seed: seedFrom(g.save.seed, 'pub coffre', g.save.stats.nights) });
+          app.router.push('reward', { title: t('ads.bonusChest'), rewards: [r], onClose: () => app.router.pop() });
+        }),
+      },
+      {
+        id: 'boss-retry',
+        label: t('ads.bossRetry'),
+        visible: () => !!dw() && !!dw().result.bossNight && !dw().result.bossWin && adFlow.visible('rw_boss_retry'),
+        ready: () => adFlow.ready('rw_boss_retry'),
+        onWatch: () => adFlow.watch('rw_boss_retry', {}, () => {
+          if (!retryBossNight(g, ADS.rewarded.rw_boss_retry.dmgBonus)) return;
+          startNight(g, { dayTakings: g.shop.phase.dayTakings || 0 });
+          showHud();
+        }),
+      },
+    ];
+  }
+
+  /**
+   * Interstitielle it_dawn (G18.2) au passage Aube -> Matin, seulement si toutes les conditions sont vraies.
+   * @returns {Promise<void> | null} null si aucune pub n'est montrée (le Matin s'ouvre tout de suite)
+   */
+  function afterDawnAd(bossWin) {
+    const ads = app.services.ads;
+    const unlocked = g.save.progress.pendingUnlocks.length > 0 || g.save.progress.pendingDistricts.length > 0;
+    if (!ads || ads.adapter === 'none' || !canShowInterstitial(g.save, now(), { bossWin, unlocked }).ok) return null;
+    return ads.showInterstitial('it_dawn').then((r) => {
+      if (r && r.shown) {
+        noteInterstitial(g.save, now());
+        save(true);
+      }
     });
   }
 
@@ -186,8 +321,9 @@ export function createSession(app, o) {
     const st = g.save.settings;
     if (app.services.audio) app.services.audio.setVolumes({ music: st.music, sfx: st.sfx });
     if (typeof document !== 'undefined') document.documentElement.style.setProperty('--ui-scale', st.bigText ? '1.15' : '1');
-    if (app.economy !== !!st.economy) {
-      app.economy = !!st.economy;
+    // Le mode économie automatique (images lentes, B5) reste actif jusqu'au rechargement.
+    if (app.economy !== (!!st.economy || !!app.autoEconomy)) {
+      app.economy = !!st.economy || !!app.autoEconomy;
       app.refit();
     }
     setLang(st.lang);
@@ -281,6 +417,10 @@ export function createSession(app, o) {
         break;
       case 'night_start':
         save(true);
+        // Coup de main de Mamie (M20) : la nuit d'avant a mal fini, la horde de ce soir est plus petite.
+        if (g.night && g.night.help && app.services.toast) app.services.toast(t('night.help'), SVG.check);
+        // Semaine d'ouverture d'une boutique neuve (M20) : dit une fois, à la première nuit.
+        else if (g.night && g.night.opening && g.shop.night === 1 && app.services.toast) app.services.toast(t('night.opening'), SVG.check);
         break;
       case 'dawn':
         enterDawn(g);
@@ -362,6 +502,8 @@ export function createSession(app, o) {
       const loaded = loadSave(o.storage, { seed: seedFrom(tNow, 'nouvelle partie'), now: tNow, lang: o.lang });
       const data = loaded.data;
       data.stats.sessions++;
+      // Retour après une absence (G16) : réserves pleines, gains du personnel, Coffre de Bienvenue.
+      collectOffline(data, tNow);
       g = createGame({ save: data });
       saver = new SaveManager(o.storage, data, { now }, loaded.text);
       saver.beforeWrite.push((d) => {
@@ -369,14 +511,7 @@ export function createSession(app, o) {
       });
       if (loaded.repaired && app.services.toast) app.services.toast(t('save.repaired'));
       applySettings();
-      play = createPlay(app, g, {
-        onPause: pause,
-        onEvent,
-        // Un tap pendant la pluie de pièces passe directement au ticket.
-        onTap: () => {
-          if (dawnDelay > 0.15) dawnDelay = 0.15;
-        },
-      });
+      play = makePlay();
       app.setScene(play);
       if (session.onLoaded) session.onLoaded(g, loaded);
       route(resumePoint(g));
@@ -385,6 +520,8 @@ export function createSession(app, o) {
     /** À chaque pas : sauvegarde automatique et temps de jeu. */
     step(dt) {
       if (!g || !saver) return;
+      daily.step();
+      endless.step();
       if (dawnDelay >= 0) {
         dawnDelay -= dt;
         if (dawnDelay < 0 && app.router.baseId() === 'hud') showDawn();
@@ -410,6 +547,12 @@ export function createSession(app, o) {
      */
     autoPause() {
       if (!g || !play || app.router.currentId() === 'title') return;
+      for (const f of [daily, endless]) {
+        if (f.active()) {
+          f.pause();
+          return;
+        }
+      }
       const n = g.phase.name;
       if (n === 'day' || n === 'closing' || n === 'dusk' || n === 'night') pause();
     },

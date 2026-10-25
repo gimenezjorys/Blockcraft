@@ -5,6 +5,7 @@ import { districtDef } from '../data/districts.js';
 import { recipeCost } from './economy.js';
 import { isUnlocked } from './progression.js';
 import { validateLayout } from './shop.js';
+import { applyPlan, shopPlanId, syncSlots } from './plans.js';
 
 /**
  * Prochaine amélioration du marchand.
@@ -81,10 +82,20 @@ export function expandShop(save, shopId) {
   const info = expansionInfo(save, shopId);
   if (!info.ok) return false;
   const shop = save.shops[shopId];
-  const moved = shop.layout.map((it) => ({ ...it, y: it.y + 1 }));
-  if (!validateLayout(shopId, info.to, moved).ok) return false;
+  // v1.1 (V3) : la boutique agrandie reprend le même plan à la nouvelle taille ; chaque meuble garde son rang dans
+  // l'ordre de remplissage, et ceux de la Réserve trouvent leur place s'il y en a.
+  const next = { ...shop, layout: shop.layout.map((it) => ({ ...it })), storage: (shop.storage || []).slice() };
+  if (!applyPlan(shopId, next, shopPlanId(shop), { expansion: info.to })) {
+    const moved = shop.layout.map((it) => ({ ...it, y: it.y + 1 }));
+    if (!validateLayout(shopId, info.to, moved).ok) return false;
+    next.layout = moved;
+    next.storage = (shop.storage || []).slice();
+    next.expansion = info.to;
+  }
   save.player.coins -= info.cost;
-  shop.layout = moved;
+  shop.layout = next.layout;
+  shop.storage = next.storage;
   shop.expansion = info.to;
+  syncSlots(shopId, shop);
   return true;
 }

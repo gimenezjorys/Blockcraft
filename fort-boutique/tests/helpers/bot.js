@@ -88,6 +88,8 @@ export class TouchBot {
     else if (screen === 'intro') this.intro();
     else if (screen === 'dawn') this.dawn();
     else if (screen === 'unlocks') this.tapEl('#unlock-ok');
+    else if (screen === 'reward') this.tapEl('.reward');
+    else if (screen === 'calendar') this.tapEl(this.g.$('#calendar-today') ? '#calendar-today' : '#calendar-close');
     else if (screen === 'morning') this.morning(st);
     else if (sc && (sc.phase === 'day' || sc.phase === 'closing')) this.day(sc);
     else if (sc && sc.phase === 'night') this.night(sc);

@@ -79,6 +79,37 @@ export function createFxHandler({ app, g, fx, floaters, camera, view }) {
         play('kaching');
         floaters.add(`+${e.a}`, px(e.x), py(e.y) - 30, { color: P.orReflet, size: 15 });
         break;
+      case 'cat_arrive':
+        view.hearts.push({ x: px(e.x), y: py(e.y) - 30, t: 0 });
+        play('cat');
+        break;
+      case 'hire_pop':
+        play('build_pop');
+        play('happy');
+        vibrate(15);
+        fx.burst('spark', px(e.x), py(e.y) - 10, 10, '#FFD23F', 90, 0.7, 3);
+        floaters.add(t(e.s === 'clerk' ? 'staff.clerk' : 'staff.cashier'), px(e.x), py(e.y) - 34, { color: P.orReflet, size: 13 });
+        break;
+      case 'shop_open':
+        play('door_bell');
+        break;
+      case 'cat_meow':
+        play('cat');
+        break;
+      case 'mamie_done': {
+        // Objectif de Mamie réussi : la récompense vole de la carte (en haut à gauche) vers le compteur.
+        play('quest');
+        if (e.a > 0) {
+          const from = screenToWorld(camera.base || 1, 44, 56, { x: 0, y: 0 });
+          const tg = counterInWorld();
+          const n = Math.min(10, Math.max(3, Math.ceil(e.a / 5)));
+          for (let i = 0; i < n; i++) fx.coinFlight(from.x, from.y, tg.x, tg.y, 0.25 + i * 0.05, e.a / n);
+        }
+        break;
+      }
+      case 'cat_fetch':
+        play('coin');
+        break;
       case 'happy':
         view.hearts.push({ x: px(e.x), y: py(e.y) - 30, t: 0 });
         play('happy');
