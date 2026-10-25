@@ -563,3 +563,7 @@ Décision :
 - **Performance** : boutique E3 pleine (35 meubles), 4 commis et 2 caissiers, vitesse ×3 : 60 images/s et 0,1 à 0,2 ms de simulation par image dans Chromium ; les particules restent telles quelles.
 Raison : PROMPT v1.1, V10.
 
+## 2026-10-26 — Publication : toujours la dernière version en ligne
+Décision : le lien publié affichait encore l'ancienne version chez l'auteur (page gardée en cache par le navigateur : GitHub Pages autorise 10 minutes de cache ; la page d'accès ne faisait qu'une redirection). Le build écrit maintenant `fort-boutique/index.html`, une page d'accès qui mène à une adresse propre à chaque version (`dist/?v=1.1.0-<commit>`, redirection par balise et par script), et `dist/version.json`. Au démarrage en ligne, le jeu lit ce fichier sans cache ; si une version plus récente est publiée, il recharge une fois l'adresse de cette version (la partie est dans le stockage local, rien n'est perdu ; hors ligne ou en fichier local, rien ne change).
+Raison : demande de l'auteur (« le lien m'envoie sur une ancienne version »).
+

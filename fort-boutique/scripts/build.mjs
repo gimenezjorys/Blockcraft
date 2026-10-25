@@ -113,10 +113,37 @@ export async function buildGame({ test = TEST, quiet = QUIET } = {}) {
   writeFileSync(join(out, 'icons/icon-192.png'), renderIconPng(192));
   writeFileSync(join(out, 'icons/icon-512.png'), renderIconPng(512));
   writeFileSync(join(out, 'icons/apple-touch-icon.png'), renderIconPng(180));
+  if (!test) {
+    // Publication (v1.1.0) : la version publiée, lue par le jeu au démarrage pour se mettre à jour tout seul, et la
+    // page d'accès qui mène à une adresse propre à chaque version (jamais l'ancienne page gardée en cache).
+    writeFileSync(join(out, 'version.json'), JSON.stringify(version) + '\n');
+    writeFileSync(join(ROOT, 'index.html'), accessPage(version));
+  }
   if (!quiet) {
     process.stdout.write(`build ${test ? '(test) ' : ''}OK : ${join(out, 'index.html')} — ${(bytes / 1024).toFixed(1)} Ko — v${version.version} ${version.hash} ${version.date}\n`);
   }
   return { bytes, path: join(out, 'index.html') };
+}
+
+/** Page d'accès (fort-boutique/index.html) : redirige vers dist/ avec la version dans l'adresse. */
+function accessPage(version) {
+  const v = encodeURIComponent(`${version.version}-${version.hash}`);
+  const url = `dist/?v=${v}`;
+  return `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fort Boutique</title>
+<meta http-equiv="refresh" content="0; url=${url}">
+<link rel="canonical" href="dist/">
+<script>location.replace(${JSON.stringify(url)});</script>
+</head>
+<body style="background:#2E4B44;color:#F2F6EE;font-family:system-ui,sans-serif;text-align:center;padding-top:40vh">
+<a href="${url}" style="color:#FFE066">Jouer à Fort Boutique v${version.version}</a>
+</body>
+</html>
+`;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
